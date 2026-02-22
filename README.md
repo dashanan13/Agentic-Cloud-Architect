@@ -36,6 +36,32 @@ A3 uses a sophisticated **Agent-to-Agent (A2A)** workflow built on the **Microso
 
 ---
 
+## 🧩 Final Layout Design
+
+The workspace uses a fully resizable split-pane layout. All major sections are resizable, with the **Visual Canvas** as the largest default area.
+
+```text
++--------------------------------------------------------------------------------------------------+
+| [Cloud Provider ▼]                                                  [Project: <Project_Name>]    |
++------------------------------+-----------------------------------------------+-------------------+
+| [Search resources...]        |                                               | Resource Details  |
+|------------------------------|                                               |-------------------|
+| Dynamic Resource List        |                VISUAL CANVAS                  | Selected Resource |
+| (provider-scoped catalog)    |             (largest default pane)            | Properties / Form |
+|                              |                                               | Validation        |
+|                              |                                               | Dependencies      |
++------------------------------+-----------------------------------------------+-------------------+
+| [Chat] [Terminal] (tabbed)                                   | Status: info / warn / error      |
++--------------------------------------------------------------+-----------------------------------+
+
+Resizable splitters:
+- Vertical: Resource List ↔ Canvas ↔ Properties
+- Horizontal: Main Workspace ↕ Bottom Pane
+- Bottom split: Chat/Terminal ↔ Status
+```
+
+---
+
 ## 📂 Project Structure
 
 ```bash
