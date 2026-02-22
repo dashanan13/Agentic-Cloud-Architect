@@ -72,7 +72,7 @@ Resizable splitters:
 ├── App_State/
 ├── Clouds/
 │   ├── Azure/
-│   │   └── Azure_icons/
+│   │   └── Icons/
 │   ├── AWS/
 │   └── GCP/
 ├── Connections/
@@ -101,7 +101,7 @@ Resizable splitters:
 | `App_Frontend/` | React UI, canvas, chat sidekick, and client-side workflows. |
 | `App_State/` | Shared state models, persistence helpers, and runtime context. |
 | `Clouds/` | Cloud-provider-specific assets (schemas, adapters, icons, constraints). |
-| `Clouds/Azure/Azure_icons/` | Azure service icon library used on the architecture canvas. |
+| `Clouds/Azure/Icons/` | Azure service icon library used on the architecture canvas. |
 | `Connections/` | External integrations (Foundry, MCP clients, model routing connectors). |
 | `IaC/` | IaC-engine-specific logic and templates (`Bicep`, `Terraform`, `OpenTofu`). |
 | `MCP/` | MCP server configuration and bindings used by agents/tools. |
@@ -140,6 +140,25 @@ docker-compose up --build
 
 4. **Access the App:**
 Open `http://localhost:3000` to start designing.
+
+### Current First Step (Implemented)
+
+The current containerized app serves the **layout shell UI** with:
+- Resizable left resource panel, center canvas, and right properties panel
+- Resizable bottom workspace with **Chat / Terminal** tabs and **Status Messages** pane
+- Canvas as the largest default design area
+
+Run with:
+
+```bash
+docker compose up --build
+```
+
+If port `3000` is already in use, run on another host port:
+
+```bash
+APP_PORT=3001 docker compose up --build
+```
 
 ---
 
