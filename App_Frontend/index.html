@@ -8,25 +8,84 @@
   </head>
   <body>
     <div class="app" id="app">
-      <header class="topbar">
-        <div class="topbar__left">
-          <label for="cloud-provider" class="sr-only">Cloud provider</label>
-          <select id="cloud-provider" aria-label="Cloud provider">
-            <option>Azure</option>
-            <option>AWS</option>
-            <option>GCP</option>
-          </select>
+      <!-- Landing Screen -->
+      <div class="screen is-active" id="screen-projects">
+        <div class="projects-header">
+          <h1>Azure Agentic Architect</h1>
+          <p>Select a project to continue or create a new one.</p>
         </div>
-        <div class="topbar__right">
-          <span class="project-label">Project</span>
-          <strong id="project-name">&lt;Project_Name&gt;</strong>
-        </div>
-      </header>
 
-      <main class="workspace" id="workspace">
+        <section class="projects-content">
+          <!-- Azure Projects -->
+          <div class="projects-group">
+            <h2 class="projects-group-title">Azure</h2>
+            <div class="projects-list" id="projects-azure"></div>
+          </div>
+
+          <!-- AWS Projects -->
+          <div class="projects-group">
+            <h2 class="projects-group-title">AWS</h2>
+            <div class="projects-list" id="projects-aws"></div>
+          </div>
+
+          <!-- GCP Projects -->
+          <div class="projects-group">
+            <h2 class="projects-group-title">GCP</h2>
+            <div class="projects-list" id="projects-gcp"></div>
+          </div>
+        </section>
+
+        <div class="projects-footer">
+          <button id="btn-create-project" class="btn btn--primary">+ New Project</button>
+        </div>
+      </div>
+
+      <!-- Create Project Modal -->
+      <div class="modal-overlay is-hidden" id="modal-create-project">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Create New Project</h2>
+            <button class="modal-close-btn" id="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="create-cloud">Cloud Provider</label>
+              <select id="create-cloud" aria-label="Cloud provider">
+                <option value="">Select a cloud...</option>
+                <option value="Azure">Azure</option>
+                <option value="AWS">AWS</option>
+                <option value="GCP">GCP</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="create-name">Project Name</label>
+              <input type="text" id="create-name" placeholder="e.g., azure-2026-02-23-14-35-42" aria-label="Project name" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn--secondary" id="modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="modal-create">Create</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Screen -->
+      <div class="screen" id="screen-canvas">
+        <header class="topbar">
+          <div class="topbar__left">
+            <span class="project-label">Project</span>
+            <span id="project-name-display" class="project-name-display" contenteditable="true" role="button" tabindex="0"></span>
+            <span class="project-timestamp" id="project-timestamp"></span>
+          </div>
+          <div class="topbar__right">
+            <button id="btn-back-projects" class="btn btn--sm">Back to Projects</button>
+          </div>
+        </header>
+
+        <main class="workspace" id="workspace">
         <section class="panel panel--left" aria-label="Resource browser">
           <div class="panel__header">
-            <input type="search" placeholder="Search resources" aria-label="Search resources" />
+            <input type="search" id="search-input" placeholder="Search resources" aria-label="Search resources" />
           </div>
           <div class="resource-list" id="resource-list" aria-label="Resource list"></div>
         </section>
@@ -76,6 +135,7 @@
           </aside>
         </section>
       </main>
+      </div>
     </div>
 
     <script src="./app.js"></script>
