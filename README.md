@@ -1,6 +1,6 @@
 # 🌐 Azure Agentic Architect (A3)
 
-**Azure Agentic Architect (A3)** is a containerized, visual Infrastructure-as-Code (IaC) designer. It empowers application teams to "vibe code" their cloud infrastructure by dragging and dropping **Azure Verified Modules (AVM)** onto a canvas, which is then translated into production-ready Bicep and Azure DevOps pipelines via a multi-agent system.
+**Azure Agentic Architect (A3)** is a containerized, visual Infrastructure-as-Code (IaC) designer. It empowers application teams to "vibe code" their cloud infrastructure by dragging and dropping cloud resources onto a canvas, which is then translated into production-ready IaC and CI/CD assets via a multi-agent system.
 
 ---
 
@@ -9,7 +9,7 @@
 * **Visual Architecture Canvas:** A drag-and-drop interface powered by `React Flow` with real-time zooming, panning, and resource connecting.
 * **Agentic Sidekick:** A bottom-pane chat powered by the **Microsoft Agent Framework** that can build or modify the architecture based on natural language.
 * **Live Schema Inspection:** Integrated with **Azure MCP** to fetch real-time properties, constraints, and valid ranges for every Azure resource.
-* **AVM-First Approach:** Strictly uses **Azure Verified Modules** to ensure the generated Bicep is compliant with the **Well-Architected Framework (WAF)**.
+* **Module-First Approach:** Uses verified cloud modules/patterns so generated IaC aligns with production readiness best practices.
 * **Instant IaC & CI/CD:** One-click conversion from visual diagram to `main.bicep` and `azure-pipelines.yml`.
 
 ---
@@ -20,7 +20,7 @@ A3 uses a sophisticated **Agent-to-Agent (A2A)** workflow built on the **Microso
 
 | Agent | Responsibility | Tooling |
 | --- | --- | --- |
-| **Architect Agent** | Interprets user intent and updates the Canvas JSON. | `Azure AI Search`, `AVM Metadata` |
+| **Architect Agent** | Interprets user intent and updates the Canvas JSON. | `Azure AI Search`, `Cloud Catalog Metadata` |
 | **Bicep Specialist** | Converts graph nodes into Bicep modules. | `Azure MCP Server`, `Bicep CLI` |
 | **DevOps Agent** | Generates YAML pipelines and environment configs. | `Azure DevOps MCP` |
 | **Model Router** | Directs tasks to GPT-4o (Reasoning) or GPT-4o-mini (Speed). | `Azure AI Foundry` |
@@ -40,23 +40,49 @@ A3 uses a sophisticated **Agent-to-Agent (A2A)** workflow built on the **Microso
 
 ```bash
 .
-├── Agents/                         # Microsoft Agent Framework definitions (Architect, Bicep, DevOps)
-├── AVM/                            # Azure Verified Modules (Bicep library & metadata)
-├── Azure_Icons/                    # Visual assets for the Canvas nodes
-├── Connections/                    # API Clients (Azure Foundry, MCP Client, Model Router)
-├── MCP/                            # MCP Server configurations (Azure, MS Learn, Bicep)
-├── Projects/                       # User-generated output (organized by project name)
+├── Agents/
+├── App_Backend/
+├── App_Frontend/
+├── App_State/
+├── Clouds/
+│   ├── Azure/
+│   │   └── Azure_icons/
+│   ├── AWS/
+│   └── GCP/
+├── Connections/
+├── IaC/
+│   ├── Bicep/
+│   ├── Terraform/
+│   └── OpenTofu/
+├── MCP/
+├── Projects/
 │   └── <Project_Name>/
-│       ├── Bicep/                  # Generated main.bicep and parameters
-│       ├── Diagram/                # JSON state of the React Flow canvas
-│       └── Documentation/          # Activity logs, WAF reports, and AI explanations
-├── App_Frontend/                   # Vite/React code (UI, Canvas, Sidebar)
-├── App_Backend/                    # FastAPI entry points and WebSocket handlers
-├── App_State/                      # Global session persistence and orchestration state
-├── Dockerfile                      # Multi-stage build for the containerized webapp
-├── docker-compose.yml              # Orchestrates Frontend, Backend, and MCP servers
-└── README.md                       # Project documentation
+│       ├── Architecture/
+│       ├── IaC/
+│       │   └── <cloud>/<engine>/
+│       └── Docs/
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
 ```
+
+### Folder Purposes
+
+| Folder | Purpose |
+| --- | --- |
+| `Agents/` | Multi-agent definitions, prompts, routing, and orchestration contracts. |
+| `App_Backend/` | FastAPI services, APIs, and orchestration endpoints used by UI/agents. |
+| `App_Frontend/` | React UI, canvas, chat sidekick, and client-side workflows. |
+| `App_State/` | Shared state models, persistence helpers, and runtime context. |
+| `Clouds/` | Cloud-provider-specific assets (schemas, adapters, icons, constraints). |
+| `Clouds/Azure/Azure_icons/` | Azure service icon library used on the architecture canvas. |
+| `Connections/` | External integrations (Foundry, MCP clients, model routing connectors). |
+| `IaC/` | IaC-engine-specific logic and templates (`Bicep`, `Terraform`, `OpenTofu`). |
+| `MCP/` | MCP server configuration and bindings used by agents/tools. |
+| `Projects/` | Generated project outputs grouped by project name. |
+| `Projects/<Project_Name>/Architecture/` | Source-of-truth architecture/canvas JSON for a single project. |
+| `Projects/<Project_Name>/IaC/<cloud>/<engine>/` | Generated deployment artifacts by cloud and IaC engine. |
+| `Projects/<Project_Name>/Docs/` | Design notes, reports, decision logs, and validation output. |
 
 ---
 
@@ -95,7 +121,7 @@ Open `http://localhost:3000` to start designing.
 
 * **WAF Auditor Agent:** Real-time cost and security scoring during the design phase.
 * **Reverse Engineering:** Import existing Azure Resource Groups into the visual canvas via Azure MCP.
-* **Multi-Cloud Support:** Expanding AVM patterns to include Terraform/OpenTofu for AWS/GCP.
+* **Multi-Cloud Support:** Extend provider adapters in `Clouds/` and generate IaC into `Projects/<Project_Name>/IaC/<cloud>/<engine>/`.
 
 ---
 
