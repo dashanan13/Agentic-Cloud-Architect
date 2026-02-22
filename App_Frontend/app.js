@@ -2,14 +2,25 @@
 const appEl = document.getElementById("app");
 const screenProjects = document.getElementById("screen-projects");
 const screenCanvas = document.getElementById("screen-canvas");
-const btnCreateProject = document.getElementById("btn-create-project");
-const btnBackProjects = document.getElementById("btn-back-projects");
+
+// Old modal references (kept for backwards compat)
 const modalCreateProject = document.getElementById("modal-create-project");
 const modalClose = document.getElementById("modal-close");
 const modalCancel = document.getElementById("modal-cancel");
 const modalCreate = document.getElementById("modal-create");
 const createCloudSelect = document.getElementById("create-cloud");
 const createNameInput = document.getElementById("create-name");
+
+// New intro page references
+const introCloudSelect = document.getElementById("intro-cloud");
+const introNameInput = document.getElementById("intro-name");
+const btnIntroCreate = document.getElementById("btn-intro-create");
+const introColumnSelect = document.querySelector('[data-section="select"]');
+const introColumnCreate = document.querySelector('[data-section="create"]');
+const cloudHeaders = Array.from(document.querySelectorAll(".cloud-header"));
+
+// Canvas references
+const btnBackProjects = document.getElementById("btn-back-projects");
 const projectNameDisplay = document.getElementById("project-name-display");
 const projectTimestamp = document.getElementById("project-timestamp");
 const resourceListEl = document.getElementById("resource-list");
@@ -153,65 +164,77 @@ function renderProjectsList() {
   document.getElementById("projects-aws").innerHTML = "";
   document.getElementById("projects-gcp").innerHTML = "";
 
+  const cloudSections = {
+    Azure: document.getElementById("projects-azure"),
+    AWS: document.getElementById("projects-aws"),
+    GCP: document.getElementById("projects-gcp")
+  };
+
   state.projects.forEach((project) => {
-    const card = document.createElement("div");
-    card.className = "project-card";
-    
-    const name = document.createElement("div");
-    name.className = "project-card-name";
-    name.textContent = project.name;
-    
-    const timestamp = document.createElement("div");
-    timestamp.className = "project-card-timestamp";
-    timestamp.textContent = formatTimestamp(project.lastSaved);
-    
+    const item = document.createElement("div");
+    item.className = "project-item";
+
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "project-item-name";
+    nameDiv.textContent = project.name;
+
+    const meta = document.createElement("div");
+    meta.className = "project-item-meta";
+
+    const timeDiv = document.createElement("span");
+    timeDiv.className = "project-item-time";
+    timeDiv.textContent = formatTimestamp(project.lastSaved);
+
     const actions = document.createElement("div");
-    actions.className = "project-card-actions";
-    
-    const selectBtn = document.createElement("button");
-    selectBtn.className = "btn btn--sm btn--primary";
-    selectBtn.textContent = "Open";
-    selectBtn.addEventListener("click", () => showCanvasScreen(project.id));
-    
+    actions.className = "project-item-actions";
+
+    const openBtn = document.createElement("button");
+    openBtn.textContent = "↗";
+    openBtn.title = "Open";
+    openBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showCanvasScreen(project.id);
+    });
+
     const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn btn--sm btn--danger";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => deleteProject(project.id));
-    
-    actions.appendChild(selectBtn);
+    deleteBtn.className = "delete";
+    deleteBtn.textContent = "✕";
+    deleteBtn.title = "Delete";
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteProject(project.id);
+    });
+
+    actions.appendChild(openBtn);
     actions.appendChild(deleteBtn);
-    
-    card.appendChild(name);
-    card.appendChild(timestamp);
-    card.appendChild(actions);
-    
-    const cloudPick = {
-      Azure: "projects-azure",
-      AWS: "projects-aws",
-      GCP: "projects-gcp"
-    }[project.cloud];
-    
-    if (cloudPick) {
-      document.getElementById(cloudPick).appendChild(card);
-    }
+    meta.appendChild(timeDiv);
+    meta.appendChild(actions);
+    item.appendChild(nameDiv);
+    item.appendChild(meta);
+
+    // Click anywhere on item to open
+    item.addEventListener("click", () => showCanvasScreen(project.id));
+
+    cloudSections[project.cloud]?.appendChild(item);
   });
 
   // Show empty messages if no projects
-  ["projects-azure", "projects-aws", "projects-gcp"].forEach((id) => {
-    const container = document.getElementById(id);
+  Object.entries(cloudSections).forEach(([cloud, container]) => {
     if (container.children.length === 0) {
       const empty = document.createElement("div");
-      empty.className = "project-empty";
-      empty.textContent = "No projects yet";
+      empty.className = "projects-empty";
+      empty.textContent = `No ${cloud} projects yet`;
       container.appendChild(empty);
+    } else {
+      container.classList.add("is-expanded");
     }
   });
 }
 
 // ===== Project Management =====
 function createProject() {
-  const cloud = createCloudSelect.value;
-  const name = createNameInput.value.trim() || generateProjectName(cloud);
+  const cloud = introCloudSelect.value;
+  const name = introNameInput.value.trim() || generateProjectName(cloud);
 
   if (!cloud) {
     alert("Please select a cloud provider");
@@ -227,7 +250,10 @@ function createProject() {
 
   state.projects.push(project);
   saveProjects();
-  closeCreateModal();
+  introNameInput.value = "";
+  introCloudSelect.value = "";
+  removeColumnFocus();
+  renderProjectsList();
   showCanvasScreen(project.id);
 }
 
@@ -250,17 +276,6 @@ function updateTimestamp() {
 }
 
 // ===== Modal =====
-function openCreateModal() {
-  modalCreateProject.classList.remove("is-hidden");
-  createCloudSelect.value = "";
-  createNameInput.value = generateProjectName("Azure");
-  createCloudSelect.focus();
-}
-
-function closeCreateModal() {
-  modalCreateProject.classList.add("is-hidden");
-}
-
 // ===== Resource Rendering =====
 function updatePropertyPanel(resourceName) {
   if (!resourceName) {
@@ -477,22 +492,63 @@ projectNameDisplay.addEventListener("keydown", (event) => {
   }
 });
 
-// ===== Event Listeners =====
-btnCreateProject.addEventListener("click", openCreateModal);
-btnBackProjects.addEventListener("click", showProjectsScreen);
-modalClose.addEventListener("click", closeCreateModal);
-modalCancel.addEventListener("click", closeCreateModal);
-modalCreate.addEventListener("click", createProject);
+// ===== Intro Page Functions =====
+function setColumnFocus(section) {
+  introColumnSelect.classList.toggle("is-blurred", section !== "select");
+  introColumnCreate.classList.toggle("is-blurred", section !== "create");
+}
 
-createCloudSelect.addEventListener("change", () => {
-  if (!createNameInput.value || createNameInput.value.split("-")[0] === "azure" || createNameInput.value.split("-")[0] === "aws" || createNameInput.value.split("-")[0] === "gcp") {
-    createNameInput.value = generateProjectName(createCloudSelect.value);
+function removeColumnFocus() {
+  introColumnSelect.classList.remove("is-blurred");
+  introColumnCreate.classList.remove("is-blurred");
+}
+
+function toggleCloudSection(cloud) {
+  const header = document.querySelector(`.cloud-header[data-cloud="${cloud}"]`);
+  const isExpanded = header.classList.contains("is-expanded");
+  
+  if (isExpanded) {
+    header.classList.remove("is-expanded");
+  } else {
+    header.classList.add("is-expanded");
+  }
+}
+
+// ===== Event Listeners =====
+// Intro page interactions
+btnIntroCreate.addEventListener("click", createProject);
+
+introColumnSelect.addEventListener("click", () => setColumnFocus("select"));
+introColumnCreate.addEventListener("click", () => setColumnFocus("create"));
+
+// Cloud section toggle
+cloudHeaders.forEach((header) => {
+  header.addEventListener("click", (e) => {
+    e.preventDefault();
+    const cloud = header.dataset.cloud;
+    toggleCloudSection(cloud);
+  });
+});
+
+// Auto-generate name when cloud changes
+introCloudSelect.addEventListener("change", () => {
+  if (!introNameInput.value || introNameInput.value.split("-")[0] === "azure" || introNameInput.value.split("-")[0] === "aws" || introNameInput.value.split("-")[0] === "gcp") {
+    introNameInput.value = generateProjectName(introCloudSelect.value);
   }
 });
+
+// Canvas interactions
+btnBackProjects.addEventListener("click", showProjectsScreen);
 
 searchInput?.addEventListener("input", () => {
   state.searchTerm = searchInput.value;
   renderResources();
+});
+
+// Canvas form submission
+document.querySelector(".project-create-form")?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  createProject();
 });
 
 // ===== Initialize =====
