@@ -19,10 +19,34 @@ const canvasZoomInBtn = document.getElementById("canvas-zoom-in");
 const canvasResetViewBtn = document.getElementById("canvas-reset-view");
 const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
 const canvasEdgesEl = document.getElementById("canvas-edges");
+const statusLeftWidthEl = document.getElementById("status-left-width");
+const statusRightWidthEl = document.getElementById("status-right-width");
 const tabs = Array.from(document.querySelectorAll(".tab"));
 const panels = {
   chat: document.getElementById("panel-chat"),
   terminal: document.getElementById("panel-terminal")
+};
+
+function readCssPxVar(variableName, fallback) {
+  const rootStyle = getComputedStyle(document.documentElement);
+  const rawValue = rootStyle.getPropertyValue(variableName).trim();
+  const parsedValue = Number.parseFloat(rawValue);
+  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+}
+
+const layoutConfig = {
+  leftDefault: readCssPxVar("--layout-left-default", 180),
+  leftMin: readCssPxVar("--layout-left-min", 160),
+  leftMax: readCssPxVar("--layout-left-max", 480),
+  rightDefault: readCssPxVar("--layout-right-default", 360),
+  rightMin: readCssPxVar("--layout-right-min", 360),
+  rightMax: readCssPxVar("--layout-right-max", 560),
+  bottomDefault: readCssPxVar("--layout-bottom-default", 130),
+  bottomMin: readCssPxVar("--layout-bottom-min", 120),
+  bottomMax: readCssPxVar("--layout-bottom-max", 380),
+  bottomRightDefault: readCssPxVar("--layout-bottom-right-default", 220),
+  bottomRightMin: readCssPxVar("--layout-bottom-right-min", 200),
+  bottomRightMax: readCssPxVar("--layout-bottom-right-max", 520)
 };
 
 // ===== State =====
@@ -30,10 +54,10 @@ const cloudCatalogs = {};
 const state = {
   projects: [],
   currentProject: null,
-  leftWidth: 180,
-  rightWidth: 220,
-  bottomHeight: 130,
-  bottomRightWidth: 220,
+  leftWidth: layoutConfig.leftDefault,
+  rightWidth: layoutConfig.rightDefault,
+  bottomHeight: layoutConfig.bottomDefault,
+  bottomRightWidth: layoutConfig.bottomRightDefault,
   selectedResource: null,
   searchTerm: "",
   canvasView: {
@@ -74,14 +98,14 @@ const canvasInteraction = {
 };
 
 const constraints = {
-  leftMin: 160,
-  leftMax: 480,
-  rightMin: 200,
-  rightMax: 500,
-  bottomMin: 120,
-  bottomMax: 380,
-  bottomRightMin: 200,
-  bottomRightMax: 520
+  leftMin: layoutConfig.leftMin,
+  leftMax: layoutConfig.leftMax,
+  rightMin: layoutConfig.rightMin,
+  rightMax: layoutConfig.rightMax,
+  bottomMin: layoutConfig.bottomMin,
+  bottomMax: layoutConfig.bottomMax,
+  bottomRightMin: layoutConfig.bottomRightMin,
+  bottomRightMax: layoutConfig.bottomRightMax
 };
 
 const MAX_PROJECT_NAME_LENGTH = 27;
@@ -126,7 +150,7 @@ function isContainerResource(resource) {
 }
 
 function isLogicalOnlyContainer(item) {
-  const name = normalizeLabel(item?.name);
+  const name = normalizeLabel(item?.resourceType || item?.name);
   const logicalTerms = ["management group", "subscription", "resource group"];
   return logicalTerms.some((term) => name.includes(term));
 }
@@ -189,6 +213,26 @@ function splitProjectName(cloud, fullName) {
   };
 }
 
+function getNextResourceDefaultName() {
+  const pattern = /^resource\s+(\d+)$/i;
+  let maxIndex = 0;
+
+  const allNames = [
+    ...state.canvasItems.map((item) => item?.name),
+    ...state.canvasConnections.map((connection) => connection?.name)
+  ];
+
+  allNames.forEach((name) => {
+    const match = pattern.exec(String(name || "").trim());
+    if (!match) {
+      return;
+    }
+    maxIndex = Math.max(maxIndex, Number(match[1]) || 0);
+  });
+
+  return `Resource ${maxIndex + 1}`;
+}
+
 function renderProjectName() {
   if (!state.currentProject) {
     return;
@@ -227,9 +271,10 @@ function sanitizeProject(project) {
     : [];
 
   const sanitizedItems = incomingItems
-    .map((item) => ({
+    .map((item, index) => ({
       id: String(item.id || `item-${Date.now()}`),
-      name: String(item.name || "Resource"),
+      name: String(item.name || `Resource ${index + 1}`),
+      resourceType: String(item.resourceType || item.type || item.name || "Resource"),
       iconSrc: String(item.iconSrc || ""),
       category: String(item.category || ""),
       isContainer: Boolean(item.isContainer),
@@ -242,6 +287,14 @@ function sanitizeProject(project) {
     .filter((item) => item.iconSrc);
 
   const validItemIds = new Set(sanitizedItems.map((item) => item.id));
+  const pattern = /^resource\s+(\d+)$/i;
+  let maxResourceIndex = 0;
+  sanitizedItems.forEach((item) => {
+    const match = pattern.exec(String(item.name || "").trim());
+    if (match) {
+      maxResourceIndex = Math.max(maxResourceIndex, Number(match[1]) || 0);
+    }
+  });
 
   return {
     ...project,
@@ -255,14 +308,21 @@ function sanitizeProject(project) {
     },
     canvasItems: sanitizedItems,
     canvasConnections: incomingConnections
-      .map((connection) => ({
-        id: String(connection.id || `conn-${Date.now()}`),
-        fromId: String(connection.fromId || ""),
-        toId: String(connection.toId || ""),
-        direction: connection.direction === "bi" ? "bi" : "one-way",
-        sourceAnchor: ["top", "right", "bottom", "left"].includes(connection.sourceAnchor) ? connection.sourceAnchor : "right",
-        targetAnchor: ["top", "right", "bottom", "left"].includes(connection.targetAnchor) ? connection.targetAnchor : "left"
-      }))
+      .map((connection) => {
+        const incomingName = String(connection.name || "").trim();
+        const isLegacyArrowName = incomingName.includes("→");
+        const hasExplicitName = incomingName.length > 0 && !isLegacyArrowName;
+        const name = hasExplicitName ? incomingName : `Resource ${++maxResourceIndex}`;
+        return {
+          id: String(connection.id || `conn-${Date.now()}`),
+          name,
+          fromId: String(connection.fromId || ""),
+          toId: String(connection.toId || ""),
+          direction: connection.direction === "bi" ? "bi" : "one-way",
+          sourceAnchor: ["top", "right", "bottom", "left"].includes(connection.sourceAnchor) ? connection.sourceAnchor : "right",
+          targetAnchor: ["top", "right", "bottom", "left"].includes(connection.targetAnchor) ? connection.targetAnchor : "left"
+        };
+      })
       .filter((connection) => connection.fromId && connection.toId && validItemIds.has(connection.fromId) && validItemIds.has(connection.toId))
   };
 }
@@ -385,7 +445,7 @@ function updatePropertyPanelForSelection() {
       "<span class=\"property-label\">Name</span>",
       `<input class=\"property-input\" type=\"text\" value=\"${selectedItem.name.replace(/\"/g, "&quot;")}\" data-resource-field=\"name\" maxlength=\"80\" />`,
       "</label>",
-      `<div class=\"property-row\"><span class=\"property-label\">Type</span><span class=\"property-value\">${selectedItem.isContainer ? "Container" : "Resource"}</span></div>`,
+      `<div class=\"property-row\"><span class=\"property-label\">Type</span><span class=\"property-value\">${selectedItem.resourceType || "Resource"}</span></div>`,
       `<div class=\"property-row\"><span class=\"property-label\">Category</span><span class=\"property-value\">${selectedItem.category || "N/A"}</span></div>`,
       `<div class=\"property-row\"><span class=\"property-label\">Position</span><span class=\"property-value\">(${selectedItem.x}, ${selectedItem.y})</span></div>`,
       `<div class=\"property-row\"><span class=\"property-label\">Connections</span><span class=\"property-value\">${state.canvasConnections.filter((connection) => connection.fromId === selectedItem.id || connection.toId === selectedItem.id).length}</span></div>`,
@@ -425,6 +485,7 @@ function createResourceRow(category, resource, iconRoot) {
   row.addEventListener("dragstart", (event) => {
     const payload = {
       name: resource.name,
+      resourceType: resource.name,
       iconSrc,
       category
     };
@@ -884,9 +945,7 @@ function upsertConnection(fromId, toId, direction, sourceAnchor = "right", targe
     return;
   }
 
-  const fromItem = getItemById(fromId);
-  const toItem = getItemById(toId);
-  const newName = `${fromItem?.name || fromId} → ${toItem?.name || toId}`;
+  const newName = getNextResourceDefaultName();
 
   const newConnection = {
     id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -1070,10 +1129,13 @@ function createCanvasItem(resource, worldX, worldY) {
   }
 
   const containerResource = isContainerResource(resource);
+  const resourceType = String(resource.resourceType || resource.name || "Resource");
+  const defaultName = getNextResourceDefaultName();
 
   const newItem = {
     id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    name: resource.name,
+    name: defaultName,
+    resourceType,
     iconSrc: resource.iconSrc,
     category: resource.category || "",
     isContainer: containerResource,
@@ -1498,6 +1560,14 @@ function applySizes() {
   appEl.style.setProperty("--right-width", `${state.rightWidth}px`);
   appEl.style.setProperty("--bottom-height", `${state.bottomHeight}px`);
   appEl.style.setProperty("--bottom-right-width", `${state.bottomRightWidth}px`);
+
+  if (statusLeftWidthEl) {
+    statusLeftWidthEl.textContent = `${Math.round(state.leftWidth)}px`;
+  }
+
+  if (statusRightWidthEl) {
+    statusRightWidthEl.textContent = `${Math.round(state.rightWidth)}px`;
+  }
 }
 
 function clamp(value, min, max) {
@@ -1768,11 +1838,6 @@ propertyContentEl?.addEventListener("change", (event) => {
       selected.targetAnchor = "left";
     }
 
-    // Update connection name based on new from/to
-    const fromItem = getItemById(selected.fromId);
-    const toItem = getItemById(selected.toId);
-    selected.name = `${fromItem?.name || selected.fromId} → ${toItem?.name || selected.toId}`;
-
     updatePropertyPanelForSelection();
     renderCanvasConnections();
     persistCanvasLocal();
@@ -1805,14 +1870,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     }
 
     selectedItem.name = nextName;
-    
-    // Update all connection names that reference this resource
-    state.canvasConnections.forEach((connection) => {
-      const fromItem = getItemById(connection.fromId);
-      const toItem = getItemById(connection.toId);
-      connection.name = `${fromItem?.name || connection.fromId} → ${toItem?.name || connection.toId}`;
-    });
-    
+
     updatePropertyPanelForSelection();
     renderCanvasItems();
     renderCanvasConnections();

@@ -6,10 +6,26 @@
   --muted: #6b7280;
   --accent: #2563eb;
 
-  --left-width: 180px;
-  --right-width: 320px;
-  --bottom-height: 130px;
-  --bottom-right-width: 220px;
+  --layout-left-default: 180px;
+  --layout-left-min: 160px;
+  --layout-left-max: 480px;
+
+  --layout-right-default: 260px;
+  --layout-right-min: 260px;
+  --layout-right-max: 360px;
+
+  --layout-bottom-default: 130px;
+  --layout-bottom-min: 120px;
+  --layout-bottom-max: 380px;
+
+  --layout-bottom-right-default: 220px;
+  --layout-bottom-right-min: 200px;
+  --layout-bottom-right-max: 520px;
+
+  --left-width: var(--layout-left-default);
+  --right-width: var(--layout-right-default); /* Default width of the right-side Properties panel */
+  --bottom-height: var(--layout-bottom-default);
+  --bottom-right-width: var(--layout-bottom-right-default);
   --splitter: 8px;
 }
 
