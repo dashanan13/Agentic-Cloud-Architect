@@ -464,11 +464,6 @@ body {
   transition: all 0.3s ease;
 }
 
-.intro-column.is-blurred {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
 .column-title {
   font-size: 1.5rem;
   font-weight: 600;

@@ -252,7 +252,6 @@ function createProject() {
   saveProjects();
   introNameInput.value = "";
   introCloudSelect.value = "";
-  removeColumnFocus();
   renderProjectsList();
   showCanvasScreen(project.id);
 }
@@ -493,16 +492,6 @@ projectNameDisplay.addEventListener("keydown", (event) => {
 });
 
 // ===== Intro Page Functions =====
-function setColumnFocus(section) {
-  introColumnSelect.classList.toggle("is-blurred", section !== "select");
-  introColumnCreate.classList.toggle("is-blurred", section !== "create");
-}
-
-function removeColumnFocus() {
-  introColumnSelect.classList.remove("is-blurred");
-  introColumnCreate.classList.remove("is-blurred");
-}
-
 function toggleCloudSection(cloud) {
   const header = document.querySelector(`.cloud-header[data-cloud="${cloud}"]`);
   const isExpanded = header.classList.contains("is-expanded");
@@ -518,8 +507,6 @@ function toggleCloudSection(cloud) {
 // Intro page interactions
 btnIntroCreate.addEventListener("click", createProject);
 
-introColumnSelect.addEventListener("click", () => setColumnFocus("select"));
-introColumnCreate.addEventListener("click", () => setColumnFocus("create"));
 
 // Cloud section toggle
 cloudHeaders.forEach((header) => {
