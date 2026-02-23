@@ -19,10 +19,10 @@ const cloudCatalogs = {};
 const state = {
   projects: [],
   currentProject: null,
-  leftWidth: 280,
-  rightWidth: 320,
-  bottomHeight: 220,
-  bottomRightWidth: 320,
+  leftWidth: 220,
+  rightWidth: 260,
+  bottomHeight: 160,
+  bottomRightWidth: 240,
   selectedResource: null,
   searchTerm: ""
 };

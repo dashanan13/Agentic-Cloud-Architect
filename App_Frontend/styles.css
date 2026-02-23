@@ -6,10 +6,10 @@
   --muted: #6b7280;
   --accent: #2563eb;
 
-  --left-width: 280px;
-  --right-width: 320px;
-  --bottom-height: 220px;
-  --bottom-right-width: 320px;
+  --left-width: 220px;
+  --right-width: 260px;
+  --bottom-height: 160px;
+  --bottom-right-width: 240px;
   --splitter: 8px;
 }
 
@@ -885,7 +885,7 @@ select:focus {
 }
 
 .project-timestamp {
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   color: var(--muted);
   white-space: nowrap;
 }
