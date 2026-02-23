@@ -6,10 +6,10 @@
   --muted: #6b7280;
   --accent: #2563eb;
 
-  --left-width: 220px;
-  --right-width: 260px;
-  --bottom-height: 160px;
-  --bottom-right-width: 240px;
+  --left-width: 180px;
+  --right-width: 220px;
+  --bottom-height: 130px;
+  --bottom-right-width: 220px;
   --splitter: 8px;
 }
 

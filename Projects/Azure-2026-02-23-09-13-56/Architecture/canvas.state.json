@@ -1,13 +1,13 @@
 {
-  "leftWidth": 220,
-  "rightWidth": 260,
-  "bottomHeight": 160,
-  "bottomRightWidth": 240,
-  "selectedResource": "item-1771845801152-o916nq",
+  "leftWidth": 180,
+  "rightWidth": 220,
+  "bottomHeight": 130,
+  "bottomRightWidth": 220,
+  "selectedResource": "item-1771845777026-qfyv41",
   "searchTerm": "",
   "canvasView": {
-    "x": 371.76470588235287,
-    "y": 105.65882352941173,
+    "x": 433.747314578005,
+    "y": 190.60230179028127,
     "zoom": 0.25
   },
   "canvasItems": [

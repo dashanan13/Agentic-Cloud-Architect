@@ -29,10 +29,10 @@ const cloudCatalogs = {};
 const state = {
   projects: [],
   currentProject: null,
-  leftWidth: 220,
-  rightWidth: 260,
-  bottomHeight: 160,
-  bottomRightWidth: 240,
+  leftWidth: 180,
+  rightWidth: 220,
+  bottomHeight: 130,
+  bottomRightWidth: 220,
   selectedResource: null,
   searchTerm: "",
   canvasView: {
@@ -62,22 +62,22 @@ const canvasInteraction = {
 };
 
 const constraints = {
-  leftMin: 220,
+  leftMin: 160,
   leftMax: 480,
-  rightMin: 260,
+  rightMin: 200,
   rightMax: 500,
-  bottomMin: 160,
+  bottomMin: 120,
   bottomMax: 380,
-  bottomRightMin: 240,
+  bottomRightMin: 200,
   bottomRightMax: 520
 };
 
 const MAX_PROJECT_NAME_LENGTH = 27;
 const AUTOSAVE_INTERVAL_MS = 60000;
 const CANVAS_ZOOM = {
-  min: 0.25,
-  max: 2.5,
-  step: 0.1,
+  min: 0.05,
+  max: 3,
+  step: 0.05,
   grid: 40
 };
 
