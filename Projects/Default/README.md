@@ -1,4 +1,4 @@
-# <Project_Name>
+# Default
 
 Project workspace for architecture state, generated IaC, and documentation.
 
