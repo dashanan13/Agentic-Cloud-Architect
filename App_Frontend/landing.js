@@ -104,15 +104,16 @@ function updateNameControlsForCloud(cloud) {
   introNameHint.textContent = `Prefix is fixed to ${prefix}. You can type up to ${maxSuffixLength} chars.`;
 }
 
-// ===== LocalStorage =====
-function saveProjects() {
-  localStorage.setItem("a3_projects", JSON.stringify(state.projects));
-}
+// ===== Projects API =====
+async function loadProjects() {
+  const response = await fetch("/api/projects", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Unable to load projects from files.");
+  }
 
-function loadProjects() {
-  const stored = localStorage.getItem("a3_projects");
-  state.projects = stored ? JSON.parse(stored) : [];
-  state.projects = state.projects.map(sanitizeProject).filter(Boolean);
+  const payload = await response.json();
+  const projects = Array.isArray(payload?.projects) ? payload.projects : [];
+  state.projects = projects.map(sanitizeProject).filter(Boolean);
 }
 
 // ===== Project List Rendering =====
@@ -201,7 +202,7 @@ function openSettings({ section = "app", mode = "app-only" } = {}) {
   window.location.href = `./settings.html?${params.toString()}`;
 }
 
-function createProject() {
+async function createProject() {
   const cloud = introCloudSelect.value;
 
   if (!cloud) {
@@ -225,24 +226,56 @@ function createProject() {
     lastSaved: Date.now()
   };
 
-  state.projects.push(project);
-  saveProjects();
-  setCreateMessage("");
-  introNameInput.value = "";
-  introCloudSelect.value = "";
-  updateNameControlsForCloud("");
-  renderProjectsList();
-  openProject(project.id);
+  try {
+    const response = await fetch("/api/project/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        project,
+        canvasState: {
+          canvasView: { x: 0, y: 0, zoom: 1 },
+          canvasItems: [],
+          canvasConnections: []
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to create project files.");
+    }
+
+    await loadProjects();
+    setCreateMessage("");
+    introNameInput.value = "";
+    introCloudSelect.value = "";
+    updateNameControlsForCloud("");
+    renderProjectsList();
+    openProject(project.id);
+  } catch (error) {
+    setCreateMessage(error.message || "Failed to create project.", "error");
+  }
 }
 
-function deleteProject(projectId) {
+async function deleteProject(projectId) {
   if (!confirm("Delete this project? This cannot be undone.")) {
     return;
   }
 
-  state.projects = state.projects.filter((p) => p.id !== projectId);
-  saveProjects();
-  renderProjectsList();
+  try {
+    const response = await fetch(`/api/project/${encodeURIComponent(projectId)}`, {
+      method: "DELETE"
+    });
+    if (!response.ok) {
+      throw new Error("Unable to delete project files.");
+    }
+
+    await loadProjects();
+    renderProjectsList();
+  } catch (error) {
+    setCreateMessage(error.message || "Failed to delete project.", "error");
+  }
 }
 
 // ===== Accordion Behavior =====
@@ -266,7 +299,9 @@ function toggleCloudSection(cloud) {
 }
 
 // ===== Event Listeners =====
-btnIntroCreate.addEventListener("click", createProject);
+btnIntroCreate.addEventListener("click", async () => {
+  await createProject();
+});
 
 cloudHeaders.forEach((header) => {
   header.addEventListener("click", (e) => {
@@ -318,7 +353,18 @@ introNameInput.addEventListener("input", () => {
 });
 
 // ===== Initialization =====
-loadProjects();
-saveProjects();
-renderProjectsList();
-updateNameControlsForCloud(introCloudSelect.value);
+async function initialize() {
+  try {
+    await loadProjects();
+    renderProjectsList();
+    setCreateMessage("");
+  } catch (error) {
+    state.projects = [];
+    renderProjectsList();
+    setCreateMessage(error.message || "Unable to load projects.", "error");
+  }
+
+  updateNameControlsForCloud(introCloudSelect.value);
+}
+
+initialize();

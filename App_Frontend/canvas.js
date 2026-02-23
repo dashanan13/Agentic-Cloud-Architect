@@ -327,35 +327,43 @@ function sanitizeProject(project) {
   };
 }
 
-// ===== LocalStorage =====
-function saveProjects() {
-  localStorage.setItem("a3_projects", JSON.stringify(state.projects));
-}
-
-function loadProjects() {
-  const stored = localStorage.getItem("a3_projects");
-  state.projects = stored ? JSON.parse(stored) : [];
-  state.projects = state.projects.map(sanitizeProject).filter(Boolean);
-}
-
 function saveCurrentProject() {
   if (state.currentProject) {
     const projectId = state.currentProject.id;
     const idx = state.projects.findIndex((p) => p.id === projectId);
     if (idx !== -1) {
       state.projects[idx] = state.currentProject;
-      saveProjects();
     }
   }
 }
 
-function loadCurrentProject(projectId) {
-  const project = state.projects.find((p) => p.id === projectId);
-  if (project) {
-    state.currentProject = { ...project };
+async function loadCurrentProject(projectId) {
+  try {
+    const response = await fetch(`/api/project/${encodeURIComponent(projectId)}`, { cache: "no-store" });
+    if (!response.ok) {
+      return false;
+    }
+
+    const payload = await response.json();
+    const project = payload?.project && typeof payload.project === "object" ? payload.project : {};
+    const canvasState = payload?.canvasState && typeof payload.canvasState === "object" ? payload.canvasState : {};
+
+    const normalized = sanitizeProject({
+      ...project,
+      canvasView: canvasState.canvasView,
+      canvasItems: canvasState.canvasItems,
+      canvasConnections: canvasState.canvasConnections
+    });
+
+    if (!normalized) {
+      return false;
+    }
+
+    state.currentProject = { ...normalized };
     return true;
+  } catch {
+    return false;
   }
-  return false;
 }
 
 // ===== Catalog Loading =====
@@ -1892,7 +1900,7 @@ propertyContentEl?.addEventListener("change", (event) => {
 });
 
 // ===== Initialization =====
-function initialize() {
+async function initialize() {
   // Get projectId from URL params
   const params = new URLSearchParams(window.location.search);
   const projectId = params.get("projectId");
@@ -1903,12 +1911,8 @@ function initialize() {
     return;
   }
 
-  // Load projects from localStorage
-  loadProjects();
-  saveProjects();
-
-  // Load this specific project
-  if (!loadCurrentProject(projectId)) {
+  // Load this specific project from backend files
+  if (!await loadCurrentProject(projectId)) {
     console.error("Project not found");
     window.location.href = "./landing.html";
     return;
@@ -1960,9 +1964,7 @@ function initialize() {
   updatePropertyPanel(null);
 }
 
-try {
-  initialize();
-} catch (error) {
+initialize().catch((error) => {
   console.error("Canvas initialization failed", error);
   if (projectNamePrefixDisplay) {
     projectNamePrefixDisplay.textContent = "Project unavailable";
@@ -1977,4 +1979,4 @@ try {
     errorRow.textContent = "Unable to load this project. Return to Projects and reopen.";
     resourceListEl.appendChild(errorRow);
   }
-}
+});

@@ -15,6 +15,8 @@ const projectEmpty = document.getElementById("settings-project-empty");
 const state = {
   projects: [],
   currentProject: null,
+  appSettings: {},
+  currentProjectSettings: {},
   activeTab: "project",
   source: "landing",
   mode: "full"
@@ -61,48 +63,52 @@ function setMessage(message, type = "") {
   }
 }
 
-function saveProjects(projects) {
-  localStorage.setItem("a3_projects", JSON.stringify(projects));
-}
-
-function loadProjects() {
-  const stored = localStorage.getItem("a3_projects");
-  state.projects = stored ? JSON.parse(stored) : [];
-}
-
-function getAppSettings() {
-  const stored = localStorage.getItem("a3_app_settings");
-  if (!stored) {
-    return { ...DEFAULT_APP_SETTINGS };
+async function loadProjects() {
+  const response = await fetch("/api/projects", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Unable to load projects from files.");
   }
 
-  try {
-    const parsed = JSON.parse(stored);
-    return { ...DEFAULT_APP_SETTINGS, ...parsed };
-  } catch {
-    return { ...DEFAULT_APP_SETTINGS };
-  }
+  const payload = await response.json();
+  state.projects = Array.isArray(payload?.projects) ? payload.projects : [];
 }
 
-function saveAppSettings(settings) {
-  localStorage.setItem("a3_app_settings", JSON.stringify(settings));
-}
-
-function getProjectSettingsMap() {
-  const stored = localStorage.getItem("a3_project_settings");
-  if (!stored) {
-    return {};
+async function loadAppSettings() {
+  const response = await fetch("/api/settings/app", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Unable to load application settings from file.");
   }
 
-  try {
-    return JSON.parse(stored) || {};
-  } catch {
-    return {};
-  }
+  const payload = await response.json();
+  const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
+  state.appSettings = {
+    ...DEFAULT_APP_SETTINGS,
+    ...incoming
+  };
 }
 
-function saveProjectSettingsMap(map) {
-  localStorage.setItem("a3_project_settings", JSON.stringify(map));
+async function loadProjectSettings(projectId) {
+  if (!projectId) {
+    state.currentProjectSettings = { ...DEFAULT_PROJECT_SETTINGS };
+    return;
+  }
+
+  const response = await fetch(`/api/settings/project/${encodeURIComponent(projectId)}`, { cache: "no-store" });
+  if (response.status === 404) {
+    state.currentProjectSettings = { ...DEFAULT_PROJECT_SETTINGS };
+    return;
+  }
+
+  if (!response.ok) {
+    throw new Error("Unable to load project settings from file.");
+  }
+
+  const payload = await response.json();
+  const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
+  state.currentProjectSettings = {
+    ...DEFAULT_PROJECT_SETTINGS,
+    ...incoming
+  };
 }
 
 function setTab(tabName) {
@@ -154,7 +160,7 @@ function applyModeVisibility() {
 }
 
 function populateAppSettings() {
-  const appSettings = getAppSettings();
+  const appSettings = state.appSettings;
 
   document.getElementById("as-default-region").value = appSettings.defaultRegion;
   document.getElementById("as-default-engine").value = appSettings.defaultIacEngine;
@@ -165,7 +171,7 @@ function populateAppSettings() {
   document.getElementById("as-telemetry").value = appSettings.telemetry;
 }
 
-function populateProjectSettings(projectId) {
+async function populateProjectSettings(projectId) {
   if (!projectId) {
     projectForm.classList.add("is-hidden");
     projectForm.setAttribute("hidden", "");
@@ -193,11 +199,8 @@ function populateProjectSettings(projectId) {
   projectEmpty.classList.add("is-hidden");
   projectEmpty.setAttribute("hidden", "");
 
-  const map = getProjectSettingsMap();
-  const projectSettings = {
-    ...DEFAULT_PROJECT_SETTINGS,
-    ...(map[projectId] || {})
-  };
+  await loadProjectSettings(projectId);
+  const projectSettings = state.currentProjectSettings;
 
   document.getElementById("ps-git-repo").value = projectSettings.gitRepoUrl;
   document.getElementById("ps-git-branch").value = projectSettings.gitBranch;
@@ -277,22 +280,23 @@ async function saveSettingsToFile(appSettings, projectSettings) {
 
 async function handleSave() {
   const appSettings = collectAppSettings();
-  saveAppSettings(appSettings);
 
   let projectSettings = null;
 
   if (state.currentProject) {
     projectSettings = collectProjectSettings();
-    const map = getProjectSettingsMap();
-    map[state.currentProject.id] = projectSettings;
-    saveProjectSettingsMap(map);
   }
 
   try {
     await saveSettingsToFile(appSettings, projectSettings);
-    setMessage("Settings saved to local state and .env files.", "success");
+    state.appSettings = { ...DEFAULT_APP_SETTINGS, ...appSettings };
+    state.currentProjectSettings = {
+      ...DEFAULT_PROJECT_SETTINGS,
+      ...(projectSettings || state.currentProjectSettings)
+    };
+    setMessage("Settings saved to .env files.", "success");
   } catch (error) {
-    setMessage(error.message || "Settings saved locally, but file persistence failed.", "error");
+    setMessage(error.message || "Failed to save settings files.", "error");
   }
 }
 
@@ -306,14 +310,27 @@ function handleBack() {
   window.location.href = "./landing.html";
 }
 
-function initialize() {
+async function initialize() {
   const { projectId, section, source, mode } = getParams();
   state.source = source;
   state.mode = mode;
 
-  loadProjects();
+  try {
+    await loadProjects();
+  } catch (error) {
+    state.projects = [];
+    setMessage(error.message || "Unable to load projects.", "error");
+  }
+
+  try {
+    await loadAppSettings();
+  } catch (error) {
+    state.appSettings = { ...DEFAULT_APP_SETTINGS };
+    setMessage(error.message || "Unable to load app settings.", "error");
+  }
+
   populateAppSettings();
-  populateProjectSettings(projectId);
+  await populateProjectSettings(projectId);
 
   applyModeVisibility();
   bindTabHandlers();
@@ -325,4 +342,6 @@ function initialize() {
   btnBack.addEventListener("click", handleBack);
 }
 
-initialize();
+initialize().catch((error) => {
+  setMessage(error.message || "Settings initialization failed.", "error");
+});
