@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic Cloud Architect - Canvas</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <div class="screen is-active" id="screen-canvas">
+        <header class="topbar">
+          <div class="topbar__left">
+            <span class="project-label">Project</span>
+            <span id="cloud-name-display" class="cloud-name-display"></span>
+            <span class="project-separator">/</span>
+            <span id="project-name-display" class="project-name-display" contenteditable="true" role="button" tabindex="0"></span>
+            <span class="project-timestamp" id="project-timestamp"></span>
+          </div>
+          <div class="topbar__right">
+            <button id="btn-back-projects" class="btn btn--sm">Back to Projects</button>
+          </div>
+        </header>
+
+        <main class="workspace" id="workspace">
+        <section class="panel panel--left" aria-label="Resource browser">
+          <div class="panel__header">
+            <input type="search" id="search-input" placeholder="Search resources" aria-label="Search resources" />
+          </div>
+          <div class="resource-list" id="resource-list" aria-label="Resource list"></div>
+        </section>
+
+        <div class="splitter splitter--vertical" data-splitter="left" role="separator" aria-orientation="vertical" aria-label="Resize left panel"></div>
+
+        <section class="panel panel--center" aria-label="Visual canvas">
+          <div class="canvas-placeholder">VISUAL CANVAS</div>
+        </section>
+
+        <div class="splitter splitter--vertical" data-splitter="right" role="separator" aria-orientation="vertical" aria-label="Resize right panel"></div>
+
+        <section class="panel panel--right" aria-label="Resource properties">
+          <div class="panel__header panel__header--stacked">
+            <span class="muted">Selected Resource</span>
+            <strong id="selected-resource-name">None selected</strong>
+          </div>
+          <div class="property-content" id="property-content">
+            Select a resource from the left panel to preview properties.
+          </div>
+        </section>
+
+        <div class="splitter splitter--horizontal" data-splitter="bottom" role="separator" aria-orientation="horizontal" aria-label="Resize bottom section"></div>
+
+        <section class="bottom" aria-label="Bottom workspace">
+          <div class="bottom__left">
+            <div class="tabs" role="tablist" aria-label="Assistant tools">
+              <div id="tab-chat" class="tab is-active" data-tab="chat" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-chat">Chat</div>
+              <div id="tab-terminal" class="tab" data-tab="terminal" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-terminal">Terminal</div>
+            </div>
+            <div class="tab-panel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
+              Agent sidekick conversation appears here.
+            </div>
+            <div class="tab-panel is-hidden" id="panel-terminal" role="tabpanel" aria-labelledby="tab-terminal" hidden>
+              Terminal output appears here.
+            </div>
+          </div>
+
+          <div class="splitter splitter--vertical bottom-splitter" data-splitter="bottom-right" role="separator" aria-orientation="vertical" aria-label="Resize status panel"></div>
+
+          <aside class="bottom__right" aria-label="Status messages">
+            <div class="status-title">Status Messages</div>
+            <ul>
+              <li><span class="badge badge--info">INFO</span> Canvas loaded.</li>
+              <li><span class="badge badge--warn">WARN</span> No resource selected.</li>
+            </ul>
+          </aside>
+        </section>
+      </main>
+      </div>
+    </div>
+
+    <script src="./canvas.js"></script>
+  </body>
+</html>

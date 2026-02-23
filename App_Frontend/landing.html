@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic Cloud Architect</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <div class="screen is-active" id="screen-projects">
+        <div class="intro-container">
+          <div class="intro-header">
+            <h1>Agentic Cloud Architect</h1>
+            <p>Design, build, and manage cloud infrastructure with AI assistance</p>
+          </div>
+
+          <div class="intro-columns">
+            <!-- Left Column: Select Project -->
+            <div class="intro-column intro-column--select" data-section="select">
+              <h2 class="column-title">Select Project</h2>
+              <div class="cloud-sections">
+                <!-- Azure Section -->
+                <div class="cloud-section">
+                  <button class="cloud-header" data-cloud="Azure">
+                    <img src="./icons/azure-icon.png" alt="Azure" class="cloud-icon" />
+                    <span class="cloud-name">Azure</span>
+                    <span class="collapse-indicator">▼</span>
+                  </button>
+                  <div class="cloud-projects" id="projects-azure"></div>
+                </div>
+
+                <!-- AWS Section -->
+                <div class="cloud-section">
+                  <button class="cloud-header" data-cloud="AWS">
+                    <img src="./icons/aws-icon.png" alt="AWS" class="cloud-icon" />
+                    <span class="cloud-name">AWS</span>
+                    <span class="collapse-indicator">▼</span>
+                  </button>
+                  <div class="cloud-projects" id="projects-aws"></div>
+                </div>
+
+                <!-- GCP Section -->
+                <div class="cloud-section">
+                  <button class="cloud-header" data-cloud="GCP">
+                    <img src="./icons/gcp-icon.png" alt="GCP" class="cloud-icon" />
+                    <span class="cloud-name">GCP</span>
+                    <span class="collapse-indicator">▼</span>
+                  </button>
+                  <div class="cloud-projects" id="projects-gcp"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Create Project -->
+            <div class="intro-column intro-column--create" data-section="create">
+              <h2 class="column-title">Create Project</h2>
+              <form class="project-create-form">
+                <div class="form-group">
+                  <label for="intro-cloud">Cloud Provider</label>
+                  <select id="intro-cloud" aria-label="Cloud provider">
+                    <option value="">Select a cloud...</option>
+                    <option value="Azure">Azure</option>
+                    <option value="AWS">AWS</option>
+                    <option value="GCP">GCP</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="intro-name">Project Name</label>
+                  <input type="text" id="intro-name" placeholder="Enter project name" aria-label="Project name" />
+                </div>
+                <button type="button" class="btn btn--primary btn--block" id="btn-intro-create">Create Project</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./landing.js"></script>
+  </body>
+</html>

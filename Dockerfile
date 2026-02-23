@@ -8,8 +8,12 @@ RUN python ./App_Frontend/generate_catalogs.py
 FROM nginx:1.27-alpine
 
 COPY App_Frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY App_Frontend/landing.html /usr/share/nginx/html/landing.html
+COPY App_Frontend/canvas.html /usr/share/nginx/html/canvas.html
 COPY App_Frontend/index.html /usr/share/nginx/html/index.html
 COPY App_Frontend/styles.css /usr/share/nginx/html/styles.css
+COPY App_Frontend/landing.js /usr/share/nginx/html/landing.js
+COPY App_Frontend/canvas.js /usr/share/nginx/html/canvas.js
 COPY App_Frontend/app.js /usr/share/nginx/html/app.js
 COPY --from=catalog-builder /app/App_Frontend/catalogs/ /usr/share/nginx/html/catalogs/
 COPY Clouds/Azure/Icons/ /usr/share/nginx/html/icons/azure/
