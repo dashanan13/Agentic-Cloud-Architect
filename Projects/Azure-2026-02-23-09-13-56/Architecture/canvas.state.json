@@ -1,18 +1,18 @@
 {
   "leftWidth": 180,
-  "rightWidth": 220,
+  "rightWidth": 278,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1771848616508-rp1v3l",
+  "selectedResource": null,
   "searchTerm": "",
   "canvasView": {
-    "x": 111,
-    "y": -95,
+    "x": 94,
+    "y": -139,
     "zoom": 1
   },
   "canvasItems": [
     {
-      "id": "item-1771847712864-0wu12o",
+      "id": "item-1771851045995-8eqgur",
       "name": "Bot Services",
       "iconSrc": "/icons/azure/ai%20+%20machine%20learning/10165-icon-service-Bot-Services.svg",
       "category": "ai + machine learning",
@@ -20,37 +20,29 @@
       "parentId": null,
       "width": 360,
       "height": 240,
-      "x": 340,
-      "y": 350
+      "x": 520,
+      "y": 420
     },
     {
-      "id": "item-1771848575788-y3d62l",
-      "name": "Azure OpenAI",
-      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg",
-      "category": "ai + machine learning",
-      "isContainer": false,
-      "parentId": null,
-      "x": 200,
-      "y": 160
-    },
-    {
-      "id": "item-1771848616508-rp1v3l",
+      "id": "item-1771851604764-jjqxl6",
       "name": "Batch AI",
       "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00028-icon-service-Batch-AI.svg",
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
-      "x": 660,
-      "y": 210
+      "width": 360,
+      "height": 240,
+      "x": 510,
+      "y": 310
     }
   ],
   "canvasConnections": [
     {
-      "id": "conn-1771848580675-3xfbge",
-      "fromId": "item-1771848575788-y3d62l",
-      "toId": "item-1771847712864-0wu12o",
+      "id": "conn-1771851607950-22osux",
+      "fromId": "item-1771851604764-jjqxl6",
+      "toId": "item-1771851045995-8eqgur",
       "direction": "one-way",
-      "sourceAnchor": "right",
+      "sourceAnchor": "bottom",
       "targetAnchor": "top"
     }
   ]

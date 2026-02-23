@@ -320,7 +320,7 @@ async function loadCatalogForCloud(cloudName) {
 function updatePropertyPanel(resourceName) {
   if (!resourceName) {
     selectedResourceNameEl.textContent = "None selected";
-    propertyContentEl.textContent = "Select a resource from the left panel to preview properties.";
+    propertyContentEl.textContent = "Select a resource or connection to edit properties.";
     return;
   }
 
@@ -332,6 +332,72 @@ function updatePropertyPanel(resourceName) {
     "- SKU / Tier",
     "- Tags"
   ].join("<br />");
+}
+
+function updatePropertyPanelForSelection() {
+  const selectedConnection = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId) || null;
+  if (selectedConnection) {
+    const fromItem = getItemById(selectedConnection.fromId);
+    const toItem = getItemById(selectedConnection.toId);
+    selectedResourceNameEl.textContent = selectedConnection.name || "Unnamed Connection";
+    
+    const connectableItems = state.canvasItems.filter((item) => isConnectableItem(item));
+    const fromOptions = connectableItems
+      .map((item) => `<option value="${item.id}" ${item.id === selectedConnection.fromId ? "selected" : ""}>${item.name}</option>`)
+      .join("");
+    const toOptions = connectableItems
+      .map((item) => `<option value="${item.id}" ${item.id === selectedConnection.toId ? "selected" : ""}>${item.name}</option>`)
+      .join("");
+    
+    propertyContentEl.innerHTML = [
+      "<div class=\"property-form\">",
+      "<label class=\"property-row\">",
+      "<span class=\"property-label\">Name</span>",
+      `<input class=\"property-input\" type=\"text\" value=\"${(selectedConnection.name || "").replace(/\"/g, "&quot;")}\" data-connection-field=\"name\" maxlength=\"80\" />`,
+      "</label>",
+      "<div class=\"property-row\"><span class=\"property-label\">Type</span><span class=\"property-value\">Connection</span></div>",
+      "<label class=\"property-row\">",
+      "<span class=\"property-label\">From</span>",
+      `<select class=\"property-input\" data-connection-field=\"fromId\"><option value=\"\">Select source...</option>${fromOptions}</select>`,
+      "</label>",
+      "<label class=\"property-row\">",
+      "<span class=\"property-label\">To</span>",
+      `<select class=\"property-input\" data-connection-field=\"toId\"><option value=\"\">Select target...</option>${toOptions}</select>`,
+      "</label>",
+      "<label class=\"property-row\">",
+      "<span class=\"property-label\">Direction</span>",
+      `<select class=\"property-input\" data-connection-field=\"direction\"><option value=\"one-way\" ${selectedConnection.direction === "one-way" ? "selected" : ""}>One-way</option><option value=\"bi\" ${selectedConnection.direction === "bi" ? "selected" : ""}>Bi-directional</option></select>`,
+      "</label>",
+      "<div class=\"property-actions\">",
+      `<button class=\"btn btn--sm btn--danger\" type=\"button\" data-connection-action=\"remove\">Remove Connection</button>`,
+      "</div>"
+    ].join("");
+    return;
+  }
+
+  const selectedItem = getItemById(state.selectedResource);
+  if (selectedItem) {
+    selectedResourceNameEl.textContent = selectedItem.name;
+    propertyContentEl.innerHTML = [
+      "<div class=\"property-form\">",
+      "<label class=\"property-row\">",
+      "<span class=\"property-label\">Name</span>",
+      `<input class=\"property-input\" type=\"text\" value=\"${selectedItem.name.replace(/\"/g, "&quot;")}\" data-resource-field=\"name\" maxlength=\"80\" />`,
+      "</label>",
+      `<div class=\"property-row\"><span class=\"property-label\">Type</span><span class=\"property-value\">${selectedItem.isContainer ? "Container" : "Resource"}</span></div>`,
+      `<div class=\"property-row\"><span class=\"property-label\">Category</span><span class=\"property-value\">${selectedItem.category || "N/A"}</span></div>`,
+      `<div class=\"property-row\"><span class=\"property-label\">Position</span><span class=\"property-value\">(${selectedItem.x}, ${selectedItem.y})</span></div>`,
+      `<div class=\"property-row\"><span class=\"property-label\">Connections</span><span class=\"property-value\">${state.canvasConnections.filter((connection) => connection.fromId === selectedItem.id || connection.toId === selectedItem.id).length}</span></div>`,
+      "<div class=\"property-actions\">",
+      "<button class=\"btn btn--sm btn--danger\" type=\"button\" data-resource-action=\"remove\">Delete Resource</button>",
+      "</div>",
+      "</div>"
+    ].join("");
+    return;
+  }
+
+  selectedResourceNameEl.textContent = "None selected";
+  propertyContentEl.textContent = "Select a resource or connection to edit properties.";
 }
 
 function createResourceRow(category, resource, iconRoot) {
@@ -659,6 +725,15 @@ function findClosestByClass(element, className) {
   return null;
 }
 
+function findInEventPath(event, className) {
+  if (!event.composedPath) {
+    return findClosestByClass(event.target, className);
+  }
+
+  const path = event.composedPath();
+  return path.find((node) => node?.classList?.contains?.(className)) || null;
+}
+
 function getNearestAnchorFromClient(itemId, clientX, clientY) {
   if (!canvasViewportEl) {
     return "left";
@@ -781,46 +856,6 @@ function renderCanvasConnections() {
     }
 
     canvasEdgesEl.appendChild(edge);
-
-    if (state.selectedConnectionId === connection.id) {
-      const toggleControl = document.createElementNS(namespace, "g");
-      toggleControl.classList.add("canvas-edge-control");
-      toggleControl.dataset.connectionId = connection.id;
-      toggleControl.dataset.action = "toggle-direction";
-      toggleControl.setAttribute("transform", `translate(${pathData.midX - 12} ${pathData.midY})`);
-
-      const toggleCircle = document.createElementNS(namespace, "circle");
-      toggleCircle.setAttribute("r", "10");
-      toggleControl.appendChild(toggleCircle);
-
-      const toggleText = document.createElementNS(namespace, "text");
-      toggleText.textContent = connection.direction === "bi" ? "↔" : "→";
-      toggleControl.appendChild(toggleText);
-
-      const toggleTitle = document.createElementNS(namespace, "title");
-      toggleTitle.textContent = "Toggle direction";
-      toggleControl.appendChild(toggleTitle);
-      canvasEdgesEl.appendChild(toggleControl);
-
-      const deleteControl = document.createElementNS(namespace, "g");
-      deleteControl.classList.add("canvas-edge-control");
-      deleteControl.dataset.connectionId = connection.id;
-      deleteControl.dataset.action = "delete-connection";
-      deleteControl.setAttribute("transform", `translate(${pathData.midX + 12} ${pathData.midY})`);
-
-      const deleteCircle = document.createElementNS(namespace, "circle");
-      deleteCircle.setAttribute("r", "10");
-      deleteControl.appendChild(deleteCircle);
-
-      const deleteText = document.createElementNS(namespace, "text");
-      deleteText.textContent = "×";
-      deleteControl.appendChild(deleteText);
-
-      const deleteTitle = document.createElementNS(namespace, "title");
-      deleteTitle.textContent = "Cancel connection";
-      deleteControl.appendChild(deleteTitle);
-      canvasEdgesEl.appendChild(deleteControl);
-    }
   });
 
   if (state.edgeDraft.active && state.edgeDraft.sourceId) {
@@ -847,8 +882,13 @@ function upsertConnection(fromId, toId, direction, sourceAnchor = "right", targe
     return;
   }
 
+  const fromItem = getItemById(fromId);
+  const toItem = getItemById(toId);
+  const newName = `${fromItem?.name || fromId} → ${toItem?.name || toId}`;
+
   const newConnection = {
     id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: newName,
     fromId,
     toId,
     direction,
@@ -978,7 +1018,7 @@ function selectCanvasItem(itemId) {
   const item = getItemById(itemId);
   state.selectedResource = item ? item.id : null;
   state.selectedConnectionId = null;
-  updatePropertyPanel(item ? item.name : null);
+  updatePropertyPanelForSelection();
   updateCanvasNodeSelection();
   renderCanvasConnections();
 }
@@ -1187,35 +1227,10 @@ function initializeCanvasInteractions() {
   });
 
   canvasEdgesEl?.addEventListener("click", (event) => {
-    const controlEl = findClosestByClass(event.target, "canvas-edge-control");
-    if (controlEl) {
-      const connectionId = controlEl.dataset.connectionId;
-      const action = controlEl.dataset.action;
-      const connection = state.canvasConnections.find((item) => item.id === connectionId);
-      if (!connection) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (action === "toggle-direction") {
-        connection.direction = connection.direction === "bi" ? "one-way" : "bi";
-      }
-
-      if (action === "delete-connection") {
-        state.canvasConnections = state.canvasConnections.filter((item) => item.id !== connectionId);
-        state.selectedConnectionId = null;
-      }
-
-      renderCanvasConnections();
-      persistCanvasLocal();
-      return;
-    }
-
-    const edgeEl = findClosestByClass(event.target, "canvas-edge");
+    const edgeEl = findInEventPath(event, "canvas-edge");
     if (!edgeEl || !edgeEl.dataset.connectionId) {
       state.selectedConnectionId = null;
+      updatePropertyPanelForSelection();
       renderCanvasConnections();
       return;
     }
@@ -1224,13 +1239,13 @@ function initializeCanvasInteractions() {
     event.stopPropagation();
     state.selectedConnectionId = edgeEl.dataset.connectionId;
     state.selectedResource = null;
-    updatePropertyPanel(null);
+    updatePropertyPanelForSelection();
     updateCanvasNodeSelection();
     renderCanvasConnections();
   });
 
   canvasEdgesEl?.addEventListener("mousedown", (event) => {
-    if (findClosestByClass(event.target, "canvas-edge") || findClosestByClass(event.target, "canvas-edge-control")) {
+    if (findInEventPath(event, "canvas-edge")) {
       event.stopPropagation();
     }
   });
@@ -1625,6 +1640,163 @@ btnProjectSettings?.addEventListener("click", () => {
 searchInput?.addEventListener("input", () => {
   state.searchTerm = searchInput.value;
   renderResources();
+});
+
+propertyContentEl?.addEventListener("click", (event) => {
+  const actionEl = event.target.closest("[data-connection-action]");
+  if (!actionEl || !state.selectedConnectionId) {
+    const resourceActionEl = event.target.closest("[data-resource-action]");
+    if (!resourceActionEl || !state.selectedResource) {
+      return;
+    }
+
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem) {
+      return;
+    }
+
+    if (resourceActionEl.dataset.resourceAction === "remove") {
+      removeCanvasItemTree(selectedItem.id);
+      state.selectedResource = null;
+      updatePropertyPanelForSelection();
+      renderCanvasItems();
+      persistCanvasLocal();
+    }
+    return;
+  }
+
+  const selected = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId);
+  if (!selected) {
+    return;
+  }
+
+  const action = actionEl.dataset.connectionAction;
+
+  if (action === "reverse") {
+    const fromId = selected.fromId;
+    const sourceAnchor = selected.sourceAnchor;
+    selected.fromId = selected.toId;
+    selected.toId = fromId;
+    selected.sourceAnchor = selected.targetAnchor;
+    selected.targetAnchor = sourceAnchor;
+  }
+
+  if (action === "toggle-direction") {
+    selected.direction = selected.direction === "bi" ? "one-way" : "bi";
+  }
+
+  if (action === "remove") {
+    state.canvasConnections = state.canvasConnections.filter((connection) => connection.id !== state.selectedConnectionId);
+    state.selectedConnectionId = null;
+  }
+
+  updatePropertyPanelForSelection();
+  renderCanvasConnections();
+  persistCanvasLocal();
+});
+
+propertyContentEl?.addEventListener("change", (event) => {
+  const target = event.target;
+
+  if (target.matches("[data-connection-field='name']") && state.selectedConnectionId) {
+    const selected = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId);
+    if (!selected) {
+      return;
+    }
+
+    const nextName = String(target.value || "").trim();
+    if (!nextName) {
+      updatePropertyPanelForSelection();
+      return;
+    }
+
+    selected.name = nextName;
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if ((target.matches("[data-connection-field='fromId']") || target.matches("[data-connection-field='toId']")) && state.selectedConnectionId) {
+    const selected = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId);
+    if (!selected) {
+      return;
+    }
+
+    const newValue = target.value;
+    if (!newValue) {
+      return; // Don't allow empty selection
+    }
+
+    const fieldName = target.dataset.connectionField;
+    const oppositeField = fieldName === "fromId" ? "toId" : "fromId";
+    const oppositeValue = selected[oppositeField];
+
+    // Validation: prevent same resource in both From and To
+    if (newValue === oppositeValue) {
+      updatePropertyPanelForSelection(); // Revert the change by re-rendering
+      return;
+    }
+
+    // Update the connection field
+    selected[fieldName] = newValue;
+
+    // Update corresponding anchor (default to right for From, left for To)
+    if (fieldName === "fromId") {
+      selected.sourceAnchor = "right";
+    } else {
+      selected.targetAnchor = "left";
+    }
+
+    // Update connection name based on new from/to
+    const fromItem = getItemById(selected.fromId);
+    const toItem = getItemById(selected.toId);
+    selected.name = `${fromItem?.name || selected.fromId} → ${toItem?.name || selected.toId}`;
+
+    updatePropertyPanelForSelection();
+    renderCanvasConnections();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-connection-field='direction']") && state.selectedConnectionId) {
+    const selected = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId);
+    if (!selected) {
+      return;
+    }
+
+    selected.direction = target.value === "bi" ? "bi" : "one-way";
+    updatePropertyPanelForSelection();
+    renderCanvasConnections();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-resource-field='name']") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem) {
+      return;
+    }
+
+    const nextName = String(target.value || "").trim();
+    if (!nextName) {
+      updatePropertyPanelForSelection();
+      return;
+    }
+
+    selectedItem.name = nextName;
+    
+    // Update all connection names that reference this resource
+    state.canvasConnections.forEach((connection) => {
+      const fromItem = getItemById(connection.fromId);
+      const toItem = getItemById(connection.toId);
+      connection.name = `${fromItem?.name || connection.fromId} → ${toItem?.name || connection.toId}`;
+    });
+    
+    updatePropertyPanelForSelection();
+    renderCanvasItems();
+    renderCanvasConnections();
+    persistCanvasLocal();
+  }
 });
 
 // ===== Initialization =====
