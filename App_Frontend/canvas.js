@@ -53,7 +53,12 @@ const canvasInteraction = {
   dragOriginX: 0,
   dragOriginY: 0,
   itemOriginX: 0,
-  itemOriginY: 0
+  itemOriginY: 0,
+  resizingItemId: null,
+  resizeOriginX: 0,
+  resizeOriginY: 0,
+  widthOrigin: 0,
+  heightOrigin: 0
 };
 
 const constraints = {
@@ -75,6 +80,38 @@ const CANVAS_ZOOM = {
   step: 0.1,
   grid: 40
 };
+
+const CANVAS_CONTAINER = {
+  minWidth: 220,
+  minHeight: 140,
+  defaultWidth: 360,
+  defaultHeight: 240,
+  headerHeight: 32,
+  padding: 12
+};
+
+function normalizeLabel(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isContainerResource(resource) {
+  const name = normalizeLabel(resource?.name);
+  const containerTerms = [
+    "management group",
+    "management groups",
+    "subscription",
+    "subscriptions",
+    "resource group",
+    "resource groups",
+    "virtual network",
+    "virtual networks",
+    "vnet",
+    "subnet",
+    "subnets"
+  ];
+
+  return containerTerms.some((term) => name.includes(term)) || name === "network";
+}
 
 // ===== Utility Functions =====
 function formatTimestamp(ms) {
@@ -172,6 +209,10 @@ function sanitizeProject(project) {
         name: String(item.name || "Resource"),
         iconSrc: String(item.iconSrc || ""),
         category: String(item.category || ""),
+        isContainer: Boolean(item.isContainer),
+        parentId: item.parentId ? String(item.parentId) : null,
+        width: clamp(Number(item.width) || CANVAS_CONTAINER.defaultWidth, CANVAS_CONTAINER.minWidth, 2400),
+        height: clamp(Number(item.height) || CANVAS_CONTAINER.defaultHeight, CANVAS_CONTAINER.minHeight, 2400),
         x: Number(item.x) || 0,
         y: Number(item.y) || 0
       }))
@@ -378,6 +419,107 @@ function toWorldPoint(clientX, clientY) {
   };
 }
 
+function getItemById(itemId) {
+  return state.canvasItems.find((candidate) => candidate.id === itemId) || null;
+}
+
+function getChildrenByParentId(parentId) {
+  return state.canvasItems.filter((candidate) => candidate.parentId === parentId);
+}
+
+function getItemWorldPosition(itemId) {
+  const item = getItemById(itemId);
+  if (!item) {
+    return { x: 0, y: 0 };
+  }
+
+  if (!item.parentId) {
+    return { x: item.x, y: item.y };
+  }
+
+  const parentWorld = getItemWorldPosition(item.parentId);
+  return {
+    x: parentWorld.x + CANVAS_CONTAINER.padding + item.x,
+    y: parentWorld.y + CANVAS_CONTAINER.headerHeight + CANVAS_CONTAINER.padding + item.y
+  };
+}
+
+function isDescendant(candidateId, ancestorId) {
+  let cursor = getItemById(candidateId);
+  while (cursor?.parentId) {
+    if (cursor.parentId === ancestorId) {
+      return true;
+    }
+    cursor = getItemById(cursor.parentId);
+  }
+  return false;
+}
+
+function getContainerInnerWorldBounds(container) {
+  const world = getItemWorldPosition(container.id);
+  const width = clamp(Number(container.width) || CANVAS_CONTAINER.defaultWidth, CANVAS_CONTAINER.minWidth, 2400);
+  const height = clamp(Number(container.height) || CANVAS_CONTAINER.defaultHeight, CANVAS_CONTAINER.minHeight, 2400);
+  const left = world.x + CANVAS_CONTAINER.padding;
+  const top = world.y + CANVAS_CONTAINER.headerHeight + CANVAS_CONTAINER.padding;
+  const right = world.x + width - CANVAS_CONTAINER.padding;
+  const bottom = world.y + height - CANVAS_CONTAINER.padding;
+
+  return { left, top, right, bottom };
+}
+
+function getContainerAtWorldPoint(worldX, worldY, ignoreItemId = null) {
+  const containers = state.canvasItems
+    .filter((item) => item.isContainer && item.id !== ignoreItemId && !isDescendant(item.id, ignoreItemId))
+    .map((item) => ({ item, bounds: getContainerInnerWorldBounds(item) }))
+    .filter(({ bounds }) => worldX >= bounds.left && worldX <= bounds.right && worldY >= bounds.top && worldY <= bounds.bottom)
+    .sort((first, second) => {
+      const firstArea = (first.bounds.right - first.bounds.left) * (first.bounds.bottom - first.bounds.top);
+      const secondArea = (second.bounds.right - second.bounds.left) * (second.bounds.bottom - second.bounds.top);
+      return firstArea - secondArea;
+    });
+
+  return containers.length ? containers[0].item : null;
+}
+
+function moveItemToParent(item, nextParentId) {
+  const world = getItemWorldPosition(item.id);
+  item.parentId = nextParentId;
+
+  if (!nextParentId) {
+    item.x = world.x;
+    item.y = world.y;
+    return;
+  }
+
+  const parentWorld = getItemWorldPosition(nextParentId);
+  item.x = world.x - parentWorld.x - CANVAS_CONTAINER.padding;
+  item.y = world.y - parentWorld.y - CANVAS_CONTAINER.headerHeight - CANVAS_CONTAINER.padding;
+}
+
+function removeCanvasItemTree(itemId) {
+  const directChildren = getChildrenByParentId(itemId);
+  directChildren.forEach((child) => removeCanvasItemTree(child.id));
+
+  state.canvasItems = state.canvasItems.filter((item) => item.id !== itemId);
+
+  if (state.selectedResource === itemId) {
+    state.selectedResource = null;
+    updatePropertyPanel(null);
+  }
+}
+
+function buildRemoveControl(itemId) {
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "canvas-node-remove";
+  removeButton.dataset.itemId = itemId;
+  removeButton.setAttribute("aria-label", "Remove resource");
+  removeButton.title = "Remove";
+  removeButton.textContent = "×";
+
+  return removeButton;
+}
+
 function updateCanvasNodeSelection() {
   if (!canvasLayerEl) {
     return;
@@ -395,9 +537,14 @@ function renderCanvasItems() {
 
   canvasLayerEl.innerHTML = "";
 
-  state.canvasItems.forEach((item) => {
+  function renderNode(item, host) {
     const nodeEl = document.createElement("div");
     nodeEl.className = "canvas-node";
+    if (item.isContainer) {
+      nodeEl.classList.add("canvas-node--container");
+      nodeEl.style.width = `${item.width || CANVAS_CONTAINER.defaultWidth}px`;
+      nodeEl.style.height = `${item.height || CANVAS_CONTAINER.defaultHeight}px`;
+    }
     nodeEl.dataset.itemId = item.id;
     nodeEl.style.transform = `translate(${item.x}px, ${item.y}px)`;
 
@@ -409,9 +556,41 @@ function renderCanvasItems() {
     const nameEl = document.createElement("span");
     nameEl.textContent = item.name;
 
-    nodeEl.appendChild(iconEl);
-    nodeEl.appendChild(nameEl);
-    canvasLayerEl.appendChild(nodeEl);
+    if (item.isContainer) {
+      const headerEl = document.createElement("div");
+      headerEl.className = "canvas-container-header";
+      headerEl.appendChild(iconEl);
+      headerEl.appendChild(nameEl);
+
+      const removeButton = buildRemoveControl(item.id);
+      headerEl.appendChild(removeButton);
+
+      const bodyEl = document.createElement("div");
+      bodyEl.className = "canvas-container-body";
+
+      nodeEl.appendChild(headerEl);
+      nodeEl.appendChild(bodyEl);
+
+      const resizeHandle = document.createElement("div");
+      resizeHandle.className = "canvas-resize-handle";
+      resizeHandle.dataset.itemId = item.id;
+      resizeHandle.title = "Resize container";
+      nodeEl.appendChild(resizeHandle);
+
+      getChildrenByParentId(item.id).forEach((child) => {
+        renderNode(child, bodyEl);
+      });
+    } else {
+      nodeEl.appendChild(iconEl);
+      nodeEl.appendChild(nameEl);
+      nodeEl.appendChild(buildRemoveControl(item.id));
+    }
+
+    host.appendChild(nodeEl);
+  }
+
+  getChildrenByParentId(null).forEach((rootItem) => {
+    renderNode(rootItem, canvasLayerEl);
   });
 
   updateCanvasNodeSelection();
@@ -436,7 +615,7 @@ function renderCanvasView() {
 }
 
 function selectCanvasItem(itemId) {
-  const item = state.canvasItems.find((candidate) => candidate.id === itemId) || null;
+  const item = getItemById(itemId);
   state.selectedResource = item ? item.id : null;
   updatePropertyPanel(item ? item.name : null);
   updateCanvasNodeSelection();
@@ -473,14 +652,30 @@ function adjustCanvasZoom(direction, clientX, clientY) {
 }
 
 function createCanvasItem(resource, worldX, worldY) {
-  const snappedX = Math.round(worldX / 10) * 10;
-  const snappedY = Math.round(worldY / 10) * 10;
+  const parentContainer = getContainerAtWorldPoint(worldX, worldY);
+
+  let snappedX = Math.round(worldX / 10) * 10;
+  let snappedY = Math.round(worldY / 10) * 10;
+  let parentId = null;
+
+  if (parentContainer) {
+    const parentWorld = getItemWorldPosition(parentContainer.id);
+    snappedX = Math.round((worldX - parentWorld.x - CANVAS_CONTAINER.padding) / 10) * 10;
+    snappedY = Math.round((worldY - parentWorld.y - CANVAS_CONTAINER.headerHeight - CANVAS_CONTAINER.padding) / 10) * 10;
+    parentId = parentContainer.id;
+  }
+
+  const containerResource = isContainerResource(resource);
 
   const newItem = {
     id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: resource.name,
     iconSrc: resource.iconSrc,
     category: resource.category || "",
+    isContainer: containerResource,
+    parentId,
+    width: containerResource ? CANVAS_CONTAINER.defaultWidth : undefined,
+    height: containerResource ? CANVAS_CONTAINER.defaultHeight : undefined,
     x: snappedX,
     y: snappedY
   };
@@ -547,13 +742,25 @@ function initializeCanvasInteractions() {
       return;
     }
 
+    if (event.target.closest(".canvas-node-remove")) {
+      return;
+    }
+
+    if (event.target.closest(".canvas-resize-handle")) {
+      return;
+    }
+
     const nodeEl = event.target.closest(".canvas-node");
     if (!nodeEl) {
       return;
     }
 
-    const item = state.canvasItems.find((candidate) => candidate.id === nodeEl.dataset.itemId);
+    const item = getItemById(nodeEl.dataset.itemId);
     if (!item) {
+      return;
+    }
+
+    if (item.isContainer && !event.target.closest(".canvas-container-header")) {
       return;
     }
 
@@ -577,6 +784,20 @@ function initializeCanvasInteractions() {
   });
 
   window.addEventListener("mousemove", (event) => {
+    if (canvasInteraction.resizingItemId) {
+      const item = getItemById(canvasInteraction.resizingItemId);
+      if (!item || !item.isContainer) {
+        return;
+      }
+
+      const dx = (event.clientX - canvasInteraction.resizeOriginX) / state.canvasView.zoom;
+      const dy = (event.clientY - canvasInteraction.resizeOriginY) / state.canvasView.zoom;
+      item.width = clamp(canvasInteraction.widthOrigin + dx, CANVAS_CONTAINER.minWidth, 2400);
+      item.height = clamp(canvasInteraction.heightOrigin + dy, CANVAS_CONTAINER.minHeight, 2400);
+      renderCanvasItems();
+      return;
+    }
+
     if (canvasInteraction.isPanning) {
       const dx = event.clientX - canvasInteraction.panOriginX;
       const dy = event.clientY - canvasInteraction.panOriginY;
@@ -587,7 +808,7 @@ function initializeCanvasInteractions() {
     }
 
     if (canvasInteraction.draggingItemId) {
-      const item = state.canvasItems.find((candidate) => candidate.id === canvasInteraction.draggingItemId);
+      const item = getItemById(canvasInteraction.draggingItemId);
       if (!item) {
         return;
       }
@@ -608,9 +829,67 @@ function initializeCanvasInteractions() {
     }
 
     if (canvasInteraction.draggingItemId) {
+      const item = getItemById(canvasInteraction.draggingItemId);
+      if (item) {
+        const world = getItemWorldPosition(item.id);
+        const bodyX = world.x + 60;
+        const bodyY = world.y + 24;
+        const targetContainer = getContainerAtWorldPoint(bodyX, bodyY, item.id);
+        const nextParentId = targetContainer ? targetContainer.id : null;
+
+        if (item.parentId !== nextParentId) {
+          moveItemToParent(item, nextParentId);
+          renderCanvasItems();
+        }
+      }
+
       canvasInteraction.draggingItemId = null;
       persistCanvasLocal();
     }
+
+    if (canvasInteraction.resizingItemId) {
+      canvasInteraction.resizingItemId = null;
+      persistCanvasLocal();
+    }
+  });
+
+  canvasLayerEl.addEventListener("mousedown", (event) => {
+    if (event.target.closest(".canvas-node-remove")) {
+      return;
+    }
+
+    const resizeEl = event.target.closest(".canvas-resize-handle");
+    if (!resizeEl) {
+      return;
+    }
+
+    const item = getItemById(resizeEl.dataset.itemId);
+    if (!item || !item.isContainer) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    canvasInteraction.resizingItemId = item.id;
+    canvasInteraction.resizeOriginX = event.clientX;
+    canvasInteraction.resizeOriginY = event.clientY;
+    canvasInteraction.widthOrigin = Number(item.width) || CANVAS_CONTAINER.defaultWidth;
+    canvasInteraction.heightOrigin = Number(item.height) || CANVAS_CONTAINER.defaultHeight;
+  });
+
+  canvasLayerEl.addEventListener("click", (event) => {
+    const removeEl = event.target.closest(".canvas-node-remove");
+    if (!removeEl) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    removeCanvasItemTree(removeEl.dataset.itemId);
+    renderCanvasItems();
+    persistCanvasLocal();
   });
 
   canvasZoomInBtn?.addEventListener("click", () => adjustCanvasZoom(1));

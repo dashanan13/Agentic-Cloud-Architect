@@ -3,45 +3,61 @@
   "rightWidth": 260,
   "bottomHeight": 160,
   "bottomRightWidth": 240,
-  "selectedResource": "item-1771844112421-m91nyj",
-  "searchTerm": "resour",
+  "selectedResource": "item-1771845801152-o916nq",
+  "searchTerm": "",
   "canvasView": {
-    "x": -201.00000000000068,
-    "y": -248.99999999999994,
-    "zoom": 1.25
+    "x": 371.76470588235287,
+    "y": 105.65882352941173,
+    "zoom": 0.25
   },
   "canvasItems": [
     {
-      "id": "item-1771844024318-q3sbjy",
-      "name": "Anomaly Detector",
-      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00814-icon-service-Anomaly-Detector.svg",
-      "category": "ai + machine learning",
-      "x": 510,
-      "y": 260
-    },
-    {
-      "id": "item-1771844091113-r82wwq",
-      "name": "Azure OpenAI",
-      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg",
-      "category": "ai + machine learning",
-      "x": 480,
-      "y": 430
-    },
-    {
-      "id": "item-1771844095523-3i21qz",
-      "name": "Azure Object Understanding",
-      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/01688-icon-service-Azure-Object-Understanding.svg",
-      "category": "ai + machine learning",
-      "x": 280,
-      "y": 350
-    },
-    {
-      "id": "item-1771844112421-m91nyj",
+      "id": "item-1771845706314-kpxt5a",
       "name": "Resource Groups",
       "iconSrc": "/icons/azure/general/10007-icon-service-Resource-Groups.svg",
       "category": "general",
-      "x": 720,
-      "y": 310
+      "isContainer": true,
+      "parentId": null,
+      "width": 463.5294117647059,
+      "height": 501.1764705882353,
+      "x": 410,
+      "y": 130
+    },
+    {
+      "id": "item-1771845736367-ez2ljm",
+      "name": "Resource Groups",
+      "iconSrc": "/icons/azure/general/10007-icon-service-Resource-Groups.svg",
+      "category": "general",
+      "isContainer": true,
+      "parentId": null,
+      "width": 456.47058823529414,
+      "height": 501.17647058823536,
+      "x": -270,
+      "y": 130
+    },
+    {
+      "id": "item-1771845777026-qfyv41",
+      "name": "Virtual Networks",
+      "iconSrc": "/icons/azure/networking/10061-icon-service-Virtual-Networks.svg",
+      "category": "networking",
+      "isContainer": true,
+      "parentId": "item-1771845736367-ez2ljm",
+      "width": 1101.1764705882354,
+      "height": 430.5882352941176,
+      "x": 58,
+      "y": -14
+    },
+    {
+      "id": "item-1771845801152-o916nq",
+      "name": "Subnet",
+      "iconSrc": "/icons/azure/networking/02742-icon-service-Subnet.svg",
+      "category": "networking",
+      "isContainer": true,
+      "parentId": "item-1771845736367-ez2ljm",
+      "width": 380,
+      "height": 347.05882352941177,
+      "x": 20,
+      "y": 30
     }
   ]
 }
