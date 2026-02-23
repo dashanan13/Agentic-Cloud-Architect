@@ -69,6 +69,14 @@ Resizable splitters:
 ├── Agents/
 ├── App_Backend/
 ├── App_Frontend/
+│   ├── landing.html            # Landing page for selecting/creating projects (served at /)
+│   ├── canvas.html             # Main design workspace page (resource list, canvas, properties, bottom panes)
+│   ├── landing.js              # Landing page logic (project CRUD, localStorage, cloud accordion behavior)
+│   ├── canvas.js               # Canvas page logic (catalog rendering, splitters, tabs, project name editing)
+│   ├── styles.css              # Shared UI styles for both landing and canvas pages
+│   ├── nginx.conf              # Nginx routing config (root -> landing.html)
+│   ├── generate_catalogs.py    # Builds provider resource catalogs from icon folders during image build
+│   └── app.js                  # Legacy monolithic script (not used by split-page flow)
 ├── App_State/
 ├── Clouds/
 │   ├── Azure/

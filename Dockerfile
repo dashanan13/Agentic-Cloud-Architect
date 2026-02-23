@@ -10,7 +10,6 @@ FROM nginx:1.27-alpine
 COPY App_Frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY App_Frontend/landing.html /usr/share/nginx/html/landing.html
 COPY App_Frontend/canvas.html /usr/share/nginx/html/canvas.html
-COPY App_Frontend/index.html /usr/share/nginx/html/index.html
 COPY App_Frontend/styles.css /usr/share/nginx/html/styles.css
 COPY App_Frontend/landing.js /usr/share/nginx/html/landing.js
 COPY App_Frontend/canvas.js /usr/share/nginx/html/canvas.js
