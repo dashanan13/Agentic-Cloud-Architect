@@ -1,9 +1,9 @@
 {
   "leftWidth": 180,
-  "rightWidth": 278,
+  "rightWidth": 220,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": null,
+  "selectedResource": "item-1771851604764-jjqxl6",
   "searchTerm": "",
   "canvasView": {
     "x": 94,
@@ -43,7 +43,8 @@
       "toId": "item-1771851045995-8eqgur",
       "direction": "one-way",
       "sourceAnchor": "bottom",
-      "targetAnchor": "top"
+      "targetAnchor": "top",
+      "name": "sadasdasdadadasdasdasd"
     }
   ]
 }

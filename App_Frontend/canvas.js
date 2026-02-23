@@ -369,7 +369,8 @@ function updatePropertyPanelForSelection() {
       `<select class=\"property-input\" data-connection-field=\"direction\"><option value=\"one-way\" ${selectedConnection.direction === "one-way" ? "selected" : ""}>One-way</option><option value=\"bi\" ${selectedConnection.direction === "bi" ? "selected" : ""}>Bi-directional</option></select>`,
       "</label>",
       "<div class=\"property-actions\">",
-      `<button class=\"btn btn--sm btn--danger\" type=\"button\" data-connection-action=\"remove\">Remove Connection</button>`,
+      `<button class=\"btn btn--sm btn--primary\" type=\"button\" data-property-action=\"save\">Save</button>`,
+      `<button class=\"btn btn--sm btn--danger\" type=\"button\" data-connection-action=\"remove\">Remove</button>`,
       "</div>"
     ].join("");
     return;
@@ -389,7 +390,8 @@ function updatePropertyPanelForSelection() {
       `<div class=\"property-row\"><span class=\"property-label\">Position</span><span class=\"property-value\">(${selectedItem.x}, ${selectedItem.y})</span></div>`,
       `<div class=\"property-row\"><span class=\"property-label\">Connections</span><span class=\"property-value\">${state.canvasConnections.filter((connection) => connection.fromId === selectedItem.id || connection.toId === selectedItem.id).length}</span></div>`,
       "<div class=\"property-actions\">",
-      "<button class=\"btn btn--sm btn--danger\" type=\"button\" data-resource-action=\"remove\">Delete Resource</button>",
+      `<button class=\"btn btn--sm btn--primary\" type=\"button\" data-property-action=\"save\">Save</button>`,
+      "<button class=\"btn btn--sm btn--danger\" type=\"button\" data-resource-action=\"remove\">Remove</button>",
       "</div>",
       "</div>"
     ].join("");
@@ -1643,6 +1645,25 @@ searchInput?.addEventListener("input", () => {
 });
 
 propertyContentEl?.addEventListener("click", (event) => {
+  // Handle Save button click
+  const saveBtn = event.target.closest("[data-property-action='save']");
+  if (saveBtn) {
+    persistCanvasLocal();
+    renderCanvasItems();
+    renderCanvasConnections();
+    
+    // Visual feedback
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = "Saved!";
+    saveBtn.disabled = true;
+    setTimeout(() => {
+      saveBtn.textContent = originalText;
+      saveBtn.disabled = false;
+    }, 1500);
+    return;
+  }
+
+  // Handle connection action buttons
   const actionEl = event.target.closest("[data-connection-action]");
   if (!actionEl || !state.selectedConnectionId) {
     const resourceActionEl = event.target.closest("[data-resource-action]");

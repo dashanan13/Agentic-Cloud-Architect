@@ -7,7 +7,7 @@
   --accent: #2563eb;
 
   --left-width: 180px;
-  --right-width: 220px;
+  --right-width: 320px;
   --bottom-height: 130px;
   --bottom-right-width: 220px;
   --splitter: 8px;
@@ -508,14 +508,24 @@ body {
 
 .property-input {
   width: 100%;
-  height: 30px;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0 8px;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
+  font-weight: 600;
   color: var(--text);
   background: var(--panel);
   box-sizing: border-box;
+  line-height: 1.4;
+  min-height: 30px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+select.property-input {
+  height: 30px;
+  padding: 0 8px;
 }
 
 .property-input:focus-visible {
@@ -526,8 +536,9 @@ body {
 .property-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
-  padding-top: 4px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-top: 8px;
 }
 
 .splitter {
