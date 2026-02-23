@@ -4,6 +4,8 @@ import os
 import re
 import shutil
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -12,6 +14,7 @@ WORKSPACE_ROOT = Path("/workspace")
 APP_STATE_DIR = WORKSPACE_ROOT / "App_State"
 PROJECTS_DIR = WORKSPACE_ROOT / "Projects"
 DEFAULT_TEMPLATE_DIR = PROJECTS_DIR / "Default"
+FRONTEND_DIR = Path("/app/App_Frontend")
 
 
 class AppSettingsPayload(BaseModel):
@@ -319,3 +322,26 @@ def delete_project_snapshot(project_id: str):
         return {"ok": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to delete project: {exc}") from exc
+
+
+@app.get("/", include_in_schema=False)
+def frontend_root():
+    return RedirectResponse(url="/landing.html")
+
+
+@app.get("/landing.html", include_in_schema=False)
+def landing_page():
+    return FileResponse(FRONTEND_DIR / "landing.html")
+
+
+@app.get("/canvas.html", include_in_schema=False)
+def canvas_page():
+    return FileResponse(FRONTEND_DIR / "canvas.html")
+
+
+@app.get("/settings.html", include_in_schema=False)
+def settings_page():
+    return FileResponse(FRONTEND_DIR / "settings.html")
+
+
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=False), name="frontend-static")

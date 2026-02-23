@@ -1,25 +1,23 @@
-FROM python:3.12-alpine AS catalog-builder
+FROM python:3.12-alpine
 
 WORKDIR /app
+
+COPY App_Backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY App_Backend/settings_server.py ./settings_server.py
+COPY App_Frontend ./App_Frontend
 COPY Clouds ./Clouds
-COPY App_Frontend/generate_catalogs.py ./App_Frontend/generate_catalogs.py
-RUN python ./App_Frontend/generate_catalogs.py
+COPY Projects/Default /workspace/Projects/Default
+COPY App_State /workspace/App_State
 
-FROM nginx:1.27-alpine
-
-COPY App_Frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY App_Frontend/landing.html /usr/share/nginx/html/landing.html
-COPY App_Frontend/canvas.html /usr/share/nginx/html/canvas.html
-COPY App_Frontend/settings.html /usr/share/nginx/html/settings.html
-COPY App_Frontend/styles.css /usr/share/nginx/html/styles.css
-COPY App_Frontend/landing.js /usr/share/nginx/html/landing.js
-COPY App_Frontend/canvas.js /usr/share/nginx/html/canvas.js
-COPY App_Frontend/settings.js /usr/share/nginx/html/settings.js
-COPY App_Frontend/app.js /usr/share/nginx/html/app.js
-COPY --from=catalog-builder /app/App_Frontend/catalogs/ /usr/share/nginx/html/catalogs/
-COPY Clouds/Azure/Icons/ /usr/share/nginx/html/icons/azure/
-COPY Clouds/Azure/Azure-Icon.png /usr/share/nginx/html/icons/azure-icon.png
-COPY Clouds/AWS/AWS-Icon.png /usr/share/nginx/html/icons/aws-icon.png
-COPY Clouds/GCP/GCP-Icon.png /usr/share/nginx/html/icons/gcp-icon.png
+RUN python /app/App_Frontend/generate_catalogs.py \
+	&& mkdir -p /app/App_Frontend/icons/azure \
+	&& cp -R /app/Clouds/Azure/Icons/. /app/App_Frontend/icons/azure/ \
+	&& cp /app/Clouds/Azure/Azure-Icon.png /app/App_Frontend/icons/azure-icon.png \
+	&& cp /app/Clouds/AWS/AWS-Icon.png /app/App_Frontend/icons/aws-icon.png \
+	&& cp /app/Clouds/GCP/GCP-Icon.png /app/App_Frontend/icons/gcp-icon.png
 
 EXPOSE 3000
+
+CMD ["uvicorn", "settings_server:app", "--host", "0.0.0.0", "--port", "3000"]
