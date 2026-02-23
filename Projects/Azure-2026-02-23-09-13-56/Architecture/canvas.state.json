@@ -3,71 +3,55 @@
   "rightWidth": 220,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1771846491332-dvebao",
-  "searchTerm": "peering",
+  "selectedResource": "item-1771848616508-rp1v3l",
+  "searchTerm": "",
   "canvasView": {
-    "x": 0,
-    "y": 0,
+    "x": 111,
+    "y": -95,
     "zoom": 1
   },
   "canvasItems": [
     {
-      "id": "item-1771845706314-kpxt5a",
-      "name": "Resource Groups",
-      "iconSrc": "/icons/azure/general/10007-icon-service-Resource-Groups.svg",
-      "category": "general",
-      "isContainer": true,
-      "parentId": null,
-      "width": 463.5294117647059,
-      "height": 501.1764705882353,
-      "x": 410,
-      "y": 130
-    },
-    {
-      "id": "item-1771845736367-ez2ljm",
-      "name": "Resource Groups",
-      "iconSrc": "/icons/azure/general/10007-icon-service-Resource-Groups.svg",
-      "category": "general",
-      "isContainer": true,
-      "parentId": null,
-      "width": 456.47058823529414,
-      "height": 501.17647058823536,
-      "x": -270,
-      "y": 130
-    },
-    {
-      "id": "item-1771845777026-qfyv41",
-      "name": "Virtual Networks",
-      "iconSrc": "/icons/azure/networking/10061-icon-service-Virtual-Networks.svg",
-      "category": "networking",
-      "isContainer": true,
-      "parentId": "item-1771845736367-ez2ljm",
-      "width": 1101.1764705882354,
-      "height": 430.5882352941176,
-      "x": 58,
-      "y": -14
-    },
-    {
-      "id": "item-1771845801152-o916nq",
-      "name": "Subnet",
-      "iconSrc": "/icons/azure/networking/02742-icon-service-Subnet.svg",
-      "category": "networking",
-      "isContainer": true,
-      "parentId": "item-1771845736367-ez2ljm",
-      "width": 380,
-      "height": 347.05882352941177,
-      "x": 20,
-      "y": 30
-    },
-    {
-      "id": "item-1771846491332-dvebao",
-      "name": "Peerings",
-      "iconSrc": "/icons/azure/other/01285-icon-service-Peerings.svg",
-      "category": "other",
+      "id": "item-1771847712864-0wu12o",
+      "name": "Bot Services",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/10165-icon-service-Bot-Services.svg",
+      "category": "ai + machine learning",
       "isContainer": false,
-      "parentId": "item-1771845777026-qfyv41",
-      "x": 510,
-      "y": 120
+      "parentId": null,
+      "width": 360,
+      "height": 240,
+      "x": 340,
+      "y": 350
+    },
+    {
+      "id": "item-1771848575788-y3d62l",
+      "name": "Azure OpenAI",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg",
+      "category": "ai + machine learning",
+      "isContainer": false,
+      "parentId": null,
+      "x": 200,
+      "y": 160
+    },
+    {
+      "id": "item-1771848616508-rp1v3l",
+      "name": "Batch AI",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00028-icon-service-Batch-AI.svg",
+      "category": "ai + machine learning",
+      "isContainer": false,
+      "parentId": null,
+      "x": 660,
+      "y": 210
+    }
+  ],
+  "canvasConnections": [
+    {
+      "id": "conn-1771848580675-3xfbge",
+      "fromId": "item-1771848575788-y3d62l",
+      "toId": "item-1771847712864-0wu12o",
+      "direction": "one-way",
+      "sourceAnchor": "right",
+      "targetAnchor": "top"
     }
   ]
 }

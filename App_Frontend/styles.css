@@ -249,6 +249,7 @@ body {
 }
 
 .canvas-grid,
+.canvas-edges,
 .canvas-layer {
   position: absolute;
   inset: 0;
@@ -263,6 +264,45 @@ body {
 
 .canvas-layer {
   transform-origin: 0 0;
+}
+
+.canvas-edges {
+  transform-origin: 0 0;
+  pointer-events: auto;
+}
+
+.canvas-edge {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.canvas-edge.is-selected {
+  stroke-width: 2.5;
+}
+
+.canvas-edge-control {
+  cursor: pointer;
+}
+
+.canvas-edge-control * {
+  pointer-events: none;
+}
+
+.canvas-edge-control circle {
+  fill: var(--panel);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.canvas-edge-control text {
+  fill: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  dominant-baseline: middle;
+  text-anchor: middle;
 }
 
 .canvas-node {
@@ -280,6 +320,56 @@ body {
   box-shadow: 0 1px 3px var(--border);
   cursor: move;
   user-select: none;
+}
+
+.canvas-connect-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--panel);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.canvas-node.is-selected .canvas-connect-handle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.canvas-node.is-receptor-target .canvas-connect-handle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.canvas-connect-handle.is-receptor-active {
+  background: var(--accent);
+}
+
+.canvas-connect-handle[data-anchor="top"] {
+  top: -6px;
+  left: calc(50% - 5px);
+  cursor: crosshair;
+}
+
+.canvas-connect-handle[data-anchor="right"] {
+  right: -6px;
+  top: calc(50% - 5px);
+  cursor: crosshair;
+}
+
+.canvas-connect-handle[data-anchor="bottom"] {
+  bottom: -6px;
+  left: calc(50% - 5px);
+  cursor: crosshair;
+}
+
+.canvas-connect-handle[data-anchor="left"] {
+  left: -6px;
+  top: calc(50% - 5px);
+  cursor: crosshair;
 }
 
 .canvas-node-remove {

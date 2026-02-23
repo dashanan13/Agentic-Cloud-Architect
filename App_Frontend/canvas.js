@@ -18,6 +18,7 @@ const canvasZoomOutBtn = document.getElementById("canvas-zoom-out");
 const canvasZoomInBtn = document.getElementById("canvas-zoom-in");
 const canvasResetViewBtn = document.getElementById("canvas-reset-view");
 const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
+const canvasEdgesEl = document.getElementById("canvas-edges");
 const tabs = Array.from(document.querySelectorAll(".tab"));
 const panels = {
   chat: document.getElementById("panel-chat"),
@@ -40,7 +41,18 @@ const state = {
     y: 0,
     zoom: 1
   },
-  canvasItems: []
+  canvasItems: [],
+  canvasConnections: [],
+  selectedConnectionId: null,
+  edgeDraft: {
+    active: false,
+    sourceId: null,
+    sourceAnchor: "right",
+    targetId: null,
+    targetAnchor: "left",
+    endClientX: 0,
+    endClientY: 0
+  }
 };
 
 const canvasInteraction = {
@@ -111,6 +123,24 @@ function isContainerResource(resource) {
   ];
 
   return containerTerms.some((term) => name.includes(term)) || name === "network";
+}
+
+function isLogicalOnlyContainer(item) {
+  const name = normalizeLabel(item?.name);
+  const logicalTerms = ["management group", "subscription", "resource group"];
+  return logicalTerms.some((term) => name.includes(term));
+}
+
+function isConnectableItem(item) {
+  if (!item) {
+    return false;
+  }
+
+  if (item.isContainer && isLogicalOnlyContainer(item)) {
+    return false;
+  }
+
+  return true;
 }
 
 // ===== Utility Functions =====
@@ -192,6 +222,26 @@ function sanitizeProject(project) {
   const incomingItems = Array.isArray(project.canvasItems)
     ? project.canvasItems
     : [];
+  const incomingConnections = Array.isArray(project.canvasConnections)
+    ? project.canvasConnections
+    : [];
+
+  const sanitizedItems = incomingItems
+    .map((item) => ({
+      id: String(item.id || `item-${Date.now()}`),
+      name: String(item.name || "Resource"),
+      iconSrc: String(item.iconSrc || ""),
+      category: String(item.category || ""),
+      isContainer: Boolean(item.isContainer),
+      parentId: item.parentId ? String(item.parentId) : null,
+      width: clamp(Number(item.width) || CANVAS_CONTAINER.defaultWidth, CANVAS_CONTAINER.minWidth, 2400),
+      height: clamp(Number(item.height) || CANVAS_CONTAINER.defaultHeight, CANVAS_CONTAINER.minHeight, 2400),
+      x: Number(item.x) || 0,
+      y: Number(item.y) || 0
+    }))
+    .filter((item) => item.iconSrc);
+
+  const validItemIds = new Set(sanitizedItems.map((item) => item.id));
 
   return {
     ...project,
@@ -203,20 +253,17 @@ function sanitizeProject(project) {
       y: Number(incomingView.y) || 0,
       zoom: clamp(Number(incomingView.zoom) || 1, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
     },
-    canvasItems: incomingItems
-      .map((item) => ({
-        id: String(item.id || `item-${Date.now()}`),
-        name: String(item.name || "Resource"),
-        iconSrc: String(item.iconSrc || ""),
-        category: String(item.category || ""),
-        isContainer: Boolean(item.isContainer),
-        parentId: item.parentId ? String(item.parentId) : null,
-        width: clamp(Number(item.width) || CANVAS_CONTAINER.defaultWidth, CANVAS_CONTAINER.minWidth, 2400),
-        height: clamp(Number(item.height) || CANVAS_CONTAINER.defaultHeight, CANVAS_CONTAINER.minHeight, 2400),
-        x: Number(item.x) || 0,
-        y: Number(item.y) || 0
+    canvasItems: sanitizedItems,
+    canvasConnections: incomingConnections
+      .map((connection) => ({
+        id: String(connection.id || `conn-${Date.now()}`),
+        fromId: String(connection.fromId || ""),
+        toId: String(connection.toId || ""),
+        direction: connection.direction === "bi" ? "bi" : "one-way",
+        sourceAnchor: ["top", "right", "bottom", "left"].includes(connection.sourceAnchor) ? connection.sourceAnchor : "right",
+        targetAnchor: ["top", "right", "bottom", "left"].includes(connection.targetAnchor) ? connection.targetAnchor : "left"
       }))
-      .filter((item) => item.iconSrc)
+      .filter((connection) => connection.fromId && connection.toId && validItemIds.has(connection.fromId) && validItemIds.has(connection.toId))
   };
 }
 
@@ -405,6 +452,7 @@ function persistCanvasLocal() {
     zoom: state.canvasView.zoom
   };
   state.currentProject.canvasItems = state.canvasItems.map((item) => ({ ...item }));
+  state.currentProject.canvasConnections = state.canvasConnections.map((connection) => ({ ...connection }));
   saveCurrentProject();
 }
 
@@ -501,10 +549,23 @@ function removeCanvasItemTree(itemId) {
   directChildren.forEach((child) => removeCanvasItemTree(child.id));
 
   state.canvasItems = state.canvasItems.filter((item) => item.id !== itemId);
+  state.canvasConnections = state.canvasConnections.filter((connection) => connection.fromId !== itemId && connection.toId !== itemId);
 
   if (state.selectedResource === itemId) {
     state.selectedResource = null;
     updatePropertyPanel(null);
+  }
+
+  if (state.edgeDraft.sourceId === itemId) {
+    state.edgeDraft.active = false;
+    state.edgeDraft.sourceId = null;
+  }
+
+  if (state.selectedConnectionId) {
+    const exists = state.canvasConnections.some((connection) => connection.id === state.selectedConnectionId);
+    if (!exists) {
+      state.selectedConnectionId = null;
+    }
   }
 }
 
@@ -520,13 +581,300 @@ function buildRemoveControl(itemId) {
   return removeButton;
 }
 
+function buildConnectHandle(itemId, anchor) {
+  const handle = document.createElement("button");
+  handle.type = "button";
+  handle.className = "canvas-connect-handle";
+  handle.dataset.itemId = itemId;
+  handle.dataset.anchor = anchor;
+  handle.setAttribute("aria-label", `Connect from ${anchor}`);
+  return handle;
+}
+
+function getNodeScreenRect(itemId) {
+  if (!canvasViewportEl) {
+    return null;
+  }
+
+  const nodeEl = canvasLayerEl?.querySelector(`.canvas-node[data-item-id="${itemId}"]`);
+  if (!nodeEl) {
+    return null;
+  }
+
+  const viewportRect = canvasViewportEl.getBoundingClientRect();
+  const nodeRect = nodeEl.getBoundingClientRect();
+
+  return {
+    left: nodeRect.left - viewportRect.left,
+    top: nodeRect.top - viewportRect.top,
+    width: nodeRect.width,
+    height: nodeRect.height
+  };
+}
+
+function getAnchorScreenPoint(itemId, anchor = "right") {
+  const rect = getNodeScreenRect(itemId);
+  if (!rect) {
+    return null;
+  }
+
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  if (anchor === "top") {
+    return { x: cx, y: rect.top };
+  }
+  if (anchor === "bottom") {
+    return { x: cx, y: rect.top + rect.height };
+  }
+  if (anchor === "left") {
+    return { x: rect.left, y: cy };
+  }
+  return { x: rect.left + rect.width, y: cy };
+}
+
+function toWorldFromScreenPoint(screenX, screenY) {
+  return {
+    x: (screenX - state.canvasView.x) / state.canvasView.zoom,
+    y: (screenY - state.canvasView.y) / state.canvasView.zoom
+  };
+}
+
+function getAnchorWorldPoint(itemId, anchor = "right") {
+  const screen = getAnchorScreenPoint(itemId, anchor);
+  if (!screen) {
+    return null;
+  }
+  return toWorldFromScreenPoint(screen.x, screen.y);
+}
+
+function findClosestByClass(element, className) {
+  let cursor = element;
+  while (cursor && cursor !== document.body) {
+    if (cursor.classList && cursor.classList.contains(className)) {
+      return cursor;
+    }
+    cursor = cursor.parentNode;
+  }
+  return null;
+}
+
+function getNearestAnchorFromClient(itemId, clientX, clientY) {
+  if (!canvasViewportEl) {
+    return "left";
+  }
+
+  const rect = getNodeScreenRect(itemId);
+  if (!rect) {
+    return "left";
+  }
+
+  const viewportRect = canvasViewportEl.getBoundingClientRect();
+  const sx = clientX - viewportRect.left;
+  const sy = clientY - viewportRect.top;
+
+  const distances = [
+    { anchor: "top", distance: Math.abs(sy - rect.top) },
+    { anchor: "right", distance: Math.abs(sx - (rect.left + rect.width)) },
+    { anchor: "bottom", distance: Math.abs(sy - (rect.top + rect.height)) },
+    { anchor: "left", distance: Math.abs(sx - rect.left) }
+  ];
+
+  distances.sort((first, second) => first.distance - second.distance);
+  return distances[0].anchor;
+}
+
+function getConnectionPath(connection) {
+  const fromWorld = getAnchorWorldPoint(connection.fromId, connection.sourceAnchor || "right");
+  const toWorld = getAnchorWorldPoint(connection.toId, connection.targetAnchor || "left");
+  if (!fromWorld || !toWorld) {
+    return null;
+  }
+
+  return {
+    path: `M ${fromWorld.x} ${fromWorld.y} L ${toWorld.x} ${toWorld.y}`,
+    midX: (fromWorld.x + toWorld.x) / 2,
+    midY: (fromWorld.y + toWorld.y) / 2
+  };
+}
+
+function clearEdgeDraft() {
+  state.edgeDraft.active = false;
+  state.edgeDraft.sourceId = null;
+  state.edgeDraft.sourceAnchor = "right";
+  state.edgeDraft.targetId = null;
+  state.edgeDraft.targetAnchor = "left";
+}
+
+function ensureEdgesDefs() {
+  if (!canvasEdgesEl) {
+    return;
+  }
+
+  if (canvasEdgesEl.querySelector("defs")) {
+    return;
+  }
+
+  const namespace = "http://www.w3.org/2000/svg";
+  const defs = document.createElementNS(namespace, "defs");
+
+  const markerEnd = document.createElementNS(namespace, "marker");
+  markerEnd.setAttribute("id", "edge-arrow-end");
+  markerEnd.setAttribute("viewBox", "0 0 10 10");
+  markerEnd.setAttribute("refX", "9");
+  markerEnd.setAttribute("refY", "5");
+  markerEnd.setAttribute("markerWidth", "10");
+  markerEnd.setAttribute("markerHeight", "10");
+  markerEnd.setAttribute("markerUnits", "userSpaceOnUse");
+  markerEnd.setAttribute("orient", "auto-start-reverse");
+
+  const arrowEndPath = document.createElementNS(namespace, "path");
+  arrowEndPath.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+  arrowEndPath.setAttribute("fill", "#2563eb");
+  markerEnd.appendChild(arrowEndPath);
+
+  defs.appendChild(markerEnd);
+  canvasEdgesEl.appendChild(defs);
+}
+
+function renderCanvasConnections() {
+  if (!canvasEdgesEl || !canvasViewportEl) {
+    return;
+  }
+
+  ensureEdgesDefs();
+
+  const namespace = "http://www.w3.org/2000/svg";
+  const viewportRect = canvasViewportEl.getBoundingClientRect();
+  canvasEdgesEl.setAttribute("width", `${Math.max(0, viewportRect.width)}`);
+  canvasEdgesEl.setAttribute("height", `${Math.max(0, viewportRect.height)}`);
+
+  const defs = canvasEdgesEl.querySelector("defs");
+  canvasEdgesEl.innerHTML = "";
+  if (defs) {
+    canvasEdgesEl.appendChild(defs);
+  } else {
+    ensureEdgesDefs();
+  }
+
+  state.canvasConnections.forEach((connection) => {
+    const pathData = getConnectionPath(connection);
+    if (!pathData) {
+      return;
+    }
+
+    const edge = document.createElementNS(namespace, "path");
+    edge.classList.add("canvas-edge");
+    edge.dataset.connectionId = connection.id;
+    edge.setAttribute("d", pathData.path);
+
+    if (state.selectedConnectionId === connection.id) {
+      edge.classList.add("is-selected");
+    }
+
+    if (connection.direction === "bi") {
+      edge.setAttribute("marker-start", "url(#edge-arrow-end)");
+      edge.setAttribute("marker-end", "url(#edge-arrow-end)");
+    } else {
+      edge.removeAttribute("marker-start");
+      edge.setAttribute("marker-end", "url(#edge-arrow-end)");
+    }
+
+    canvasEdgesEl.appendChild(edge);
+
+    if (state.selectedConnectionId === connection.id) {
+      const toggleControl = document.createElementNS(namespace, "g");
+      toggleControl.classList.add("canvas-edge-control");
+      toggleControl.dataset.connectionId = connection.id;
+      toggleControl.dataset.action = "toggle-direction";
+      toggleControl.setAttribute("transform", `translate(${pathData.midX - 12} ${pathData.midY})`);
+
+      const toggleCircle = document.createElementNS(namespace, "circle");
+      toggleCircle.setAttribute("r", "10");
+      toggleControl.appendChild(toggleCircle);
+
+      const toggleText = document.createElementNS(namespace, "text");
+      toggleText.textContent = connection.direction === "bi" ? "↔" : "→";
+      toggleControl.appendChild(toggleText);
+
+      const toggleTitle = document.createElementNS(namespace, "title");
+      toggleTitle.textContent = "Toggle direction";
+      toggleControl.appendChild(toggleTitle);
+      canvasEdgesEl.appendChild(toggleControl);
+
+      const deleteControl = document.createElementNS(namespace, "g");
+      deleteControl.classList.add("canvas-edge-control");
+      deleteControl.dataset.connectionId = connection.id;
+      deleteControl.dataset.action = "delete-connection";
+      deleteControl.setAttribute("transform", `translate(${pathData.midX + 12} ${pathData.midY})`);
+
+      const deleteCircle = document.createElementNS(namespace, "circle");
+      deleteCircle.setAttribute("r", "10");
+      deleteControl.appendChild(deleteCircle);
+
+      const deleteText = document.createElementNS(namespace, "text");
+      deleteText.textContent = "×";
+      deleteControl.appendChild(deleteText);
+
+      const deleteTitle = document.createElementNS(namespace, "title");
+      deleteTitle.textContent = "Cancel connection";
+      deleteControl.appendChild(deleteTitle);
+      canvasEdgesEl.appendChild(deleteControl);
+    }
+  });
+
+  if (state.edgeDraft.active && state.edgeDraft.sourceId) {
+    const sourceWorld = getAnchorWorldPoint(state.edgeDraft.sourceId, state.edgeDraft.sourceAnchor);
+    if (sourceWorld) {
+      const targetWorld = toWorldPoint(state.edgeDraft.endClientX, state.edgeDraft.endClientY);
+      const draftPath = document.createElementNS(namespace, "path");
+      draftPath.classList.add("canvas-edge");
+      draftPath.setAttribute("d", `M ${sourceWorld.x} ${sourceWorld.y} L ${targetWorld.x} ${targetWorld.y}`);
+      draftPath.setAttribute("marker-end", "url(#edge-arrow-end)");
+      draftPath.setAttribute("stroke-dasharray", "4 4");
+      canvasEdgesEl.appendChild(draftPath);
+    }
+  }
+}
+
+function upsertConnection(fromId, toId, direction, sourceAnchor = "right", targetAnchor = "left") {
+  const existing = state.canvasConnections.find((connection) => connection.fromId === fromId && connection.toId === toId);
+  if (existing) {
+    existing.direction = direction;
+    existing.sourceAnchor = sourceAnchor;
+    existing.targetAnchor = targetAnchor;
+    state.selectedConnectionId = existing.id;
+    return;
+  }
+
+  const newConnection = {
+    id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    fromId,
+    toId,
+    direction,
+    sourceAnchor,
+    targetAnchor
+  };
+
+  state.canvasConnections.push(newConnection);
+  state.selectedConnectionId = newConnection.id;
+}
+
 function updateCanvasNodeSelection() {
   if (!canvasLayerEl) {
     return;
   }
 
   canvasLayerEl.querySelectorAll(".canvas-node").forEach((nodeEl) => {
-    nodeEl.classList.toggle("is-selected", nodeEl.dataset.itemId === state.selectedResource);
+    const isSelected = nodeEl.dataset.itemId === state.selectedResource;
+    const isReceptor = state.edgeDraft.active && nodeEl.dataset.itemId === state.edgeDraft.targetId;
+    nodeEl.classList.toggle("is-selected", isSelected);
+    nodeEl.classList.toggle("is-receptor-target", Boolean(isReceptor));
+
+    nodeEl.querySelectorAll(".canvas-connect-handle").forEach((handleEl) => {
+      const isActiveReceptor = isReceptor && handleEl.dataset.anchor === state.edgeDraft.targetAnchor;
+      handleEl.classList.toggle("is-receptor-active", Boolean(isActiveReceptor));
+    });
   });
 }
 
@@ -586,6 +934,12 @@ function renderCanvasItems() {
       nodeEl.appendChild(buildRemoveControl(item.id));
     }
 
+    if (isConnectableItem(item)) {
+      ["top", "right", "bottom", "left"].forEach((anchor) => {
+        nodeEl.appendChild(buildConnectHandle(item.id, anchor));
+      });
+    }
+
     host.appendChild(nodeEl);
   }
 
@@ -594,6 +948,7 @@ function renderCanvasItems() {
   });
 
   updateCanvasNodeSelection();
+  renderCanvasConnections();
 }
 
 function renderCanvasView() {
@@ -602,6 +957,9 @@ function renderCanvasView() {
   }
 
   canvasLayerEl.style.transform = `translate(${state.canvasView.x}px, ${state.canvasView.y}px) scale(${state.canvasView.zoom})`;
+  if (canvasEdgesEl) {
+    canvasEdgesEl.style.transform = `translate(${state.canvasView.x}px, ${state.canvasView.y}px) scale(${state.canvasView.zoom})`;
+  }
 
   const gridStep = CANVAS_ZOOM.grid * state.canvasView.zoom;
   const offsetX = ((state.canvasView.x % gridStep) + gridStep) % gridStep;
@@ -612,13 +970,17 @@ function renderCanvasView() {
   if (canvasZoomLabelEl) {
     canvasZoomLabelEl.textContent = `${Math.round(state.canvasView.zoom * 100)}%`;
   }
+
+  renderCanvasConnections();
 }
 
 function selectCanvasItem(itemId) {
   const item = getItemById(itemId);
   state.selectedResource = item ? item.id : null;
+  state.selectedConnectionId = null;
   updatePropertyPanel(item ? item.name : null);
   updateCanvasNodeSelection();
+  renderCanvasConnections();
 }
 
 function setCanvasZoom(nextZoom, clientX, clientY) {
@@ -729,6 +1091,8 @@ function initializeCanvasInteractions() {
     }
 
     event.preventDefault();
+    state.selectedConnectionId = null;
+    renderCanvasConnections();
     canvasInteraction.isPanning = true;
     canvasViewportEl.classList.add("is-panning");
     canvasInteraction.panOriginX = event.clientX;
@@ -739,6 +1103,44 @@ function initializeCanvasInteractions() {
 
   canvasLayerEl.addEventListener("mousedown", (event) => {
     if (event.button !== 0) {
+      return;
+    }
+
+    const handleEl = event.target.closest(".canvas-connect-handle");
+    if (!handleEl) {
+      return;
+    }
+
+    const sourceItem = getItemById(handleEl.dataset.itemId);
+    if (!isConnectableItem(sourceItem)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    state.edgeDraft.active = true;
+    state.edgeDraft.sourceId = handleEl.dataset.itemId;
+    state.edgeDraft.sourceAnchor = handleEl.dataset.anchor || "right";
+    state.edgeDraft.targetId = null;
+    state.edgeDraft.targetAnchor = "left";
+    state.edgeDraft.endClientX = event.clientX;
+    state.edgeDraft.endClientY = event.clientY;
+    state.selectedConnectionId = null;
+    renderCanvasConnections();
+    updateCanvasNodeSelection();
+  });
+
+  canvasLayerEl.addEventListener("mousedown", (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    if (state.edgeDraft.active) {
+      return;
+    }
+
+    if (event.target.closest(".canvas-connect-handle")) {
       return;
     }
 
@@ -780,10 +1182,99 @@ function initializeCanvasInteractions() {
     if (!nodeEl) {
       return;
     }
+
     selectCanvasItem(nodeEl.dataset.itemId);
   });
 
+  canvasEdgesEl?.addEventListener("click", (event) => {
+    const controlEl = findClosestByClass(event.target, "canvas-edge-control");
+    if (controlEl) {
+      const connectionId = controlEl.dataset.connectionId;
+      const action = controlEl.dataset.action;
+      const connection = state.canvasConnections.find((item) => item.id === connectionId);
+      if (!connection) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (action === "toggle-direction") {
+        connection.direction = connection.direction === "bi" ? "one-way" : "bi";
+      }
+
+      if (action === "delete-connection") {
+        state.canvasConnections = state.canvasConnections.filter((item) => item.id !== connectionId);
+        state.selectedConnectionId = null;
+      }
+
+      renderCanvasConnections();
+      persistCanvasLocal();
+      return;
+    }
+
+    const edgeEl = findClosestByClass(event.target, "canvas-edge");
+    if (!edgeEl || !edgeEl.dataset.connectionId) {
+      state.selectedConnectionId = null;
+      renderCanvasConnections();
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    state.selectedConnectionId = edgeEl.dataset.connectionId;
+    state.selectedResource = null;
+    updatePropertyPanel(null);
+    updateCanvasNodeSelection();
+    renderCanvasConnections();
+  });
+
+  canvasEdgesEl?.addEventListener("mousedown", (event) => {
+    if (findClosestByClass(event.target, "canvas-edge") || findClosestByClass(event.target, "canvas-edge-control")) {
+      event.stopPropagation();
+    }
+  });
+
   window.addEventListener("mousemove", (event) => {
+    if (state.edgeDraft.active) {
+      state.edgeDraft.endClientX = event.clientX;
+      state.edgeDraft.endClientY = event.clientY;
+
+      const pointerTarget = document.elementFromPoint(event.clientX, event.clientY);
+      const receptorHandle = pointerTarget?.closest(".canvas-connect-handle");
+      const receptorNode = pointerTarget?.closest(".canvas-node");
+      const sourceId = state.edgeDraft.sourceId;
+
+      if (receptorHandle) {
+        const targetId = receptorHandle.dataset.itemId;
+        const targetItem = getItemById(targetId);
+        if (targetId && targetId !== sourceId && isConnectableItem(targetItem)) {
+          state.edgeDraft.targetId = targetId;
+          state.edgeDraft.targetAnchor = receptorHandle.dataset.anchor || "left";
+        } else {
+          state.edgeDraft.targetId = null;
+          state.edgeDraft.targetAnchor = "left";
+        }
+      } else if (receptorNode) {
+        const targetId = receptorNode.dataset.itemId;
+        const targetItem = getItemById(targetId);
+        if (targetId && targetId !== sourceId && isConnectableItem(targetItem)) {
+          state.edgeDraft.targetId = targetId;
+          state.edgeDraft.targetAnchor = getNearestAnchorFromClient(targetId, event.clientX, event.clientY);
+        } else {
+          state.edgeDraft.targetId = null;
+          state.edgeDraft.targetAnchor = "left";
+        }
+      } else {
+        state.edgeDraft.targetId = null;
+        state.edgeDraft.targetAnchor = "left";
+      }
+
+      updateCanvasNodeSelection();
+      renderCanvasConnections();
+      return;
+    }
+
     if (canvasInteraction.resizingItemId) {
       const item = getItemById(canvasInteraction.resizingItemId);
       if (!item || !item.isContainer) {
@@ -822,6 +1313,22 @@ function initializeCanvasInteractions() {
   });
 
   window.addEventListener("mouseup", () => {
+    if (state.edgeDraft.active && state.edgeDraft.sourceId) {
+      const sourceId = state.edgeDraft.sourceId;
+
+      if (state.edgeDraft.targetId && state.edgeDraft.targetId !== sourceId) {
+        const targetItem = getItemById(state.edgeDraft.targetId);
+        if (isConnectableItem(targetItem)) {
+          upsertConnection(sourceId, state.edgeDraft.targetId, "one-way", state.edgeDraft.sourceAnchor, state.edgeDraft.targetAnchor);
+          persistCanvasLocal();
+        }
+      }
+
+      clearEdgeDraft();
+      updateCanvasNodeSelection();
+      renderCanvasConnections();
+    }
+
     if (canvasInteraction.isPanning) {
       canvasInteraction.isPanning = false;
       canvasViewportEl.classList.remove("is-panning");
@@ -930,7 +1437,8 @@ function buildProjectSnapshot() {
         y: state.canvasView.y,
         zoom: state.canvasView.zoom
       },
-      canvasItems: state.canvasItems.map((item) => ({ ...item }))
+      canvasItems: state.canvasItems.map((item) => ({ ...item })),
+      canvasConnections: state.canvasConnections.map((connection) => ({ ...connection }))
     }
   };
 }
@@ -1151,6 +1659,9 @@ function initialize() {
   };
   state.canvasItems = Array.isArray(state.currentProject.canvasItems)
     ? state.currentProject.canvasItems.map((item) => ({ ...item }))
+    : [];
+  state.canvasConnections = Array.isArray(state.currentProject.canvasConnections)
+    ? state.currentProject.canvasConnections.map((connection) => ({ ...connection }))
     : [];
   saveCurrentProject();
 
