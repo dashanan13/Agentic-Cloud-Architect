@@ -1,52 +1,27 @@
 {
   "leftWidth": 180,
-  "rightWidth": 360,
+  "rightWidth": 260,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": null,
+  "selectedResource": "item-1771864000363-ws5vyx",
   "searchTerm": "",
   "canvasView": {
-    "x": 94,
-    "y": -139,
-    "zoom": 1
+    "x": 169.5999999999994,
+    "y": -40.19999999999993,
+    "zoom": 0.8000000000000002
   },
   "canvasItems": [
     {
-      "id": "item-1771855363890-cyhr33",
+      "id": "item-1771864000363-ws5vyx",
       "name": "Resource 1",
-      "resourceType": "Anomaly Detector",
-      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00814-icon-service-Anomaly-Detector.svg",
+      "resourceType": "Azure Object Understanding",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/01688-icon-service-Azure-Object-Understanding.svg",
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
-      "width": 360,
-      "height": 240,
-      "x": 240,
-      "y": 270
-    },
-    {
-      "id": "item-1771855378387-xuf1go",
-      "name": "Resource 2",
-      "resourceType": "Batch AI",
-      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00028-icon-service-Batch-AI.svg",
-      "category": "ai + machine learning",
-      "isContainer": false,
-      "parentId": null,
-      "width": 360,
-      "height": 240,
-      "x": 380,
-      "y": 470
+      "x": 370,
+      "y": 220
     }
   ],
-  "canvasConnections": [
-    {
-      "id": "conn-1771855514295-qf3lva",
-      "name": "Resource 3",
-      "fromId": "item-1771855363890-cyhr33",
-      "toId": "item-1771855378387-xuf1go",
-      "direction": "one-way",
-      "sourceAnchor": "bottom",
-      "targetAnchor": "top"
-    }
-  ]
+  "canvasConnections": []
 }

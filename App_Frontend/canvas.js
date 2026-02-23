@@ -996,10 +996,11 @@ function renderCanvasItems() {
     }
     nodeEl.dataset.itemId = item.id;
     nodeEl.style.transform = `translate(${item.x}px, ${item.y}px)`;
+    const resourceType = item.resourceType || item.name;
 
     const iconEl = document.createElement("img");
     iconEl.src = item.iconSrc;
-    iconEl.alt = `${item.name} icon`;
+    iconEl.alt = `${resourceType} icon`;
     iconEl.draggable = false;
 
     const nameEl = document.createElement("span");
@@ -1030,8 +1031,20 @@ function renderCanvasItems() {
         renderNode(child, bodyEl);
       });
     } else {
+      const nameInputEl = document.createElement("input");
+      nameInputEl.className = "canvas-node-namebox";
+      nameInputEl.type = "text";
+      nameInputEl.value = item.name;
+      nameInputEl.readOnly = true;
+      nameInputEl.tabIndex = -1;
+
+      const typeEl = document.createElement("span");
+      typeEl.className = "canvas-node-type";
+      typeEl.textContent = resourceType;
+
+      nodeEl.appendChild(nameInputEl);
       nodeEl.appendChild(iconEl);
-      nodeEl.appendChild(nameEl);
+      nodeEl.appendChild(typeEl);
       nodeEl.appendChild(buildRemoveControl(item.id));
     }
 

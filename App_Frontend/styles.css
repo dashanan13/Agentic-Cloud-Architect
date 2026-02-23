@@ -327,18 +327,42 @@ body {
 .canvas-node {
   position: absolute;
   min-width: 140px;
-  min-height: 46px;
+  min-height: 64px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
   display: grid;
   grid-template-columns: 20px 1fr;
+  grid-template-rows: auto auto;
   align-items: center;
   gap: 8px;
   padding: 10px;
   box-shadow: 0 1px 3px var(--border);
   cursor: move;
   user-select: none;
+}
+
+.canvas-node-namebox {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0 6px;
+  line-height: 1.1;
+  pointer-events: none;
+}
+
+.canvas-node-type {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .canvas-connect-handle {
@@ -511,7 +535,7 @@ body {
   color: var(--muted);
   font-size: 0.66rem;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: capitalize;
   letter-spacing: 0.03em;
 }
 
@@ -1110,9 +1134,9 @@ label {
   color: var(--text);
 }
 
-input[type="text"],
-select {
-  padding: 8px 12px;
+input[type="text"]:not(.property-input),
+select:not(.property-input) {
+  padding: 2px 8px 2px 12px;
   border: 1px solid var(--border);
   border-radius: 4px;
   font-family: inherit;
@@ -1122,8 +1146,8 @@ select {
   transition: all 0.15s ease;
 }
 
-input[type="text"]:focus,
-select:focus {
+input[type="text"]:not(.property-input):focus,
+select:not(.property-input):focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
