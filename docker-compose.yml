@@ -4,8 +4,18 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: a3-app
+    depends_on:
+      - backend
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
       - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
       - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY:-}
+
+  backend:
+    build:
+      context: .
+      dockerfile: App_Backend/Dockerfile
+    container_name: a3-backend
+    volumes:
+      - ./:/workspace

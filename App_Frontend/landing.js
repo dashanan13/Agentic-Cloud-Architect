@@ -5,6 +5,7 @@ const introPrefix = document.getElementById("intro-prefix");
 const introNameHint = document.getElementById("intro-name-hint");
 const createProjectMessage = document.getElementById("create-project-message");
 const btnIntroCreate = document.getElementById("btn-intro-create");
+const btnAppSettings = document.getElementById("btn-app-settings");
 const cloudHeaders = Array.from(document.querySelectorAll(".cloud-header"));
 
 // ===== State =====
@@ -192,6 +193,14 @@ function openProject(projectId) {
   window.location.href = `./canvas.html?projectId=${encodeURIComponent(projectId)}`;
 }
 
+function openSettings({ section = "app", mode = "app-only" } = {}) {
+  const params = new URLSearchParams();
+  params.set("section", section);
+  params.set("source", "landing");
+  params.set("mode", mode);
+  window.location.href = `./settings.html?${params.toString()}`;
+}
+
 function createProject() {
   const cloud = introCloudSelect.value;
 
@@ -267,6 +276,9 @@ cloudHeaders.forEach((header) => {
   });
 });
 
+btnAppSettings?.addEventListener("click", () => {
+  openSettings({ section: "app", mode: "app-only" });
+});
 // Auto-generate name when cloud changes
 introCloudSelect.addEventListener("change", () => {
   const cloud = introCloudSelect.value;

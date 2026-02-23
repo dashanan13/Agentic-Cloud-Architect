@@ -1,5 +1,8 @@
 // ===== UI Element References =====
 const btnBackProjects = document.getElementById("btn-back-projects");
+const btnProjectSave = document.getElementById("btn-project-save");
+const btnProjectSettings = document.getElementById("btn-project-settings");
+const projectSaveStatus = document.getElementById("project-save-status");
 const projectNamePrefixDisplay = document.getElementById("project-name-prefix-display");
 const projectNameDisplay = document.getElementById("project-name-suffix-display");
 const projectTimestamp = document.getElementById("project-timestamp");
@@ -39,6 +42,7 @@ const constraints = {
 };
 
 const MAX_PROJECT_NAME_LENGTH = 27;
+const AUTOSAVE_INTERVAL_MS = 60000;
 
 // ===== Utility Functions =====
 function formatTimestamp(ms) {
@@ -280,6 +284,66 @@ function updateTimestamp() {
   }
 }
 
+function setSaveStatus(message, isError = false) {
+  if (!projectSaveStatus) {
+    return;
+  }
+
+  projectSaveStatus.textContent = message;
+  projectSaveStatus.style.color = isError ? "#b91c1c" : "";
+}
+
+function buildProjectSnapshot() {
+  return {
+    project: {
+      id: state.currentProject.id,
+      name: state.currentProject.name,
+      cloud: state.currentProject.cloud,
+      lastSaved: state.currentProject.lastSaved
+    },
+    canvasState: {
+      leftWidth: state.leftWidth,
+      rightWidth: state.rightWidth,
+      bottomHeight: state.bottomHeight,
+      bottomRightWidth: state.bottomRightWidth,
+      selectedResource: state.selectedResource,
+      searchTerm: state.searchTerm
+    }
+  };
+}
+
+async function saveProjectFiles(options = {}) {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const { silent = false } = options;
+  const snapshot = buildProjectSnapshot();
+
+  try {
+    const response = await fetch("/api/project/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(snapshot)
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to write project files");
+    }
+
+    if (!silent) {
+      setSaveStatus(`Saved at ${new Date().toLocaleTimeString()}`);
+    }
+  } catch {
+    if (!silent) {
+      setSaveStatus("Save failed", true);
+    }
+    throw new Error("Save failed");
+  }
+}
+
 // ===== Sizing & Splitters =====
 function applySizes() {
   appEl.style.setProperty("--left-width", `${state.leftWidth}px`);
@@ -400,8 +464,31 @@ projectNameDisplay?.addEventListener("keydown", (event) => {
 });
 
 // ===== Event Listeners =====
-btnBackProjects.addEventListener("click", () => {
+btnBackProjects.addEventListener("click", async () => {
+  try {
+    await saveProjectFiles();
+  } catch {
+    // Continue navigation even if file save fails.
+  }
   window.location.href = "./landing.html";
+});
+
+btnProjectSave?.addEventListener("click", async () => {
+  updateTimestamp();
+  await saveProjectFiles();
+});
+
+btnProjectSettings?.addEventListener("click", () => {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const params = new URLSearchParams();
+  params.set("section", "project");
+  params.set("source", "canvas");
+  params.set("mode", "project-only");
+  params.set("projectId", state.currentProject.id);
+  window.location.href = `./settings.html?${params.toString()}`;
 });
 
 searchInput?.addEventListener("input", () => {
@@ -442,6 +529,16 @@ function initialize() {
 
   // Initialize layout
   applySizes();
+
+  setSaveStatus("Autosave: every 60s");
+  window.setInterval(async () => {
+    try {
+      updateTimestamp();
+      await saveProjectFiles({ silent: true });
+    } catch {
+      // Keep autosave non-blocking.
+    }
+  }, AUTOSAVE_INTERVAL_MS);
 
   // Load catalog and render resources
   loadCatalogForCloud(state.currentProject.cloud).then(() => {
