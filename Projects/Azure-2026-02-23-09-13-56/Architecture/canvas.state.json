@@ -1,0 +1,47 @@
+{
+  "leftWidth": 220,
+  "rightWidth": 260,
+  "bottomHeight": 160,
+  "bottomRightWidth": 240,
+  "selectedResource": "item-1771844112421-m91nyj",
+  "searchTerm": "resour",
+  "canvasView": {
+    "x": -201.00000000000068,
+    "y": -248.99999999999994,
+    "zoom": 1.25
+  },
+  "canvasItems": [
+    {
+      "id": "item-1771844024318-q3sbjy",
+      "name": "Anomaly Detector",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00814-icon-service-Anomaly-Detector.svg",
+      "category": "ai + machine learning",
+      "x": 510,
+      "y": 260
+    },
+    {
+      "id": "item-1771844091113-r82wwq",
+      "name": "Azure OpenAI",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg",
+      "category": "ai + machine learning",
+      "x": 480,
+      "y": 430
+    },
+    {
+      "id": "item-1771844095523-3i21qz",
+      "name": "Azure Object Understanding",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/01688-icon-service-Azure-Object-Understanding.svg",
+      "category": "ai + machine learning",
+      "x": 280,
+      "y": 350
+    },
+    {
+      "id": "item-1771844112421-m91nyj",
+      "name": "Resource Groups",
+      "iconSrc": "/icons/azure/general/10007-icon-service-Resource-Groups.svg",
+      "category": "general",
+      "x": 720,
+      "y": 310
+    }
+  ]
+}

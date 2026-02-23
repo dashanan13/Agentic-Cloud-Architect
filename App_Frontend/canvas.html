@@ -35,7 +35,18 @@
         <div class="splitter splitter--vertical" data-splitter="left" role="separator" aria-orientation="vertical" aria-label="Resize left panel"></div>
 
         <section class="panel panel--center" aria-label="Visual canvas">
-          <div class="canvas-placeholder">VISUAL CANVAS</div>
+          <div class="canvas-shell">
+            <div class="canvas-toolbar" aria-label="Canvas controls">
+              <button id="canvas-zoom-out" class="btn btn--sm" type="button" aria-label="Zoom out">−</button>
+              <span id="canvas-zoom-label" class="canvas-zoom-label" aria-live="polite">100%</span>
+              <button id="canvas-zoom-in" class="btn btn--sm" type="button" aria-label="Zoom in">+</button>
+              <button id="canvas-reset-view" class="btn btn--sm" type="button">Reset View</button>
+            </div>
+            <div class="canvas-viewport" id="canvas-viewport" aria-label="Architecture canvas" tabindex="0">
+              <div class="canvas-grid" id="canvas-grid"></div>
+              <div class="canvas-layer" id="canvas-layer"></div>
+            </div>
+          </div>
         </section>
 
         <div class="splitter splitter--vertical" data-splitter="right" role="separator" aria-orientation="vertical" aria-label="Resize right panel"></div>

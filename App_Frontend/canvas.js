@@ -11,6 +11,13 @@ const searchInput = document.getElementById("search-input");
 const selectedResourceNameEl = document.getElementById("selected-resource-name");
 const propertyContentEl = document.getElementById("property-content");
 const appEl = document.getElementById("app");
+const canvasViewportEl = document.getElementById("canvas-viewport");
+const canvasGridEl = document.getElementById("canvas-grid");
+const canvasLayerEl = document.getElementById("canvas-layer");
+const canvasZoomOutBtn = document.getElementById("canvas-zoom-out");
+const canvasZoomInBtn = document.getElementById("canvas-zoom-in");
+const canvasResetViewBtn = document.getElementById("canvas-reset-view");
+const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
 const tabs = Array.from(document.querySelectorAll(".tab"));
 const panels = {
   chat: document.getElementById("panel-chat"),
@@ -27,7 +34,26 @@ const state = {
   bottomHeight: 160,
   bottomRightWidth: 240,
   selectedResource: null,
-  searchTerm: ""
+  searchTerm: "",
+  canvasView: {
+    x: 0,
+    y: 0,
+    zoom: 1
+  },
+  canvasItems: []
+};
+
+const canvasInteraction = {
+  isPanning: false,
+  panOriginX: 0,
+  panOriginY: 0,
+  viewOriginX: 0,
+  viewOriginY: 0,
+  draggingItemId: null,
+  dragOriginX: 0,
+  dragOriginY: 0,
+  itemOriginX: 0,
+  itemOriginY: 0
 };
 
 const constraints = {
@@ -43,6 +69,12 @@ const constraints = {
 
 const MAX_PROJECT_NAME_LENGTH = 27;
 const AUTOSAVE_INTERVAL_MS = 60000;
+const CANVAS_ZOOM = {
+  min: 0.25,
+  max: 2.5,
+  step: 0.1,
+  grid: 40
+};
 
 // ===== Utility Functions =====
 function formatTimestamp(ms) {
@@ -116,11 +148,34 @@ function sanitizeProject(project) {
   }
 
   const { prefix, suffix } = splitProjectName(cloud, project.name);
+
+  const incomingView = project.canvasView && typeof project.canvasView === "object"
+    ? project.canvasView
+    : {};
+  const incomingItems = Array.isArray(project.canvasItems)
+    ? project.canvasItems
+    : [];
+
   return {
     ...project,
     cloud,
     name: `${prefix}${suffix}`,
-    lastSaved: Number(project.lastSaved) || Date.now()
+    lastSaved: Number(project.lastSaved) || Date.now(),
+    canvasView: {
+      x: Number(incomingView.x) || 0,
+      y: Number(incomingView.y) || 0,
+      zoom: clamp(Number(incomingView.zoom) || 1, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
+    },
+    canvasItems: incomingItems
+      .map((item) => ({
+        id: String(item.id || `item-${Date.now()}`),
+        name: String(item.name || "Resource"),
+        iconSrc: String(item.iconSrc || ""),
+        category: String(item.category || ""),
+        x: Number(item.x) || 0,
+        y: Number(item.y) || 0
+      }))
+      .filter((item) => item.iconSrc)
   };
 }
 
@@ -195,11 +250,13 @@ function createResourceRow(category, resource, iconRoot) {
   const row = document.createElement("button");
   row.className = "resource-row";
   row.type = "button";
+  row.draggable = true;
 
   const icon = document.createElement("img");
   icon.className = "resource-icon";
   icon.alt = `${resource.name} icon`;
-  icon.src = encodeURI(`${iconRoot}/${category}/${resource.icon}`);
+  const iconSrc = encodeURI(`${iconRoot}/${category}/${resource.icon}`);
+  icon.src = iconSrc;
   icon.loading = "lazy";
 
   const name = document.createElement("span");
@@ -208,6 +265,18 @@ function createResourceRow(category, resource, iconRoot) {
 
   row.appendChild(icon);
   row.appendChild(name);
+
+  row.addEventListener("dragstart", (event) => {
+    const payload = {
+      name: resource.name,
+      iconSrc,
+      category
+    };
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData("application/json", JSON.stringify(payload));
+    event.dataTransfer.setData("text/plain", resource.name);
+  });
+
   row.addEventListener("click", () => {
     state.selectedResource = resource.name;
     updatePropertyPanel(resource.name);
@@ -284,6 +353,275 @@ function updateTimestamp() {
   }
 }
 
+function persistCanvasLocal() {
+  if (!state.currentProject) {
+    return;
+  }
+
+  state.currentProject.canvasView = {
+    x: state.canvasView.x,
+    y: state.canvasView.y,
+    zoom: state.canvasView.zoom
+  };
+  state.currentProject.canvasItems = state.canvasItems.map((item) => ({ ...item }));
+  saveCurrentProject();
+}
+
+function toWorldPoint(clientX, clientY) {
+  const rect = canvasViewportEl.getBoundingClientRect();
+  const screenX = clientX - rect.left;
+  const screenY = clientY - rect.top;
+
+  return {
+    x: (screenX - state.canvasView.x) / state.canvasView.zoom,
+    y: (screenY - state.canvasView.y) / state.canvasView.zoom
+  };
+}
+
+function updateCanvasNodeSelection() {
+  if (!canvasLayerEl) {
+    return;
+  }
+
+  canvasLayerEl.querySelectorAll(".canvas-node").forEach((nodeEl) => {
+    nodeEl.classList.toggle("is-selected", nodeEl.dataset.itemId === state.selectedResource);
+  });
+}
+
+function renderCanvasItems() {
+  if (!canvasLayerEl) {
+    return;
+  }
+
+  canvasLayerEl.innerHTML = "";
+
+  state.canvasItems.forEach((item) => {
+    const nodeEl = document.createElement("div");
+    nodeEl.className = "canvas-node";
+    nodeEl.dataset.itemId = item.id;
+    nodeEl.style.transform = `translate(${item.x}px, ${item.y}px)`;
+
+    const iconEl = document.createElement("img");
+    iconEl.src = item.iconSrc;
+    iconEl.alt = `${item.name} icon`;
+    iconEl.draggable = false;
+
+    const nameEl = document.createElement("span");
+    nameEl.textContent = item.name;
+
+    nodeEl.appendChild(iconEl);
+    nodeEl.appendChild(nameEl);
+    canvasLayerEl.appendChild(nodeEl);
+  });
+
+  updateCanvasNodeSelection();
+}
+
+function renderCanvasView() {
+  if (!canvasLayerEl || !canvasGridEl) {
+    return;
+  }
+
+  canvasLayerEl.style.transform = `translate(${state.canvasView.x}px, ${state.canvasView.y}px) scale(${state.canvasView.zoom})`;
+
+  const gridStep = CANVAS_ZOOM.grid * state.canvasView.zoom;
+  const offsetX = ((state.canvasView.x % gridStep) + gridStep) % gridStep;
+  const offsetY = ((state.canvasView.y % gridStep) + gridStep) % gridStep;
+  canvasGridEl.style.backgroundSize = `${gridStep}px ${gridStep}px`;
+  canvasGridEl.style.backgroundPosition = `${offsetX}px ${offsetY}px`;
+
+  if (canvasZoomLabelEl) {
+    canvasZoomLabelEl.textContent = `${Math.round(state.canvasView.zoom * 100)}%`;
+  }
+}
+
+function selectCanvasItem(itemId) {
+  const item = state.canvasItems.find((candidate) => candidate.id === itemId) || null;
+  state.selectedResource = item ? item.id : null;
+  updatePropertyPanel(item ? item.name : null);
+  updateCanvasNodeSelection();
+}
+
+function setCanvasZoom(nextZoom, clientX, clientY) {
+  if (!canvasViewportEl) {
+    return;
+  }
+
+  const boundedZoom = clamp(nextZoom, CANVAS_ZOOM.min, CANVAS_ZOOM.max);
+  if (boundedZoom === state.canvasView.zoom) {
+    return;
+  }
+
+  const rect = canvasViewportEl.getBoundingClientRect();
+  const anchorX = typeof clientX === "number" ? clientX - rect.left : rect.width / 2;
+  const anchorY = typeof clientY === "number" ? clientY - rect.top : rect.height / 2;
+
+  const worldX = (anchorX - state.canvasView.x) / state.canvasView.zoom;
+  const worldY = (anchorY - state.canvasView.y) / state.canvasView.zoom;
+
+  state.canvasView.zoom = boundedZoom;
+  state.canvasView.x = anchorX - worldX * boundedZoom;
+  state.canvasView.y = anchorY - worldY * boundedZoom;
+
+  renderCanvasView();
+  persistCanvasLocal();
+}
+
+function adjustCanvasZoom(direction, clientX, clientY) {
+  const nextZoom = state.canvasView.zoom + direction * CANVAS_ZOOM.step;
+  setCanvasZoom(nextZoom, clientX, clientY);
+}
+
+function createCanvasItem(resource, worldX, worldY) {
+  const snappedX = Math.round(worldX / 10) * 10;
+  const snappedY = Math.round(worldY / 10) * 10;
+
+  const newItem = {
+    id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: resource.name,
+    iconSrc: resource.iconSrc,
+    category: resource.category || "",
+    x: snappedX,
+    y: snappedY
+  };
+
+  state.canvasItems.push(newItem);
+  renderCanvasItems();
+  selectCanvasItem(newItem.id);
+  persistCanvasLocal();
+}
+
+function initializeCanvasInteractions() {
+  if (!canvasViewportEl || !canvasLayerEl || !canvasGridEl) {
+    return;
+  }
+
+  canvasViewportEl.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  });
+
+  canvasViewportEl.addEventListener("drop", (event) => {
+    event.preventDefault();
+
+    const payload = event.dataTransfer.getData("application/json");
+    if (!payload) {
+      return;
+    }
+
+    try {
+      const resource = JSON.parse(payload);
+      const world = toWorldPoint(event.clientX, event.clientY);
+      createCanvasItem(resource, world.x, world.y);
+    } catch {
+      // Ignore malformed drag payloads.
+    }
+  });
+
+  canvasViewportEl.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    const direction = event.deltaY < 0 ? 1 : -1;
+    adjustCanvasZoom(direction, event.clientX, event.clientY);
+  }, { passive: false });
+
+  canvasViewportEl.addEventListener("mousedown", (event) => {
+    if (event.button !== 0 && event.button !== 1) {
+      return;
+    }
+
+    if (event.target.closest(".canvas-node")) {
+      return;
+    }
+
+    event.preventDefault();
+    canvasInteraction.isPanning = true;
+    canvasViewportEl.classList.add("is-panning");
+    canvasInteraction.panOriginX = event.clientX;
+    canvasInteraction.panOriginY = event.clientY;
+    canvasInteraction.viewOriginX = state.canvasView.x;
+    canvasInteraction.viewOriginY = state.canvasView.y;
+  });
+
+  canvasLayerEl.addEventListener("mousedown", (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    const nodeEl = event.target.closest(".canvas-node");
+    if (!nodeEl) {
+      return;
+    }
+
+    const item = state.canvasItems.find((candidate) => candidate.id === nodeEl.dataset.itemId);
+    if (!item) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    selectCanvasItem(item.id);
+    canvasInteraction.draggingItemId = item.id;
+    canvasInteraction.dragOriginX = event.clientX;
+    canvasInteraction.dragOriginY = event.clientY;
+    canvasInteraction.itemOriginX = item.x;
+    canvasInteraction.itemOriginY = item.y;
+  });
+
+  canvasLayerEl.addEventListener("click", (event) => {
+    const nodeEl = event.target.closest(".canvas-node");
+    if (!nodeEl) {
+      return;
+    }
+    selectCanvasItem(nodeEl.dataset.itemId);
+  });
+
+  window.addEventListener("mousemove", (event) => {
+    if (canvasInteraction.isPanning) {
+      const dx = event.clientX - canvasInteraction.panOriginX;
+      const dy = event.clientY - canvasInteraction.panOriginY;
+      state.canvasView.x = canvasInteraction.viewOriginX + dx;
+      state.canvasView.y = canvasInteraction.viewOriginY + dy;
+      renderCanvasView();
+      return;
+    }
+
+    if (canvasInteraction.draggingItemId) {
+      const item = state.canvasItems.find((candidate) => candidate.id === canvasInteraction.draggingItemId);
+      if (!item) {
+        return;
+      }
+
+      const dx = (event.clientX - canvasInteraction.dragOriginX) / state.canvasView.zoom;
+      const dy = (event.clientY - canvasInteraction.dragOriginY) / state.canvasView.zoom;
+      item.x = Math.round((canvasInteraction.itemOriginX + dx) / 10) * 10;
+      item.y = Math.round((canvasInteraction.itemOriginY + dy) / 10) * 10;
+      renderCanvasItems();
+    }
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (canvasInteraction.isPanning) {
+      canvasInteraction.isPanning = false;
+      canvasViewportEl.classList.remove("is-panning");
+      persistCanvasLocal();
+    }
+
+    if (canvasInteraction.draggingItemId) {
+      canvasInteraction.draggingItemId = null;
+      persistCanvasLocal();
+    }
+  });
+
+  canvasZoomInBtn?.addEventListener("click", () => adjustCanvasZoom(1));
+  canvasZoomOutBtn?.addEventListener("click", () => adjustCanvasZoom(-1));
+  canvasResetViewBtn?.addEventListener("click", () => {
+    state.canvasView = { x: 0, y: 0, zoom: 1 };
+    renderCanvasView();
+    persistCanvasLocal();
+  });
+}
+
 function setSaveStatus(message, isError = false) {
   if (!projectSaveStatus) {
     return;
@@ -307,7 +645,13 @@ function buildProjectSnapshot() {
       bottomHeight: state.bottomHeight,
       bottomRightWidth: state.bottomRightWidth,
       selectedResource: state.selectedResource,
-      searchTerm: state.searchTerm
+      searchTerm: state.searchTerm,
+      canvasView: {
+        x: state.canvasView.x,
+        y: state.canvasView.y,
+        zoom: state.canvasView.zoom
+      },
+      canvasItems: state.canvasItems.map((item) => ({ ...item }))
     }
   };
 }
@@ -521,6 +865,14 @@ function initialize() {
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;
+  state.canvasView = {
+    x: Number(state.currentProject.canvasView?.x) || 0,
+    y: Number(state.currentProject.canvasView?.y) || 0,
+    zoom: clamp(Number(state.currentProject.canvasView?.zoom) || 1, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
+  };
+  state.canvasItems = Array.isArray(state.currentProject.canvasItems)
+    ? state.currentProject.canvasItems.map((item) => ({ ...item }))
+    : [];
   saveCurrentProject();
 
   // Update UI with project info
@@ -529,6 +881,9 @@ function initialize() {
 
   // Initialize layout
   applySizes();
+  initializeCanvasInteractions();
+  renderCanvasItems();
+  renderCanvasView();
 
   setSaveStatus("Autosave: every 60s");
   window.setInterval(async () => {
