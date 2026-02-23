@@ -1,7 +1,7 @@
 // ===== UI Element References =====
 const btnBackProjects = document.getElementById("btn-back-projects");
-const projectNameDisplay = document.getElementById("project-name-display");
-const cloudNameDisplay = document.getElementById("cloud-name-display");
+const projectNamePrefixDisplay = document.getElementById("project-name-prefix-display");
+const projectNameDisplay = document.getElementById("project-name-suffix-display");
 const projectTimestamp = document.getElementById("project-timestamp");
 const resourceListEl = document.getElementById("resource-list");
 const searchInput = document.getElementById("search-input");
@@ -38,6 +38,8 @@ const constraints = {
   bottomRightMax: 520
 };
 
+const MAX_PROJECT_NAME_LENGTH = 27;
+
 // ===== Utility Functions =====
 function formatTimestamp(ms) {
   const date = new Date(ms);
@@ -58,6 +60,66 @@ function getCloudIconRoot(cloudName) {
   return "";
 }
 
+function getProjectPrefix(cloud) {
+  return `${cloud}-`;
+}
+
+function getMaxSuffixLength(cloud) {
+  return Math.max(1, MAX_PROJECT_NAME_LENGTH - getProjectPrefix(cloud).length);
+}
+
+function splitProjectName(cloud, fullName) {
+  const safeCloud = ["Azure", "AWS", "GCP"].includes(cloud) ? cloud : "Azure";
+  const prefix = getProjectPrefix(safeCloud);
+  let suffix = (fullName || "").trim();
+
+  if (suffix.toLowerCase().startsWith(prefix.toLowerCase())) {
+    suffix = suffix.slice(prefix.length);
+  }
+
+  suffix = suffix.replace(/^[-\s]+/, "").trim();
+  suffix = suffix.slice(0, getMaxSuffixLength(cloud));
+
+  return {
+    prefix,
+    suffix
+  };
+}
+
+function renderProjectName() {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
+  if (projectNamePrefixDisplay) {
+    projectNamePrefixDisplay.textContent = prefix;
+  }
+  if (projectNameDisplay) {
+    projectNameDisplay.textContent = suffix;
+  }
+  state.currentProject.name = `${prefix}${suffix}`;
+}
+
+function sanitizeProject(project) {
+  if (!project || typeof project !== "object") {
+    return null;
+  }
+
+  const cloud = ["Azure", "AWS", "GCP"].includes(project.cloud) ? project.cloud : null;
+  if (!cloud || !project.id) {
+    return null;
+  }
+
+  const { prefix, suffix } = splitProjectName(cloud, project.name);
+  return {
+    ...project,
+    cloud,
+    name: `${prefix}${suffix}`,
+    lastSaved: Number(project.lastSaved) || Date.now()
+  };
+}
+
 // ===== LocalStorage =====
 function saveProjects() {
   localStorage.setItem("a3_projects", JSON.stringify(state.projects));
@@ -66,6 +128,7 @@ function saveProjects() {
 function loadProjects() {
   const stored = localStorage.getItem("a3_projects");
   state.projects = stored ? JSON.parse(stored) : [];
+  state.projects = state.projects.map(sanitizeProject).filter(Boolean);
 }
 
 function saveCurrentProject() {
@@ -312,18 +375,24 @@ tabs.forEach((tab) => {
 });
 
 // ===== Project Name Editing =====
-projectNameDisplay.addEventListener("blur", () => {
-  const newName = projectNameDisplay.textContent.trim();
-  if (newName && state.currentProject) {
-    state.currentProject.name = newName;
+projectNameDisplay?.addEventListener("blur", () => {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const rawSuffix = projectNameDisplay.textContent.trim();
+  const { prefix, suffix } = splitProjectName(state.currentProject.cloud, rawSuffix);
+
+  if (suffix) {
+    state.currentProject.name = `${prefix}${suffix}`;
     saveCurrentProject();
     updateTimestamp();
   } else {
-    projectNameDisplay.textContent = state.currentProject?.name || "Unnamed";
+    renderProjectName();
   }
 });
 
-projectNameDisplay.addEventListener("keydown", (event) => {
+projectNameDisplay?.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
     projectNameDisplay.blur();
@@ -354,6 +423,7 @@ function initialize() {
 
   // Load projects from localStorage
   loadProjects();
+  saveProjects();
 
   // Load this specific project
   if (!loadCurrentProject(projectId)) {
@@ -362,9 +432,12 @@ function initialize() {
     return;
   }
 
+  const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
+  state.currentProject.name = `${prefix}${suffix}`;
+  saveCurrentProject();
+
   // Update UI with project info
-  cloudNameDisplay.textContent = state.currentProject.cloud;
-  projectNameDisplay.textContent = state.currentProject.name;
+  renderProjectName();
   updateTimestamp();
 
   // Initialize layout
@@ -373,10 +446,29 @@ function initialize() {
   // Load catalog and render resources
   loadCatalogForCloud(state.currentProject.cloud).then(() => {
     renderResources();
+  }).catch(() => {
+    renderResources();
   });
 
   // Initialize properties panel
   updatePropertyPanel(null);
 }
 
-initialize();
+try {
+  initialize();
+} catch (error) {
+  console.error("Canvas initialization failed", error);
+  if (projectNamePrefixDisplay) {
+    projectNamePrefixDisplay.textContent = "Project unavailable";
+  }
+  if (projectNameDisplay) {
+    projectNameDisplay.textContent = "";
+  }
+  if (resourceListEl) {
+    resourceListEl.innerHTML = "";
+    const errorRow = document.createElement("div");
+    errorRow.className = "resource-empty";
+    errorRow.textContent = "Unable to load this project. Return to Projects and reopen.";
+    resourceListEl.appendChild(errorRow);
+  }
+}

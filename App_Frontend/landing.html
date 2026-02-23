@@ -67,9 +67,14 @@
                 </div>
                 <div class="form-group">
                   <label for="intro-name">Project Name</label>
-                  <input type="text" id="intro-name" placeholder="Enter project name" aria-label="Project name" />
+                  <div class="name-input-group">
+                    <span id="intro-prefix" class="name-prefix">&lt;Cloud&gt;-</span>
+                    <input type="text" id="intro-name" placeholder="project-name" aria-label="Project name suffix" maxlength="20" />
+                  </div>
+                  <small id="intro-name-hint" class="name-hint">Select cloud to lock prefix.</small>
                 </div>
                 <button type="button" class="btn btn--primary btn--block" id="btn-intro-create">Create Project</button>
+                <div id="create-project-message" class="form-message" aria-live="polite"></div>
               </form>
             </div>
           </div>

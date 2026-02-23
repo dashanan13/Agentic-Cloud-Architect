@@ -65,13 +65,17 @@ body {
 
 .topbar__right {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
 }
 
 .project-label {
-  color: var(--muted);
+  color: var(--text);
   font-size: 0.9rem;
+}
+
+.project-label--strong {
+  font-weight: 700;
 }
 
 .workspace {
@@ -833,12 +837,13 @@ select:focus {
 
 /* ===== Project Name Display (Contenteditable) ===== */
 .project-name-display {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 400;
   cursor: text;
-  padding: 4px 8px;
+  padding: 2px 4px;
   border-radius: 4px;
   transition: all 0.15s ease;
+  min-width: 40px;
 }
 
 .project-name-display:hover {
@@ -851,22 +856,65 @@ select:focus {
   background: rgba(37, 99, 235, 0.1);
 }
 
-.cloud-name-display {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--accent);
-  padding: 4px 4px;
-}
-
-.project-separator {
-  font-size: 1.25rem;
-  color: var(--muted);
-  margin: 0 6px;
-  font-weight: 300;
+.project-name-prefix-display {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text);
 }
 
 .project-timestamp {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.name-input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.name-prefix {
+  background: #f3f4f6;
+  color: var(--text);
+  font-size: 0.85rem;
+  padding: 0 10px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.name-input-group input {
+  border: 0;
+  border-radius: 0;
+}
+
+.name-input-group input:focus {
+  outline: none;
+}
+
+.name-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.form-message {
+  min-height: 18px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.form-message.is-error {
+  color: #b91c1c;
+}
+
+.form-message.is-success {
+  color: #065f46;
 }

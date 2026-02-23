@@ -1,6 +1,9 @@
 // ===== UI Element References =====
 const introCloudSelect = document.getElementById("intro-cloud");
 const introNameInput = document.getElementById("intro-name");
+const introPrefix = document.getElementById("intro-prefix");
+const introNameHint = document.getElementById("intro-name-hint");
+const createProjectMessage = document.getElementById("create-project-message");
 const btnIntroCreate = document.getElementById("btn-intro-create");
 const cloudHeaders = Array.from(document.querySelectorAll(".cloud-header"));
 
@@ -9,12 +12,14 @@ const state = {
   projects: []
 };
 
+const MAX_PROJECT_NAME_LENGTH = 27;
+
 // ===== Utility Functions =====
-function generateProjectName(cloud) {
+function generateDefaultSuffix() {
   const now = new Date();
-  const date = now.toISOString().slice(0, 10).replace(/-/g, "-");
-  const time = now.toTimeString().slice(0, 8).replace(/:/g, "-");
-  return `${cloud.toLowerCase()}-${date}-${time}`;
+  const date = now.toISOString().slice(0, 10).replace(/-/g, "");
+  const time = now.toTimeString().slice(0, 5).replace(/:/g, "");
+  return `proj-${date}-${time}`;
 }
 
 function formatTimestamp(ms) {
@@ -22,18 +27,80 @@ function formatTimestamp(ms) {
   return date.toLocaleString();
 }
 
-function titleCase(value) {
-  return value
-    .split(" ")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+function getProjectPrefix(cloud) {
+  return `${cloud}-`;
 }
 
-function getCloudIconRoot(cloudName) {
-  if (cloudName === "Azure") {
-    return "/icons/azure";
+function getMaxSuffixLength(cloud) {
+  if (!cloud) {
+    return MAX_PROJECT_NAME_LENGTH;
   }
-  return "";
+  return Math.max(1, MAX_PROJECT_NAME_LENGTH - getProjectPrefix(cloud).length);
+}
+
+function normalizeProjectName(cloud, rawName) {
+  const prefix = getProjectPrefix(cloud);
+  const normalized = (rawName || "").trim();
+  const lowerPrefix = prefix.toLowerCase();
+
+  let suffix = normalized;
+  if (suffix.toLowerCase().startsWith(lowerPrefix)) {
+    suffix = suffix.slice(prefix.length);
+  }
+  suffix = suffix.replace(/^[-\s]+/, "").trim();
+
+  const maxSuffixLength = getMaxSuffixLength(cloud);
+  if (!suffix) {
+    suffix = generateDefaultSuffix();
+  }
+  suffix = suffix.slice(0, maxSuffixLength);
+
+  return `${prefix}${suffix}`;
+}
+
+function sanitizeProject(project) {
+  if (!project || typeof project !== "object") {
+    return null;
+  }
+
+  const cloud = ["Azure", "AWS", "GCP"].includes(project.cloud) ? project.cloud : null;
+  if (!cloud || !project.id) {
+    return null;
+  }
+
+  return {
+    ...project,
+    name: normalizeProjectName(cloud, project.name),
+    lastSaved: Number(project.lastSaved) || Date.now()
+  };
+}
+
+function setCreateMessage(message, type = "") {
+  if (!createProjectMessage) {
+    return;
+  }
+
+  createProjectMessage.textContent = message;
+  createProjectMessage.classList.remove("is-error", "is-success");
+  if (type) {
+    createProjectMessage.classList.add(type === "error" ? "is-error" : "is-success");
+  }
+}
+
+function updateNameControlsForCloud(cloud) {
+  if (!cloud) {
+    introPrefix.textContent = "<Cloud>-";
+    introNameInput.maxLength = MAX_PROJECT_NAME_LENGTH;
+    introNameHint.textContent = "Select cloud to lock prefix.";
+    return;
+  }
+
+  const prefix = getProjectPrefix(cloud);
+  const maxSuffixLength = getMaxSuffixLength(cloud);
+
+  introPrefix.textContent = prefix;
+  introNameInput.maxLength = maxSuffixLength;
+  introNameHint.textContent = `Prefix is fixed to ${prefix}. You can type up to ${maxSuffixLength} chars.`;
 }
 
 // ===== LocalStorage =====
@@ -44,6 +111,7 @@ function saveProjects() {
 function loadProjects() {
   const stored = localStorage.getItem("a3_projects");
   state.projects = stored ? JSON.parse(stored) : [];
+  state.projects = state.projects.map(sanitizeProject).filter(Boolean);
 }
 
 // ===== Project List Rendering =====
@@ -126,12 +194,20 @@ function openProject(projectId) {
 
 function createProject() {
   const cloud = introCloudSelect.value;
-  const name = introNameInput.value.trim() || generateProjectName(cloud);
 
   if (!cloud) {
-    alert("Please select a cloud provider");
+    setCreateMessage("Please select a cloud provider.", "error");
     return;
   }
+
+  const suffix = introNameInput.value.trim();
+  const maxSuffixLength = getMaxSuffixLength(cloud);
+  if (suffix.length > maxSuffixLength) {
+    setCreateMessage(`Project name is too long. Max ${MAX_PROJECT_NAME_LENGTH} chars including prefix.`, "error");
+    return;
+  }
+
+  const name = normalizeProjectName(cloud, introNameInput.value);
 
   const project = {
     id: `${cloud.toLowerCase()}-${Date.now()}`,
@@ -142,8 +218,10 @@ function createProject() {
 
   state.projects.push(project);
   saveProjects();
+  setCreateMessage("");
   introNameInput.value = "";
   introCloudSelect.value = "";
+  updateNameControlsForCloud("");
   renderProjectsList();
   openProject(project.id);
 }
@@ -191,11 +269,44 @@ cloudHeaders.forEach((header) => {
 
 // Auto-generate name when cloud changes
 introCloudSelect.addEventListener("change", () => {
-  if (!introNameInput.value || introNameInput.value.split("-")[0] === "azure" || introNameInput.value.split("-")[0] === "aws" || introNameInput.value.split("-")[0] === "gcp") {
-    introNameInput.value = generateProjectName(introCloudSelect.value);
+  const cloud = introCloudSelect.value;
+  updateNameControlsForCloud(cloud);
+  setCreateMessage("");
+
+  if (!cloud) {
+    return;
   }
+
+  const rawValue = introNameInput.value.trim();
+  if (!rawValue) {
+    introNameInput.value = generateDefaultSuffix().slice(0, getMaxSuffixLength(cloud));
+    return;
+  }
+
+  const normalized = normalizeProjectName(cloud, rawValue);
+  introNameInput.value = normalized.slice(getProjectPrefix(cloud).length);
+});
+
+introNameInput.addEventListener("input", () => {
+  const cloud = introCloudSelect.value;
+  if (!cloud) {
+    setCreateMessage("");
+    return;
+  }
+
+  const maxSuffixLength = getMaxSuffixLength(cloud);
+  if (introNameInput.value.length > maxSuffixLength) {
+    setCreateMessage(`Project name is too long. Max ${MAX_PROJECT_NAME_LENGTH} chars including prefix.`, "error");
+  } else {
+    setCreateMessage("");
+  }
+
+  const normalized = normalizeProjectName(cloud, introNameInput.value);
+  introNameInput.value = normalized.slice(getProjectPrefix(cloud).length);
 });
 
 // ===== Initialization =====
 loadProjects();
+saveProjects();
 renderProjectsList();
+updateNameControlsForCloud(introCloudSelect.value);
