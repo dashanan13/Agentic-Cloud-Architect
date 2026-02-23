@@ -851,6 +851,20 @@ select:focus {
   background: rgba(37, 99, 235, 0.1);
 }
 
+.cloud-name-display {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 4px 4px;
+}
+
+.project-separator {
+  font-size: 1.25rem;
+  color: var(--muted);
+  margin: 0 6px;
+  font-weight: 300;
+}
+
 .project-timestamp {
   font-size: 0.75rem;
   color: var(--muted);

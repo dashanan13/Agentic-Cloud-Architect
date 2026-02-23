@@ -22,6 +22,7 @@ const cloudHeaders = Array.from(document.querySelectorAll(".cloud-header"));
 // Canvas references
 const btnBackProjects = document.getElementById("btn-back-projects");
 const projectNameDisplay = document.getElementById("project-name-display");
+const cloudNameDisplay = document.getElementById("cloud-name-display");
 const projectTimestamp = document.getElementById("project-timestamp");
 const resourceListEl = document.getElementById("resource-list");
 const searchInput = document.getElementById("search-input");
@@ -148,6 +149,7 @@ function showCanvasScreen(projectId) {
   screenProjects.classList.remove("is-active");
   screenCanvas.classList.add("is-active");
   
+  cloudNameDisplay.textContent = state.currentProject.cloud;
   projectNameDisplay.textContent = state.currentProject.name;
   updateTimestamp();
   
@@ -497,8 +499,16 @@ function toggleCloudSection(cloud) {
   const isExpanded = header.classList.contains("is-expanded");
   
   if (isExpanded) {
+    // Close if already expanded
     header.classList.remove("is-expanded");
   } else {
+    // Close all other sections
+    cloudHeaders.forEach((otherHeader) => {
+      if (otherHeader !== header) {
+        otherHeader.classList.remove("is-expanded");
+      }
+    });
+    // Open this section
     header.classList.add("is-expanded");
   }
 }
