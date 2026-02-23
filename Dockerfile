@@ -13,5 +13,8 @@ COPY App_Frontend/styles.css /usr/share/nginx/html/styles.css
 COPY App_Frontend/app.js /usr/share/nginx/html/app.js
 COPY --from=catalog-builder /app/App_Frontend/catalogs/ /usr/share/nginx/html/catalogs/
 COPY Clouds/Azure/Icons/ /usr/share/nginx/html/icons/azure/
+COPY Clouds/Azure/Azure-Icon.png /usr/share/nginx/html/icons/azure-icon.png
+COPY Clouds/AWS/AWS-Icon.png /usr/share/nginx/html/icons/aws-icon.png
+COPY Clouds/GCP/GCP-Icon.png /usr/share/nginx/html/icons/gcp-icon.png
 
 EXPOSE 3000

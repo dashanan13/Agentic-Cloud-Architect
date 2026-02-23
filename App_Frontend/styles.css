@@ -514,8 +514,10 @@ body {
 }
 
 .cloud-icon {
-  font-size: 1.25rem;
-  width: 24px;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .cloud-name {
@@ -535,24 +537,19 @@ body {
 }
 
 .cloud-projects {
-  max-height: 0;
+  height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease;
+  transition: height 0.3s ease;
   background: var(--panel);
-}
-
-.cloud-header.is-expanded + .cloud-projects {
-  max-height: 500px;
-}
-
-.cloud-projects {
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.cloud-projects.is-expanded {
+.cloud-header.is-expanded + .cloud-projects {
+  height: auto;
+  max-height: 600px;
   padding: 12px;
 }
 
