@@ -3,12 +3,12 @@
   "rightWidth": 220,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1771845777026-qfyv41",
-  "searchTerm": "",
+  "selectedResource": "item-1771846491332-dvebao",
+  "searchTerm": "peering",
   "canvasView": {
-    "x": 433.747314578005,
-    "y": 190.60230179028127,
-    "zoom": 0.25
+    "x": 0,
+    "y": 0,
+    "zoom": 1
   },
   "canvasItems": [
     {
@@ -58,6 +58,16 @@
       "height": 347.05882352941177,
       "x": 20,
       "y": 30
+    },
+    {
+      "id": "item-1771846491332-dvebao",
+      "name": "Peerings",
+      "iconSrc": "/icons/azure/other/01285-icon-service-Peerings.svg",
+      "category": "other",
+      "isContainer": false,
+      "parentId": "item-1771845777026-qfyv41",
+      "x": 510,
+      "y": 120
     }
   ]
 }
