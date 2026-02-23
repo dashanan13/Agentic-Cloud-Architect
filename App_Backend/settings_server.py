@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import os
 import re
 import shutil
 from fastapi import FastAPI, HTTPException
@@ -10,6 +11,7 @@ app = FastAPI()
 WORKSPACE_ROOT = Path("/workspace")
 APP_STATE_DIR = WORKSPACE_ROOT / "App_State"
 PROJECTS_DIR = WORKSPACE_ROOT / "Projects"
+DEFAULT_TEMPLATE_DIR = PROJECTS_DIR / "Default"
 
 
 class AppSettingsPayload(BaseModel):
@@ -148,6 +150,30 @@ def parse_env_file(path: Path) -> dict:
     return payload
 
 
+def ensure_project_structure(project_dir: Path) -> None:
+    if not DEFAULT_TEMPLATE_DIR.exists():
+        project_dir.mkdir(parents=True, exist_ok=True)
+        return
+
+    if not project_dir.exists():
+        shutil.copytree(DEFAULT_TEMPLATE_DIR, project_dir)
+        return
+
+    for root, dirs, files in os.walk(DEFAULT_TEMPLATE_DIR):
+        rel_root = Path(root).relative_to(DEFAULT_TEMPLATE_DIR)
+        target_root = project_dir / rel_root
+        target_root.mkdir(parents=True, exist_ok=True)
+
+        for dirname in dirs:
+            (target_root / dirname).mkdir(parents=True, exist_ok=True)
+
+        for filename in files:
+            source_path = Path(root) / filename
+            target_path = target_root / filename
+            if not target_path.exists():
+                shutil.copy2(source_path, target_path)
+
+
 @app.post("/api/settings/app")
 def save_app_settings(body: AppSettingsPayload):
     try:
@@ -173,7 +199,7 @@ def save_project_settings(body: ProjectSettingsPayload):
     try:
         project_folder_name = sanitize_segment(body.project.name, sanitize_segment(body.project.id, "project"))
         target_dir = PROJECTS_DIR / project_folder_name
-        target_dir.mkdir(parents=True, exist_ok=True)
+        ensure_project_structure(target_dir)
 
         payload = {
             "project_id": body.project.id,
@@ -209,6 +235,7 @@ def save_project_snapshot(body: ProjectSavePayload):
         project_dir = PROJECTS_DIR / project_folder_name
         architecture_dir = project_dir / "Architecture"
 
+        ensure_project_structure(project_dir)
         architecture_dir.mkdir(parents=True, exist_ok=True)
 
         metadata_payload = {
