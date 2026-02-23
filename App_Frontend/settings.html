@@ -12,7 +12,7 @@
         <header class="topbar">
           <div class="topbar__left">
             <span class="project-label project-label--strong">Settings</span>
-            <span class="project-name-prefix-display" id="settings-context"></span>
+            <span class="project-name-prefix-display" id="settings-context">(Application)</span>
           </div>
           <div class="topbar__right">
             <button id="btn-settings-back" class="btn btn--sm">Back</button>
@@ -21,131 +21,76 @@
 
         <main class="settings-layout">
           <section class="settings-panel">
-            <div class="tabs" role="tablist" aria-label="Settings tabs">
-              <button id="settings-tab-project" class="tab is-active" data-settings-tab="project" role="tab" aria-selected="true">Project Settings</button>
-              <button id="settings-tab-app" class="tab" data-settings-tab="app" role="tab" aria-selected="false">Application Settings</button>
-            </div>
-
-            <div id="settings-project-panel" class="settings-content" role="tabpanel">
-              <h2>Project Settings</h2>
-              <p class="settings-subtitle">Project-specific integrations and deployment configuration.</p>
-
-              <div id="settings-project-empty" class="resource-empty is-hidden">No project selected. Open settings from a project to edit project-specific values.</div>
-
-              <form id="project-settings-form" class="settings-form">
-                <div class="form-group">
-                  <label for="ps-git-repo">Git Repository URL</label>
-                  <input type="text" id="ps-git-repo" placeholder="https://github.com/org/repo.git" />
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-git-branch">Default Branch</label>
-                  <input type="text" id="ps-git-branch" placeholder="main" />
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-git-auth">Git Auth Mode</label>
-                  <select id="ps-git-auth">
-                    <option value="pat">Personal Access Token</option>
-                    <option value="ssh">SSH Key</option>
-                    <option value="oidc">OIDC / Federated</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-identity">Azure Identity</label>
-                  <select id="ps-identity">
-                    <option value="managed-identity">Managed Identity</option>
-                    <option value="service-principal">Service Principal</option>
-                    <option value="workload-identity">Workload Identity Federation</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-subscription">Azure Subscription ID</label>
-                  <input type="text" id="ps-subscription" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-tenant">Azure Tenant ID</label>
-                  <input type="text" id="ps-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-mcp-endpoint">Azure MCP Endpoint</label>
-                  <input type="text" id="ps-mcp-endpoint" placeholder="https://your-mcp-endpoint" />
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-model-provider">LLM Provider</label>
-                  <select id="ps-model-provider">
-                    <option value="azure-openai">Azure OpenAI</option>
-                    <option value="azure-foundry">Azure AI Foundry</option>
-                    <option value="openai">OpenAI</option>
-                    <option value="ollama">Ollama (local)</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-model-name">LLM Model Name</label>
-                  <input type="text" id="ps-model-name" placeholder="gpt-4o" />
-                </div>
-
-                <div class="form-group">
-                  <label for="ps-artifacts-path">Project Artifacts Path</label>
-                  <input type="text" id="ps-artifacts-path" placeholder="Projects/Default" />
-                </div>
-              </form>
-            </div>
-
-            <div id="settings-app-panel" class="settings-content is-hidden" role="tabpanel" hidden>
+            <div class="settings-content">
               <h2>Application Settings</h2>
-              <p class="settings-subtitle">Global defaults applied across all projects.</p>
+              <p class="settings-subtitle">Configure models for Azure AI Foundry or local Ollama.</p>
 
               <form id="app-settings-form" class="settings-form">
                 <div class="form-group">
-                  <label for="as-default-region">Default Region</label>
-                  <input type="text" id="as-default-region" placeholder="eastus" />
-                </div>
-
-                <div class="form-group">
-                  <label for="as-default-engine">Default IaC Engine</label>
-                  <select id="as-default-engine">
-                    <option value="Bicep">Bicep</option>
-                    <option value="Terraform">Terraform</option>
-                    <option value="OpenTofu">OpenTofu</option>
+                  <label for="as-model-provider">Model Provider</label>
+                  <select id="as-model-provider">
+                    <option value="azure-foundry">Azure AI Foundry</option>
+                    <option value="ollama-local">Local (Ollama)</option>
                   </select>
                 </div>
 
-                <div class="form-group">
-                  <label for="as-storage-root">Default Storage Root</label>
-                  <input type="text" id="as-storage-root" placeholder="Projects/Default" />
+                <div id="as-foundry-fields" class="provider-fields">
+                  <div class="form-group">
+                    <label for="as-foundry-project-region">Foundry Project Region</label>
+                    <input type="text" id="as-foundry-project-region" placeholder="eastus2" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-foundry-endpoint">Foundry Endpoint</label>
+                    <input type="text" id="as-foundry-endpoint" placeholder="https://your-project.services.ai.azure.com" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-foundry-api-key">Foundry API Key</label>
+                    <input type="password" id="as-foundry-api-key" placeholder="Enter API key" autocomplete="off" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-foundry-api-version">Foundry API Version</label>
+                    <input type="text" id="as-foundry-api-version" placeholder="2024-05-01-preview" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-foundry-model-coding">Coding Model</label>
+                    <input type="text" id="as-foundry-model-coding" placeholder="gpt-5-codex" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-foundry-model-reasoning">Reasoning Model</label>
+                    <input type="text" id="as-foundry-model-reasoning" placeholder="o4-mini" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-foundry-model-fast">Fast Model</label>
+                    <input type="text" id="as-foundry-model-fast" placeholder="gpt-4o-mini" />
+                  </div>
                 </div>
 
-                <div class="form-group">
-                  <label for="as-timeout">MCP Timeout (seconds)</label>
-                  <input type="text" id="as-timeout" placeholder="30" />
-                </div>
+                <div id="as-ollama-fields" class="provider-fields is-hidden" hidden>
+                  <div class="form-group">
+                    <label for="as-ollama-base-url">Ollama Base URL</label>
+                    <input type="text" id="as-ollama-base-url" placeholder="http://host.docker.internal:11434" />
+                  </div>
 
-                <div class="form-group">
-                  <label for="as-autosave">Auto-save Interval (seconds)</label>
-                  <input type="text" id="as-autosave" placeholder="15" />
-                </div>
+                  <div class="form-group">
+                    <label for="as-ollama-model-coding">Coding Model Path</label>
+                    <input type="text" id="as-ollama-model-coding" placeholder="/models/coding-model.gguf" />
+                  </div>
 
-                <div class="form-group">
-                  <label for="as-theme">Theme Preference</label>
-                  <select id="as-theme">
-                    <option value="light">Light</option>
-                    <option value="system">System</option>
-                  </select>
-                </div>
+                  <div class="form-group">
+                    <label for="as-ollama-model-reasoning">Reasoning Model Path</label>
+                    <input type="text" id="as-ollama-model-reasoning" placeholder="/models/reasoning-model.gguf" />
+                  </div>
 
-                <div class="form-group">
-                  <label for="as-telemetry">Telemetry</label>
-                  <select id="as-telemetry">
-                    <option value="enabled">Enabled</option>
-                    <option value="disabled">Disabled</option>
-                  </select>
+                  <div class="form-group">
+                    <label for="as-ollama-model-fast">Fast Model Path</label>
+                    <input type="text" id="as-ollama-model-fast" placeholder="/models/fast-model.gguf" />
+                  </div>
                 </div>
               </form>
             </div>
@@ -153,6 +98,7 @@
             <div class="settings-footer">
               <div id="settings-message" class="form-message" aria-live="polite"></div>
               <div class="settings-actions">
+                <button id="btn-settings-verify" class="btn">Verify</button>
                 <button id="btn-settings-save" class="btn btn--primary">Save Settings</button>
               </div>
             </div>

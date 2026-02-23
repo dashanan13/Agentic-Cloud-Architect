@@ -3,6 +3,9 @@ import json
 import os
 import re
 import shutil
+from urllib import error as urllib_error
+from urllib import parse as urllib_parse
+from urllib import request as urllib_request
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,8 +19,27 @@ PROJECTS_DIR = WORKSPACE_ROOT / "Projects"
 DEFAULT_TEMPLATE_DIR = PROJECTS_DIR / "Default"
 FRONTEND_DIR = Path("/app/App_Frontend")
 
+DEFAULT_APP_SETTINGS = {
+    "modelProvider": "azure-foundry",
+    "foundryProjectRegion": "eastus2",
+    "foundryEndpoint": "",
+    "foundryApiKey": "",
+    "foundryApiVersion": "2024-05-01-preview",
+    "ollamaBaseUrl": "http://host.docker.internal:11434",
+    "foundryModelCoding": "gpt-5-codex",
+    "foundryModelReasoning": "o4-mini",
+    "foundryModelFast": "gpt-4o-mini",
+    "ollamaModelPathCoding": "",
+    "ollamaModelPathReasoning": "",
+    "ollamaModelPathFast": "",
+}
+
 
 class AppSettingsPayload(BaseModel):
+    settings: dict
+
+
+class VerifySettingsPayload(BaseModel):
     settings: dict
 
 
@@ -153,6 +175,150 @@ def parse_env_file(path: Path) -> dict:
     return payload
 
 
+def load_app_settings() -> dict:
+    target = APP_STATE_DIR / "app.settings.env"
+    loaded = {
+        **DEFAULT_APP_SETTINGS,
+        **parse_env_file(target),
+    }
+
+    if not loaded.get("foundryEndpoint") and loaded.get("azureFoundryEndpoint"):
+        loaded["foundryEndpoint"] = loaded.get("azureFoundryEndpoint")
+    if not loaded.get("foundryApiKey") and loaded.get("azureFoundryApiKey"):
+        loaded["foundryApiKey"] = loaded.get("azureFoundryApiKey")
+    if not loaded.get("foundryApiVersion") and loaded.get("azureFoundryApiVersion"):
+        loaded["foundryApiVersion"] = loaded.get("azureFoundryApiVersion")
+
+    if not loaded.get("foundryProjectRegion") and loaded.get("defaultRegion"):
+        loaded["foundryProjectRegion"] = loaded.get("defaultRegion")
+
+    if not loaded.get("modelCoding") and loaded.get("azureFoundryChatModelCoding"):
+        loaded["modelCoding"] = loaded.get("azureFoundryChatModelCoding")
+    if not loaded.get("modelReasoning") and loaded.get("azureFoundryChatModelReasoning"):
+        loaded["modelReasoning"] = loaded.get("azureFoundryChatModelReasoning")
+    if not loaded.get("modelFast") and loaded.get("azureFoundryChatModelFast"):
+        loaded["modelFast"] = loaded.get("azureFoundryChatModelFast")
+
+    if not loaded.get("foundryModelCoding") and loaded.get("modelCoding"):
+        loaded["foundryModelCoding"] = loaded.get("modelCoding")
+    if not loaded.get("foundryModelReasoning") and loaded.get("modelReasoning"):
+        loaded["foundryModelReasoning"] = loaded.get("modelReasoning")
+    if not loaded.get("foundryModelFast") and loaded.get("modelFast"):
+        loaded["foundryModelFast"] = loaded.get("modelFast")
+
+    return loaded
+
+
+def resolve_model_by_purpose(settings: dict, purpose: str) -> tuple[str, str]:
+    purpose_value = str(purpose or "fast").strip().lower()
+    provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
+    if provider == "ollama-local":
+        purpose_to_var = {
+            "coding": "ollamaModelPathCoding",
+            "code": "ollamaModelPathCoding",
+            "reasoning": "ollamaModelPathReasoning",
+            "fast": "ollamaModelPathFast",
+            "chat": "ollamaModelPathReasoning",
+        }
+    else:
+        purpose_to_var = {
+            "coding": "foundryModelCoding",
+            "code": "foundryModelCoding",
+            "reasoning": "foundryModelReasoning",
+            "fast": "foundryModelFast",
+            "chat": "foundryModelReasoning",
+        }
+    variable = purpose_to_var.get(purpose_value, "modelFast")
+    if variable == "modelFast":
+        variable = "ollamaModelPathFast" if provider == "ollama-local" else "foundryModelFast"
+    model_name = str(settings.get(variable) or "").strip()
+    return variable, model_name
+
+
+def verify_foundry_settings(settings: dict) -> str:
+    project_region = str(settings.get("foundryProjectRegion") or "").strip()
+    endpoint = str(settings.get("foundryEndpoint") or "").strip().rstrip("/")
+    api_key = str(settings.get("foundryApiKey") or "").strip()
+    api_version = str(settings.get("foundryApiVersion") or "2024-05-01-preview").strip()
+
+    if not project_region:
+        raise HTTPException(status_code=400, detail="Foundry Project Region is required.")
+    if not endpoint:
+        raise HTTPException(status_code=400, detail="Foundry Endpoint is required.")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Foundry API Key is required.")
+
+    query = urllib_parse.urlencode({"api-version": api_version})
+    url = f"{endpoint}/openai/models?{query}"
+    request = urllib_request.Request(
+        url,
+        method="GET",
+        headers={
+            "api-key": api_key,
+            "Accept": "application/json",
+        },
+    )
+
+    try:
+        with urllib_request.urlopen(request, timeout=10) as response:
+            if response.status < 200 or response.status >= 300:
+                raise HTTPException(status_code=400, detail="Foundry verification failed.")
+        return f"Foundry connection verified for region '{project_region}'."
+    except HTTPException:
+        raise
+    except urllib_error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
+        message = detail or f"Foundry verification failed with HTTP {exc.code}."
+        raise HTTPException(status_code=400, detail=message) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Unable to reach Foundry endpoint: {exc}") from exc
+
+
+def verify_ollama_settings(settings: dict) -> str:
+    base_url = str(settings.get("ollamaBaseUrl") or "").strip().rstrip("/")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Ollama Base URL is required.")
+
+    request = urllib_request.Request(
+        f"{base_url}/api/tags",
+        method="GET",
+        headers={"Accept": "application/json"},
+    )
+
+    try:
+        with urllib_request.urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read().decode("utf-8") or "{}")
+            available_models = {str(item.get("name") or "").strip() for item in payload.get("models", []) if isinstance(item, dict)}
+
+            expected_models = {
+                str(settings.get("ollamaModelPathCoding") or "").strip(),
+                str(settings.get("ollamaModelPathReasoning") or "").strip(),
+                str(settings.get("ollamaModelPathFast") or "").strip(),
+            }
+            expected_models = {item for item in expected_models if item}
+
+            missing = []
+            for model in expected_models:
+                if model in available_models:
+                    continue
+                if any(name.startswith(f"{model}:") for name in available_models):
+                    continue
+                missing.append(model)
+
+            if missing:
+                raise HTTPException(status_code=400, detail=f"Ollama connected, but models not found: {', '.join(missing)}")
+
+        return "Ollama connection verified."
+    except HTTPException:
+        raise
+    except urllib_error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
+        message = detail or f"Ollama verification failed with HTTP {exc.code}."
+        raise HTTPException(status_code=400, detail=message) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Unable to reach Ollama endpoint: {exc}") from exc
+
+
 def ensure_project_structure(project_dir: Path) -> None:
     if not DEFAULT_TEMPLATE_DIR.exists():
         project_dir.mkdir(parents=True, exist_ok=True)
@@ -192,9 +358,43 @@ def save_app_settings(body: AppSettingsPayload):
 def get_app_settings():
     target = APP_STATE_DIR / "app.settings.env"
     return {
-        "settings": parse_env_file(target),
+        "settings": load_app_settings(),
         "path": str(target.relative_to(WORKSPACE_ROOT)) if target.exists() else None,
     }
+
+
+@app.get("/api/settings/app/model")
+def get_app_model(purpose: str = "chat", profile: str | None = None):
+    settings = load_app_settings()
+    purpose_value = str(purpose or "chat").strip().lower()
+
+    if purpose_value in {"chat"} and profile:
+        purpose_value = str(profile).strip().lower()
+
+    variable, model = resolve_model_by_purpose(settings, purpose_value)
+    return {
+        "purpose": purpose_value,
+        "provider": str(settings.get("modelProvider") or "azure-foundry").strip(),
+        "region": str(settings.get("foundryProjectRegion") or "").strip(),
+        "variable": variable,
+        "model": model,
+    }
+
+
+@app.post("/api/settings/app/verify")
+def verify_app_settings(body: VerifySettingsPayload):
+    settings = {
+        **load_app_settings(),
+        **(body.settings or {}),
+    }
+
+    provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
+    if provider == "ollama-local":
+        message = verify_ollama_settings(settings)
+    else:
+        message = verify_foundry_settings(settings)
+
+    return {"ok": True, "provider": provider, "message": message}
 
 
 @app.post("/api/settings/project")

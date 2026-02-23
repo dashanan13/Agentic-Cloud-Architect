@@ -1361,6 +1361,15 @@ select:not(.property-input):focus {
   width: min(620px, 100%);
 }
 
+.provider-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.provider-fields.is-hidden {
+  display: none;
+}
+
 .settings-footer {
   border-top: 1px solid var(--border);
   padding: 12px 18px;

@@ -1,57 +1,37 @@
 const btnBack = document.getElementById("btn-settings-back");
+const btnVerify = document.getElementById("btn-settings-verify");
 const btnSave = document.getElementById("btn-settings-save");
 const settingsMessage = document.getElementById("settings-message");
-const settingsContext = document.getElementById("settings-context");
 
-const tabProject = document.getElementById("settings-tab-project");
-const tabApp = document.getElementById("settings-tab-app");
-const panelProject = document.getElementById("settings-project-panel");
-const panelApp = document.getElementById("settings-app-panel");
-
-const projectForm = document.getElementById("project-settings-form");
-const appForm = document.getElementById("app-settings-form");
-const projectEmpty = document.getElementById("settings-project-empty");
-
-const state = {
-  projects: [],
-  currentProject: null,
-  appSettings: {},
-  currentProjectSettings: {},
-  activeTab: "project",
-  source: "landing",
-  mode: "full"
-};
+const providerSelect = document.getElementById("as-model-provider");
+const foundryFields = document.getElementById("as-foundry-fields");
+const ollamaFields = document.getElementById("as-ollama-fields");
 
 const DEFAULT_APP_SETTINGS = {
-  defaultRegion: "eastus",
-  defaultIacEngine: "Bicep",
-  storageRoot: "Projects/Default",
-  mcpTimeoutSeconds: "30",
-  autoSaveSeconds: "15",
-  theme: "light",
-  telemetry: "enabled"
+  modelProvider: "azure-foundry",
+  foundryProjectRegion: "eastus2",
+  foundryEndpoint: "",
+  foundryApiKey: "",
+  foundryApiVersion: "2024-05-01-preview",
+  ollamaBaseUrl: "http://host.docker.internal:11434",
+  foundryModelCoding: "gpt-5-codex",
+  foundryModelReasoning: "o4-mini",
+  foundryModelFast: "gpt-4o-mini",
+  ollamaModelPathCoding: "",
+  ollamaModelPathReasoning: "",
+  ollamaModelPathFast: ""
 };
 
-const DEFAULT_PROJECT_SETTINGS = {
-  gitRepoUrl: "",
-  gitBranch: "main",
-  gitAuthMode: "pat",
-  identityType: "managed-identity",
-  azureSubscriptionId: "",
-  azureTenantId: "",
-  azureMcpEndpoint: "",
-  llmProvider: "azure-openai",
-  llmModelName: "gpt-4o",
-  artifactsPath: "Projects/Default"
+const state = {
+  appSettings: {},
+  source: "landing"
 };
 
 function getParams() {
   const params = new URLSearchParams(window.location.search);
   return {
-    projectId: params.get("projectId"),
-    section: params.get("section") || "project",
     source: params.get("source") || "landing",
-    mode: params.get("mode") || "full"
+    projectId: params.get("projectId")
   };
 }
 
@@ -63,14 +43,39 @@ function setMessage(message, type = "") {
   }
 }
 
-async function loadProjects() {
-  const response = await fetch("/api/projects", { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error("Unable to load projects from files.");
+function normalizeLegacyKeys(incoming) {
+  const normalized = { ...(incoming || {}) };
+
+  if (!normalized.foundryEndpoint && normalized.azureFoundryEndpoint) {
+    normalized.foundryEndpoint = normalized.azureFoundryEndpoint;
+  }
+  if (!normalized.foundryApiKey && normalized.azureFoundryApiKey) {
+    normalized.foundryApiKey = normalized.azureFoundryApiKey;
+  }
+  if (!normalized.foundryApiVersion && normalized.azureFoundryApiVersion) {
+    normalized.foundryApiVersion = normalized.azureFoundryApiVersion;
+  }
+  if (!normalized.modelCoding && normalized.azureFoundryChatModelCoding) {
+    normalized.modelCoding = normalized.azureFoundryChatModelCoding;
+  }
+  if (!normalized.modelReasoning && normalized.azureFoundryChatModelReasoning) {
+    normalized.modelReasoning = normalized.azureFoundryChatModelReasoning;
+  }
+  if (!normalized.modelFast && normalized.azureFoundryChatModelFast) {
+    normalized.modelFast = normalized.azureFoundryChatModelFast;
   }
 
-  const payload = await response.json();
-  state.projects = Array.isArray(payload?.projects) ? payload.projects : [];
+  if (!normalized.foundryModelCoding && normalized.modelCoding) {
+    normalized.foundryModelCoding = normalized.modelCoding;
+  }
+  if (!normalized.foundryModelReasoning && normalized.modelReasoning) {
+    normalized.foundryModelReasoning = normalized.modelReasoning;
+  }
+  if (!normalized.foundryModelFast && normalized.modelFast) {
+    normalized.foundryModelFast = normalized.modelFast;
+  }
+
+  return normalized;
 }
 
 async function loadAppSettings() {
@@ -81,222 +86,109 @@ async function loadAppSettings() {
 
   const payload = await response.json();
   const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
+  const normalized = normalizeLegacyKeys(incoming);
+
   state.appSettings = {
     ...DEFAULT_APP_SETTINGS,
-    ...incoming
+    ...normalized
   };
 }
 
-async function loadProjectSettings(projectId) {
-  if (!projectId) {
-    state.currentProjectSettings = { ...DEFAULT_PROJECT_SETTINGS };
-    return;
-  }
+function updateProviderVisibility() {
+  const isFoundry = providerSelect.value === "azure-foundry";
 
-  const response = await fetch(`/api/settings/project/${encodeURIComponent(projectId)}`, { cache: "no-store" });
-  if (response.status === 404) {
-    state.currentProjectSettings = { ...DEFAULT_PROJECT_SETTINGS };
-    return;
-  }
+  foundryFields.classList.toggle("is-hidden", !isFoundry);
+  foundryFields.toggleAttribute("hidden", !isFoundry);
 
-  if (!response.ok) {
-    throw new Error("Unable to load project settings from file.");
-  }
-
-  const payload = await response.json();
-  const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
-  state.currentProjectSettings = {
-    ...DEFAULT_PROJECT_SETTINGS,
-    ...incoming
-  };
-}
-
-function setTab(tabName) {
-  if (state.mode === "app-only") {
-    tabName = "app";
-  }
-  if (state.mode === "project-only") {
-    tabName = "project";
-  }
-
-  state.activeTab = tabName;
-  const isProject = tabName === "project";
-
-  tabProject.classList.toggle("is-active", isProject);
-  tabProject.setAttribute("aria-selected", String(isProject));
-
-  tabApp.classList.toggle("is-active", !isProject);
-  tabApp.setAttribute("aria-selected", String(!isProject));
-
-  panelProject.classList.toggle("is-hidden", !isProject);
-  panelProject.toggleAttribute("hidden", !isProject);
-
-  panelApp.classList.toggle("is-hidden", isProject);
-  panelApp.toggleAttribute("hidden", isProject);
-}
-
-function bindTabHandlers() {
-  if (state.mode === "app-only" || state.mode === "project-only") {
-    return;
-  }
-
-  tabProject.addEventListener("click", () => setTab("project"));
-  tabApp.addEventListener("click", () => setTab("app"));
-}
-
-function applyModeVisibility() {
-  if (state.mode === "app-only") {
-    tabProject.classList.add("is-hidden");
-    tabProject.setAttribute("hidden", "");
-    tabApp.classList.add("is-active");
-    settingsContext.textContent = "(Application scope)";
-  }
-
-  if (state.mode === "project-only") {
-    tabApp.classList.add("is-hidden");
-    tabApp.setAttribute("hidden", "");
-    tabProject.classList.add("is-active");
-  }
+  ollamaFields.classList.toggle("is-hidden", isFoundry);
+  ollamaFields.toggleAttribute("hidden", isFoundry);
 }
 
 function populateAppSettings() {
   const appSettings = state.appSettings;
 
-  document.getElementById("as-default-region").value = appSettings.defaultRegion;
-  document.getElementById("as-default-engine").value = appSettings.defaultIacEngine;
-  document.getElementById("as-storage-root").value = appSettings.storageRoot;
-  document.getElementById("as-timeout").value = appSettings.mcpTimeoutSeconds;
-  document.getElementById("as-autosave").value = appSettings.autoSaveSeconds;
-  document.getElementById("as-theme").value = appSettings.theme;
-  document.getElementById("as-telemetry").value = appSettings.telemetry;
-}
+  document.getElementById("as-model-provider").value = appSettings.modelProvider;
+  document.getElementById("as-foundry-project-region").value = appSettings.foundryProjectRegion;
+  document.getElementById("as-foundry-endpoint").value = appSettings.foundryEndpoint;
+  document.getElementById("as-foundry-api-key").value = appSettings.foundryApiKey;
+  document.getElementById("as-foundry-api-version").value = appSettings.foundryApiVersion;
+  document.getElementById("as-ollama-base-url").value = appSettings.ollamaBaseUrl;
+  document.getElementById("as-foundry-model-coding").value = appSettings.foundryModelCoding;
+  document.getElementById("as-foundry-model-reasoning").value = appSettings.foundryModelReasoning;
+  document.getElementById("as-foundry-model-fast").value = appSettings.foundryModelFast;
+  document.getElementById("as-ollama-model-coding").value = appSettings.ollamaModelPathCoding;
+  document.getElementById("as-ollama-model-reasoning").value = appSettings.ollamaModelPathReasoning;
+  document.getElementById("as-ollama-model-fast").value = appSettings.ollamaModelPathFast;
 
-async function populateProjectSettings(projectId) {
-  if (!projectId) {
-    projectForm.classList.add("is-hidden");
-    projectForm.setAttribute("hidden", "");
-    projectEmpty.classList.remove("is-hidden");
-    projectEmpty.removeAttribute("hidden");
-    settingsContext.textContent = "(Application scope)";
-    return;
-  }
-
-  const project = state.projects.find((item) => item.id === projectId);
-  if (!project) {
-    projectForm.classList.add("is-hidden");
-    projectForm.setAttribute("hidden", "");
-    projectEmpty.classList.remove("is-hidden");
-    projectEmpty.textContent = "Project not found. Open settings from a valid project.";
-    settingsContext.textContent = "(Project unavailable)";
-    return;
-  }
-
-  state.currentProject = project;
-  settingsContext.textContent = `(${project.name})`;
-
-  projectForm.classList.remove("is-hidden");
-  projectForm.removeAttribute("hidden");
-  projectEmpty.classList.add("is-hidden");
-  projectEmpty.setAttribute("hidden", "");
-
-  await loadProjectSettings(projectId);
-  const projectSettings = state.currentProjectSettings;
-
-  document.getElementById("ps-git-repo").value = projectSettings.gitRepoUrl;
-  document.getElementById("ps-git-branch").value = projectSettings.gitBranch;
-  document.getElementById("ps-git-auth").value = projectSettings.gitAuthMode;
-  document.getElementById("ps-identity").value = projectSettings.identityType;
-  document.getElementById("ps-subscription").value = projectSettings.azureSubscriptionId;
-  document.getElementById("ps-tenant").value = projectSettings.azureTenantId;
-  document.getElementById("ps-mcp-endpoint").value = projectSettings.azureMcpEndpoint;
-  document.getElementById("ps-model-provider").value = projectSettings.llmProvider;
-  document.getElementById("ps-model-name").value = projectSettings.llmModelName;
-  document.getElementById("ps-artifacts-path").value = projectSettings.artifactsPath;
+  updateProviderVisibility();
 }
 
 function collectAppSettings() {
   return {
-    defaultRegion: document.getElementById("as-default-region").value.trim(),
-    defaultIacEngine: document.getElementById("as-default-engine").value,
-    storageRoot: document.getElementById("as-storage-root").value.trim(),
-    mcpTimeoutSeconds: document.getElementById("as-timeout").value.trim(),
-    autoSaveSeconds: document.getElementById("as-autosave").value.trim(),
-    theme: document.getElementById("as-theme").value,
-    telemetry: document.getElementById("as-telemetry").value
+    modelProvider: document.getElementById("as-model-provider").value,
+    foundryProjectRegion: document.getElementById("as-foundry-project-region").value.trim(),
+    foundryEndpoint: document.getElementById("as-foundry-endpoint").value.trim(),
+    foundryApiKey: document.getElementById("as-foundry-api-key").value.trim(),
+    foundryApiVersion: document.getElementById("as-foundry-api-version").value.trim(),
+    ollamaBaseUrl: document.getElementById("as-ollama-base-url").value.trim(),
+    foundryModelCoding: document.getElementById("as-foundry-model-coding").value.trim(),
+    foundryModelReasoning: document.getElementById("as-foundry-model-reasoning").value.trim(),
+    foundryModelFast: document.getElementById("as-foundry-model-fast").value.trim(),
+    ollamaModelPathCoding: document.getElementById("as-ollama-model-coding").value.trim(),
+    ollamaModelPathReasoning: document.getElementById("as-ollama-model-reasoning").value.trim(),
+    ollamaModelPathFast: document.getElementById("as-ollama-model-fast").value.trim()
   };
 }
 
-function collectProjectSettings() {
-  return {
-    gitRepoUrl: document.getElementById("ps-git-repo").value.trim(),
-    gitBranch: document.getElementById("ps-git-branch").value.trim(),
-    gitAuthMode: document.getElementById("ps-git-auth").value,
-    identityType: document.getElementById("ps-identity").value,
-    azureSubscriptionId: document.getElementById("ps-subscription").value.trim(),
-    azureTenantId: document.getElementById("ps-tenant").value.trim(),
-    azureMcpEndpoint: document.getElementById("ps-mcp-endpoint").value.trim(),
-    llmProvider: document.getElementById("ps-model-provider").value,
-    llmModelName: document.getElementById("ps-model-name").value.trim(),
-    artifactsPath: document.getElementById("ps-artifacts-path").value.trim()
-  };
-}
+async function handleVerify() {
+  const settings = collectAppSettings();
 
-async function saveSettingsToFile(appSettings, projectSettings) {
-  const appResponse = await fetch("/api/settings/app", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ settings: appSettings })
-  });
-
-  if (!appResponse.ok) {
-    throw new Error("Unable to write application settings file.");
-  }
-
-  if (!state.currentProject || !projectSettings) {
-    return;
-  }
-
-  const projectResponse = await fetch("/api/settings/project", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      project: {
-        id: state.currentProject.id,
-        name: state.currentProject.name,
-        cloud: state.currentProject.cloud
+  try {
+    const response = await fetch("/api/settings/app/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      settings: projectSettings
-    })
-  });
+      body: JSON.stringify({ settings })
+    });
 
-  if (!projectResponse.ok) {
-    throw new Error("Unable to write project settings file.");
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const detail = payload?.detail || "Verification failed.";
+      throw new Error(detail);
+    }
+
+    setMessage(payload?.message || "Verification succeeded.", "success");
+  } catch (error) {
+    setMessage(error.message || "Verification failed.", "error");
   }
 }
 
 async function handleSave() {
-  const appSettings = collectAppSettings();
-
-  let projectSettings = null;
-
-  if (state.currentProject) {
-    projectSettings = collectProjectSettings();
-  }
+  const settings = collectAppSettings();
 
   try {
-    await saveSettingsToFile(appSettings, projectSettings);
-    state.appSettings = { ...DEFAULT_APP_SETTINGS, ...appSettings };
-    state.currentProjectSettings = {
-      ...DEFAULT_PROJECT_SETTINGS,
-      ...(projectSettings || state.currentProjectSettings)
+    const response = await fetch("/api/settings/app", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ settings })
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to write application settings file.");
+    }
+
+    state.appSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      ...settings
     };
-    setMessage("Settings saved to .env files.", "success");
+
+    setMessage("Application settings saved.", "success");
   } catch (error) {
-    setMessage(error.message || "Failed to save settings files.", "error");
+    setMessage(error.message || "Failed to save application settings.", "error");
   }
 }
 
@@ -311,16 +203,8 @@ function handleBack() {
 }
 
 async function initialize() {
-  const { projectId, section, source, mode } = getParams();
-  state.source = source;
-  state.mode = mode;
-
-  try {
-    await loadProjects();
-  } catch (error) {
-    state.projects = [];
-    setMessage(error.message || "Unable to load projects.", "error");
-  }
+  const params = getParams();
+  state.source = params.source;
 
   try {
     await loadAppSettings();
@@ -330,15 +214,19 @@ async function initialize() {
   }
 
   populateAppSettings();
-  await populateProjectSettings(projectId);
 
-  applyModeVisibility();
-  bindTabHandlers();
-  setTab(section === "app" ? "app" : "project");
+  providerSelect.addEventListener("change", () => {
+    updateProviderVisibility();
+  });
+
+  btnVerify.addEventListener("click", async () => {
+    await handleVerify();
+  });
 
   btnSave.addEventListener("click", async () => {
     await handleSave();
   });
+
   btnBack.addEventListener("click", handleBack);
 }
 

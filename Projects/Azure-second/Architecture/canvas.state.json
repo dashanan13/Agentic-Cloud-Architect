@@ -3,7 +3,7 @@
   "rightWidth": 260,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1771877274841-ewh2fw",
+  "selectedResource": null,
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -19,6 +19,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 350,
       "y": 80
     },
@@ -30,6 +32,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 350,
       "y": 290
     },
@@ -41,6 +45,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 270,
       "y": 220
     },
@@ -52,6 +58,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 180,
       "y": 250
     },
@@ -63,6 +71,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 360,
       "y": 80
     },
@@ -74,6 +84,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 160,
       "y": 80
     },
@@ -85,8 +97,23 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 240,
       "y": 460
+    },
+    {
+      "id": "item-1771878203979-lmrtd7",
+      "name": "Resource 9",
+      "resourceType": "Peerings",
+      "iconSrc": "/icons/azure/other/01285-icon-service-Peerings.svg",
+      "category": "other",
+      "isContainer": false,
+      "parentId": null,
+      "width": 360,
+      "height": 240,
+      "x": 650,
+      "y": 200
     }
   ],
   "canvasConnections": [

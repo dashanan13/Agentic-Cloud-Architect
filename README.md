@@ -142,6 +142,23 @@ cd azure-agentic-architect
 2. **Configure Environment:**
 Create a `.env` file in the root with your `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_KEY`.
 
+	For app-managed runtime settings, open **Settings → Application Settings** and configure:
+	- `Model Provider` (`Azure AI Foundry` or `Local (Ollama)`)
+	- Foundry details (`Project Region`, `Endpoint`, `API Key`, `API Version`)
+	- Foundry model names (`Coding Model`, `Reasoning Model`, `Fast Model`)
+	- Ollama details (`Base URL`)
+	- Ollama model paths (`Coding Model Path`, `Reasoning Model Path`, `Fast Model Path`)
+
+	These values are persisted in `App_State/app.settings.env`.
+
+	Runtime model resolution is available at:
+	- `GET /api/settings/app/model?purpose=fast`
+	- `GET /api/settings/app/model?purpose=reasoning`
+	- `GET /api/settings/app/model?purpose=coding`
+
+	Configuration verification is available at:
+	- `POST /api/settings/app/verify`
+
 3. **Spin up the stack:**
 
 ```bash
