@@ -42,7 +42,7 @@ The workspace uses a fully resizable split-pane layout. All major sections are r
 
 ```text
 +--------------------------------------------------------------------------------------------------+
-| [Cloud Provider ▼]                                                  [Project: <Project_Name>]    |
+| [Cloud Provider ▼]                                                     [Project: Default-Name]    |
 +------------------------------+-----------------------------------------------+-------------------+
 | [Search resources...]        |                                               | Resource Details  |
 |------------------------------|                                               |-------------------|
@@ -90,10 +90,12 @@ Resizable splitters:
 │   └── OpenTofu/
 ├── MCP/
 ├── Projects/
-│   └── <Project_Name>/
+│   └── Default/
 │       ├── Architecture/
 │       ├── IaC/
-│       │   └── <cloud>/<engine>/
+│       │   ├── Bicep/
+│       │   ├── Terraform/
+│       │   └── OpenTofu/
 │       └── Docs/
 ├── Dockerfile
 ├── docker-compose.yml
@@ -114,9 +116,9 @@ Resizable splitters:
 | `IaC/` | IaC-engine-specific logic and templates (`Bicep`, `Terraform`, `OpenTofu`). |
 | `MCP/` | MCP server configuration and bindings used by agents/tools. |
 | `Projects/` | Generated project outputs grouped by project name. |
-| `Projects/<Project_Name>/Architecture/` | Source-of-truth architecture/canvas JSON for a single project. |
-| `Projects/<Project_Name>/IaC/<cloud>/<engine>/` | Generated deployment artifacts by cloud and IaC engine. |
-| `Projects/<Project_Name>/Docs/` | Design notes, reports, decision logs, and validation output. |
+| `Projects/Default/Architecture/` | Source-of-truth architecture/canvas JSON for the default template project. |
+| `Projects/Default/IaC/<engine>/` | Generated deployment artifacts grouped by IaC engine (`Bicep`, `Terraform`, `OpenTofu`). |
+| `Projects/Default/Docs/` | Design notes, reports, decision logs, and validation output. |
 
 ---
 
@@ -174,7 +176,7 @@ APP_PORT=3001 docker compose up --build
 
 * **WAF Auditor Agent:** Real-time cost and security scoring during the design phase.
 * **Reverse Engineering:** Import existing Azure Resource Groups into the visual canvas via Azure MCP.
-* **Multi-Cloud Support:** Extend provider adapters in `Clouds/` and generate IaC into `Projects/<Project_Name>/IaC/<cloud>/<engine>/`.
+* **Multi-Cloud Support:** Extend provider adapters in `Clouds/` and generate IaC into `Projects/Default/IaC/<engine>/`.
 
 ---
 

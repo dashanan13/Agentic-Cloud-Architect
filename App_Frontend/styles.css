@@ -90,6 +90,8 @@ body {
   background: var(--panel);
   border: 1px solid var(--border);
   min-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .panel--left {
@@ -118,6 +120,7 @@ body {
   gap: 8px;
   padding: 12px;
   border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .panel__header--stacked {
@@ -150,7 +153,8 @@ body {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--text);
+  font-weight: 700;
   border-bottom: 1px solid var(--border);
 }
 
@@ -238,6 +242,11 @@ body {
   margin: auto;
   background: var(--border);
   border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+#screen-canvas .splitter:hover::after {
+  background: var(--accent);
 }
 
 .splitter--vertical {
@@ -329,6 +338,7 @@ body {
   align-items: center;
   padding: 0 8px;
   border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .tab {
@@ -414,9 +424,17 @@ body {
 }
 
 #screen-canvas {
-  background: var(--panel);
+  background: var(--bg);
   display: grid;
   grid-template-rows: 56px 1fr;
+}
+
+#screen-canvas .topbar {
+  background: var(--panel);
+}
+
+#screen-canvas .canvas-placeholder {
+  background: var(--bg);
 }
 
 /* ===== Project Landing Screen ===== */
