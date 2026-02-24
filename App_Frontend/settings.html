@@ -36,81 +36,93 @@
 
                 <div id="as-foundry-fields" class="provider-fields">
                   <div class="form-group">
-                    <label for="as-foundry-project-region">Foundry Project Region</label>
-                    <input type="text" id="as-foundry-project-region" placeholder="eastus2" />
+                    <label for="as-azure-tenant-id">AZURE_TENANT_ID</label>
+                    <input type="text" id="as-azure-tenant-id" placeholder="Microsoft Entra tenant ID" autocomplete="off" />
                   </div>
 
                   <div class="form-group">
-                    <label for="as-foundry-endpoint">Foundry Endpoint</label>
+                    <label for="as-azure-client-id">AZURE_CLIENT_ID</label>
+                    <input type="text" id="as-azure-client-id" placeholder="App registration client ID" autocomplete="off" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-azure-client-secret">AZURE_CLIENT_SECRET</label>
+                    <input type="password" id="as-azure-client-secret" placeholder="App registration client secret" autocomplete="off" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-azure-subscription-id">AZURE_SUBSCRIPTION_ID</label>
+                    <input type="text" id="as-azure-subscription-id" placeholder="Azure subscription ID" autocomplete="off" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-azure-resource-group">AZURE_RESOURCE_GROUP</label>
+                    <input type="text" id="as-azure-resource-group" placeholder="Resource group name" autocomplete="off" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-ai-foundry-project-name">AI_FOUNDRY_PROJECT_NAME</label>
+                    <input type="text" id="as-ai-foundry-project-name" placeholder="Foundry project name" autocomplete="off" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="as-ai-foundry-endpoint">AI_FOUNDRY_ENDPOINT</label>
                     <div class="input-row">
-                      <input type="text" id="as-foundry-endpoint" placeholder="https://your-project.services.ai.azure.com" />
+                      <input type="text" id="as-ai-foundry-endpoint" placeholder="https://your-project.services.ai.azure.com/api/projects/your-project" />
                       <span id="as-foundry-endpoint-status" class="status-icon" aria-hidden="true">✓</span>
                     </div>
                   </div>
 
                   <div class="form-group">
-                    <label for="as-foundry-api-key">Foundry API Key</label>
-                    <div class="input-row">
-                      <input type="password" id="as-foundry-api-key" placeholder="Enter API key" autocomplete="off" />
-                      <span id="as-foundry-api-key-status" class="status-icon" aria-hidden="true">✓</span>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="as-foundry-api-version">Foundry API Version</label>
-                    <input type="text" id="as-foundry-api-version" placeholder="2024-05-01-preview" />
-                  </div>
-
-                  <div class="form-group">
                     <label for="as-foundry-model-coding">Coding Model</label>
-                    <input type="text" id="as-foundry-model-coding" placeholder="gpt-5-codex" />
+                    <select id="as-foundry-model-coding">
+                      <option value="">Select a model deployment</option>
+                    </select>
                   </div>
 
                   <div class="form-group">
                     <label for="as-foundry-model-reasoning">Reasoning Model</label>
-                    <input type="text" id="as-foundry-model-reasoning" placeholder="o4-mini" />
+                    <select id="as-foundry-model-reasoning">
+                      <option value="">Select a model deployment</option>
+                    </select>
                   </div>
 
                   <div class="form-group">
                     <label for="as-foundry-model-fast">Fast Model</label>
-                    <input type="text" id="as-foundry-model-fast" placeholder="gpt-4o-mini" />
+                    <select id="as-foundry-model-fast">
+                      <option value="">Select a model deployment</option>
+                    </select>
                   </div>
                 </div>
 
                 <div id="as-ollama-fields" class="provider-fields is-hidden" hidden>
                   <div class="form-group">
                     <label for="as-ollama-base-url">Ollama Base URL</label>
-                    <input type="text" id="as-ollama-base-url" placeholder="http://host.docker.internal:11434" />
+                    <div class="input-row">
+                      <input type="text" id="as-ollama-base-url" placeholder="http://host.docker.internal:11434" />
+                      <span id="as-ollama-base-url-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                   </div>
 
                   <div class="form-group">
                     <label for="as-ollama-model-coding">Coding Model Path</label>
-                    <div class="input-row">
-                      <select id="as-ollama-model-coding">
-                        <option value="">Select a model</option>
-                      </select>
-                      <span id="as-ollama-model-coding-status" class="status-icon" aria-hidden="true">✓</span>
-                    </div>
+                    <select id="as-ollama-model-coding">
+                      <option value="">Select a model</option>
+                    </select>
                   </div>
 
                   <div class="form-group">
                     <label for="as-ollama-model-reasoning">Reasoning Model Path</label>
-                    <div class="input-row">
-                      <select id="as-ollama-model-reasoning">
-                        <option value="">Select a model</option>
-                      </select>
-                      <span id="as-ollama-model-reasoning-status" class="status-icon" aria-hidden="true">✓</span>
-                    </div>
+                    <select id="as-ollama-model-reasoning">
+                      <option value="">Select a model</option>
+                    </select>
                   </div>
 
                   <div class="form-group">
                     <label for="as-ollama-model-fast">Fast Model Path</label>
-                    <div class="input-row">
-                      <select id="as-ollama-model-fast">
-                        <option value="">Select a model</option>
-                      </select>
-                      <span id="as-ollama-model-fast-status" class="status-icon" aria-hidden="true">✓</span>
-                    </div>
+                    <select id="as-ollama-model-fast">
+                      <option value="">Select a model</option>
+                    </select>
                   </div>
                 </div>
               </form>
@@ -120,6 +132,7 @@
               <div id="settings-message" class="form-message" aria-live="polite"></div>
               <div class="settings-actions">
                 <button id="btn-settings-verify" class="btn btn--verify">Verify</button>
+                <button id="btn-settings-reset" class="btn btn--secondary">Reset</button>
                 <button id="btn-settings-save" class="btn btn--primary">Save Settings</button>
               </div>
             </div>

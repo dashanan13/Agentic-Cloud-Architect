@@ -1161,6 +1161,13 @@ select:not(.property-input):focus {
   gap: 10px;
 }
 
+.input-row input[type="text"],
+.input-row input[type="password"],
+.input-row select {
+  flex: 1;
+  min-width: 0;
+}
+
 .status-icon {
   font-size: 1rem;
   font-weight: 700;

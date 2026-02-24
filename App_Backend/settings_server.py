@@ -6,6 +6,8 @@ import shutil
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
 from urllib import request as urllib_request
+from azure.identity import ClientSecretCredential
+from azure.ai.projects import AIProjectClient
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -21,14 +23,18 @@ FRONTEND_DIR = Path("/app/App_Frontend")
 
 DEFAULT_APP_SETTINGS = {
     "modelProvider": "azure-foundry",
-    "foundryProjectRegion": "eastus2",
-    "foundryEndpoint": "",
-    "foundryApiKey": "",
+    "azureTenantId": "65f51067-7d65-4aa9-b996-4cc43a0d7111",
+    "azureClientId": "8b450e6b-0ae2-4e1b-8597-774d2bc4e747",
+    "azureClientSecret": "",
+    "azureSubscriptionId": "68aa0317-df02-493d-b9c7-0fa97a84fde6",
+    "azureResourceGroup": "mohitRG",
+    "aiFoundryProjectName": "mohitfoundry-project",
+    "aiFoundryEndpoint": "https://mohitfoundry.services.ai.azure.com/api/projects/mohitfoundry-project",
     "foundryApiVersion": "2024-05-01-preview",
     "ollamaBaseUrl": "http://host.docker.internal:11434",
-    "foundryModelCoding": "gpt-5-codex",
-    "foundryModelReasoning": "o4-mini",
-    "foundryModelFast": "gpt-4o-mini",
+    "foundryModelCoding": "",
+    "foundryModelReasoning": "",
+    "foundryModelFast": "",
     "ollamaModelPathCoding": "",
     "ollamaModelPathReasoning": "",
     "ollamaModelPathFast": "",
@@ -182,15 +188,19 @@ def load_app_settings() -> dict:
         **parse_env_file(target),
     }
 
-    if not loaded.get("foundryEndpoint") and loaded.get("azureFoundryEndpoint"):
-        loaded["foundryEndpoint"] = loaded.get("azureFoundryEndpoint")
-    if not loaded.get("foundryApiKey") and loaded.get("azureFoundryApiKey"):
-        loaded["foundryApiKey"] = loaded.get("azureFoundryApiKey")
+    if not loaded.get("aiFoundryEndpoint") and loaded.get("foundryEndpoint"):
+        loaded["aiFoundryEndpoint"] = loaded.get("foundryEndpoint")
+    if not loaded.get("aiFoundryEndpoint") and loaded.get("azureFoundryEndpoint"):
+        loaded["aiFoundryEndpoint"] = loaded.get("azureFoundryEndpoint")
+
+    if not loaded.get("azureTenantId") and loaded.get("foundryTenantId"):
+        loaded["azureTenantId"] = loaded.get("foundryTenantId")
+    if not loaded.get("azureClientId") and loaded.get("foundryClientId"):
+        loaded["azureClientId"] = loaded.get("foundryClientId")
+    if not loaded.get("azureClientSecret") and loaded.get("foundryClientSecret"):
+        loaded["azureClientSecret"] = loaded.get("foundryClientSecret")
     if not loaded.get("foundryApiVersion") and loaded.get("azureFoundryApiVersion"):
         loaded["foundryApiVersion"] = loaded.get("azureFoundryApiVersion")
-
-    if not loaded.get("foundryProjectRegion") and loaded.get("defaultRegion"):
-        loaded["foundryProjectRegion"] = loaded.get("defaultRegion")
 
     if not loaded.get("modelCoding") and loaded.get("azureFoundryChatModelCoding"):
         loaded["modelCoding"] = loaded.get("azureFoundryChatModelCoding")
@@ -205,6 +215,17 @@ def load_app_settings() -> dict:
         loaded["foundryModelReasoning"] = loaded.get("modelReasoning")
     if not loaded.get("foundryModelFast") and loaded.get("modelFast"):
         loaded["foundryModelFast"] = loaded.get("modelFast")
+
+    for key in (
+        "azureTenantId",
+        "azureClientId",
+        "azureSubscriptionId",
+        "azureResourceGroup",
+        "aiFoundryProjectName",
+        "aiFoundryEndpoint",
+    ):
+        if not loaded.get(key):
+            loaded[key] = DEFAULT_APP_SETTINGS.get(key, "")
 
     return loaded
 
@@ -235,98 +256,305 @@ def resolve_model_by_purpose(settings: dict, purpose: str) -> tuple[str, str]:
     return variable, model_name
 
 
-def verify_foundry_settings(settings: dict) -> str:
-    project_region = str(settings.get("foundryProjectRegion") or "").strip()
-    endpoint = str(settings.get("foundryEndpoint") or "").strip().rstrip("/")
-    api_key = str(settings.get("foundryApiKey") or "").strip()
+def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
+    endpoint = str(settings.get("aiFoundryEndpoint") or settings.get("foundryEndpoint") or "").strip().rstrip("/")
+    tenant_id = str(settings.get("azureTenantId") or settings.get("foundryTenantId") or "").strip()
+    client_id = str(settings.get("azureClientId") or settings.get("foundryClientId") or "").strip()
+    client_secret = str(settings.get("azureClientSecret") or settings.get("foundryClientSecret") or "").strip()
+    subscription_id = str(settings.get("azureSubscriptionId") or "").strip()
+    resource_group = str(settings.get("azureResourceGroup") or "").strip()
+    project_name = str(settings.get("aiFoundryProjectName") or "").strip()
     api_version = str(settings.get("foundryApiVersion") or "").strip()
 
-    if not project_region:
-        raise HTTPException(status_code=400, detail="Foundry Project Region is required.")
     if not endpoint:
-        raise HTTPException(status_code=400, detail="Foundry Endpoint is required.")
-    if not api_key:
-        raise HTTPException(status_code=400, detail="Foundry API Key is required.")
-
-    headers = {
-        "api-key": api_key,
-        "Accept": "application/json",
-    }
+        raise HTTPException(status_code=400, detail="AI_FOUNDRY_ENDPOINT is required.")
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="AZURE_TENANT_ID is required.")
+    if not client_id:
+        raise HTTPException(status_code=400, detail="AZURE_CLIENT_ID is required.")
+    if not client_secret:
+        raise HTTPException(status_code=400, detail="AZURE_CLIENT_SECRET is required.")
+    if not subscription_id:
+        raise HTTPException(status_code=400, detail="AZURE_SUBSCRIPTION_ID is required.")
+    if not resource_group:
+        raise HTTPException(status_code=400, detail="AZURE_RESOURCE_GROUP is required.")
+    if not project_name:
+        raise HTTPException(status_code=400, detail="AI_FOUNDRY_PROJECT_NAME is required.")
 
     is_project_endpoint = "/api/projects/" in endpoint.lower()
 
-    last_error_message = ""
+    def mask_value(value: str) -> str:
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        if len(text) <= 8:
+            return "*" * len(text)
+        return f"{text[:4]}...{text[-4:]}"
 
-    if is_project_endpoint:
-        probe_model = (
-            str(settings.get("foundryModelFast") or "").strip()
-            or str(settings.get("foundryModelReasoning") or "").strip()
-            or str(settings.get("foundryModelCoding") or "").strip()
+    debug_context = {
+        "endpoint": endpoint,
+        "tenantId": tenant_id,
+        "clientId": mask_value(client_id),
+        "subscriptionId": mask_value(subscription_id),
+        "resourceGroup": resource_group,
+        "projectName": project_name,
+        "apiVersion": api_version,
+        "isProjectEndpoint": is_project_endpoint,
+        "tokenScope": "",
+        "sdkStatus": "not-run",
+        "sdkDeploymentCount": 0,
+    }
+
+    def build_debug_detail(base_message: str, *, extra: str = "") -> str:
+        context_blob = json.dumps(debug_context, ensure_ascii=False)
+        if extra:
+            return f"{base_message} | debug={context_blob} | extra={extra}"
+        return f"{base_message} | debug={context_blob}"
+
+    try:
+        credential = ClientSecretCredential(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            client_secret=client_secret,
         )
-        probe_payload = {"input": "ping"}
-        if probe_model:
-            probe_payload["model"] = probe_model
+        project_client = AIProjectClient(endpoint=endpoint, credential=credential)
+        sdk_deployments = list(project_client.deployments.list())
+        sdk_names_set: set[str] = set()
+        for item in sdk_deployments:
+            candidate_name = str(
+                getattr(item, "name", "")
+                or getattr(item, "id", "")
+                or getattr(item, "deployment_name", "")
+                or getattr(item, "model_deployment_name", "")
+                or ""
+            ).strip()
+            if candidate_name:
+                if "/" in candidate_name:
+                    candidate_name = candidate_name.split("/")[-1]
+                sdk_names_set.add(candidate_name)
 
-        candidate_urls = []
-        if api_version:
-            query = urllib_parse.urlencode({"api-version": api_version})
-            candidate_urls.append(f"{endpoint}/openai/responses?{query}")
-        candidate_urls.append(f"{endpoint}/openai/responses")
+        sdk_names = sorted(sdk_names_set)
+        debug_context["verificationMode"] = "sdk"
+        debug_context["sdkStatus"] = "ok"
+        debug_context["sdkDeploymentCount"] = len(sdk_names)
+        if sdk_names:
+            return (
+                f"Foundry connection verified for project '{project_name}'.",
+                sdk_names,
+            )
+    except Exception as sdk_exc:
+        debug_context["verificationMode"] = "rest-fallback"
+        debug_context["sdkStatus"] = "error"
+        debug_context["sdkError"] = str(sdk_exc)[:400]
+
+    token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    candidate_scopes = (
+        ["https://ai.azure.com/.default", "https://cognitiveservices.azure.com/.default"]
+        if is_project_endpoint
+        else ["https://cognitiveservices.azure.com/.default", "https://ai.azure.com/.default"]
+    )
+
+    access_token = ""
+    token_failures: list[str] = []
+    for scope in candidate_scopes:
+        token_body = urllib_parse.urlencode(
+            {
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "scope": scope,
+            }
+        ).encode("utf-8")
+        token_request = urllib_request.Request(
+            token_url,
+            method="POST",
+            headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
+            data=token_body,
+        )
+
+        try:
+            with urllib_request.urlopen(token_request, timeout=10) as token_response:
+                token_payload = json.loads(token_response.read().decode("utf-8") or "{}")
+                access_token = str(token_payload.get("access_token") or "").strip()
+                if access_token:
+                    debug_context["tokenScope"] = scope
+                    break
+                token_failures.append(f"scope={scope}; token_response_missing_access_token=true")
+        except urllib_error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
+            token_failures.append(f"scope={scope}; token_http={exc.code}; body={detail[:300] or '(empty)'}")
+        except Exception as exc:
+            token_failures.append(f"scope={scope}; error={exc}")
+
+    if not access_token:
+        raise HTTPException(
+            status_code=400,
+            detail=build_debug_detail(
+                "Failed to acquire access token from Microsoft Entra ID.",
+                extra=" | ".join(token_failures)[:1200] or "no token failure details captured",
+            ),
+        )
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+    }
+
+    last_error_message = ""
+    deployment_names: set[str] = set()
+
+    def parse_deployments(payload_text: str) -> list[str]:
+        try:
+            parsed = json.loads(payload_text or "{}")
+        except Exception:
+            return []
+
+        def get_name_from_item(item: dict) -> str:
+            if not isinstance(item, dict):
+                return ""
+            properties = item.get("properties") if isinstance(item.get("properties"), dict) else {}
+            deployment_name = str(
+                item.get("id")
+                or item.get("name")
+                or item.get("deployment")
+                or item.get("deploymentName")
+                or item.get("modelDeploymentName")
+                or properties.get("deploymentName")
+                or properties.get("modelDeploymentName")
+                or properties.get("name")
+                or ""
+            ).strip()
+            if "/" in deployment_name:
+                deployment_name = deployment_name.split("/")[-1]
+            return deployment_name
+
+        def extract_lists(payload) -> list[list]:
+            if isinstance(payload, list):
+                return [payload]
+            if not isinstance(payload, dict):
+                return []
+
+            list_candidates = []
+            for key in ("data", "value", "items", "deployments", "resources", "models", "results"):
+                candidate = payload.get(key)
+                if isinstance(candidate, list):
+                    list_candidates.append(candidate)
+
+            for nested_key in ("result", "body", "response"):
+                nested = payload.get(nested_key)
+                if isinstance(nested, dict):
+                    list_candidates.extend(extract_lists(nested))
+
+            return list_candidates
+
+        names = []
+        for raw_items in extract_lists(parsed):
+            for item in raw_items:
+                deployment_name = get_name_from_item(item)
+                if deployment_name:
+                    names.append(deployment_name)
+        return names
+
+    def probe_deployments(candidate_urls: list[str]) -> bool:
+        nonlocal last_error_message
+        found_any_route = False
 
         for url in candidate_urls:
-            body = json.dumps(probe_payload).encode("utf-8")
-            request = urllib_request.Request(
-                url,
-                method="POST",
-                headers={
-                    **headers,
-                    "Content-Type": "application/json",
-                },
-                data=body,
-            )
-
+            request = urllib_request.Request(url, method="GET", headers=headers)
             try:
                 with urllib_request.urlopen(request, timeout=10) as response:
                     if 200 <= response.status < 300:
-                        return f"Foundry connection verified for region '{project_region}'."
-                    last_error_message = f"Foundry verification failed with HTTP {response.status}."
+                        found_any_route = True
+                        payload_text = response.read().decode("utf-8", errors="ignore")
+                        for item in parse_deployments(payload_text):
+                            deployment_names.add(item)
+                    else:
+                        last_error_message = f"Foundry verification failed with HTTP {response.status}."
             except urllib_error.HTTPError as exc:
                 detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
                 detail_lower = detail.lower()
 
                 if exc.code in {401, 403}:
-                    raise HTTPException(status_code=400, detail="Foundry API key is invalid or unauthorized.") from exc
-
-                if "api version not supported" in detail_lower:
                     raise HTTPException(
                         status_code=400,
-                        detail=(
-                            "Foundry API Version is not supported for this project endpoint route. "
-                            "Use the API version from the project's API documentation in Foundry."
+                        detail=build_debug_detail(
+                            "App Registration credentials are invalid or unauthorized for Foundry.",
+                            extra=f"request_url={url}; http={exc.code}; body={detail[:800] or '(empty)'}",
                         ),
                     ) from exc
 
-                if exc.code in {400, 405, 422}:
-                    return (
-                        f"Foundry endpoint and API key are reachable for region '{project_region}'. "
-                        "Model/deployment correctness is not validated in this connectivity check."
-                    )
+                if "api version not supported" in detail_lower:
+                    if is_project_endpoint:
+                        if "api-version=" in url:
+                            last_error_message = build_debug_detail(
+                                "Foundry API Version is not supported for this project endpoint route; retrying without api-version.",
+                                extra=f"request_url={url}; http={exc.code}; body={detail[:800] or '(empty)'}",
+                            )
+                            continue
+                        raise HTTPException(
+                            status_code=400,
+                            detail=build_debug_detail(
+                                "Foundry project endpoint rejected deployment route without api-version.",
+                                extra=f"request_url={url}; http={exc.code}; body={detail[:800] or '(empty)'}",
+                            ),
+                        ) from exc
+                    raise HTTPException(
+                        status_code=400,
+                        detail=build_debug_detail(
+                            "Foundry API Version is not supported for this endpoint. Use a supported api-version.",
+                            extra=f"request_url={url}; http={exc.code}; body={detail[:800] or '(empty)'}",
+                        ),
+                    ) from exc
 
                 if exc.code == 404:
-                    return (
-                        f"Foundry endpoint is reachable for region '{project_region}', but '/openai/responses' returned 404. "
-                        "This can happen on some project routes; connectivity is confirmed, while model route availability is not validated in this check."
-                    )
+                    continue
 
-                last_error_message = detail or f"Foundry verification failed with HTTP {exc.code}."
+                if exc.code in {400, 405, 422}:
+                    found_any_route = True
+                    continue
+
+                last_error_message = build_debug_detail(
+                    f"Foundry verification failed with HTTP {exc.code}.",
+                    extra=f"request_url={url}; body={detail[:800] or '(empty)'}",
+                )
                 continue
             except Exception as exc:
-                last_error_message = f"Unable to reach Foundry endpoint: {exc}"
+                last_error_message = build_debug_detail(
+                    "Unable to reach Foundry endpoint.",
+                    extra=f"request_url={url}; error={exc}",
+                )
                 continue
+
+        return found_any_route
+
+    if is_project_endpoint:
+        candidate_urls = []
+        if api_version:
+            query = urllib_parse.urlencode({"api-version": api_version})
+            candidate_urls.append(f"{endpoint}/openai/deployments?{query}")
+            candidate_urls.append(f"{endpoint}/deployments?{query}")
+        candidate_urls.append(f"{endpoint}/openai/deployments")
+        candidate_urls.append(f"{endpoint}/deployments")
+
+        found_any_route = probe_deployments(candidate_urls)
+        if found_any_route:
+            if deployment_names:
+                return (
+                    f"Foundry connection verified for project '{project_name}'.",
+                    sorted(deployment_names),
+                )
+            return (
+                build_debug_detail(
+                    f"Foundry endpoint is reachable for project '{project_name}', but no deployments were returned.",
+                    extra="SDK and REST probes returned zero deployments.",
+                ),
+                [],
+            )
 
         raise HTTPException(
             status_code=400,
-            detail=last_error_message or "Foundry verification failed. Check endpoint and API version.",
+            detail=last_error_message
+            or build_debug_detail("Foundry verification failed. Check endpoint and API version."),
         )
 
     if not api_version:
@@ -336,35 +564,27 @@ def verify_foundry_settings(settings: dict) -> str:
         )
 
     query = urllib_parse.urlencode({"api-version": api_version})
-    url = f"{endpoint}/openai/models?{query}"
-    request = urllib_request.Request(url, method="GET", headers=headers)
+    candidate_urls = [f"{endpoint}/openai/deployments?{query}"]
+    found_any_route = probe_deployments(candidate_urls)
+    if found_any_route:
+        if deployment_names:
+            return (
+                f"Foundry connection verified for project '{project_name}'.",
+                sorted(deployment_names),
+            )
+        return (
+            build_debug_detail(
+                f"Foundry endpoint is reachable for project '{project_name}', but no deployments were returned.",
+                extra="SDK and REST probes returned zero deployments.",
+            ),
+            [],
+        )
 
-    try:
-        with urllib_request.urlopen(request, timeout=10) as response:
-            if 200 <= response.status < 300:
-                return f"Foundry connection verified for region '{project_region}'."
-            raise HTTPException(status_code=400, detail=f"Foundry verification failed with HTTP {response.status}.")
-    except urllib_error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
-        detail_lower = detail.lower()
-        if exc.code in {401, 403}:
-            raise HTTPException(status_code=400, detail="Foundry API key is invalid or unauthorized.") from exc
-        if "api version not supported" in detail_lower:
-            raise HTTPException(
-                status_code=400,
-                detail="Foundry API Version is not supported for this endpoint. Use a supported api-version.",
-            ) from exc
-        if exc.code == 404:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "Resource endpoint route was not found. If you are using a Foundry Project endpoint, "
-                    "use the '/api/projects/<project-name>' URL from Foundry."
-                ),
-            ) from exc
-        raise HTTPException(status_code=400, detail=detail or f"Foundry verification failed with HTTP {exc.code}.") from exc
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Unable to reach Foundry endpoint: {exc}") from exc
+    raise HTTPException(
+        status_code=400,
+        detail=last_error_message
+        or build_debug_detail("Foundry verification failed. Check endpoint and API version."),
+    )
 
 
 def verify_ollama_settings(settings: dict) -> tuple[str, list[str]]:
@@ -492,9 +712,9 @@ def verify_app_settings(body: VerifySettingsPayload):
         message, models = verify_ollama_settings(settings)
         return {"ok": True, "provider": provider, "message": message, "models": models}
     else:
-        message = verify_foundry_settings(settings)
+        message, models = verify_foundry_settings(settings)
 
-    return {"ok": True, "provider": provider, "message": message}
+    return {"ok": True, "provider": provider, "message": message, "models": models}
 
 
 @app.post("/api/settings/project")

@@ -1,5 +1,6 @@
 const btnBack = document.getElementById("btn-settings-back");
 const btnVerify = document.getElementById("btn-settings-verify");
+const btnReset = document.getElementById("btn-settings-reset");
 const btnSave = document.getElementById("btn-settings-save");
 const settingsMessage = document.getElementById("settings-message");
 
@@ -7,24 +8,28 @@ const providerSelect = document.getElementById("as-model-provider");
 const foundryFields = document.getElementById("as-foundry-fields");
 const ollamaFields = document.getElementById("as-ollama-fields");
 const foundryEndpointStatus = document.getElementById("as-foundry-endpoint-status");
-const foundryKeyStatus = document.getElementById("as-foundry-api-key-status");
-const ollamaCodingStatus = document.getElementById("as-ollama-model-coding-status");
-const ollamaReasoningStatus = document.getElementById("as-ollama-model-reasoning-status");
-const ollamaFastStatus = document.getElementById("as-ollama-model-fast-status");
+const ollamaBaseUrlStatus = document.getElementById("as-ollama-base-url-status");
+const foundryCodingSelect = document.getElementById("as-foundry-model-coding");
+const foundryReasoningSelect = document.getElementById("as-foundry-model-reasoning");
+const foundryFastSelect = document.getElementById("as-foundry-model-fast");
 const ollamaCodingSelect = document.getElementById("as-ollama-model-coding");
 const ollamaReasoningSelect = document.getElementById("as-ollama-model-reasoning");
 const ollamaFastSelect = document.getElementById("as-ollama-model-fast");
 
 const DEFAULT_APP_SETTINGS = {
   modelProvider: "azure-foundry",
-  foundryProjectRegion: "eastus2",
-  foundryEndpoint: "",
-  foundryApiKey: "",
+  azureTenantId: "65f51067-7d65-4aa9-b996-4cc43a0d7111",
+  azureClientId: "8b450e6b-0ae2-4e1b-8597-774d2bc4e747",
+  azureClientSecret: "",
+  azureSubscriptionId: "68aa0317-df02-493d-b9c7-0fa97a84fde6",
+  azureResourceGroup: "mohitRG",
+  aiFoundryProjectName: "mohitfoundry-project",
+  aiFoundryEndpoint: "https://mohitfoundry.services.ai.azure.com/api/projects/mohitfoundry-project",
   foundryApiVersion: "2024-05-01-preview",
   ollamaBaseUrl: "http://host.docker.internal:11434",
-  foundryModelCoding: "gpt-5-codex",
-  foundryModelReasoning: "o4-mini",
-  foundryModelFast: "gpt-4o-mini",
+  foundryModelCoding: "",
+  foundryModelReasoning: "",
+  foundryModelFast: "",
   ollamaModelPathCoding: "",
   ollamaModelPathReasoning: "",
   ollamaModelPathFast: ""
@@ -34,8 +39,21 @@ const state = {
   appSettings: {},
   source: "landing",
   isVerified: false,
-  ollamaModels: []
+  ollamaModels: [],
+  foundryModels: []
 };
+
+const foundryModelFieldIds = new Set([
+  "as-foundry-model-coding",
+  "as-foundry-model-reasoning",
+  "as-foundry-model-fast"
+]);
+
+const ollamaModelFieldIds = new Set([
+  "as-ollama-model-coding",
+  "as-ollama-model-reasoning",
+  "as-ollama-model-fast"
+]);
 
 function getParams() {
   const params = new URLSearchParams(window.location.search);
@@ -58,17 +76,50 @@ function setStatusIcons(provider, isOk) {
   const showOllama = provider === "ollama-local";
 
   foundryEndpointStatus.classList.toggle("is-ok", showFoundry && isOk);
-  foundryKeyStatus.classList.toggle("is-ok", showFoundry && isOk);
-
-  ollamaCodingStatus.classList.toggle("is-ok", showOllama && isOk);
-  ollamaReasoningStatus.classList.toggle("is-ok", showOllama && isOk);
-  ollamaFastStatus.classList.toggle("is-ok", showOllama && isOk);
+  ollamaBaseUrlStatus.classList.toggle("is-ok", showOllama && isOk);
 }
 
 function resetVerification() {
   state.isVerified = false;
-  btnSave.disabled = true;
+  if (providerSelect.value === "azure-foundry") {
+    state.foundryModels = [];
+    setFoundryModelOptions([], {});
+    setFoundryModelLocked(true);
+  } else {
+    state.ollamaModels = [];
+    setOllamaModelOptions([], {});
+    setOllamaModelLocked(true);
+  }
+  updateSaveButtonState();
   setStatusIcons(providerSelect.value, false);
+}
+
+function setFoundryModelLocked(locked) {
+  foundryCodingSelect.disabled = locked;
+  foundryReasoningSelect.disabled = locked;
+  foundryFastSelect.disabled = locked;
+}
+
+function setOllamaModelLocked(locked) {
+  ollamaCodingSelect.disabled = locked;
+  ollamaReasoningSelect.disabled = locked;
+  ollamaFastSelect.disabled = locked;
+}
+
+function updateSaveButtonState() {
+  const provider = providerSelect.value;
+  let canSave = false;
+
+  if (state.isVerified) {
+    if (provider === "azure-foundry") {
+      canSave = [foundryCodingSelect, foundryReasoningSelect, foundryFastSelect].every((field) => String(field.value || "").trim());
+    } else {
+      canSave = [ollamaCodingSelect, ollamaReasoningSelect, ollamaFastSelect].every((field) => String(field.value || "").trim());
+    }
+  }
+
+  btnSave.hidden = !canSave;
+  btnSave.disabled = !canSave;
 }
 
 function normalizeLegacyKeys(incoming) {
@@ -77,8 +128,20 @@ function normalizeLegacyKeys(incoming) {
   if (!normalized.foundryEndpoint && normalized.azureFoundryEndpoint) {
     normalized.foundryEndpoint = normalized.azureFoundryEndpoint;
   }
-  if (!normalized.foundryApiKey && normalized.azureFoundryApiKey) {
-    normalized.foundryApiKey = normalized.azureFoundryApiKey;
+  if (!normalized.aiFoundryEndpoint && normalized.foundryEndpoint) {
+    normalized.aiFoundryEndpoint = normalized.foundryEndpoint;
+  }
+  if (!normalized.aiFoundryEndpoint && normalized.azureFoundryEndpoint) {
+    normalized.aiFoundryEndpoint = normalized.azureFoundryEndpoint;
+  }
+  if (!normalized.azureTenantId && normalized.foundryTenantId) {
+    normalized.azureTenantId = normalized.foundryTenantId;
+  }
+  if (!normalized.azureClientId && normalized.foundryClientId) {
+    normalized.azureClientId = normalized.foundryClientId;
+  }
+  if (!normalized.azureClientSecret && normalized.foundryClientSecret) {
+    normalized.azureClientSecret = normalized.foundryClientSecret;
   }
   if (!normalized.foundryApiVersion && normalized.azureFoundryApiVersion) {
     normalized.foundryApiVersion = normalized.azureFoundryApiVersion;
@@ -136,22 +199,23 @@ function populateAppSettings() {
   const appSettings = state.appSettings;
 
   document.getElementById("as-model-provider").value = appSettings.modelProvider;
-  document.getElementById("as-foundry-project-region").value = appSettings.foundryProjectRegion;
-  document.getElementById("as-foundry-endpoint").value = appSettings.foundryEndpoint;
-  document.getElementById("as-foundry-api-key").value = appSettings.foundryApiKey;
-  document.getElementById("as-foundry-api-version").value = appSettings.foundryApiVersion;
+  document.getElementById("as-azure-tenant-id").value = appSettings.azureTenantId;
+  document.getElementById("as-azure-client-id").value = appSettings.azureClientId;
+  document.getElementById("as-azure-client-secret").value = appSettings.azureClientSecret;
+  document.getElementById("as-azure-subscription-id").value = appSettings.azureSubscriptionId;
+  document.getElementById("as-azure-resource-group").value = appSettings.azureResourceGroup;
+  document.getElementById("as-ai-foundry-project-name").value = appSettings.aiFoundryProjectName;
+  document.getElementById("as-ai-foundry-endpoint").value = appSettings.aiFoundryEndpoint;
   document.getElementById("as-ollama-base-url").value = appSettings.ollamaBaseUrl;
-  document.getElementById("as-foundry-model-coding").value = appSettings.foundryModelCoding;
-  document.getElementById("as-foundry-model-reasoning").value = appSettings.foundryModelReasoning;
-  document.getElementById("as-foundry-model-fast").value = appSettings.foundryModelFast;
 
-  setOllamaModelOptions(state.ollamaModels, {
-    coding: appSettings.ollamaModelPathCoding,
-    reasoning: appSettings.ollamaModelPathReasoning,
-    fast: appSettings.ollamaModelPathFast
-  });
+  setFoundryModelOptions([], {});
+  setFoundryModelLocked(true);
+
+  setOllamaModelOptions([], {});
+  setOllamaModelLocked(true);
 
   updateProviderVisibility();
+  updateSaveButtonState();
 }
 
 function setSelectOptions(selectElement, models, preferredValue) {
@@ -178,8 +242,6 @@ function setSelectOptions(selectElement, models, preferredValue) {
 
   if (preferred) {
     selectElement.value = preferred;
-  } else if (normalizedModels.length > 0) {
-    selectElement.value = normalizedModels[0];
   } else {
     selectElement.value = "";
   }
@@ -191,13 +253,57 @@ function setOllamaModelOptions(models, preferred = {}) {
   setSelectOptions(ollamaFastSelect, models, preferred.fast);
 }
 
+function setFoundryModelOptions(models, preferred = {}) {
+  setSelectOptions(foundryCodingSelect, models, preferred.coding);
+  setSelectOptions(foundryReasoningSelect, models, preferred.reasoning);
+  setSelectOptions(foundryFastSelect, models, preferred.fast);
+}
+
+function resetFormState() {
+  const currentSettings = collectAppSettings();
+  const provider = providerSelect.value;
+
+  if (provider === "azure-foundry") {
+    currentSettings.azureTenantId = DEFAULT_APP_SETTINGS.azureTenantId;
+    currentSettings.azureClientId = DEFAULT_APP_SETTINGS.azureClientId;
+    currentSettings.azureClientSecret = "";
+    currentSettings.azureSubscriptionId = DEFAULT_APP_SETTINGS.azureSubscriptionId;
+    currentSettings.azureResourceGroup = DEFAULT_APP_SETTINGS.azureResourceGroup;
+    currentSettings.aiFoundryProjectName = DEFAULT_APP_SETTINGS.aiFoundryProjectName;
+    currentSettings.aiFoundryEndpoint = DEFAULT_APP_SETTINGS.aiFoundryEndpoint;
+    currentSettings.foundryModelCoding = "";
+    currentSettings.foundryModelReasoning = "";
+    currentSettings.foundryModelFast = "";
+    state.foundryModels = [];
+  } else {
+    currentSettings.ollamaBaseUrl = DEFAULT_APP_SETTINGS.ollamaBaseUrl;
+    currentSettings.ollamaModelPathCoding = "";
+    currentSettings.ollamaModelPathReasoning = "";
+    currentSettings.ollamaModelPathFast = "";
+    state.ollamaModels = [];
+  }
+
+  state.appSettings = {
+    ...state.appSettings,
+    ...currentSettings
+  };
+
+  populateAppSettings();
+  resetVerification();
+  setMessage(`${provider === "azure-foundry" ? "Foundry" : "Ollama"} fields reset.`);
+}
+
 function collectAppSettings() {
   return {
     modelProvider: document.getElementById("as-model-provider").value,
-    foundryProjectRegion: document.getElementById("as-foundry-project-region").value.trim(),
-    foundryEndpoint: document.getElementById("as-foundry-endpoint").value.trim(),
-    foundryApiKey: document.getElementById("as-foundry-api-key").value.trim(),
-    foundryApiVersion: document.getElementById("as-foundry-api-version").value.trim(),
+    azureTenantId: document.getElementById("as-azure-tenant-id").value.trim(),
+    azureClientId: document.getElementById("as-azure-client-id").value.trim(),
+    azureClientSecret: document.getElementById("as-azure-client-secret").value.trim(),
+    azureSubscriptionId: document.getElementById("as-azure-subscription-id").value.trim(),
+    azureResourceGroup: document.getElementById("as-azure-resource-group").value.trim(),
+    aiFoundryProjectName: document.getElementById("as-ai-foundry-project-name").value.trim(),
+    aiFoundryEndpoint: document.getElementById("as-ai-foundry-endpoint").value.trim(),
+    foundryApiVersion: String(state.appSettings.foundryApiVersion || "").trim(),
     ollamaBaseUrl: document.getElementById("as-ollama-base-url").value.trim(),
     foundryModelCoding: document.getElementById("as-foundry-model-coding").value.trim(),
     foundryModelReasoning: document.getElementById("as-foundry-model-reasoning").value.trim(),
@@ -232,13 +338,16 @@ async function handleVerify() {
     if (settings.modelProvider === "ollama-local") {
       const models = Array.isArray(payload?.models) ? payload.models : [];
       state.ollamaModels = models;
-      setOllamaModelOptions(models, {
-        coding: settings.ollamaModelPathCoding,
-        reasoning: settings.ollamaModelPathReasoning,
-        fast: settings.ollamaModelPathFast
-      });
+      setOllamaModelOptions(models, {});
+      setOllamaModelLocked(false);
+    } else {
+      const models = Array.isArray(payload?.models) ? payload.models : [];
+      state.foundryModels = models;
+      setFoundryModelOptions(models, {});
+      setFoundryModelLocked(false);
     }
     setStatusIcons(settings.modelProvider, true);
+    updateSaveButtonState();
     setMessage(payload?.message || "Verification succeeded.", "success");
   } catch (error) {
     resetVerification();
@@ -295,6 +404,7 @@ async function initialize() {
   }
 
   populateAppSettings();
+  btnSave.hidden = true;
   btnSave.disabled = true;
   resetVerification();
 
@@ -303,7 +413,21 @@ async function initialize() {
     resetVerification();
   });
 
-  document.getElementById("app-settings-form").addEventListener("input", () => {
+  document.getElementById("app-settings-form").addEventListener("input", (event) => {
+    const targetId = event?.target?.id || "";
+    if (foundryModelFieldIds.has(targetId) || ollamaModelFieldIds.has(targetId)) {
+      updateSaveButtonState();
+      return;
+    }
+    resetVerification();
+  });
+
+  document.getElementById("app-settings-form").addEventListener("change", (event) => {
+    const targetId = event?.target?.id || "";
+    if (foundryModelFieldIds.has(targetId) || ollamaModelFieldIds.has(targetId)) {
+      updateSaveButtonState();
+      return;
+    }
     resetVerification();
   });
 
@@ -313,6 +437,10 @@ async function initialize() {
 
   btnSave.addEventListener("click", async () => {
     await handleSave();
+  });
+
+  btnReset.addEventListener("click", () => {
+    resetFormState();
   });
 
   btnBack.addEventListener("click", handleBack);
