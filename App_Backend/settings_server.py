@@ -287,6 +287,37 @@ def sanitize_app_settings_for_provider(settings: dict) -> dict:
     return merged
 
 
+def build_persistable_app_settings(settings: dict) -> dict:
+    sanitized = sanitize_app_settings_for_provider(settings)
+    provider = str(sanitized.get("modelProvider") or "ollama-local").strip().lower()
+
+    if provider == "azure-foundry":
+        keys = (
+            "modelProvider",
+            "azureTenantId",
+            "azureClientId",
+            "azureClientSecret",
+            "azureSubscriptionId",
+            "azureResourceGroup",
+            "aiFoundryProjectName",
+            "aiFoundryEndpoint",
+            "foundryApiVersion",
+            "foundryModelCoding",
+            "foundryModelReasoning",
+            "foundryModelFast",
+        )
+    else:
+        keys = (
+            "modelProvider",
+            "ollamaBaseUrl",
+            "ollamaModelPathCoding",
+            "ollamaModelPathReasoning",
+            "ollamaModelPathFast",
+        )
+
+    return {key: sanitized.get(key, "") for key in keys}
+
+
 def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
     endpoint = str(settings.get("aiFoundryEndpoint") or settings.get("foundryEndpoint") or "").strip().rstrip("/")
     tenant_id = str(settings.get("azureTenantId") or settings.get("foundryTenantId") or "").strip()
@@ -698,8 +729,8 @@ def save_app_settings(body: AppSettingsPayload):
     try:
         APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
         target = APP_STATE_DIR / "app.settings.env"
-        sanitized = sanitize_app_settings_for_provider(body.settings)
-        target.write_text(to_env_lines(sanitized), encoding="utf-8")
+        persistable = build_persistable_app_settings(body.settings)
+        target.write_text(to_env_lines(persistable), encoding="utf-8")
         return {"ok": True, "path": str(target.relative_to(WORKSPACE_ROOT))}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to save app settings: {exc}") from exc
