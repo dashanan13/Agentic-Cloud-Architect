@@ -17,7 +17,7 @@ const ollamaReasoningSelect = document.getElementById("as-ollama-model-reasoning
 const ollamaFastSelect = document.getElementById("as-ollama-model-fast");
 
 const DEFAULT_APP_SETTINGS = {
-  modelProvider: "azure-foundry",
+  modelProvider: "ollama-local",
   azureTenantId: "",
   azureClientId: "",
   azureClientSecret: "",
@@ -81,17 +81,15 @@ function setStatusIcons(provider, isOk) {
 
 function resetVerification() {
   state.isVerified = false;
-  if (providerSelect.value === "azure-foundry") {
-    state.foundryModels = [];
-    setFoundryModelOptions([], {});
-    setFoundryModelLocked(true);
-  } else {
-    state.ollamaModels = [];
-    setOllamaModelOptions([], {});
-    setOllamaModelLocked(true);
-  }
+  state.foundryModels = [];
+  state.ollamaModels = [];
+  setFoundryModelOptions([], {});
+  setOllamaModelOptions([], {});
+  setFoundryModelLocked(true);
+  setOllamaModelLocked(true);
   updateSaveButtonState();
-  setStatusIcons(providerSelect.value, false);
+  setStatusIcons("azure-foundry", false);
+  setStatusIcons("ollama-local", false);
 }
 
 function setFoundryModelLocked(locked) {
@@ -260,37 +258,42 @@ function setFoundryModelOptions(models, preferred = {}) {
 }
 
 function resetFormState() {
-  const currentSettings = collectAppSettings();
-  const provider = providerSelect.value;
-
-  if (provider === "azure-foundry") {
-    currentSettings.azureTenantId = DEFAULT_APP_SETTINGS.azureTenantId;
-    currentSettings.azureClientId = DEFAULT_APP_SETTINGS.azureClientId;
-    currentSettings.azureClientSecret = "";
-    currentSettings.azureSubscriptionId = DEFAULT_APP_SETTINGS.azureSubscriptionId;
-    currentSettings.azureResourceGroup = DEFAULT_APP_SETTINGS.azureResourceGroup;
-    currentSettings.aiFoundryProjectName = DEFAULT_APP_SETTINGS.aiFoundryProjectName;
-    currentSettings.aiFoundryEndpoint = DEFAULT_APP_SETTINGS.aiFoundryEndpoint;
-    currentSettings.foundryModelCoding = "";
-    currentSettings.foundryModelReasoning = "";
-    currentSettings.foundryModelFast = "";
-    state.foundryModels = [];
-  } else {
-    currentSettings.ollamaBaseUrl = DEFAULT_APP_SETTINGS.ollamaBaseUrl;
-    currentSettings.ollamaModelPathCoding = "";
-    currentSettings.ollamaModelPathReasoning = "";
-    currentSettings.ollamaModelPathFast = "";
-    state.ollamaModels = [];
-  }
-
-  state.appSettings = {
-    ...state.appSettings,
-    ...currentSettings
-  };
+  state.appSettings = { ...DEFAULT_APP_SETTINGS };
+  state.foundryModels = [];
+  state.ollamaModels = [];
 
   populateAppSettings();
   resetVerification();
-  setMessage(`${provider === "azure-foundry" ? "Foundry" : "Ollama"} fields reset.`);
+  setMessage("All settings reset. Provider set to Local (Ollama).", "success");
+}
+
+function buildProviderScopedSettings(settings) {
+  const provider = String(settings?.modelProvider || "ollama-local").trim().toLowerCase();
+  const scoped = {
+    ...DEFAULT_APP_SETTINGS,
+    ...settings,
+    modelProvider: provider === "azure-foundry" ? "azure-foundry" : "ollama-local"
+  };
+
+  if (scoped.modelProvider === "azure-foundry") {
+    scoped.ollamaBaseUrl = "";
+    scoped.ollamaModelPathCoding = "";
+    scoped.ollamaModelPathReasoning = "";
+    scoped.ollamaModelPathFast = "";
+  } else {
+    scoped.azureTenantId = "";
+    scoped.azureClientId = "";
+    scoped.azureClientSecret = "";
+    scoped.azureSubscriptionId = "";
+    scoped.azureResourceGroup = "";
+    scoped.aiFoundryProjectName = "";
+    scoped.aiFoundryEndpoint = "";
+    scoped.foundryModelCoding = "";
+    scoped.foundryModelReasoning = "";
+    scoped.foundryModelFast = "";
+  }
+
+  return scoped;
 }
 
 function collectAppSettings() {
@@ -356,7 +359,7 @@ async function handleVerify() {
 }
 
 async function handleSave() {
-  const settings = collectAppSettings();
+  const settings = buildProviderScopedSettings(collectAppSettings());
 
   try {
     const response = await fetch("/api/settings/app", {

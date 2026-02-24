@@ -22,7 +22,7 @@ DEFAULT_TEMPLATE_DIR = PROJECTS_DIR / "Default"
 FRONTEND_DIR = Path("/app/App_Frontend")
 
 DEFAULT_APP_SETTINGS = {
-    "modelProvider": "azure-foundry",
+    "modelProvider": "ollama-local",
     "azureTenantId": "",
     "azureClientId": "",
     "azureClientSecret": "",
@@ -232,7 +232,7 @@ def load_app_settings() -> dict:
 
 def resolve_model_by_purpose(settings: dict, purpose: str) -> tuple[str, str]:
     purpose_value = str(purpose or "fast").strip().lower()
-    provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
+    provider = str(settings.get("modelProvider") or "ollama-local").strip().lower()
     if provider == "ollama-local":
         purpose_to_var = {
             "coding": "ollamaModelPathCoding",
@@ -254,6 +254,37 @@ def resolve_model_by_purpose(settings: dict, purpose: str) -> tuple[str, str]:
         variable = "ollamaModelPathFast" if provider == "ollama-local" else "foundryModelFast"
     model_name = str(settings.get(variable) or "").strip()
     return variable, model_name
+
+
+def sanitize_app_settings_for_provider(settings: dict) -> dict:
+    incoming = settings if isinstance(settings, dict) else {}
+    provider = str(incoming.get("modelProvider") or "ollama-local").strip().lower()
+    normalized_provider = "azure-foundry" if provider == "azure-foundry" else "ollama-local"
+
+    merged = {
+        **DEFAULT_APP_SETTINGS,
+        **incoming,
+        "modelProvider": normalized_provider,
+    }
+
+    if normalized_provider == "azure-foundry":
+        merged["ollamaBaseUrl"] = ""
+        merged["ollamaModelPathCoding"] = ""
+        merged["ollamaModelPathReasoning"] = ""
+        merged["ollamaModelPathFast"] = ""
+    else:
+        merged["azureTenantId"] = ""
+        merged["azureClientId"] = ""
+        merged["azureClientSecret"] = ""
+        merged["azureSubscriptionId"] = ""
+        merged["azureResourceGroup"] = ""
+        merged["aiFoundryProjectName"] = ""
+        merged["aiFoundryEndpoint"] = ""
+        merged["foundryModelCoding"] = ""
+        merged["foundryModelReasoning"] = ""
+        merged["foundryModelFast"] = ""
+
+    return merged
 
 
 def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
@@ -667,7 +698,8 @@ def save_app_settings(body: AppSettingsPayload):
     try:
         APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
         target = APP_STATE_DIR / "app.settings.env"
-        target.write_text(to_env_lines(body.settings), encoding="utf-8")
+        sanitized = sanitize_app_settings_for_provider(body.settings)
+        target.write_text(to_env_lines(sanitized), encoding="utf-8")
         return {"ok": True, "path": str(target.relative_to(WORKSPACE_ROOT))}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to save app settings: {exc}") from exc
@@ -704,7 +736,7 @@ def get_app_model(purpose: str = "chat", profile: str | None = None):
 def verify_app_settings(body: VerifySettingsPayload):
     settings = body.settings or {}
 
-    provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
+    provider = str(settings.get("modelProvider") or "ollama-local").strip().lower()
     if provider == "ollama-local":
         message, models = verify_ollama_settings(settings)
         return {"ok": True, "provider": provider, "message": message, "models": models}
