@@ -66,10 +66,12 @@
                   </div>
 
                   <div class="form-group">
-                    <label for="as-ai-foundry-endpoint">AI_FOUNDRY_ENDPOINT</label>
+                    <div class="label-row">
+                      <label for="as-ai-foundry-endpoint">AI_FOUNDRY_ENDPOINT</label>
+                      <span id="as-foundry-endpoint-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                     <div class="input-row">
                       <input type="text" id="as-ai-foundry-endpoint" placeholder="https://your-project.services.ai.azure.com/api/projects/your-project" />
-                      <span id="as-foundry-endpoint-status" class="status-icon" aria-hidden="true">✓</span>
                     </div>
                   </div>
 
@@ -97,10 +99,12 @@
 
                 <div id="as-ollama-fields" class="provider-fields is-hidden" hidden>
                   <div class="form-group">
-                    <label for="as-ollama-base-url">Ollama Base URL</label>
+                    <div class="label-row">
+                      <label for="as-ollama-base-url">Ollama Base URL</label>
+                      <span id="as-ollama-base-url-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                     <div class="input-row">
                       <input type="text" id="as-ollama-base-url" placeholder="http://host.docker.internal:11434" />
-                      <span id="as-ollama-base-url-status" class="status-icon" aria-hidden="true">✓</span>
                     </div>
                   </div>
 

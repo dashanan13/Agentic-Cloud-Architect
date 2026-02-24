@@ -23,13 +23,13 @@ FRONTEND_DIR = Path("/app/App_Frontend")
 
 DEFAULT_APP_SETTINGS = {
     "modelProvider": "azure-foundry",
-    "azureTenantId": "65f51067-7d65-4aa9-b996-4cc43a0d7111",
-    "azureClientId": "8b450e6b-0ae2-4e1b-8597-774d2bc4e747",
+    "azureTenantId": "",
+    "azureClientId": "",
     "azureClientSecret": "",
-    "azureSubscriptionId": "68aa0317-df02-493d-b9c7-0fa97a84fde6",
-    "azureResourceGroup": "mohitRG",
-    "aiFoundryProjectName": "mohitfoundry-project",
-    "aiFoundryEndpoint": "https://mohitfoundry.services.ai.azure.com/api/projects/mohitfoundry-project",
+    "azureSubscriptionId": "",
+    "azureResourceGroup": "",
+    "aiFoundryProjectName": "",
+    "aiFoundryEndpoint": "",
     "foundryApiVersion": "2024-05-01-preview",
     "ollamaBaseUrl": "http://host.docker.internal:11434",
     "foundryModelCoding": "",
@@ -306,10 +306,7 @@ def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
     }
 
     def build_debug_detail(base_message: str, *, extra: str = "") -> str:
-        context_blob = json.dumps(debug_context, ensure_ascii=False)
-        if extra:
-            return f"{base_message} | debug={context_blob} | extra={extra}"
-        return f"{base_message} | debug={context_blob}"
+        return base_message
 
     try:
         credential = ClientSecretCredential(
