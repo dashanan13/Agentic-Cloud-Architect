@@ -42,12 +42,18 @@
 
                   <div class="form-group">
                     <label for="as-foundry-endpoint">Foundry Endpoint</label>
-                    <input type="text" id="as-foundry-endpoint" placeholder="https://your-project.services.ai.azure.com" />
+                    <div class="input-row">
+                      <input type="text" id="as-foundry-endpoint" placeholder="https://your-project.services.ai.azure.com" />
+                      <span id="as-foundry-endpoint-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                   </div>
 
                   <div class="form-group">
                     <label for="as-foundry-api-key">Foundry API Key</label>
-                    <input type="password" id="as-foundry-api-key" placeholder="Enter API key" autocomplete="off" />
+                    <div class="input-row">
+                      <input type="password" id="as-foundry-api-key" placeholder="Enter API key" autocomplete="off" />
+                      <span id="as-foundry-api-key-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                   </div>
 
                   <div class="form-group">
@@ -79,17 +85,32 @@
 
                   <div class="form-group">
                     <label for="as-ollama-model-coding">Coding Model Path</label>
-                    <input type="text" id="as-ollama-model-coding" placeholder="/models/coding-model.gguf" />
+                    <div class="input-row">
+                      <select id="as-ollama-model-coding">
+                        <option value="">Select a model</option>
+                      </select>
+                      <span id="as-ollama-model-coding-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                   </div>
 
                   <div class="form-group">
                     <label for="as-ollama-model-reasoning">Reasoning Model Path</label>
-                    <input type="text" id="as-ollama-model-reasoning" placeholder="/models/reasoning-model.gguf" />
+                    <div class="input-row">
+                      <select id="as-ollama-model-reasoning">
+                        <option value="">Select a model</option>
+                      </select>
+                      <span id="as-ollama-model-reasoning-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                   </div>
 
                   <div class="form-group">
                     <label for="as-ollama-model-fast">Fast Model Path</label>
-                    <input type="text" id="as-ollama-model-fast" placeholder="/models/fast-model.gguf" />
+                    <div class="input-row">
+                      <select id="as-ollama-model-fast">
+                        <option value="">Select a model</option>
+                      </select>
+                      <span id="as-ollama-model-fast-status" class="status-icon" aria-hidden="true">✓</span>
+                    </div>
                   </div>
                 </div>
               </form>
@@ -98,7 +119,7 @@
             <div class="settings-footer">
               <div id="settings-message" class="form-message" aria-live="polite"></div>
               <div class="settings-actions">
-                <button id="btn-settings-verify" class="btn">Verify</button>
+                <button id="btn-settings-verify" class="btn btn--verify">Verify</button>
                 <button id="btn-settings-save" class="btn btn--primary">Save Settings</button>
               </div>
             </div>

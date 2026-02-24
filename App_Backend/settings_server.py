@@ -239,7 +239,7 @@ def verify_foundry_settings(settings: dict) -> str:
     project_region = str(settings.get("foundryProjectRegion") or "").strip()
     endpoint = str(settings.get("foundryEndpoint") or "").strip().rstrip("/")
     api_key = str(settings.get("foundryApiKey") or "").strip()
-    api_version = str(settings.get("foundryApiVersion") or "2024-05-01-preview").strip()
+    api_version = str(settings.get("foundryApiVersion") or "").strip()
 
     if not project_region:
         raise HTTPException(status_code=400, detail="Foundry Project Region is required.")
@@ -248,33 +248,126 @@ def verify_foundry_settings(settings: dict) -> str:
     if not api_key:
         raise HTTPException(status_code=400, detail="Foundry API Key is required.")
 
+    headers = {
+        "api-key": api_key,
+        "Accept": "application/json",
+    }
+
+    is_project_endpoint = "/api/projects/" in endpoint.lower()
+
+    last_error_message = ""
+
+    if is_project_endpoint:
+        probe_model = (
+            str(settings.get("foundryModelFast") or "").strip()
+            or str(settings.get("foundryModelReasoning") or "").strip()
+            or str(settings.get("foundryModelCoding") or "").strip()
+        )
+        probe_payload = {"input": "ping"}
+        if probe_model:
+            probe_payload["model"] = probe_model
+
+        candidate_urls = []
+        if api_version:
+            query = urllib_parse.urlencode({"api-version": api_version})
+            candidate_urls.append(f"{endpoint}/openai/responses?{query}")
+        candidate_urls.append(f"{endpoint}/openai/responses")
+
+        for url in candidate_urls:
+            body = json.dumps(probe_payload).encode("utf-8")
+            request = urllib_request.Request(
+                url,
+                method="POST",
+                headers={
+                    **headers,
+                    "Content-Type": "application/json",
+                },
+                data=body,
+            )
+
+            try:
+                with urllib_request.urlopen(request, timeout=10) as response:
+                    if 200 <= response.status < 300:
+                        return f"Foundry connection verified for region '{project_region}'."
+                    last_error_message = f"Foundry verification failed with HTTP {response.status}."
+            except urllib_error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
+                detail_lower = detail.lower()
+
+                if exc.code in {401, 403}:
+                    raise HTTPException(status_code=400, detail="Foundry API key is invalid or unauthorized.") from exc
+
+                if "api version not supported" in detail_lower:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            "Foundry API Version is not supported for this project endpoint route. "
+                            "Use the API version from the project's API documentation in Foundry."
+                        ),
+                    ) from exc
+
+                if exc.code in {400, 405, 422}:
+                    return (
+                        f"Foundry endpoint and API key are reachable for region '{project_region}'. "
+                        "Model/deployment correctness is not validated in this connectivity check."
+                    )
+
+                if exc.code == 404:
+                    return (
+                        f"Foundry endpoint is reachable for region '{project_region}', but '/openai/responses' returned 404. "
+                        "This can happen on some project routes; connectivity is confirmed, while model route availability is not validated in this check."
+                    )
+
+                last_error_message = detail or f"Foundry verification failed with HTTP {exc.code}."
+                continue
+            except Exception as exc:
+                last_error_message = f"Unable to reach Foundry endpoint: {exc}"
+                continue
+
+        raise HTTPException(
+            status_code=400,
+            detail=last_error_message or "Foundry verification failed. Check endpoint and API version.",
+        )
+
+    if not api_version:
+        raise HTTPException(
+            status_code=400,
+            detail="Foundry API Version is required for non-project endpoints.",
+        )
+
     query = urllib_parse.urlencode({"api-version": api_version})
     url = f"{endpoint}/openai/models?{query}"
-    request = urllib_request.Request(
-        url,
-        method="GET",
-        headers={
-            "api-key": api_key,
-            "Accept": "application/json",
-        },
-    )
+    request = urllib_request.Request(url, method="GET", headers=headers)
 
     try:
         with urllib_request.urlopen(request, timeout=10) as response:
-            if response.status < 200 or response.status >= 300:
-                raise HTTPException(status_code=400, detail="Foundry verification failed.")
-        return f"Foundry connection verified for region '{project_region}'."
-    except HTTPException:
-        raise
+            if 200 <= response.status < 300:
+                return f"Foundry connection verified for region '{project_region}'."
+            raise HTTPException(status_code=400, detail=f"Foundry verification failed with HTTP {response.status}.")
     except urllib_error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
-        message = detail or f"Foundry verification failed with HTTP {exc.code}."
-        raise HTTPException(status_code=400, detail=message) from exc
+        detail_lower = detail.lower()
+        if exc.code in {401, 403}:
+            raise HTTPException(status_code=400, detail="Foundry API key is invalid or unauthorized.") from exc
+        if "api version not supported" in detail_lower:
+            raise HTTPException(
+                status_code=400,
+                detail="Foundry API Version is not supported for this endpoint. Use a supported api-version.",
+            ) from exc
+        if exc.code == 404:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Resource endpoint route was not found. If you are using a Foundry Project endpoint, "
+                    "use the '/api/projects/<project-name>' URL from Foundry."
+                ),
+            ) from exc
+        raise HTTPException(status_code=400, detail=detail or f"Foundry verification failed with HTTP {exc.code}.") from exc
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Unable to reach Foundry endpoint: {exc}") from exc
 
 
-def verify_ollama_settings(settings: dict) -> str:
+def verify_ollama_settings(settings: dict) -> tuple[str, list[str]]:
     base_url = str(settings.get("ollamaBaseUrl") or "").strip().rstrip("/")
     if not base_url:
         raise HTTPException(status_code=400, detail="Ollama Base URL is required.")
@@ -288,7 +381,16 @@ def verify_ollama_settings(settings: dict) -> str:
     try:
         with urllib_request.urlopen(request, timeout=10) as response:
             payload = json.loads(response.read().decode("utf-8") or "{}")
-            available_models = {str(item.get("name") or "").strip() for item in payload.get("models", []) if isinstance(item, dict)}
+            available_models = set()
+            for item in payload.get("models", []):
+                if not isinstance(item, dict):
+                    continue
+                model_name = str(item.get("name") or item.get("model") or "").strip()
+                if model_name:
+                    available_models.add(model_name)
+
+            if not available_models:
+                raise HTTPException(status_code=400, detail="URL reachable but no models found.")
 
             expected_models = {
                 str(settings.get("ollamaModelPathCoding") or "").strip(),
@@ -308,7 +410,7 @@ def verify_ollama_settings(settings: dict) -> str:
             if missing:
                 raise HTTPException(status_code=400, detail=f"Ollama connected, but models not found: {', '.join(missing)}")
 
-        return "Ollama connection verified."
+        return "Ollama connection verified.", sorted(available_models)
     except HTTPException:
         raise
     except urllib_error.HTTPError as exc:
@@ -383,14 +485,12 @@ def get_app_model(purpose: str = "chat", profile: str | None = None):
 
 @app.post("/api/settings/app/verify")
 def verify_app_settings(body: VerifySettingsPayload):
-    settings = {
-        **load_app_settings(),
-        **(body.settings or {}),
-    }
+    settings = body.settings or {}
 
     provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
     if provider == "ollama-local":
-        message = verify_ollama_settings(settings)
+        message, models = verify_ollama_settings(settings)
+        return {"ok": True, "provider": provider, "message": message, "models": models}
     else:
         message = verify_foundry_settings(settings)
 

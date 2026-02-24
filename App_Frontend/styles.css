@@ -1135,6 +1135,7 @@ label {
 }
 
 input[type="text"]:not(.property-input),
+input[type="password"]:not(.property-input),
 select:not(.property-input) {
   padding: 2px 8px 2px 12px;
   border: 1px solid var(--border);
@@ -1147,10 +1148,29 @@ select:not(.property-input) {
 }
 
 input[type="text"]:not(.property-input):focus,
+input[type="password"]:not(.property-input):focus,
 select:not(.property-input):focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-icon {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #16a34a;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.status-icon.is-ok {
+  opacity: 1;
 }
 
 /* ===== Buttons ===== */
@@ -1189,6 +1209,16 @@ select:not(.property-input):focus {
   border-color: #1d4ed8;
 }
 
+.btn--verify {
+  background: #16a34a;
+  color: #fff;
+  border-color: #15803d;
+}
+
+.btn--verify:hover {
+  background: #15803d;
+}
+
 .btn--secondary {
   background: transparent;
   color: var(--accent);
@@ -1215,6 +1245,14 @@ select:not(.property-input):focus {
 .btn--sm {
   padding: 6px 12px;
   font-size: 0.8rem;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
 
 /* ===== Project Name Display (Contenteditable) ===== */
