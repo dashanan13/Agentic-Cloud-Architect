@@ -63,20 +63,55 @@ function getParams() {
   };
 }
 
-function setMessage(message, type = "") {
-  settingsMessage.textContent = message;
-  settingsMessage.classList.remove("is-error", "is-success");
-  if (type) {
-    settingsMessage.classList.add(type === "error" ? "is-error" : "is-success");
+function setMessage(message, type = "", secondaryMessage = "") {
+  settingsMessage.replaceChildren();
+  settingsMessage.classList.remove("is-error", "is-success", "is-info");
+
+  const primaryLine = document.createElement("div");
+  primaryLine.className = "form-message__line";
+  primaryLine.textContent = String(message || "");
+  settingsMessage.appendChild(primaryLine);
+
+  if (secondaryMessage) {
+    const secondaryLine = document.createElement("div");
+    secondaryLine.className = "form-message__line form-message__line--secondary";
+    secondaryLine.textContent = String(secondaryMessage);
+    settingsMessage.appendChild(secondaryLine);
+  }
+
+  if (type === "error") {
+    settingsMessage.classList.add("is-error");
+  } else if (type === "success") {
+    settingsMessage.classList.add("is-success");
+  } else if (type === "info") {
+    settingsMessage.classList.add("is-info");
   }
 }
 
-function setStatusIcons(provider, isOk) {
+function applyStatusIcon(iconElement, isActive, status) {
+  iconElement.classList.remove("is-ok", "is-error");
+  iconElement.textContent = "✓";
+
+  if (!isActive || status === "idle") {
+    return;
+  }
+
+  if (status === "ok") {
+    iconElement.classList.add("is-ok");
+    iconElement.textContent = "✓";
+    return;
+  }
+
+  iconElement.classList.add("is-error");
+  iconElement.textContent = "✕";
+}
+
+function setStatusIcons(provider, status = "idle") {
   const showFoundry = provider === "azure-foundry";
   const showOllama = provider === "ollama-local";
 
-  foundryEndpointStatus.classList.toggle("is-ok", showFoundry && isOk);
-  ollamaBaseUrlStatus.classList.toggle("is-ok", showOllama && isOk);
+  applyStatusIcon(foundryEndpointStatus, showFoundry, status);
+  applyStatusIcon(ollamaBaseUrlStatus, showOllama, status);
 }
 
 function resetVerification() {
@@ -88,8 +123,8 @@ function resetVerification() {
   setFoundryModelLocked(true);
   setOllamaModelLocked(true);
   updateSaveButtonState();
-  setStatusIcons("azure-foundry", false);
-  setStatusIcons("ollama-local", false);
+  setStatusIcons("azure-foundry", "idle");
+  setStatusIcons("ollama-local", "idle");
 }
 
 function setFoundryModelLocked(locked) {
@@ -257,14 +292,17 @@ function setFoundryModelOptions(models, preferred = {}) {
   setSelectOptions(foundryFastSelect, models, preferred.fast);
 }
 
-function resetFormState() {
-  state.appSettings = { ...DEFAULT_APP_SETTINGS };
-  state.foundryModels = [];
-  state.ollamaModels = [];
-
-  populateAppSettings();
-  resetVerification();
-  setMessage("All settings reset. Provider set to Local (Ollama).", "success");
+async function resetFormState() {
+  try {
+    await loadAppSettings();
+    state.foundryModels = [];
+    state.ollamaModels = [];
+    populateAppSettings();
+    resetVerification();
+    setMessage("Loaded saved settings from file.", "success");
+  } catch (error) {
+    setMessage(error.message || "Unable to reload saved settings.", "error");
+  }
 }
 
 function buildProviderScopedSettings(settings) {
@@ -319,6 +357,8 @@ function collectAppSettings() {
 
 async function handleVerify() {
   const settings = collectAppSettings();
+  setMessage("checking...", "info");
+  setStatusIcons(settings.modelProvider, "idle");
 
   try {
     const response = await fetch("/api/settings/app/verify", {
@@ -349,11 +389,12 @@ async function handleVerify() {
       setFoundryModelOptions(models, {});
       setFoundryModelLocked(false);
     }
-    setStatusIcons(settings.modelProvider, true);
+    setStatusIcons(settings.modelProvider, "ok");
     updateSaveButtonState();
-    setMessage(payload?.message || "Verification succeeded.", "success");
+    setMessage(payload?.message || "Verification succeeded.", "success", "Select models to enable Save.");
   } catch (error) {
     resetVerification();
+    setStatusIcons(settings.modelProvider, "error");
     setMessage(error.message || "Verification failed.", "error");
   }
 }
@@ -379,7 +420,7 @@ async function handleSave() {
       ...settings
     };
 
-    setMessage("Application settings saved.", "success");
+    setMessage("settings saved!", "success");
   } catch (error) {
     setMessage(error.message || "Failed to save application settings.", "error");
   }
@@ -410,6 +451,7 @@ async function initialize() {
   btnSave.hidden = true;
   btnSave.disabled = true;
   resetVerification();
+  setMessage("Fill values and verify.", "info");
 
   providerSelect.addEventListener("change", () => {
     updateProviderVisibility();
@@ -442,8 +484,8 @@ async function initialize() {
     await handleSave();
   });
 
-  btnReset.addEventListener("click", () => {
-    resetFormState();
+  btnReset.addEventListener("click", async () => {
+    await resetFormState();
   });
 
   btnBack.addEventListener("click", handleBack);

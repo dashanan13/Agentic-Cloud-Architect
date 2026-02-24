@@ -1182,12 +1182,17 @@ select:not(.property-input):focus {
 .status-icon {
   font-size: 1rem;
   font-weight: 700;
-  color: #16a34a;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
 .status-icon.is-ok {
+  color: #16a34a;
+  opacity: 1;
+}
+
+.status-icon.is-error {
+  color: #dc2626;
   opacity: 1;
 }
 
@@ -1351,17 +1356,40 @@ select:not(.property-input):focus {
 }
 
 .form-message {
-  min-height: 18px;
-  font-size: 0.78rem;
+  min-height: 48px;
+  font-size: 0.8rem;
   color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 8px 10px;
+  line-height: 1.35;
+}
+
+.form-message__line + .form-message__line {
+  margin-top: 4px;
+}
+
+.form-message__line--secondary {
+  font-weight: 600;
 }
 
 .form-message.is-error {
   color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.25);
+  background: rgba(254, 242, 242, 0.9);
 }
 
 .form-message.is-success {
   color: #065f46;
+  border-color: rgba(6, 95, 70, 0.25);
+  background: rgba(236, 253, 245, 0.95);
+}
+
+.form-message.is-info {
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.28);
+  background: rgba(239, 246, 255, 0.95);
 }
 
 /* ===== Settings Page ===== */
@@ -1437,7 +1465,8 @@ select:not(.property-input):focus {
 
 #settings-message {
   min-height: 16px;
-  width: 100%;
+  width: min(620px, 100%);
+  margin: 0 auto;
   order: 1;
 }
 
@@ -1446,6 +1475,8 @@ select:not(.property-input):focus {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  width: min(620px, 100%);
+  margin: 0 auto;
   gap: 8px;
   flex-wrap: wrap;
 }
