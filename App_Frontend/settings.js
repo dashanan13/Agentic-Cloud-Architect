@@ -319,9 +319,6 @@ function buildProviderScopedSettings(settings) {
     scoped.ollamaModelPathReasoning = "";
     scoped.ollamaModelPathFast = "";
   } else {
-    scoped.azureTenantId = "";
-    scoped.azureClientId = "";
-    scoped.azureClientSecret = "";
     scoped.azureSubscriptionId = "";
     scoped.azureResourceGroup = "";
     scoped.aiFoundryProjectName = "";

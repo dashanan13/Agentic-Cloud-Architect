@@ -273,9 +273,6 @@ def sanitize_app_settings_for_provider(settings: dict) -> dict:
         merged["ollamaModelPathReasoning"] = ""
         merged["ollamaModelPathFast"] = ""
     else:
-        merged["azureTenantId"] = ""
-        merged["azureClientId"] = ""
-        merged["azureClientSecret"] = ""
         merged["azureSubscriptionId"] = ""
         merged["azureResourceGroup"] = ""
         merged["aiFoundryProjectName"] = ""
@@ -309,6 +306,9 @@ def build_persistable_app_settings(settings: dict) -> dict:
     else:
         keys = (
             "modelProvider",
+            "azureTenantId",
+            "azureClientId",
+            "azureClientSecret",
             "ollamaBaseUrl",
             "ollamaModelPathCoding",
             "ollamaModelPathReasoning",

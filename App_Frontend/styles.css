@@ -1419,7 +1419,7 @@ select:not(.property-input):focus {
 }
 
 .settings-content {
-  padding: 16px 18px;
+  padding: 60px 18px 16px;
   overflow: auto;
   display: grid;
   justify-items: center;
@@ -1443,6 +1443,22 @@ select:not(.property-input):focus {
   gap: 12px;
   grid-template-columns: 1fr;
   width: min(620px, 100%);
+}
+
+.settings-section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  display: grid;
+  gap: 12px;
+}
+
+.settings-section-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .provider-fields {
