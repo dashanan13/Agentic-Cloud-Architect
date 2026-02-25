@@ -18,12 +18,35 @@
 
 A3 uses a sophisticated **Agent-to-Agent (A2A)** workflow built on the **Microsoft Agent Framework**:
 
-| Agent | Responsibility | Tooling |
-| --- | --- | --- |
-| **Architect Agent** | Interprets user intent and updates the Canvas JSON. | `Azure AI Search`, `Cloud Catalog Metadata` |
-| **Bicep Specialist** | Converts graph nodes into Bicep modules. | `Azure MCP Server`, `Bicep CLI` |
-| **DevOps Agent** | Generates YAML pipelines and environment configs. | `Azure DevOps MCP` |
-| **Model Router** | Directs tasks to GPT-4o (Reasoning) or GPT-4o-mini (Speed). | `Azure AI Foundry` |
+### 🧩 1. The Architect Agent (The Guide)
+**Role:** User Experience & Discovery.
+
+**Responsibility:** When you drop a resource like a Storage Account onto the canvas, this agent doesn't just let it sit there. It queries the Azure MCP Server to understand the resource hierarchy and proactively suggests: "You've added a Storage Account; would you like to initialize a Blob Service or a File Share?" It ensures users build complete, functional architectures rather than "hollow" resources.
+
+### 🛡️ 2. The Integrity Agent (The Validator)
+**Role:** Logic & Compliance.
+
+**Responsibility:** The "brain" of the canvas. It monitors connections in real-time. If you link a Virtual Network to a SQL Database, the Integrity Agent validates the Bicep type-system constraints to ensure the properties match. It prevents "invalid wiring" before a single line of code is written.
+
+### ⌨️ 3. The Coder Agent (The Bicep/TF Expert)
+**Role:** Synthesis & Compilation.
+
+**Responsibility:** A master of IaC syntax. It translates the visual graph into clean, modular Bicep and Terraform code. It doesn't just guess; it uses the Azure CLI and Bicep Linter to "dry-run" the code, ensuring that the exported templates are deployable the moment they hit your machine.
+
+### 🚀 4. The DevOps Agent (The Automator)
+**Role:** Deployment & Lifecycle.
+
+**Responsibility:** Once the architecture is finalized, this agent generates the GitHub Actions or Azure DevOps YAML pipelines. It handles the "last mile"—committing code to your repository, configuring environment secrets, and triggering the initial deployment to Azure.
+
+### 🚦 5. The Model Router (The Optimizer)
+**Role:** Performance & Cost Efficiency.
+
+**Responsibility:** Our "Traffic Controller." It analyzes the complexity of your request.
+
+- **GPT-4o (Reasoning):** Used for complex architectural decisions and deep integrity checks.
+- **GPT-4o-mini (Speed):** Used for rapid UI property fetching and simple Bicep boilerplate.
+
+This ensures a snappy, low-latency experience for the user.
 
 ---
 
