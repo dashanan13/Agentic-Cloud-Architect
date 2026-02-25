@@ -1339,9 +1339,15 @@ select:not(.property-input):focus {
   white-space: nowrap;
 }
 
-.name-input-group input {
+
+.name-input-group input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
   border: 0;
   border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .name-input-group input:focus {
@@ -1364,6 +1370,11 @@ select:not(.property-input):focus {
   background: #f8fafc;
   padding: 8px 10px;
   line-height: 1.35;
+}
+
+#create-project-message {
+  background: #fff;
+  border-color: #e5e7eb;
 }
 
 .form-message__line + .form-message__line {
