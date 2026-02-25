@@ -1527,7 +1527,8 @@ select:not(.property-input):focus {
   gap: 12px;
 }
 
-#settings-message {
+#settings-message,
+#project-settings-message {
   min-height: 16px;
   width: min(620px, 100%);
   margin: 0 auto;

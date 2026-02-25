@@ -11,7 +11,7 @@
       <div class="screen is-active" id="screen-settings">
         <header class="topbar">
           <div class="topbar__left">
-            <span class="project-label project-label--strong">Settings</span>
+            <span id="settings-page-title" class="project-label project-label--strong">Settings</span>
             <span class="project-name-prefix-display" id="settings-context">(Application)</span>
           </div>
           <div class="topbar__right">
@@ -22,8 +22,8 @@
         <main class="settings-layout">
           <section class="settings-panel">
             <div class="settings-content">
-              <h2>Application Settings</h2>
-              <p class="settings-subtitle">Configure models for Azure AI Foundry or local Ollama.</p>
+              <h2 id="settings-heading">Application Settings</h2>
+              <p id="settings-subtitle" class="settings-subtitle">Configure models for Azure AI Foundry or local Ollama.</p>
 
               <form id="app-settings-form" class="settings-form">
                 <section class="settings-section">
@@ -138,6 +138,7 @@
                 </div>
                 </section>
               </form>
+
             </div>
 
             <div class="settings-footer">
@@ -145,7 +146,7 @@
               <div class="settings-actions">
                 <button id="btn-settings-verify" class="btn btn--verify">Verify connection</button>
                 <button id="btn-settings-reset" class="btn btn--secondary">Reset</button>
-                <button id="btn-settings-save" class="btn btn--primary">Save Settings</button>
+                <button id="btn-settings-save" class="btn btn--primary">Save Application Settings</button>
               </div>
             </div>
           </section>

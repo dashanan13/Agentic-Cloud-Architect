@@ -1762,11 +1762,8 @@ btnProjectSettings?.addEventListener("click", () => {
   }
 
   const params = new URLSearchParams();
-  params.set("section", "project");
-  params.set("source", "canvas");
-  params.set("mode", "project-only");
   params.set("projectId", state.currentProject.id);
-  window.location.href = `./settings.html?${params.toString()}`;
+  window.location.href = `./project-settings.html?${params.toString()}`;
 });
 
 searchInput?.addEventListener("input", () => {

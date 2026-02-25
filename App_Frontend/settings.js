@@ -3,6 +3,13 @@ const btnVerify = document.getElementById("btn-settings-verify");
 const btnReset = document.getElementById("btn-settings-reset");
 const btnSave = document.getElementById("btn-settings-save");
 const settingsMessage = document.getElementById("settings-message");
+const settingsPageTitle = document.getElementById("settings-page-title");
+const settingsContext = document.getElementById("settings-context");
+const settingsHeading = document.getElementById("settings-heading");
+const settingsSubtitle = document.getElementById("settings-subtitle");
+const appSettingsForm = document.getElementById("app-settings-form");
+const projectSettingsForm = document.getElementById("project-settings-form");
+const projectGithubRepoUrlInput = document.getElementById("ps-github-repo-url");
 
 const providerSelect = document.getElementById("as-model-provider");
 const foundryFields = document.getElementById("as-foundry-fields");
@@ -35,9 +42,17 @@ const DEFAULT_APP_SETTINGS = {
   ollamaModelPathFast: ""
 };
 
+const DEFAULT_PROJECT_SETTINGS = {
+  githubRepoUrl: ""
+};
+
 const state = {
   appSettings: {},
+  projectSettings: {},
+  currentProject: null,
   source: "landing",
+  projectId: "",
+  isProjectMode: false,
   isVerified: false,
   ollamaModels: [],
   foundryModels: []
@@ -59,8 +74,93 @@ function getParams() {
   const params = new URLSearchParams(window.location.search);
   return {
     source: params.get("source") || "landing",
-    projectId: params.get("projectId")
+    projectId: params.get("projectId"),
+    section: params.get("section") || "application",
+    mode: params.get("mode") || ""
   };
+}
+
+function isProjectContext(params) {
+  return (
+    params?.source === "canvas"
+    || params?.section === "project"
+    || params?.mode === "project-only"
+  );
+}
+
+function applySettingsPageContext(params) {
+  const projectMode = isProjectContext(params);
+
+  if (projectMode) {
+    if (settingsPageTitle) {
+      settingsPageTitle.textContent = "Project Settings";
+    }
+    if (settingsContext) {
+      settingsContext.textContent = "(Project)";
+    }
+    if (settingsHeading) {
+      settingsHeading.textContent = "Project Settings";
+    }
+    if (settingsSubtitle) {
+      settingsSubtitle.textContent = "Configure project-specific model settings for this canvas.";
+    }
+    if (btnSave) {
+      btnSave.textContent = "Save Project Settings";
+    }
+    if (appSettingsForm) {
+      appSettingsForm.classList.add("is-hidden");
+      appSettingsForm.hidden = true;
+    }
+    if (projectSettingsForm) {
+      projectSettingsForm.classList.remove("is-hidden");
+      projectSettingsForm.hidden = false;
+    }
+    if (btnVerify) {
+      btnVerify.classList.add("is-hidden");
+      btnVerify.hidden = true;
+    }
+    if (btnReset) {
+      btnReset.classList.add("is-hidden");
+      btnReset.hidden = true;
+    }
+    if (btnSave) {
+      btnSave.hidden = false;
+      btnSave.disabled = false;
+    }
+    return;
+  }
+
+  if (settingsPageTitle) {
+    settingsPageTitle.textContent = "Settings";
+  }
+  if (settingsContext) {
+    settingsContext.textContent = "(Application)";
+  }
+  if (settingsHeading) {
+    settingsHeading.textContent = "Application Settings";
+  }
+  if (settingsSubtitle) {
+    settingsSubtitle.textContent = "Configure models for Azure AI Foundry or local Ollama.";
+  }
+  if (btnSave) {
+    btnSave.textContent = "Save Application Settings";
+  }
+  if (appSettingsForm) {
+    appSettingsForm.classList.remove("is-hidden");
+    appSettingsForm.hidden = false;
+  }
+  if (projectSettingsForm) {
+    projectSettingsForm.classList.add("is-hidden");
+    projectSettingsForm.hidden = true;
+  }
+  if (btnVerify) {
+    btnVerify.classList.remove("is-hidden");
+    btnVerify.hidden = false;
+  }
+  if (btnReset) {
+    btnReset.classList.remove("is-hidden");
+    btnReset.hidden = false;
+  }
 }
 
 function setMessage(message, type = "", secondaryMessage = "") {
@@ -218,6 +318,39 @@ async function loadAppSettings() {
   };
 }
 
+async function loadProjectDetails(projectId) {
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}`, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Unable to load project details.");
+  }
+
+  const payload = await response.json();
+  const project = payload?.project && typeof payload.project === "object" ? payload.project : null;
+  if (!project?.id) {
+    throw new Error("Project details are incomplete.");
+  }
+
+  state.currentProject = {
+    id: String(project.id || ""),
+    name: String(project.name || ""),
+    cloud: String(project.cloud || "")
+  };
+}
+
+async function loadProjectSettings(projectId) {
+  const response = await fetch(`/api/settings/project/${encodeURIComponent(projectId)}`, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Unable to load project settings from file.");
+  }
+
+  const payload = await response.json();
+  const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
+  state.projectSettings = {
+    ...DEFAULT_PROJECT_SETTINGS,
+    ...incoming
+  };
+}
+
 function updateProviderVisibility() {
   const isFoundry = providerSelect.value === "azure-foundry";
 
@@ -249,6 +382,14 @@ function populateAppSettings() {
 
   updateProviderVisibility();
   updateSaveButtonState();
+}
+
+function populateProjectSettings() {
+  if (!projectGithubRepoUrlInput) {
+    return;
+  }
+
+  projectGithubRepoUrlInput.value = String(state.projectSettings.githubRepoUrl || "");
 }
 
 function setSelectOptions(selectElement, models, preferredValue) {
@@ -352,6 +493,12 @@ function collectAppSettings() {
   };
 }
 
+function collectProjectSettings() {
+  return {
+    githubRepoUrl: String(projectGithubRepoUrlInput?.value || "").trim()
+  };
+}
+
 async function handleVerify() {
   const settings = collectAppSettings();
   setMessage("checking...", "info");
@@ -397,6 +544,42 @@ async function handleVerify() {
 }
 
 async function handleSave() {
+  if (state.isProjectMode) {
+    if (!state.currentProject?.id) {
+      setMessage("Unable to save: project context is missing.", "error");
+      return;
+    }
+
+    const settings = collectProjectSettings();
+
+    try {
+      const response = await fetch("/api/settings/project", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          project: state.currentProject,
+          settings
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to write project settings file.");
+      }
+
+      state.projectSettings = {
+        ...DEFAULT_PROJECT_SETTINGS,
+        ...settings
+      };
+
+      setMessage("project settings saved!", "success");
+    } catch (error) {
+      setMessage(error.message || "Failed to save project settings.", "error");
+    }
+    return;
+  }
+
   const settings = buildProviderScopedSettings(collectAppSettings());
 
   try {
@@ -436,6 +619,40 @@ function handleBack() {
 async function initialize() {
   const params = getParams();
   state.source = params.source;
+  state.projectId = String(params.projectId || "").trim();
+  state.isProjectMode = isProjectContext(params);
+  applySettingsPageContext(params);
+
+  if (state.isProjectMode) {
+    if (!state.projectId) {
+      setMessage("Project ID is missing. Open Project Settings from canvas.", "error");
+      return;
+    }
+
+    try {
+      await loadProjectDetails(state.projectId);
+      await loadProjectSettings(state.projectId);
+      populateProjectSettings();
+      setMessage("Project settings loaded.", "info");
+    } catch (error) {
+      state.projectSettings = { ...DEFAULT_PROJECT_SETTINGS };
+      populateProjectSettings();
+      setMessage(error.message || "Unable to load project settings.", "error");
+    }
+
+    projectSettingsForm?.addEventListener("input", () => {
+      btnSave.hidden = false;
+      btnSave.disabled = false;
+    });
+
+    btnSave.hidden = false;
+    btnSave.disabled = false;
+    btnSave.addEventListener("click", async () => {
+      await handleSave();
+    });
+    btnBack.addEventListener("click", handleBack);
+    return;
+  }
 
   try {
     await loadAppSettings();
