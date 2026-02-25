@@ -196,7 +196,100 @@ if __name__ == "__main__":
 
 ---
 
-## 🛠 Troubleshooting
+## � Available Tools on Azure MCP Server
+
+The Azure MCP Server provides a comprehensive set of tools for managing Azure resources and operations. 
+
+For detailed documentation on each tool, visit: [Azure MCP Server Tools Reference](https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/tools/)
+
+Below is the complete list of available tools:
+
+### Core Management
+- `group_list` - List resource groups
+- `subscription_list` - List Azure subscriptions
+- `documentation` - Access Azure documentation
+- `azd` - Azure Developer CLI operations
+
+### Compute & Containers
+- `compute` - Virtual machine management
+- `aks` - Azure Kubernetes Service operations
+- `acr` - Azure Container Registry
+- `servicefabric` - Service Fabric management
+
+### Storage & Data
+- `storage` - Storage account operations
+- `storagesync` - Azure File Sync
+- `fileshares` - File share management
+- `cosmos` - Cosmos DB operations
+- `sql` - SQL Database management
+- `mysql` - MySQL database operations
+- `postgres` - PostgreSQL database operations
+- `redis` - Redis Cache operations
+- `kusto` - Azure Data Explorer (Kusto)
+
+### Application Services
+- `appservice` - App Service management
+- `functionapp` - Azure Functions operations
+- `confidentialledger` - Confidential Ledger operations
+- `communication` - Communication Services
+
+### Messaging & Events
+- `eventgrid` - Event Grid operations
+- `eventhubs` - Event Hubs management
+- `servicebus` - Service Bus operations
+- `signalr` - SignalR Service
+
+### Security & Identity
+- `keyvault` - Key Vault operations
+- `role` - Role-based access control
+- `policy` - Azure Policy management
+
+### Monitoring & Observability
+- `monitor` - Azure Monitor operations
+- `applicationinsights` - Application Insights
+- `applens` - App Lens diagnostics
+- `grafana` - Grafana integration
+- `datadog` - Datadog integration
+- `workbooks` - Azure Workbooks
+
+### AI & Machine Learning
+- `foundry` - Azure AI Foundry operations
+- `search` - Azure AI Search
+- `speech` - Speech Services
+
+### Infrastructure & Networking
+- `loadtesting` - Load Testing service
+- `managedlustre` - Managed Lustre file system
+- `virtualdesktop` - Azure Virtual Desktop
+
+### Configuration & Governance
+- `appconfig` - App Configuration service
+- `advisor` - Azure Advisor recommendations
+- `resourcehealth` - Resource health status
+- `quota` - Quota management
+- `pricing` - Pricing information
+- `marketplace` - Azure Marketplace
+
+### Best Practices & Architecture
+- `get_azure_bestpractices` - Query Azure best practices
+- `cloudarchitect` - Cloud architecture guidance
+- `azureterraformbestpractices` - Terraform best practices for Azure
+- `bicepschema` - Bicep schema information
+
+### Deployment & Migration
+- `deploy` - Deployment operations
+- `azuremigrate` - Azure Migrate tools
+
+### Extensions & CLI Tools
+- `extension_azqr` - Azure Quick Review extension
+- `extension_cli_generate` - CLI command generation
+- `extension_cli_install` - CLI extension installation
+
+> **Note:** Use `session.list_tools()` in your Python client to dynamically retrieve and inspect available tools with their schemas.
+
+---
+
+## �🛠 Troubleshooting
 
 | Issue | Cause | Solution |
 | --- | --- | --- |
