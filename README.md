@@ -172,7 +172,7 @@ Open `http://localhost:3000` to start designing.
 
 The current containerized app serves the **layout shell UI** with:
 - Resizable left resource panel, center canvas, and right properties panel
-- Resizable bottom workspace with **Chat / Terminal** tabs and **Status Messages** pane
+- Right properties panel with **Properties / Chat** tabs and **Status Messages** below the left resource list
 - Canvas as the largest default design area
 
 Run with:

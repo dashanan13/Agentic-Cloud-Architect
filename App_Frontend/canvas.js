@@ -21,11 +21,31 @@ const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
 const canvasEdgesEl = document.getElementById("canvas-edges");
 const statusLeftWidthEl = document.getElementById("status-left-width");
 const statusRightWidthEl = document.getElementById("status-right-width");
-const tabs = Array.from(document.querySelectorAll(".tab"));
-const panels = {
-  chat: document.getElementById("panel-chat"),
-  terminal: document.getElementById("panel-terminal")
-};
+const chatHistoryEl = document.getElementById("chat-history");
+const chatInputEl = document.getElementById("chat-input");
+const chatSendBtn = document.getElementById("chat-send");
+const tabGroups = Array.from(document.querySelectorAll('[role="tablist"]'))
+  .map((tabListEl) => {
+    const groupTabs = Array.from(tabListEl.querySelectorAll('.tab[role="tab"]'));
+    if (!groupTabs.length) {
+      return null;
+    }
+
+    const groupPanels = new Map();
+    groupTabs.forEach((tab) => {
+      const panelId = tab.getAttribute("aria-controls");
+      const panelEl = panelId ? document.getElementById(panelId) : null;
+      if (panelEl && tab.dataset.tab) {
+        groupPanels.set(tab.dataset.tab, panelEl);
+      }
+    });
+
+    return {
+      tabs: groupTabs,
+      panels: groupPanels
+    };
+  })
+  .filter(Boolean);
 
 function readCssPxVar(variableName, fallback) {
   const rootStyle = getComputedStyle(document.documentElement);
@@ -1623,58 +1643,77 @@ document.querySelector('[data-splitter="right"]')?.addEventListener("mousedown",
   });
 });
 
-document.querySelector('[data-splitter="bottom"]')?.addEventListener("mousedown", () => {
-  startDrag((event) => {
-    const topBarHeight = 56;
-    const height = window.innerHeight - topBarHeight - event.clientY;
-    state.bottomHeight = clamp(height, constraints.bottomMin, constraints.bottomMax);
-  });
-});
-
-document.querySelector('[data-splitter="bottom-right"]')?.addEventListener("mousedown", (mouseDownEvent) => {
-  const bottomPanel = mouseDownEvent.currentTarget.parentElement.getBoundingClientRect();
-
-  startDrag((event) => {
-    const width = bottomPanel.right - event.clientX;
-    state.bottomRightWidth = clamp(width, constraints.bottomRightMin, constraints.bottomRightMax);
-  });
-});
-
 // ===== Tab Behavior =====
-tabs.forEach((tab) => {
-  function activateTab() {
-    const name = tab.dataset.tab;
+tabGroups.forEach((group) => {
+  group.tabs.forEach((tab) => {
+    function activateTab() {
+      const name = tab.dataset.tab;
 
-    tabs.forEach((item) => {
-      const active = item === tab;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-selected", String(active));
-      item.setAttribute("tabindex", active ? "0" : "-1");
-    });
+      group.tabs.forEach((item) => {
+        const active = item === tab;
+        item.classList.toggle("is-active", active);
+        item.setAttribute("aria-selected", String(active));
+        item.setAttribute("tabindex", active ? "0" : "-1");
+      });
 
-    Object.entries(panels).forEach(([panelName, panelEl]) => {
-      const hidden = panelName !== name;
-      panelEl.classList.toggle("is-hidden", hidden);
-      panelEl.toggleAttribute("hidden", hidden);
+      group.panels.forEach((panelEl, panelName) => {
+        const hidden = panelName !== name;
+        panelEl.classList.toggle("is-hidden", hidden);
+        panelEl.toggleAttribute("hidden", hidden);
+      });
+    }
+
+    tab.addEventListener("click", activateTab);
+    tab.addEventListener("focus", activateTab);
+    tab.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        activateTab();
+      }
+
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        const currentIndex = group.tabs.indexOf(tab);
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        const nextIndex = (currentIndex + direction + group.tabs.length) % group.tabs.length;
+        group.tabs[nextIndex].focus();
+      }
     });
+  });
+});
+
+function appendChatMessage(message) {
+  if (!chatHistoryEl) {
+    return;
   }
 
-  tab.addEventListener("click", activateTab);
-  tab.addEventListener("focus", activateTab);
-  tab.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      activateTab();
-    }
+  const messageEl = document.createElement("div");
+  messageEl.className = "chat-message chat-message--user";
+  messageEl.textContent = message;
+  chatHistoryEl.appendChild(messageEl);
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+}
 
-    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-      event.preventDefault();
-      const currentIndex = tabs.indexOf(tab);
-      const direction = event.key === "ArrowRight" ? 1 : -1;
-      const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
-      tabs[nextIndex].focus();
-    }
-  });
+function sendChatMessage() {
+  if (!chatInputEl) {
+    return;
+  }
+
+  const message = chatInputEl.value.trim();
+  if (!message) {
+    return;
+  }
+
+  appendChatMessage(message);
+  chatInputEl.value = "";
+}
+
+chatSendBtn?.addEventListener("click", sendChatMessage);
+chatInputEl?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendChatMessage();
+  }
 });
 
 // ===== Project Name Editing =====

@@ -30,6 +30,13 @@
             <input type="search" id="search-input" placeholder="Search resources" aria-label="Search resources" />
           </div>
           <div class="resource-list" id="resource-list" aria-label="Resource list"></div>
+          <aside class="panel-status" aria-label="Status messages">
+            <div class="status-title">Status Messages</div>
+            <ul>
+              <li><span class="badge badge--info">INFO</span> Left panel width: <strong id="status-left-width">-</strong></li>
+              <li><span class="badge badge--info">INFO</span> Right panel width: <strong id="status-right-width">-</strong></li>
+            </ul>
+          </aside>
         </section>
 
         <div class="splitter splitter--vertical" data-splitter="left" role="separator" aria-orientation="vertical" aria-label="Resize left panel"></div>
@@ -52,42 +59,31 @@
 
         <div class="splitter splitter--vertical" data-splitter="right" role="separator" aria-orientation="vertical" aria-label="Resize right panel"></div>
 
-        <section class="panel panel--right" aria-label="Resource properties">
-          <div class="panel__header panel__header--stacked">
-            <span class="muted">Selected Item</span>
-            <strong id="selected-resource-name">None selected</strong>
+        <section class="panel panel--right" aria-label="Resource properties and chat">
+          <div class="tabs right-panel-tabs" role="tablist" aria-label="Properties and chat">
+            <div id="tab-properties" class="tab is-active" data-tab="properties" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-properties">Properties</div>
+            <div id="tab-chat" class="tab" data-tab="chat" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-chat">Chat</div>
           </div>
-          <div class="property-content" id="property-content">
-            Select a resource or connection to edit properties.
+
+          <div class="tab-panel right-tab-panel" id="panel-properties" role="tabpanel" aria-labelledby="tab-properties">
+            <div class="panel__header panel__header--stacked">
+              <span class="muted">Selected Item</span>
+              <strong id="selected-resource-name">None selected</strong>
+            </div>
+            <div class="property-content" id="property-content">
+              Select a resource or connection to edit properties.
+            </div>
+          </div>
+
+          <div class="tab-panel right-tab-panel is-hidden" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
+            <div class="chat-history" id="chat-history" aria-live="polite"></div>
+            <div class="chat-compose">
+              <textarea id="chat-input" class="chat-input" placeholder="Message" aria-label="Message"></textarea>
+              <button id="chat-send" class="btn btn--primary btn--sm" type="button">Send</button>
+            </div>
           </div>
         </section>
 
-        <div class="splitter splitter--horizontal" data-splitter="bottom" role="separator" aria-orientation="horizontal" aria-label="Resize bottom section"></div>
-
-        <section class="bottom" aria-label="Bottom workspace">
-          <div class="bottom__left">
-            <div class="tabs" role="tablist" aria-label="Assistant tools">
-              <div id="tab-chat" class="tab is-active" data-tab="chat" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-chat">Chat</div>
-              <div id="tab-terminal" class="tab" data-tab="terminal" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-terminal">Terminal</div>
-            </div>
-            <div class="tab-panel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
-              Agent sidekick conversation appears here.
-            </div>
-            <div class="tab-panel is-hidden" id="panel-terminal" role="tabpanel" aria-labelledby="tab-terminal" hidden>
-              Terminal output appears here.
-            </div>
-          </div>
-
-          <div class="splitter splitter--vertical bottom-splitter" data-splitter="bottom-right" role="separator" aria-orientation="vertical" aria-label="Resize status panel"></div>
-
-          <aside class="bottom__right" aria-label="Status messages">
-            <div class="status-title">Status Messages</div>
-            <ul>
-              <li><span class="badge badge--info">INFO</span> Left panel width: <strong id="status-left-width">-</strong></li>
-              <li><span class="badge badge--info">INFO</span> Right panel width: <strong id="status-right-width">-</strong></li>
-            </ul>
-          </aside>
-        </section>
       </main>
       </div>
     </div>
