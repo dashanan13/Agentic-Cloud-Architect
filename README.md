@@ -407,3 +407,279 @@ A3 is built as a **multi-agent system** communicating with multiple **Model Cont
 * **Modular Output:** One Bicep file per resource for maintainability and reusability.
 * **Production-Ready:** Generated code includes validation, testing, and CI/CD pipelines.
 * **Self-Sufficient:** Can containerize itself on-demand with all dependencies included.
+
+---
+
+## 🚀 Antigravity
+
+**Antigravity** is the development environment for this project, providing an isolated Ubuntu container with all necessary tools.
+
+### Docker Run Command
+
+```bash
+docker run -it \
+  --name antigravity \
+  -p 8100-8200:8100-8200 \
+  -v "/Users/mohit.sharma/Documents/GitHub/Antigravity":/workspace \
+  -w /workspace \
+  ubuntu:latest \
+  bash
+```
+
+### Update & Install Dependencies
+
+Once inside the container, run:
+
+```bash
+apt update
+apt install -y \
+  python3 \
+  python3-venv \
+  python3-pip \
+  curl \
+  wget \
+  git \
+  net-tools \
+  iputils-ping \
+  nano \
+  vim
+
+mkdir "Agentic-Cloud-Architect"
+```
+
+### Prompt for Agentic Cloud Architect
+
+```text
+Agentic Cloud Architect – Web Application Requirements (Non-Containerized Phase)
+
+⚠️ IMPORTANT SCOPE CONSTRAINT
+
+This phase is strictly for building the working web application only.
+
+❌ DO NOT create Dockerfile
+❌ DO NOT create docker-compose.yml
+❌ DO NOT attempt self-containerization
+❌ DO NOT assume execution inside a container
+❌ DO NOT optimize for container builds
+
+The application must run directly from source on a local machine.
+
+Containerization will be handled separately in a later phase.
+
+---
+
+📁 Project Context
+
+- The root folder already exists
+- The folder name is: Agentic Cloud Architect
+- All generated code must live inside this folder
+- Use clean project structure and standard conventions
+
+---
+
+📄 Mandatory Setup Documentation
+
+The system MUST create a file at project root called: preparation.md
+
+This file must include:
+
+1. Environment Requirements
+- Required Python version
+- Required Node.js version (if used)
+- Required Azure CLI version (if used)
+- Any global tools that must be installed
+- Any OS assumptions (Windows/macOS/Linux compatible)
+
+2. Installation Steps (Step-by-step)
+Exact commands to:
+- Create virtual environment
+- Activate virtual environment
+- Install Python dependencies
+- Install frontend dependencies (if applicable)
+- Start backend
+- Start frontend
+
+3. Configuration Instructions
+- How to configure Azure AD credentials
+- How to configure Azure AI Foundry
+- Where environment variables should be placed
+- Required .env format (include template)
+
+4. External Services Required
+List any:
+- Azure subscriptions required
+- Azure permissions required
+- MCP servers required
+- Git access requirements
+
+5. Verification Steps
+How to confirm the application is working:
+- URLs to open
+- Health check endpoints
+- How to verify Azure connectivity
+- How to verify Foundry connectivity
+
+This file must be complete enough that someone else can reproduce the environment manually.
+
+---
+
+🎯 Core Mission
+
+A visual Infrastructure-as-Code (IaC) designer that enables application teams to design Azure architectures through drag-and-drop, assisted by a multi-agent system leveraging MCP servers, generating modular and deployable Bicep code.
+
+This phase focuses only on building the working web application.
+
+---
+
+🎯 Functional Requirements
+
+1. Visual Architecture Canvas
+
+1.1 Web UI
+- The system MUST provide a browser-based UI
+
+1.2 Layout
+The UI must have:
+- Left Panel: Azure resource catalog
+- Center Panel: Drag-and-drop canvas
+- Right Panel: Tabbed interface with exactly two tabs:
+  - Properties
+  - Architect Chat
+
+1.3 Canvas Capabilities
+The canvas must support:
+- Drag resources onto canvas
+- Move resources visually
+- Connect resources visually
+- Container hierarchy visualization:
+  - Resource Groups
+  - Management Groups
+  - Subscriptions
+  - Virtual Networks
+  - Subnets
+- Container resources must visually contain child resources
+
+2. Multi-Agent System
+
+2.1 Architecture
+- Implement a lightweight multi-agent orchestration layer in Python
+- Preferred: Microsoft Agent Framework OR a clean custom lightweight orchestration abstraction
+
+2.2 Required Agents
+
+Agent | Responsibility
+Architect Agent | Azure architecture advisor via chat
+Integrity Agent | Validates relationships and hierarchy
+Coder Agent | Generates modular Bicep code
+DevOps Agent | Handles Git export
+
+2.3 Agent Collaboration Flow
+1. Architect proposes architecture in chat
+2. User approves
+3. Canvas auto-populates
+4. Integrity agent validates in real time
+5. Coder agent generates code on demand
+
+3. Azure & MCP Integration
+
+The system must support:
+- Azure MCP Server integration
+- Bicep MCP integration
+- Configurable authentication
+- Real-time schema validation
+- Subscription-based dry runs (what-if deployments)
+- All MCP communication must be logged
+
+4. Modular Infrastructure-as-Code Generation
+
+The Coder Agent must:
+- Generate one .bicep file per Azure resource
+- Generate a main.bicep file orchestrating everything
+- Follow Azure best practices
+- Perform az deployment group what-if validation
+- Report validation results
+
+5. Project Structure Requirements
+
+Each project must persist:
+- Canvas state (JSON)
+- Generated Bicep files
+- Deployment logs
+- Validation history
+
+Projects must be:
+- Saveable
+- Loadable
+- Independently exportable
+
+6. Application-Level Configuration
+
+Global application settings (not per project):
+
+6.1 Azure AD Configuration
+- Fields: Client ID, Tenant ID, Client Secret or Certificate
+- Must be used for: Azure operations, MCP access, Deployment validation
+
+6.2 Azure AI Foundry Integration
+- Fields: Region, Endpoint, API key, API version
+- Flow: Verify connection → Retrieve available models → Allow assigning models to agents
+
+6.3 Model Assignment
+- Allow model selection for: Architect Agent, Coder Agent, Integrity Agent
+- Fast vs reasoning models
+
+7. Technical Implementation (Web App Only)
+
+7.1 Backend
+- Python
+- FastAPI preferred
+- Clear separation of: API layer, Agent orchestration, MCP communication, File management
+
+7.2 Frontend
+- Minimal React OR Vanilla JS
+- Canvas: Fabric.js, React Flow, or simple SVG-based system
+- Keep it lightweight and readable
+
+8. Code Quality Constraints
+- Prioritize readability
+- Avoid unnecessary abstraction
+- Explicit logic preferred
+- Log all MCP interactions
+- Minimal dependencies where reasonable
+- Clear folder structure
+
+---
+
+🚫 Explicitly Out of Scope (This Phase)
+- Dockerfile
+- docker-compose
+- Self-containerization
+- CI/CD pipelines
+- Kubernetes manifests
+- Cloud deployment of the web app itself
+
+The app must simply run locally from source.
+
+---
+
+🧩 Future Phase
+
+Containerization will be done manually later using:
+- The preparation.md file
+- The dependency definitions
+- The working application source
+
+Therefore, setup documentation must be complete and precise.
+
+---
+
+✅ Final Deliverables
+
+Antigravity must produce:
+- Working web application source code
+- Clean project structure
+- Fully working local run instructions
+- preparation.md at project root
+- All dependencies explicitly defined
+- No container-related artifacts
+```
