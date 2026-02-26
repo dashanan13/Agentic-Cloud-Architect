@@ -1,16 +1,18 @@
 # 🌐 Azure Agentic Architect (A3)
 
-**Azure Agentic Architect (A3)** is a containerized, visual Infrastructure-as-Code (IaC) designer. It empowers application teams to "vibe code" their cloud infrastructure by dragging and dropping cloud resources onto a canvas, which is then translated into production-ready IaC and CI/CD assets via a multi-agent system.
+**Azure Agentic Architect (A3)** is a visual Infrastructure-as-Code (IaC) designer built on a multi-agent architecture. It empowers teams to design cloud infrastructure through an intuitive drag-and-drop canvas, augmented by intelligent agents that understand Azure architecture patterns, validate configurations, and generate production-ready, modular Bicep code.
 
 ---
 
 ## 🚀 Core Features
 
-* **Visual Architecture Canvas:** A drag-and-drop interface powered by `React Flow` with real-time zooming, panning, and resource connecting.
-* **Agentic Sidekick:** A bottom-pane chat powered by the **Microsoft Agent Framework** that can build or modify the architecture based on natural language.
-* **Live Schema Inspection:** Integrated with **Azure MCP** to fetch real-time properties, constraints, and valid ranges for every Azure resource.
-* **Module-First Approach:** Uses verified cloud modules/patterns so generated IaC aligns with production readiness best practices.
-* **Instant IaC & CI/CD:** One-click conversion from visual diagram to `main.bicep` and `azure-pipelines.yml`.
+* **Visual Architecture Canvas:** Drag-and-drop interface with support for container resources (Resource Groups, VNets, Subnets, Management Groups) that visually represent Azure's resource hierarchy.
+* **Architect Chat:** Integrated AI assistant powered by **Azure MCP Architecture Tool** that provides real-time architectural guidance, suggests best practices, and can even help design complete architectures that are then rendered on the canvas.
+* **Bicep MCP Integration:** Live integration with **Bicep MCP Server** to fetch resource schemas, validate properties, and ensure type-safe configuration before code generation.
+* **Live Schema Inspection:** Real-time property suggestions, constraints, and valid ranges for every Azure resource through **Azure MCP Servers**.
+* **Modular IaC Generation:** Generates one Bicep file per resource with a `main.bicep` orchestrator for cohesive, maintainable deployments.
+* **Deployment Testing:** Built-in dry-run validation and test deployment capabilities against a sample subscription before committing code.
+* **Git Integration:** Automated export to configured Git repositories per project with CI/CD pipeline generation.
 
 ---
 
@@ -19,19 +21,35 @@
 A3 uses a sophisticated **Agent-to-Agent (A2A)** workflow built on the **Microsoft Agent Framework**:
 
 ### 🧩 1. The Architect Agent (The Guide)
-**Role:** User Experience & Discovery.
+**Role:** Architectural Expertise & Discovery.
 
-**Responsibility:** When you drop a resource like a Storage Account onto the canvas, this agent doesn't just let it sit there. It queries the Azure MCP Server to understand the resource hierarchy and proactively suggests: "You've added a Storage Account; would you like to initialize a Blob Service or a File Share?" It ensures users build complete, functional architectures rather than "hollow" resources.
+**Responsibility:** An Azure architecture expert that uses the **Azure MCP Architecture Tool** to provide context-aware guidance. When you drop a Storage Account onto the canvas, it queries the resource hierarchy and suggests: "Would you like to add Blob Service or File Share? Should we configure Private Endpoints?" Available through the **Architect Chat** tab in the right panel, users can describe their needs in natural language, and the agent will design the architecture, which—upon user approval—is rendered directly onto the canvas with proper icons and relationships.
+
+**Tools Used:** Azure MCP Architecture Tool, Azure MCP Documentation
 
 ### 🛡️ 2. The Integrity Agent (The Validator)
 **Role:** Logic & Compliance.
 
 **Responsibility:** The "brain" of the canvas. It monitors connections in real-time. If you link a Virtual Network to a SQL Database, the Integrity Agent validates the Bicep type-system constraints to ensure the properties match. It prevents "invalid wiring" before a single line of code is written.
 
-### ⌨️ 3. The Coder Agent (The Bicep/TF Expert)
-**Role:** Synthesis & Compilation.
+### ⌨️ 3. The Coder Agent (The Bicep Expert)
+**Role:** Code Synthesis & Validation.
 
-**Responsibility:** A master of IaC syntax. It translates the visual graph into clean, modular Bicep and Terraform code. It doesn't just guess; it uses the Azure CLI and Bicep Linter to "dry-run" the code, ensuring that the exported templates are deployable the moment they hit your machine.
+**Responsibility:** A Bicep specialist that leverages the **Bicep MCP Server** to generate modular, production-ready code. For each resource on the canvas, it creates a dedicated Bicep file with proper parameterization, then orchestrates them through a `main.bicep`. It validates syntax using Bicep Linter and performs dry-run deployments to catch errors before you commit. The generated code follows Azure best practices and is ready for immediate deployment.
+
+**Tools Used:** Bicep MCP Server, Azure CLI, Bicep Linter
+
+**Output Structure:**
+```
+Project/IaC/Bicep/
+├── main.bicep                    # Orchestrator
+├── modules/
+│   ├── storage-account.bicep     # One file per resource
+│   ├── virtual-network.bicep
+│   └── app-service.bicep
+└── parameters/
+    └── main.parameters.json
+```
 
 ### 🚀 4. The DevOps Agent (The Automator)
 **Role:** Deployment & Lifecycle.
@@ -52,35 +70,50 @@ This ensures a snappy, low-latency experience for the user.
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** React 19, Vite, Tailwind CSS, **React Flow**.
-* **Backend:** Python 3.11, FastAPI, **Microsoft Agent Framework**.
-* **Intelligence:** **Azure AI Foundry** (Model Routing & Safety), **Azure MCP Servers**.
-* **Deployment:** Docker, Azure Container Apps.
+**Design Philosophy:** Simple, lightweight, and easily auditable code with minimal dependencies.
+
+* **Frontend:** Vanilla JavaScript, HTML5, CSS3 with minimal frameworks for maximum transparency and auditability.
+* **Backend:** Python 3.11+, FastAPI (lightweight ASGI framework).
+* **Agent Framework:** Microsoft Agent Framework with MCP protocol for agent-to-tool communication.
+* **Intelligence:** 
+  - **Azure AI Foundry** (Model hosting and routing)
+  - **Azure MCP Servers** (Resource management, schema inspection, best practices)
+  - **Bicep MCP Server** (IaC generation, validation, schema queries)
+* **IaC Engine:** Bicep (primary), with planned support for Terraform and OpenTofu.
+* **Deployment:** Self-sufficient containerization with all dependencies in `requirements.txt`. Can containerize itself on-demand.
 
 ---
 
-## 🧩 Final Layout Design
+## 🧩 Workspace Layout
 
-The workspace uses a fully resizable split-pane layout. All major sections are resizable, with the **Visual Canvas** as the largest default area.
+A clean, three-panel design with resizable splitters. The **Visual Canvas** is the primary workspace.
 
 ```text
 +--------------------------------------------------------------------------------------------------+
 | [Cloud Provider ▼]                                                     [Project: Default-Name]    |
 +------------------------------+-----------------------------------------------+-------------------+
-| [Search resources...]        |                                               | Resource Details  |
+| [Search resources...]        |                                               | [Properties] [💬 Chat] |
 |------------------------------|                                               |-------------------|
-| Dynamic Resource List        |                VISUAL CANVAS                  | Selected Resource |
-| (provider-scoped catalog)    |             (largest default pane)            | Properties / Form |
-|                              |                                               | Validation        |
-|                              |                                               | Dependencies      |
+| 📦 Resource Groups           |                                               |                   |
+| 🌐 Virtual Networks          |                                               | Resource          |
+| 💾 Storage Accounts          |           VISUAL CANVAS                       | Properties        |
+| 🗄️  Databases                |                                               | (when selected)   |
+| ⚙️  App Services             |       (drag-and-drop design area)             |                   |
+| 🔐 Key Vaults                |                                               |        OR         |
+| 📊 Container Resources       |                                               |                   |
+|   • Management Groups        |                                               | Architect Chat    |
+|   • Subscriptions            |                                               | (AI assistant)    |
+|   • Resource Groups (visual) |                                               |                   |
+|   • VNets (containers)       |                                               |                   |
+|   • Subnets (nested)         |                                               |                   |
 +------------------------------+-----------------------------------------------+-------------------+
-| [Chat] [Terminal] (tabbed)                                   | Status: info / warn / error      |
-+--------------------------------------------------------------+-----------------------------------+
 
 Resizable splitters:
-- Vertical: Resource List ↔ Canvas ↔ Properties
-- Horizontal: Main Workspace ↕ Bottom Pane
-- Bottom split: Chat/Terminal ↔ Status
+- Vertical: Resource List ↔ Canvas ↔ Right Panel
+
+Right Panel Tabs:
+- Properties: Schema-driven form for the selected resource with live validation
+- Architect Chat: Natural language interface to Azure architecture expert
 ```
 
 ---
@@ -162,66 +195,215 @@ git clone https://github.com/your-repo/azure-agentic-architect.git
 cd azure-agentic-architect
 ```
 
-2. **Configure Environment:**
-Create a `.env` file in the root with your `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_KEY`.
-
-	For app-managed runtime settings, open **Settings → Application Settings** and configure:
-	- `Model Provider` (`Azure AI Foundry` or `Local (Ollama)`)
-	- Foundry details (`Project Region`, `Endpoint`, `API Key`, `API Version`)
-	- Foundry model names (`Coding Model`, `Reasoning Model`, `Fast Model`)
-	- Ollama details (`Base URL`)
-	- Ollama model paths (`Coding Model Path`, `Reasoning Model Path`, `Fast Model Path`)
-
-	These values are persisted in `App_State/app.settings.env`.
-
-	Runtime model resolution is available at:
-	- `GET /api/settings/app/model?purpose=fast`
-	- `GET /api/settings/app/model?purpose=reasoning`
-	- `GET /api/settings/app/model?purpose=coding`
-
-	Configuration verification is available at:
-	- `POST /api/settings/app/verify`
-
-3. **Spin up the stack:**
+2. **Install Dependencies:**
 
 ```bash
+# Python dependencies (all required packages)
+pip install -r requirements.txt
+
+# Node.js dependencies for MCP servers
+npm install @azure/mcp@latest
+npm install @bicep/mcp@latest  # If available
+```
+
+3. **Configure Application Settings:**
+
+Open **Settings → Application Settings** in the UI to configure:
+
+**Azure Identity (Required):**
+- Azure AD App Registration credentials
+  - `AZURE_TENANT_ID`
+  - `AZURE_CLIENT_ID`
+  - `AZURE_CLIENT_SECRET`
+  - `AZURE_SUBSCRIPTION_ID`
+- Grant the App Registration `Contributor` role on your subscription
+
+**Azure AI Foundry (Required for Agents):**
+- Foundry Project details
+  - `Project Region` (e.g., eastus, westeurope)
+  - `Foundry Endpoint`
+  - `Foundry API Key`
+  - `API Version`
+- Model Configuration
+  - `Reasoning Model` (e.g., gpt-4o) - for complex architectural decisions
+  - `Coding Model` (e.g., gpt-4o) - for Bicep generation
+  - `Fast Model` (e.g., gpt-4o-mini) - for quick UI interactions
+
+Once verified, the app pulls available models from Foundry and displays them in settings.
+
+**Project Settings (Per-Project):**
+- Git repository URL for code export
+- Branch name and commit preferences
+- Deployment subscription (for testing)
+
+Settings persisted in:
+- `App_State/app.settings.env` (application-level)
+- `Projects/{project-name}/project.settings.env` (project-level)
+
+Configuration verification endpoint:
+- `POST /api/settings/app/verify` - Validates Azure credentials and Foundry connection
+
+4. **Run the Application:**
+
+**Development Mode:**
+```bash
+# Start backend
+cd App_Backend
+uvicorn main:app --reload --port 8000
+
+# Serve frontend (in another terminal)
+cd App_Frontend
+python -m http.server 3000
+```
+
+**Containerized (Self-Sufficient):**
+```bash
+# The app can containerize itself on-demand
 docker-compose up --build
 ```
 
-4. **Access the App:**
-Open `http://localhost:3000` to start designing.
-
-### Current First Step (Implemented)
-
-The current containerized app serves the **layout shell UI** with:
-- Resizable left resource panel, center canvas, and right properties panel
-- Right properties panel with **Properties / Chat** tabs and **Status Messages** below the left resource list
-- Canvas as the largest default design area
-
-Run with:
-
-```bash
-docker compose up --build
-```
-
-If port `3000` is already in use, run on another host port:
-
+If port `3000` is already in use:
 ```bash
 APP_PORT=3001 docker compose up --build
 ```
 
----
+5. **Access the Application:**
 
-## 🔮 Future Roadmap
-
-* **WAF Auditor Agent:** Real-time cost and security scoring during the design phase.
-* **Reverse Engineering:** Import existing Azure Resource Groups into the visual canvas via Azure MCP.
-* **Multi-Cloud Support:** Extend provider adapters in `Clouds/` and generate IaC into `Projects/Default/IaC/<engine>/`.
+Open `http://localhost:3000`
 
 ---
 
-## ⚖️ Judging Criteria Alignment
+## 🎯 How It Works
 
-* **Technological Implementation:** High-quality React/Python codebase with containerization.
-* **Agentic Design:** Multi-agent collaboration using the latest Microsoft Agent Framework.
-* **Real-World Impact:** Bridges the gap between "drawing" an architecture and "deploying" it.
+### 1. Visual Design
+- **Drag resources** from the left panel onto the canvas
+- **Container resources** (Resource Groups, VNets, Subnets) render as visual containers
+- **Organize resources** by dragging them into containers (e.g., VM into a Subnet)
+- **Connect resources** to establish relationships (e.g., App Service → SQL Database)
+
+### 2. Get Architectural Guidance
+- Click the **💬 Chat** tab in the right panel
+- Describe your architecture: *"I need a secure web app with a database"*
+- The Architect Agent suggests a complete architecture:
+  - App Service with VNet integration
+  - Azure SQL with Private Endpoint
+  - Key Vault for secrets
+  - Application Insights for monitoring
+- **Approve** the design, and it's automatically rendered on the canvas
+
+### 3. Configure Resources
+- **Select a resource** on the canvas
+- The **Properties tab** shows a schema-driven form with:
+  - Required and optional fields
+  - Valid values and constraints (from Bicep MCP)
+  - Real-time validation
+  - Dependency suggestions
+
+### 4. Generate & Deploy
+- Click **Generate IaC** to produce modular Bicep files
+- The Coder Agent creates:
+  - One `.bicep` file per resource in `modules/`
+  - A `main.bicep` orchestrator
+  - Parameterized for reusability
+- **Dry-run validation** tests the code before deployment
+- **Test deployment** to your sample subscription
+- **Export to Git** when ready for production
+
+### 5. Deploy via CI/CD
+- The DevOps Agent generates:
+  - GitHub Actions or Azure DevOps YAML
+  - Environment configurations
+  - Secret references
+- Push to your repository and trigger automated deployment
+
+---
+
+## 🔮 Roadmap
+
+### In Progress
+- [x] Visual canvas with drag-and-drop
+- [x] Resource catalog with Azure icons
+- [x] Architect Chat with Azure MCP integration
+- [x] Modular Bicep code generation
+- [x] Application settings for Azure AD and Foundry
+- [ ] Container resource visual representation
+- [ ] Live resource property forms with Bicep MCP
+- [ ] Dry-run validation and test deployments
+- [ ] Git export per project
+
+### Planned Features
+- **WAF Auditor Agent:** Real-time cost, security, and Well-Architected Framework scoring
+- **Reverse Engineering:** Import existing Azure environments into the canvas via Azure Resource Graph
+- **Terraform Support:** Generate Terraform modules alongside Bicep
+- **Multi-Cloud:** AWS and GCP provider support
+- **Collaboration:** Real-time multi-user canvas editing
+- **Version Control:** Architecture versioning and diff visualization
+
+---
+
+## 🏗️ MCP Integration Architecture
+
+A3 is built as a **multi-agent system** communicating with multiple **Model Context Protocol (MCP) servers**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    A3 Application                           │
+│                                                             │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │  Architect  │  │   Integrity  │  │    Coder     │      │
+│  │    Agent    │  │    Agent     │  │    Agent     │      │
+│  └──────┬──────┘  └──────┬───────┘  └──────┬───────┘      │
+│         │                 │                  │               │
+│         └─────────────────┴──────────────────┘               │
+│                           │                                  │
+│                    MCP Protocol Layer                        │
+└───────────────────────────┼──────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        │                   │                   │
+   ┌────▼────┐        ┌─────▼─────┐      ┌─────▼─────┐
+   │ Azure   │        │   Bicep   │      │   Azure   │
+   │  MCP    │        │    MCP    │      │    CLI    │
+   │ Server  │        │  Server   │      │           │
+   └─────────┘        └───────────┘      └───────────┘
+   • Resources        • Schemas           • Deployment
+   • Architecture     • Validation        • Testing
+   • Best Practices   • Code Gen          • Dry-run
+```
+
+**Why MCP?**
+- **Standardized interface** for agent-to-tool communication
+- **Extensible** - Add new capabilities by plugging in MCP servers
+- **Auditable** - All agent actions go through observable MCP calls
+- **Testable** - Mock MCP servers for development and testing
+
+---
+
+## 📋 Requirements
+
+**Runtime:**
+- Python 3.10+
+- Node.js 20+ (for MCP servers)
+- Azure subscription with Contributor access
+- Azure AI Foundry project
+
+**Azure Prerequisites:**
+- App Registration (Service Principal) with RBAC permissions
+- Azure AI Foundry project with deployed models
+- (Optional) Test subscription for deployment validation
+
+**Self-Sufficiency:**
+- All Python dependencies listed in `requirements.txt`
+- Containerization scripts included for on-demand deployment
+- No external build tools required beyond Python and Node.js
+
+---
+
+## ⚖️ Design Principles
+
+* **Simplicity:** Minimal dependencies, vanilla JavaScript where possible, easily auditable code.
+* **Multi-Agent Architecture:** Specialized agents for architecture, validation, and code generation.
+* **MCP-First:** All external integrations through Model Context Protocol for extensibility.
+* **Modular Output:** One Bicep file per resource for maintainability and reusability.
+* **Production-Ready:** Generated code includes validation, testing, and CI/CD pipelines.
+* **Self-Sufficient:** Can containerize itself on-demand with all dependencies included.
