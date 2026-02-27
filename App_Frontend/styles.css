@@ -493,8 +493,8 @@ body {
   border-color: var(--accent); /* Border lights up with accent color */
   box-shadow: 
     0 0 0 0px var(--accent), /* Solid accent outline right outside the border - reduced to 1px */
-    0 0 20px 4px rgba(59, 130, 246, 0.6), /* Medium glow around the box */
-    0 0 40px 8px rgba(59, 130, 246, 0.3); /* Extended soft glow halo outside */
+    0 0 0px 0px rgba(59, 130, 246, 0.6), /* Medium glow around the box */
+    0 0 40px 4px rgba(59, 130, 246, 0.3); /* Extended soft glow halo outside */
   opacity: 1;
 }
 
