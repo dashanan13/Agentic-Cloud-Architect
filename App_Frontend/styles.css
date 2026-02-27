@@ -1774,7 +1774,6 @@ select:not(.property-input):focus {
 }
 
 .settings-footer {
-  border-top: 1px solid var(--border);
   padding: 12px 18px;
   display: flex;
   flex-direction: column;
