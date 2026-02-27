@@ -1093,12 +1093,12 @@ select.property-input {
 }
 
 .intro-column {
-  background: #2F4F4F; /* LANDING PAGE COLUMN BACKGROUND - Select Project and Create Project sections */
+  background: #1a1a1a; /* Dark theme background matching settings page */
   color: #ffffff;
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border: 1px solid #253F3F;
+  border: 1px solid #333333;
   transition: all 0.3s ease;
 }
 
@@ -1119,21 +1119,21 @@ select.property-input {
 }
 
 .cloud-section {
-  border: 1px solid #3D5F5F;
+  border: 1px solid #3a3a3a;
   border-radius: 8px;
   overflow: hidden;
-  background: #ffffff; /* White background for collapsed cloud sections */
+  background: #2a2a2a; /* Dark background for cloud sections */
 }
 
 .cloud-header {
   width: 100%;
   padding: 16px;
-  background: #ffffff; /* White background for cloud provider headers */
+  background: #2a2a2a; /* Dark background */
   border: none;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  color: #000000; /* Black text for cloud provider names */
+  color: #ffffff; /* White text for dark theme */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1141,13 +1141,13 @@ select.property-input {
 }
 
 .cloud-header:hover {
-  background: #f0f0f0; /* Light grey on hover */
+  background: #333333; /* Lighter dark on hover */
 }
 
 .cloud-header.is-expanded {
-  background: #f5f5f5; /* Light grey when expanded to match white sections */
-  color: #000000; /* Black text when expanded */
-  border-bottom: 1px solid #e0e0e0;
+  background: #333333; /* Lighter dark when expanded */
+  color: #ffffff; /* White text when expanded */
+  border-bottom: 1px solid #3a3a3a;
 }
 
 .cloud-icon {
@@ -1167,19 +1167,19 @@ select.property-input {
 .collapse-indicator {
   font-size: 0.7rem;
   transition: transform 0.2s ease;
-  color: #666666; /* Dark grey for collapse arrow on white background */
+  color: #b0b0b0; /* Light grey arrow for dark theme */
 }
 
 .cloud-header.is-expanded .collapse-indicator {
   transform: rotate(180deg);
-  color: #666666; /* Keep dark grey when expanded */
+  color: #b0b0b0; /* Keep light grey when expanded */
 }
 
 .cloud-projects {
   height: 0;
   overflow: hidden;
   transition: height 0.3s ease;
-  background: #ffffff; /* White background for expanded projects list */
+  background: #2a2a2a; /* Dark background for expanded projects list */
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -1194,8 +1194,8 @@ select.property-input {
 
 .project-item {
   padding: 12px;
-  background: #f5f5f5; /* Light grey for individual project items */
-  border: 1px solid #e0e0e0;
+  background: #333333; /* Darker grey for project items */
+  border: 1px solid #3a3a3a;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1205,14 +1205,14 @@ select.property-input {
 }
 
 .project-item:hover {
-  background: #e8e8e8; /* Slightly darker on hover */
+  background: #3a3a3a; /* Slightly lighter on hover */
   border-left: 3px solid var(--accent);
   padding-left: 9px;
 }
 
 .project-item-name {
   font-weight: 500;
-  color: #000000; /* Black text for project names */
+  color: #ffffff; /* White text for project names */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1226,7 +1226,7 @@ select.property-input {
 }
 
 .project-item-time {
-  color: #666666; /* Dark grey for timestamps */
+  color: #b0b0b0; /* Light grey for timestamps */
 }
 
 .project-item-actions {
@@ -1241,7 +1241,7 @@ select.property-input {
   height: 20px;
   border: none;
   background: transparent;
-  color: #666666; /* Dark grey for action buttons */
+  color: #b0b0b0; /* Light grey for action buttons */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1262,7 +1262,7 @@ select.property-input {
 .projects-empty {
   padding: 24px;
   text-align: center;
-  color: #666666; /* Dark grey for empty state messages */
+  color: #b0b0b0; /* Light grey for empty state messages */
   font-size: 0.85rem;
 }
   font-size: 0.875rem;
@@ -1604,7 +1604,7 @@ select:not(.property-input):focus {
 .name-input-group {
   display: flex;
   align-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid #3a3a3a;
   border-radius: 6px;
   background: #fff;
   overflow: hidden;
@@ -1612,14 +1612,14 @@ select:not(.property-input):focus {
 }
 
 .name-prefix {
-  background: #1a3333;
+  background: #2a2a2a;
   color: #ffffff; /* White text for prefix */
   font-size: 1rem; /* Increased from 0.85rem to match input size */
   padding: 0 12px;
   height: 40px; /* Increased to match larger input height */
   display: inline-flex;
   align-items: center;
-  border-right: 1px solid #3D5F5F;
+  border-right: 1px solid #3a3a3a;
   white-space: nowrap;
 }
 
@@ -1649,17 +1649,17 @@ select:not(.property-input):focus {
   min-height: 0; /* Remove minimum height */
   font-size: 0.8rem;
   color: #b0b0b0;
-  border: 1px solid #3D5F5F;
+  border: 1px solid #3a3a3a;
   border-radius: 8px;
-  background: #1a3333;
+  background: #2a2a2a;
   padding: 8px 10px;
   line-height: 1.35;
   display: none; /* Hidden by default */
 }
 
 #create-project-message {
-  background: #1a3333;
-  border-color: #3D5F5F;
+  background: #2a2a2a;
+  border-color: #3a3a3a;
   color: #ffffff;
   display: none; /* Hidden by default - only shows when has error/success/info class */
 }

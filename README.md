@@ -8,10 +8,12 @@
 
 **Run the application (clean build from scratch):**
 
-```bash
+```
 docker-compose down --rmi all --volumes && docker-compose up --build -d
 ```
-
+```
+docker-compose up -d --build
+```
 Access at `http://localhost:3000`
 
 ---
