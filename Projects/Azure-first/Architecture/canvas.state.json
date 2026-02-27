@@ -3,7 +3,7 @@
   "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": null,
+  "selectedResource": "Bonsai",
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -21,8 +21,8 @@
       "parentId": null,
       "width": 360,
       "height": 240,
-      "x": 340,
-      "y": 160
+      "x": 420,
+      "y": 220
     },
     {
       "id": "item-1772148408331-pep8dz",
@@ -36,7 +36,56 @@
       "height": 240,
       "x": 480,
       "y": 340
+    },
+    {
+      "id": "item-1772187941588-mt1oka",
+      "name": "Resource 3",
+      "resourceType": "AI Studio",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03513-icon-service-AI-Studio.svg",
+      "category": "ai + machine learning",
+      "isContainer": false,
+      "parentId": null,
+      "width": 360,
+      "height": 240,
+      "x": 110,
+      "y": 220
+    },
+    {
+      "id": "item-1772189699384-6d2776",
+      "name": "Resource 4",
+      "resourceType": "Anomaly Detector",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00814-icon-service-Anomaly-Detector.svg",
+      "category": "ai + machine learning",
+      "isContainer": false,
+      "parentId": null,
+      "width": 360,
+      "height": 240,
+      "x": 460,
+      "y": 70
+    },
+    {
+      "id": "item-1772190598054-3pfrud",
+      "name": "Resource 5",
+      "resourceType": "AI Studio",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03513-icon-service-AI-Studio.svg",
+      "category": "ai + machine learning",
+      "isContainer": false,
+      "parentId": null,
+      "width": 360,
+      "height": 240,
+      "x": 160,
+      "y": 90
     }
   ],
-  "canvasConnections": []
+  "canvasConnections": [
+    {
+      "id": "conn-1772191007747-9ifeeg",
+      "name": "Resource 6",
+      "fromId": "item-1772187941588-mt1oka",
+      "toId": "item-1772110069431-b8k3fn",
+      "direction": "one-way",
+      "sourceAnchor": "right",
+      "targetAnchor": "left"
+    }
+  ]
 }

@@ -11,16 +11,26 @@
       <div class="screen is-active" id="screen-canvas">
         <header class="topbar">
           <div class="topbar__left">
-            <span class="project-label project-label--strong">Project:</span>
-            <span id="project-name-prefix-display" class="project-name-prefix-display"></span>
-            <span id="project-name-suffix-display" class="project-name-display" contenteditable="true" role="button" tabindex="0"></span>
+            <div class="app-title">
+              <div class="app-icon">☁️</div>
+              <span>Agentic Cloud Architect</span>
+            </div>
+            <div class="project-name-display-wrapper">
+              <span class="project-label">Project:</span>
+              <span id="project-name-prefix-display" class="project-name-prefix-display"></span>
+              <span id="project-name-suffix-display" class="project-name-display" contenteditable="true" role="button" tabindex="0"></span>
+            </div>
           </div>
           <div class="topbar__right">
             <span class="project-timestamp" id="project-timestamp"></span>
-            <span id="project-save-status" class="project-save-status" aria-live="polite"></span>
-            <button id="btn-project-save" class="btn btn--primary btn--sm">Save</button>
-            <button id="btn-project-settings" class="btn btn--secondary btn--sm">Project Settings</button>
-            <button id="btn-back-projects" class="btn btn--sm">Back to Projects</button>
+            <button id="btn-validate" class="btn btn--verify btn--sm" title="Validate architecture design and check for issues">🔍 Validate</button>
+            <div class="btn-group">
+              <button id="btn-gen-bicep" class="btn btn--secondary btn--sm" title="Generate Azure Bicep Infrastructure as Code">Gen Bicep</button>
+              <button id="btn-gen-terraform" class="btn btn--secondary btn--sm" title="Generate Terraform Infrastructure as Code">Gen Terraform</button>
+            </div>
+            <button id="btn-project-save" class="btn btn--primary btn--sm" title="Save current project and architecture">💾 Save</button>
+            <button id="btn-project-settings" class="btn btn--secondary btn--sm" title="Open project settings">Settings</button>
+            <button id="btn-back-projects" class="btn btn--sm" title="Return to project selection screen">Back to Projects</button>
           </div>
         </header>
 
@@ -44,10 +54,17 @@
         <section class="panel panel--center" aria-label="Visual canvas">
           <div class="canvas-shell">
             <div class="canvas-toolbar" aria-label="Canvas controls">
-              <button id="canvas-zoom-out" class="btn btn--sm" type="button" aria-label="Zoom out">−</button>
-              <span id="canvas-zoom-label" class="canvas-zoom-label" aria-live="polite">100%</span>
-              <button id="canvas-zoom-in" class="btn btn--sm" type="button" aria-label="Zoom in">+</button>
-              <button id="canvas-reset-view" class="btn btn--sm" type="button">Reset View</button>
+              <div class="canvas-toolbar-left">
+                <button id="canvas-zoom-out" class="btn btn--sm" type="button" aria-label="Zoom out" title="Zoom out canvas view">−</button>
+                <span id="canvas-zoom-label" class="canvas-zoom-label" aria-live="polite">100%</span>
+                <button id="canvas-zoom-in" class="btn btn--sm" type="button" aria-label="Zoom in" title="Zoom in canvas view">+</button>
+                <button id="canvas-reset-view" class="btn btn--sm" type="button" title="Reset zoom and center canvas">🔄</button>
+                <button id="canvas-select-mode" class="btn btn--sm" type="button" title="Select and move resources">🖱️</button>
+                <button id="canvas-delete-mode" class="btn btn--sm" type="button" title="Delete selected resources or connections">🗑️</button>
+              </div>
+              <div class="canvas-status" id="canvas-status" aria-live="polite">
+                2 resources · 0 connections
+              </div>
             </div>
             <div class="canvas-viewport" id="canvas-viewport" aria-label="Architecture canvas" tabindex="0">
               <div class="canvas-grid" id="canvas-grid"></div>
@@ -61,8 +78,8 @@
 
         <section class="panel panel--right" aria-label="Resource properties and chat">
           <div class="tabs right-panel-tabs" role="tablist" aria-label="Properties and chat">
-            <div id="tab-properties" class="tab is-active" data-tab="properties" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-properties">Properties</div>
-            <div id="tab-chat" class="tab" data-tab="chat" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-chat">Chat</div>
+            <div id="tab-properties" class="tab is-active" data-tab="properties" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-properties">🔧 Properties</div>
+            <div id="tab-chat" class="tab" data-tab="chat" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-chat">🤖 Architect AI</div>
           </div>
 
           <div class="tab-panel right-tab-panel" id="panel-properties" role="tabpanel" aria-labelledby="tab-properties">
@@ -76,10 +93,18 @@
           </div>
 
           <div class="tab-panel right-tab-panel is-hidden" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
-            <div class="chat-history" id="chat-history" aria-live="polite"></div>
+            <div class="chat-history" id="chat-history" aria-live="polite">
+              <div class="chat-welcome">
+                <div class="chat-welcome-icon">🤖</div>
+                <div class="chat-welcome-text">
+                  <h3 class="chat-welcome-title">Architect AI ready...</h3>
+                  <p class="chat-welcome-message">I can help you design Azure architectures, recommend resources, and validate your designs. What would you like to build?</p>
+                </div>
+              </div>
+            </div>
             <div class="chat-compose">
-              <textarea id="chat-input" class="chat-input" placeholder="Message" aria-label="Message"></textarea>
-              <button id="chat-send" class="btn btn--primary btn--sm" type="button">Send</button>
+              <textarea id="chat-input" class="chat-input" placeholder="Ask the Architect AI..." aria-label="Message"></textarea>
+              <button id="chat-send" class="btn btn--primary btn--sm" type="button" title="Send message to Architect AI assistant">Send</button>
             </div>
           </div>
         </section>

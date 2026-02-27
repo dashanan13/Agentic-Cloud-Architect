@@ -14,7 +14,7 @@
             <h1>Agentic Cloud Architect</h1>
             <p>Design, build, and manage cloud infrastructure with AI assistance</p>
             <div class="intro-header-actions">
-              <button type="button" class="btn btn--secondary" id="btn-app-settings">Application Settings</button>
+              <button type="button" class="btn btn--secondary" id="btn-app-settings" title="Configure Azure AI Foundry or Ollama models">Application Settings</button>
             </div>
           </div>
 
@@ -25,7 +25,7 @@
               <div class="cloud-sections">
                 <!-- Azure Section -->
                 <div class="cloud-section">
-                  <button class="cloud-header" data-cloud="Azure">
+                  <button class="cloud-header" data-cloud="Azure" title="Expand/collapse Azure projects">
                     <img src="./icons/azure-icon.png" alt="Azure" class="cloud-icon" />
                     <span class="cloud-name">Azure</span>
                     <span class="collapse-indicator">▼</span>
@@ -35,7 +35,7 @@
 
                 <!-- AWS Section -->
                 <div class="cloud-section">
-                  <button class="cloud-header" data-cloud="AWS">
+                  <button class="cloud-header" data-cloud="AWS" title="Expand/collapse AWS projects">
                     <img src="./icons/aws-icon.png" alt="AWS" class="cloud-icon" />
                     <span class="cloud-name">AWS</span>
                     <span class="collapse-indicator">▼</span>
@@ -45,9 +45,11 @@
 
                 <!-- GCP Section -->
                 <div class="cloud-section">
-                  <button class="cloud-header" data-cloud="GCP">
+                  <button class="cloud-header" data-cloud="GCP" title="Expand/collapse GCP projects">
                     <img src="./icons/gcp-icon.png" alt="GCP" class="cloud-icon" />
                     <span class="cloud-name">GCP</span>
+                    <span class="collapse-indicator">▼</span>
+                  </button>
                     <span class="collapse-indicator">▼</span>
                   </button>
                   <div class="cloud-projects" id="projects-gcp"></div>
@@ -76,7 +78,7 @@
                   </div>
                   <small id="intro-name-hint" class="name-hint">Select cloud to lock prefix.</small>
                 </div>
-                <button type="button" class="btn btn--primary btn--block" id="btn-intro-create">Create Project</button>
+                <button type="button" class="btn btn--primary btn--block" id="btn-intro-create" title="Create a new cloud architecture project">Create Project</button>
                 <div id="create-project-message" class="form-message" aria-live="polite"></div>
               </form>
             </div>

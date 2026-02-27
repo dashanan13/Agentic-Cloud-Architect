@@ -2,6 +2,9 @@
 const btnBackProjects = document.getElementById("btn-back-projects");
 const btnProjectSave = document.getElementById("btn-project-save");
 const btnProjectSettings = document.getElementById("btn-project-settings");
+const btnValidate = document.getElementById("btn-validate");
+const btnGenBicep = document.getElementById("btn-gen-bicep");
+const btnGenTerraform = document.getElementById("btn-gen-terraform");
 const projectSaveStatus = document.getElementById("project-save-status");
 const projectNamePrefixDisplay = document.getElementById("project-name-prefix-display");
 const projectNameDisplay = document.getElementById("project-name-suffix-display");
@@ -18,6 +21,7 @@ const canvasZoomOutBtn = document.getElementById("canvas-zoom-out");
 const canvasZoomInBtn = document.getElementById("canvas-zoom-in");
 const canvasResetViewBtn = document.getElementById("canvas-reset-view");
 const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
+const canvasStatusEl = document.getElementById("canvas-status");
 const canvasEdgesEl = document.getElementById("canvas-edges");
 const statusLeftWidthEl = document.getElementById("status-left-width");
 const statusRightWidthEl = document.getElementById("status-right-width");
@@ -569,16 +573,22 @@ function renderResources() {
 
     const heading = document.createElement("h4");
     heading.className = "resource-group-title";
-    heading.textContent = titleCase(category);
-    resourceListEl.appendChild(heading);
-
+    heading.innerHTML = `<span class="resource-group-toggle">▼</span><span>${titleCase(category)}</span>`;
+    
     const groupBody = document.createElement("div");
     groupBody.className = "resource-group-body";
+
+    // Add click handler for collapsible functionality
+    heading.addEventListener("click", () => {
+      const isCollapsed = heading.classList.toggle("collapsed");
+      groupBody.classList.toggle("collapsed", isCollapsed);
+    });
 
     filtered.forEach((resource) => {
       groupBody.appendChild(createResourceRow(category, resource, iconRoot));
     });
 
+    resourceListEl.appendChild(heading);
     resourceListEl.appendChild(groupBody);
   });
 
@@ -987,6 +997,7 @@ function upsertConnection(fromId, toId, direction, sourceAnchor = "right", targe
 
   state.canvasConnections.push(newConnection);
   state.selectedConnectionId = newConnection.id;
+  updateCanvasStatus();
 }
 
 function updateCanvasNodeSelection() {
@@ -1005,6 +1016,14 @@ function updateCanvasNodeSelection() {
       handleEl.classList.toggle("is-receptor-active", Boolean(isActiveReceptor));
     });
   });
+}
+
+function updateCanvasStatus() {
+  if (canvasStatusEl) {
+    const resourceCount = state.canvasItems.length;
+    const connectionCount = state.canvasConnections.length;
+    canvasStatusEl.textContent = `${resourceCount} resource${resourceCount !== 1 ? 's' : ''} · ${connectionCount} connection${connectionCount !== 1 ? 's' : ''}`;
+  }
 }
 
 function renderCanvasItems() {
@@ -1114,6 +1133,17 @@ function renderCanvasView() {
   }
 
   renderCanvasConnections();
+  updateCanvasStatus();
+}
+
+function updateCanvasStatus() {
+  if (!canvasStatusEl) {
+    return;
+  }
+  
+  const resourceCount = state.canvasItems.length;
+  const connectionCount = state.canvasConnections.length;
+  canvasStatusEl.textContent = `${resourceCount} resource${resourceCount !== 1 ? 's' : ''} · ${connectionCount} connection${connectionCount !== 1 ? 's' : ''}`;
 }
 
 function selectCanvasItem(itemId) {
@@ -1191,6 +1221,7 @@ function createCanvasItem(resource, worldX, worldY) {
   renderCanvasItems();
   selectCanvasItem(newItem.id);
   persistCanvasLocal();
+  updateCanvasStatus();
 }
 
 function initializeCanvasInteractions() {
@@ -1836,6 +1867,7 @@ propertyContentEl?.addEventListener("click", (event) => {
   if (action === "remove") {
     state.canvasConnections = state.canvasConnections.filter((connection) => connection.id !== state.selectedConnectionId);
     state.selectedConnectionId = null;
+    updateCanvasStatus();
   }
 
   updatePropertyPanelForSelection();
@@ -1978,6 +2010,7 @@ async function initialize() {
   initializeCanvasInteractions();
   renderCanvasItems();
   renderCanvasView();
+  updateCanvasStatus();
 
   setSaveStatus("Autosave: every 60s");
   window.setInterval(async () => {
