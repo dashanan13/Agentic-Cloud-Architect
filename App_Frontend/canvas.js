@@ -1550,6 +1550,7 @@ function initializeCanvasInteractions() {
 
     removeCanvasItemTree(removeEl.dataset.itemId);
     renderCanvasItems();
+    updateCanvasStatus();
     persistCanvasLocal();
   });
 
@@ -1842,6 +1843,7 @@ propertyContentEl?.addEventListener("click", (event) => {
       state.selectedResource = null;
       updatePropertyPanelForSelection();
       renderCanvasItems();
+      updateCanvasStatus();
       persistCanvasLocal();
     }
     return;
