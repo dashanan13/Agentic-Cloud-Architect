@@ -4,6 +4,18 @@
 
 ---
 
+## 🏃 Quick Start
+
+**Run the application (clean build from scratch):**
+
+```bash
+docker-compose down --rmi all --volumes && docker-compose up --build -d
+```
+
+Access at `http://localhost:3000`
+
+---
+
 ## 🚀 Core Features
 
 * **Visual Architecture Canvas:** Drag-and-drop interface with support for container resources (Resource Groups, VNets, Subnets, Management Groups) that visually represent Azure's resource hierarchy.

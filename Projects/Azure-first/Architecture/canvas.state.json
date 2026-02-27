@@ -1,9 +1,9 @@
 {
-  "leftWidth": 180,
-  "rightWidth": 260,
+  "leftWidth": 220,
+  "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1772110069431-b8k3fn",
+  "selectedResource": null,
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -19,8 +19,23 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 340,
       "y": 160
+    },
+    {
+      "id": "item-1772148408331-pep8dz",
+      "name": "Resource 2",
+      "resourceType": "Azure OpenAI",
+      "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg",
+      "category": "ai + machine learning",
+      "isContainer": false,
+      "parentId": null,
+      "width": 360,
+      "height": 240,
+      "x": 480,
+      "y": 340
     }
   ],
   "canvasConnections": []
