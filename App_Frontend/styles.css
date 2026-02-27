@@ -320,8 +320,11 @@ body {
 }
 
 .resource-row.is-selected {
-  background: #4a7ba7; /* RESOURCE SELECTED COLOR - Blue-grey for selected state */
-  border-color: var(--accent);
+  background: #2F4F4F; /* RESOURCE SELECTED - Keep same background color */
+  border-color: var(--accent); /* Border lights up */
+  box-shadow: 
+    0 0 0 2px var(--accent), /* Accent outline */
+    0 0 12px 2px rgba(59, 130, 246, 0.5); /* Glow outside the resource item */
 }
 
 .resource-row:active {
@@ -486,9 +489,12 @@ body {
 }
 
 .canvas-node.is-selected {
-  background: #4a7ba7; /* CANVAS NODE SELECTED COLOR - Blue-grey for selected state */
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent), 0 4px 16px rgba(59, 130, 246, 0.5);
+  background: #2F4F4F; /* CANVAS NODE SELECTED - Keep same background, glow is OUTSIDE only */
+  border-color: var(--accent); /* Border lights up with accent color */
+  box-shadow: 
+    0 0 0 2px var(--accent), /* Solid accent outline right outside the border */
+    0 0 20px 4px rgba(59, 130, 246, 0.6), /* Medium glow around the box */
+    0 0 40px 8px rgba(59, 130, 246, 0.3); /* Extended soft glow halo outside */
   opacity: 1;
 }
 
