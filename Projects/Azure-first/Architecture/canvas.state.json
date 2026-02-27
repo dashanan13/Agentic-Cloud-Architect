@@ -3,7 +3,7 @@
   "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": null,
+  "selectedResource": "Bot Services",
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -21,8 +21,8 @@
       "parentId": null,
       "width": 360,
       "height": 240,
-      "x": 420,
-      "y": 220
+      "x": 350,
+      "y": 420
     },
     {
       "id": "item-1772148408331-pep8dz",
@@ -34,8 +34,8 @@
       "parentId": null,
       "width": 360,
       "height": 240,
-      "x": 480,
-      "y": 340
+      "x": 470,
+      "y": 270
     },
     {
       "id": "item-1772187941588-mt1oka",
@@ -47,8 +47,8 @@
       "parentId": null,
       "width": 360,
       "height": 240,
-      "x": 110,
-      "y": 220
+      "x": 30,
+      "y": 230
     },
     {
       "id": "item-1772189699384-6d2776",
@@ -73,8 +73,8 @@
       "parentId": null,
       "width": 360,
       "height": 240,
-      "x": 160,
-      "y": 90
+      "x": 140,
+      "y": 110
     }
   ],
   "canvasConnections": [
@@ -86,6 +86,15 @@
       "direction": "one-way",
       "sourceAnchor": "right",
       "targetAnchor": "left"
+    },
+    {
+      "id": "conn-1772197274870-1ylrmw",
+      "name": "Resource 7",
+      "fromId": "item-1772190598054-3pfrud",
+      "toId": "item-1772110069431-b8k3fn",
+      "direction": "one-way",
+      "sourceAnchor": "right",
+      "targetAnchor": "top"
     }
   ]
 }

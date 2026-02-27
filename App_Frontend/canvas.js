@@ -527,8 +527,8 @@ function createResourceRow(category, resource, iconRoot) {
   });
 
   row.addEventListener("click", () => {
-    state.selectedResource = resource.name;
-    updatePropertyPanel(resource.name);
+    // Resources in left panel shouldn't show properties - only canvas items should
+    // Just highlight the row for visual feedback, but don't update property panel
     updateTimestamp();
   });
 
@@ -1268,6 +1268,9 @@ function initializeCanvasInteractions() {
 
     event.preventDefault();
     state.selectedConnectionId = null;
+    state.selectedResource = null;
+    updatePropertyPanelForSelection();
+    updateCanvasNodeSelection();
     renderCanvasConnections();
     canvasInteraction.isPanning = true;
     canvasViewportEl.classList.add("is-panning");

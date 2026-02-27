@@ -492,7 +492,7 @@ body {
   background: #2F4F4F; /* CANVAS NODE SELECTED - Keep same background, glow is OUTSIDE only */
   border-color: var(--accent); /* Border lights up with accent color */
   box-shadow: 
-    0 0 0 2px var(--accent), /* Solid accent outline right outside the border */
+    0 0 0 0px var(--accent), /* Solid accent outline right outside the border - reduced to 1px */
     0 0 20px 4px rgba(59, 130, 246, 0.6), /* Medium glow around the box */
     0 0 40px 8px rgba(59, 130, 246, 0.3); /* Extended soft glow halo outside */
   opacity: 1;
@@ -643,11 +643,6 @@ body {
   border-bottom: 2px solid var(--accent);
   cursor: nwse-resize;
   opacity: 0.9;
-}
-
-.canvas-node.is-selected {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
 }
 
 .canvas-node img {
