@@ -179,6 +179,23 @@ function isLogicalOnlyContainer(item) {
   return logicalTerms.some((term) => name.includes(term));
 }
 
+function getVisualLayer(item) {
+  if (!item) return 999;
+  
+  const name = normalizeLabel(item?.resourceType || item?.name);
+  
+  // Visual layers from back (0) to front (higher numbers)
+  // Lower number = renders first = appears behind
+  if (name.includes("management group")) return 0;
+  if (name.includes("subscription")) return 1;
+  if (name.includes("resource group")) return 2;
+  if (name.includes("virtual network") || name.includes("vnet") || name === "network") return 3;
+  if (name.includes("subnet")) return 4;
+  
+  // All other resources appear on top
+  return 5;
+}
+
 function isConnectableItem(item) {
   if (!item) {
     return false;
@@ -479,7 +496,7 @@ function updatePropertyPanelForSelection() {
       "</label>",
       `<div class=\"property-row\"><span class=\"property-label\">Type</span><span class=\"property-value\">${selectedItem.resourceType || "Resource"}</span></div>`,
       `<div class=\"property-row\"><span class=\"property-label\">Category</span><span class=\"property-value\">${selectedItem.category || "N/A"}</span></div>`,
-      `<div class=\"property-row\"><span class=\"property-label\">Position</span><span class=\"property-value\">(${selectedItem.x}, ${selectedItem.y})</span></div>`,
+      `<div class=\"property-row\"><span class=\"property-label\">Position</span><span class=\"property-value\">x: ${selectedItem.x}, y: ${selectedItem.y}</span></div>`,
       `<div class=\"property-row\"><span class=\"property-label\">Connections</span><span class=\"property-value\">${state.canvasConnections.filter((connection) => connection.fromId === selectedItem.id || connection.toId === selectedItem.id).length}</span></div>`,
       "<div class=\"property-actions\">",
       `<button class=\"btn btn--sm btn--primary\" type=\"button\" data-property-action=\"save\">Save</button>`,
@@ -1026,6 +1043,32 @@ function updateCanvasStatus() {
   }
 }
 
+/**
+ * Render all canvas items using TYPE-BASED visual layering with FLAT DOM structure.
+ * 
+ * CRITICAL DISTINCTION:
+ * - FUNCTIONAL HIERARCHY (parentId): Organizational relationships - where things belong logically
+ * - VISUAL LAYERING (type-based): Display order - what appears on top visually
+ * 
+ * THESE ARE COMPLETELY INDEPENDENT:
+ * - A VM in RG1 appears above a VNet in RG2 (visual layer > functional hierarchy)
+ * - A VNet may belong to RG1 but be used by resources in RG2 (functional vs visual)
+ * - All items are FLAT siblings in DOM - no nesting that would break stacking
+ * 
+ * VISUAL LAYER ORDER (back to front):
+ * Layer 0: Management Groups (furthest back)
+ * Layer 1: Subscriptions
+ * Layer 2: Resource Groups
+ * Layer 3: Virtual Networks
+ * Layer 4: Subnets
+ * Layer 5: All other resources (closest to front)
+ * 
+ * RENDERING STRATEGY:
+ * - ALL items rendered as flat siblings (direct children of canvasLayerEl)
+ * - Items positioned using ABSOLUTE world coordinates
+ * - Render order (layer 0 → 5) determines visual stacking via DOM order
+ * - parentId used only to calculate world coordinates, NOT for DOM nesting
+ */
 function renderCanvasItems() {
   if (!canvasLayerEl) {
     return;
@@ -1033,16 +1076,17 @@ function renderCanvasItems() {
 
   canvasLayerEl.innerHTML = "";
 
-  function renderNode(item, host) {
+  // Render a single node with absolute world coordinates
+  function renderNode(item) {
+    // Calculate absolute world coordinates for this item
+    const worldCoords = getItemWorldPosition(item.id);
+    
     const nodeEl = document.createElement("div");
     nodeEl.className = "canvas-node";
-    if (item.isContainer) {
-      nodeEl.classList.add("canvas-node--container");
-      nodeEl.style.width = `${item.width || CANVAS_CONTAINER.defaultWidth}px`;
-      nodeEl.style.height = `${item.height || CANVAS_CONTAINER.defaultHeight}px`;
-    }
     nodeEl.dataset.itemId = item.id;
-    nodeEl.style.transform = `translate(${item.x}px, ${item.y}px)`;
+    // Use absolute world coordinates instead of relative position
+    nodeEl.style.transform = `translate(${worldCoords.x}px, ${worldCoords.y}px)`;
+    
     const resourceType = item.resourceType || item.name;
 
     const iconEl = document.createElement("img");
@@ -1054,13 +1098,16 @@ function renderCanvasItems() {
     nameEl.textContent = item.name;
 
     if (item.isContainer) {
+      // Render as container
+      nodeEl.classList.add("canvas-node--container");
+      nodeEl.style.width = `${item.width || CANVAS_CONTAINER.defaultWidth}px`;
+      nodeEl.style.height = `${item.height || CANVAS_CONTAINER.defaultHeight}px`;
+
       const headerEl = document.createElement("div");
       headerEl.className = "canvas-container-header";
       headerEl.appendChild(iconEl);
       headerEl.appendChild(nameEl);
-
-      const removeButton = buildRemoveControl(item.id);
-      headerEl.appendChild(removeButton);
+      headerEl.appendChild(buildRemoveControl(item.id));
 
       const bodyEl = document.createElement("div");
       bodyEl.className = "canvas-container-body";
@@ -1074,10 +1121,14 @@ function renderCanvasItems() {
       resizeHandle.title = "Resize container";
       nodeEl.appendChild(resizeHandle);
 
-      getChildrenByParentId(item.id).forEach((child) => {
-        renderNode(child, bodyEl);
-      });
+      // Add connection handles if this container is connectable (networks, subnets)
+      if (isConnectableItem(item)) {
+        ["top", "right", "bottom", "left"].forEach((anchor) => {
+          nodeEl.appendChild(buildConnectHandle(item.id, anchor));
+        });
+      }
     } else {
+      // Render as resource
       const nameInputEl = document.createElement("input");
       nameInputEl.className = "canvas-node-namebox";
       nameInputEl.type = "text";
@@ -1093,20 +1144,39 @@ function renderCanvasItems() {
       nodeEl.appendChild(iconEl);
       nodeEl.appendChild(typeEl);
       nodeEl.appendChild(buildRemoveControl(item.id));
+
+      // Add connection handles to resources
+      if (isConnectableItem(item)) {
+        ["top", "right", "bottom", "left"].forEach((anchor) => {
+          nodeEl.appendChild(buildConnectHandle(item.id, anchor));
+        });
+      }
     }
 
-    if (isConnectableItem(item)) {
-      ["top", "right", "bottom", "left"].forEach((anchor) => {
-        nodeEl.appendChild(buildConnectHandle(item.id, anchor));
-      });
-    }
-
-    host.appendChild(nodeEl);
+    // ALL items appended as flat siblings to canvasLayerEl
+    canvasLayerEl.appendChild(nodeEl);
   }
 
-  getChildrenByParentId(null).forEach((rootItem) => {
-    renderNode(rootItem, canvasLayerEl);
+  // Group all items by their visual layer
+  const itemsByLayer = {};
+  state.canvasItems.forEach(item => {
+    const layer = getVisualLayer(item);
+    if (!itemsByLayer[layer]) {
+      itemsByLayer[layer] = [];
+    }
+    itemsByLayer[layer].push(item);
   });
+
+  // Render items layer by layer (0 = back, 5 = front)
+  // DOM order determines stacking - later = on top
+  for (let layer = 0; layer <= 5; layer++) {
+    const itemsInLayer = itemsByLayer[layer] || [];
+    
+    // All items rendered as flat siblings with absolute positioning
+    itemsInLayer.forEach(item => {
+      renderNode(item);
+    });
+  }
 
   updateCanvasNodeSelection();
   renderCanvasConnections();
@@ -2004,6 +2074,7 @@ async function initialize() {
   state.canvasConnections = Array.isArray(state.currentProject.canvasConnections)
     ? state.currentProject.canvasConnections.map((connection) => ({ ...connection }))
     : [];
+
   saveCurrentProject();
 
   // Update UI with project info
