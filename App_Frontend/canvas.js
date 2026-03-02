@@ -1094,10 +1094,10 @@ function renderCanvasItems() {
     iconEl.alt = `${resourceType} icon`;
     iconEl.draggable = false;
 
-    const nameEl = document.createElement("span");
-    nameEl.textContent = item.name;
-
     if (item.isContainer) {
+      const titleEl = document.createElement("span");
+      titleEl.textContent = `${resourceType}: ${item.name}`;
+
       // Render as container
       nodeEl.classList.add("canvas-node--container");
       nodeEl.style.width = `${item.width || CANVAS_CONTAINER.defaultWidth}px`;
@@ -1106,7 +1106,7 @@ function renderCanvasItems() {
       const headerEl = document.createElement("div");
       headerEl.className = "canvas-container-header";
       headerEl.appendChild(iconEl);
-      headerEl.appendChild(nameEl);
+      headerEl.appendChild(titleEl);
       headerEl.appendChild(buildRemoveControl(item.id));
 
       const bodyEl = document.createElement("div");
@@ -1129,21 +1129,25 @@ function renderCanvasItems() {
       }
     } else {
       // Render as resource
-      const nameInputEl = document.createElement("input");
-      nameInputEl.className = "canvas-node-namebox";
-      nameInputEl.type = "text";
-      nameInputEl.value = item.name;
-      nameInputEl.readOnly = true;
-      nameInputEl.tabIndex = -1;
+      nodeEl.classList.add("canvas-node--resource");
+
+      const headerEl = document.createElement("div");
+      headerEl.className = "canvas-resource-header";
 
       const typeEl = document.createElement("span");
-      typeEl.className = "canvas-node-type";
+      typeEl.className = "canvas-resource-type";
       typeEl.textContent = resourceType;
 
-      nodeEl.appendChild(nameInputEl);
-      nodeEl.appendChild(iconEl);
-      nodeEl.appendChild(typeEl);
-      nodeEl.appendChild(buildRemoveControl(item.id));
+      headerEl.appendChild(iconEl);
+      headerEl.appendChild(typeEl);
+      headerEl.appendChild(buildRemoveControl(item.id));
+
+      const bodyEl = document.createElement("div");
+      bodyEl.className = "canvas-resource-body";
+      bodyEl.textContent = item.name;
+
+      nodeEl.appendChild(headerEl);
+      nodeEl.appendChild(bodyEl);
 
       // Add connection handles to resources
       if (isConnectableItem(item)) {

@@ -498,6 +498,47 @@ body {
   opacity: 1;
 }
 
+.canvas-node--resource {
+  display: block;
+  padding: 0;
+  min-width: 180px;
+  min-height: 74px;
+}
+
+.canvas-resource-header {
+  height: 32px;
+  border-bottom: 1px dashed var(--border);
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--panel);
+}
+
+.canvas-resource-type {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.canvas-resource-body {
+  min-height: 44px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.canvas-resource-header .canvas-node-remove {
+  position: static;
+}
+
 .canvas-node-namebox {
   grid-column: 1 / -1;
   width: 100%;
