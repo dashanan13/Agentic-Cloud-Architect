@@ -147,6 +147,37 @@ def sanitize_segment(value: str, fallback: str) -> str:
     return cleaned or fallback
 
 
+def resolve_project_dir_for_write(project_id: str, project_name: str) -> Path:
+    PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    fallback_folder_name = sanitize_segment(project_name, sanitize_segment(project_id, "project"))
+    desired_dir = PROJECTS_DIR / fallback_folder_name
+
+    existing_entry = find_project_entry(project_id)
+    if not existing_entry:
+        return desired_dir
+
+    current_dir = existing_entry["projectDir"]
+    desired_folder_name = sanitize_segment(project_name, current_dir.name or "project")
+    desired_dir = PROJECTS_DIR / desired_folder_name
+
+    if desired_dir == current_dir:
+        return current_dir
+
+    if desired_dir.exists():
+        desired_metadata = read_json_file(desired_dir / "Architecture" / "project.metadata.json", {})
+        desired_id = str(desired_metadata.get("id") or "").strip() if isinstance(desired_metadata, dict) else ""
+        if desired_id and desired_id != project_id:
+            raise HTTPException(
+                status_code=409,
+                detail=f"A project folder named '{desired_folder_name}' already exists.",
+            )
+        return desired_dir
+
+    current_dir.rename(desired_dir)
+    return desired_dir
+
+
 def to_env_lines(payload: dict) -> str:
     lines = []
     for key, value in payload.items():
@@ -780,8 +811,7 @@ def verify_app_settings(body: VerifySettingsPayload):
 @app.post("/api/settings/project")
 def save_project_settings(body: ProjectSettingsPayload):
     try:
-        project_folder_name = sanitize_segment(body.project.name, sanitize_segment(body.project.id, "project"))
-        target_dir = PROJECTS_DIR / project_folder_name
+        target_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         ensure_project_structure(target_dir)
 
         payload = {
@@ -814,8 +844,7 @@ def get_project_settings(project_id: str):
 @app.post("/api/project/save")
 def save_project_snapshot(body: ProjectSavePayload):
     try:
-        project_folder_name = sanitize_segment(body.project.name, sanitize_segment(body.project.id, "project"))
-        project_dir = PROJECTS_DIR / project_folder_name
+        project_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         architecture_dir = project_dir / "Architecture"
 
         ensure_project_structure(project_dir)

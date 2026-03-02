@@ -3,7 +3,7 @@
   "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1772329322378-hri4mt",
+  "selectedResource": null,
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -97,8 +97,8 @@
       "category": "networking",
       "isContainer": true,
       "parentId": "item-1772329371766-pm2i4i",
-      "width": 291,
-      "height": 168,
+      "width": 299,
+      "height": 166,
       "x": 10,
       "y": 60
     }
