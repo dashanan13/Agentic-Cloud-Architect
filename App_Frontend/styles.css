@@ -503,6 +503,7 @@ body {
   padding: 0;
   min-width: 180px;
   min-height: 74px;
+  overflow: hidden;
 }
 
 .canvas-resource-header {
@@ -512,8 +513,12 @@ body {
   grid-template-columns: 18px 1fr auto;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
+  width: calc(100% + 4px);
+  margin: -2px -2px 0 -2px;
+  padding: 0 12px;
   background: var(--panel);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 .canvas-resource-type {
@@ -645,6 +650,7 @@ body {
   padding: 0;
   cursor: default;
   opacity: 1;
+  overflow: hidden;
 }
 
 .canvas-container-header {
@@ -654,9 +660,13 @@ body {
   grid-template-columns: 18px 1fr auto;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
+  width: calc(100% + 4px);
+  margin: -2px -2px 0 -2px;
+  padding: 0 12px;
   background: var(--panel);
   cursor: move;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 .canvas-container-header .canvas-node-remove {
