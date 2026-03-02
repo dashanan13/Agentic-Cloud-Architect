@@ -3,6 +3,7 @@ const btnBackProjects = document.getElementById("btn-back-projects");
 const btnProjectSave = document.getElementById("btn-project-save");
 const btnProjectSettings = document.getElementById("btn-project-settings");
 const btnValidate = document.getElementById("btn-validate");
+const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnGenBicep = document.getElementById("btn-gen-bicep");
 const btnGenTerraform = document.getElementById("btn-gen-terraform");
 const projectSaveStatus = document.getElementById("project-save-status");
@@ -376,6 +377,365 @@ function saveCurrentProject() {
       state.projects[idx] = state.currentProject;
     }
   }
+}
+
+function formatExportTimestamp(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`;
+}
+
+function sanitizeFileSegment(value, fallback = "project") {
+  const sanitized = String(value || "")
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^[-._]+|[-._]+$/g, "");
+  return sanitized || fallback;
+}
+
+function getItemExportSize(item) {
+  if (item.isContainer) {
+    return {
+      width: Number(item.width) || CANVAS_CONTAINER.defaultWidth,
+      height: Number(item.height) || CANVAS_CONTAINER.defaultHeight,
+    };
+  }
+
+  const nodeEl = canvasLayerEl?.querySelector(`.canvas-node[data-item-id="${item.id}"]`);
+  if (nodeEl) {
+    const rect = nodeEl.getBoundingClientRect();
+    const zoom = Number(state.canvasView.zoom) || 1;
+    const width = Math.max(180, rect.width / zoom);
+    const height = Math.max(74, rect.height / zoom);
+    return { width, height };
+  }
+
+  return { width: 180, height: 74 };
+}
+
+function getAnchorPointForExport(itemRect, anchor = "right") {
+  const cx = itemRect.x + itemRect.width / 2;
+  const cy = itemRect.y + itemRect.height / 2;
+
+  if (anchor === "top") {
+    return { x: cx, y: itemRect.y };
+  }
+  if (anchor === "bottom") {
+    return { x: cx, y: itemRect.y + itemRect.height };
+  }
+  if (anchor === "left") {
+    return { x: itemRect.x, y: cy };
+  }
+  return { x: itemRect.x + itemRect.width, y: cy };
+}
+
+function buildExportImageMap(items) {
+  const sources = [...new Set(items.map((item) => String(item.iconSrc || "").trim()).filter(Boolean))];
+  const imageEntries = sources.map((src) => new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve([src, image]);
+    image.onerror = () => resolve([src, null]);
+    image.src = src;
+  }));
+
+  return Promise.all(imageEntries).then((entries) => new Map(entries));
+}
+
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawTextEllipsis(ctx, text, x, y, maxWidth) {
+  const value = String(text || "");
+  if (ctx.measureText(value).width <= maxWidth) {
+    ctx.fillText(value, x, y);
+    return;
+  }
+
+  const ellipsis = "…";
+  let trimmed = value;
+  while (trimmed.length > 0 && ctx.measureText(trimmed + ellipsis).width > maxWidth) {
+    trimmed = trimmed.slice(0, -1);
+  }
+  ctx.fillText(trimmed + ellipsis, x, y);
+}
+
+function drawArrowHead(ctx, from, to, color) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy);
+  if (!length) {
+    return;
+  }
+
+  const ux = dx / length;
+  const uy = dy / length;
+  const size = 9;
+  const angle = Math.PI / 6;
+
+  const leftX = to.x - size * (ux * Math.cos(angle) + uy * Math.sin(angle));
+  const leftY = to.y - size * (uy * Math.cos(angle) - ux * Math.sin(angle));
+  const rightX = to.x - size * (ux * Math.cos(angle) - uy * Math.sin(angle));
+  const rightY = to.y - size * (uy * Math.cos(angle) + ux * Math.sin(angle));
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(to.x, to.y);
+  ctx.lineTo(leftX, leftY);
+  ctx.lineTo(rightX, rightY);
+  ctx.closePath();
+  ctx.fill();
+}
+
+async function exportCurrentDiagram(format = "png") {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const itemRects = new Map();
+  state.canvasItems.forEach((item) => {
+    const world = getItemWorldPosition(item.id);
+    const size = getItemExportSize(item);
+    itemRects.set(item.id, {
+      x: world.x,
+      y: world.y,
+      width: size.width,
+      height: size.height,
+      item,
+    });
+  });
+
+  const fallbackBounds = { minX: 0, minY: 0, maxX: 900, maxY: 560 };
+  const bounds = { minX: Number.POSITIVE_INFINITY, minY: Number.POSITIVE_INFINITY, maxX: Number.NEGATIVE_INFINITY, maxY: Number.NEGATIVE_INFINITY };
+
+  const includePoint = (x, y) => {
+    bounds.minX = Math.min(bounds.minX, x);
+    bounds.minY = Math.min(bounds.minY, y);
+    bounds.maxX = Math.max(bounds.maxX, x);
+    bounds.maxY = Math.max(bounds.maxY, y);
+  };
+
+  itemRects.forEach((rect) => {
+    includePoint(rect.x, rect.y);
+    includePoint(rect.x + rect.width, rect.y + rect.height);
+  });
+
+  state.canvasConnections.forEach((connection) => {
+    const fromRect = itemRects.get(connection.fromId);
+    const toRect = itemRects.get(connection.toId);
+    if (!fromRect || !toRect) {
+      return;
+    }
+    const from = getAnchorPointForExport(fromRect, connection.sourceAnchor || "right");
+    const to = getAnchorPointForExport(toRect, connection.targetAnchor || "left");
+    includePoint(from.x, from.y);
+    includePoint(to.x, to.y);
+  });
+
+  if (!Number.isFinite(bounds.minX) || !Number.isFinite(bounds.minY) || !Number.isFinite(bounds.maxX) || !Number.isFinite(bounds.maxY)) {
+    bounds.minX = fallbackBounds.minX;
+    bounds.minY = fallbackBounds.minY;
+    bounds.maxX = fallbackBounds.maxX;
+    bounds.maxY = fallbackBounds.maxY;
+  }
+
+  const padding = 48;
+  const exportWidth = Math.max(320, Math.ceil(bounds.maxX - bounds.minX + padding * 2));
+  const exportHeight = Math.max(220, Math.ceil(bounds.maxY - bounds.minY + padding * 2));
+
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(exportWidth * pixelRatio);
+  canvas.height = Math.ceil(exportHeight * pixelRatio);
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Unable to initialize export canvas");
+  }
+
+  ctx.scale(pixelRatio, pixelRatio);
+
+  const colors = {
+    bg: getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#000000",
+    panel: getComputedStyle(document.documentElement).getPropertyValue("--panel").trim() || "#1a1a1a",
+    border: getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#333333",
+    accent: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#3b82f6",
+  };
+
+  const worldOffsetX = bounds.minX - padding;
+  const worldOffsetY = bounds.minY - padding;
+
+  const toCanvasX = (worldX) => worldX - worldOffsetX;
+  const toCanvasY = (worldY) => worldY - worldOffsetY;
+
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, exportWidth, exportHeight);
+
+  const gridSize = 40;
+  const gridOffsetX = ((-worldOffsetX % gridSize) + gridSize) % gridSize;
+  const gridOffsetY = ((-worldOffsetY % gridSize) + gridSize) % gridSize;
+  ctx.strokeStyle = colors.border;
+  ctx.globalAlpha = 0.3;
+  ctx.lineWidth = 1;
+  for (let x = gridOffsetX; x <= exportWidth; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, exportHeight);
+    ctx.stroke();
+  }
+  for (let y = gridOffsetY; y <= exportHeight; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(exportWidth, y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = colors.accent;
+  state.canvasConnections.forEach((connection) => {
+    const fromRect = itemRects.get(connection.fromId);
+    const toRect = itemRects.get(connection.toId);
+    if (!fromRect || !toRect) {
+      return;
+    }
+
+    const from = getAnchorPointForExport(fromRect, connection.sourceAnchor || "right");
+    const to = getAnchorPointForExport(toRect, connection.targetAnchor || "left");
+    const start = { x: toCanvasX(from.x), y: toCanvasY(from.y) };
+    const end = { x: toCanvasX(to.x), y: toCanvasY(to.y) };
+
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+
+    drawArrowHead(ctx, start, end, colors.accent);
+    if (connection.direction === "bi") {
+      drawArrowHead(ctx, end, start, colors.accent);
+    }
+  });
+
+  const imageMap = await buildExportImageMap(state.canvasItems);
+  const sortedItems = [...state.canvasItems].sort((first, second) => getVisualLayer(first) - getVisualLayer(second));
+
+  sortedItems.forEach((item) => {
+    const rect = itemRects.get(item.id);
+    if (!rect) {
+      return;
+    }
+
+    const x = toCanvasX(rect.x);
+    const y = toCanvasY(rect.y);
+    const width = rect.width;
+    const height = rect.height;
+    const headerHeight = 32;
+    const icon = imageMap.get(String(item.iconSrc || ""));
+    const resourceType = String(item.resourceType || item.name || "Resource");
+    const resourceName = String(item.name || "Resource");
+
+    if (item.isContainer) {
+      drawRoundedRect(ctx, x, y, width, height, 8);
+      ctx.fillStyle = "rgba(47, 79, 79, 0.5)";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#253F3F";
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = colors.panel;
+      ctx.fillRect(x, y, width, headerHeight);
+      ctx.strokeStyle = colors.border;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, y + headerHeight);
+      ctx.lineTo(x + width, y + headerHeight);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (icon) {
+        ctx.drawImage(icon, x + 10, y + 8, 16, 16);
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "600 12px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      drawTextEllipsis(ctx, `${resourceType}: ${resourceName}`, x + 32, y + 20, width - 64);
+      return;
+    }
+
+    drawRoundedRect(ctx, x, y, width, height, 8);
+    ctx.fillStyle = "#2F4F4F";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#253F3F";
+    ctx.stroke();
+
+    ctx.fillStyle = colors.panel;
+    ctx.fillRect(x, y, width, headerHeight);
+    ctx.strokeStyle = colors.border;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(x, y + headerHeight);
+    ctx.lineTo(x + width, y + headerHeight);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (icon) {
+      ctx.drawImage(icon, x + 10, y + 8, 16, 16);
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 12px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    drawTextEllipsis(ctx, resourceType, x + 32, y + 20, width - 64);
+
+    ctx.font = "600 12px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    drawTextEllipsis(ctx, resourceName, x + 10, y + 51, width - 20);
+  });
+
+  const normalizedFormat = format === "jpeg" ? "jpeg" : "png";
+  const mimeType = normalizedFormat === "jpeg" ? "image/jpeg" : "image/png";
+  const imageData = canvas.toDataURL(mimeType, 0.92);
+
+  const response = await fetch("/api/project/export-diagram", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      projectId: state.currentProject.id,
+      projectName: state.currentProject.name,
+      format: normalizedFormat,
+      imageData,
+    }),
+  });
+
+  if (!response.ok) {
+    let message = "Unable to export diagram";
+    try {
+      const errorPayload = await response.json();
+      if (errorPayload?.detail) {
+        message = String(errorPayload.detail);
+      }
+    } catch {
+      // Ignore parse failures and use fallback error message.
+    }
+    throw new Error(message);
+  }
+
+  const payload = await response.json();
+  const savedPath = payload?.path ? String(payload.path) : "Diagram folder";
+  setSaveStatus(`Exported to ${savedPath}`);
 }
 
 async function loadCurrentProject(projectId) {
@@ -1883,6 +2243,15 @@ btnProjectSettings?.addEventListener("click", () => {
   const params = new URLSearchParams();
   params.set("projectId", state.currentProject.id);
   window.location.href = `./project-settings.html?${params.toString()}`;
+});
+
+btnExportDiagram?.addEventListener("click", async (event) => {
+  const format = event.shiftKey ? "jpeg" : "png";
+  try {
+    await exportCurrentDiagram(format);
+  } catch (error) {
+    setSaveStatus(error?.message || "Export failed", true);
+  }
 });
 
 searchInput?.addEventListener("input", () => {

@@ -1,8 +1,10 @@
 from pathlib import Path
+import base64
 import json
 import os
 import re
 import shutil
+from datetime import datetime
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
 from urllib import request as urllib_request
@@ -64,6 +66,13 @@ class ProjectSettingsPayload(BaseModel):
 class ProjectSavePayload(BaseModel):
     project: ProjectMeta
     canvasState: dict = {}
+
+
+class DiagramExportPayload(BaseModel):
+    projectId: str
+    projectName: str
+    format: str
+    imageData: str
 
 
 def read_json_file(path: Path, default):
@@ -145,6 +154,11 @@ def sanitize_segment(value: str, fallback: str) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9._-]+", "-", value.strip())
     cleaned = cleaned.strip("-._")
     return cleaned or fallback
+
+
+def format_diagram_timestamp(now: datetime | None = None) -> str:
+    dt = now or datetime.now()
+    return dt.strftime("%Y-%m-%d-%H-%M-%S")
 
 
 def resolve_project_dir_for_write(project_id: str, project_name: str) -> Path:
@@ -877,6 +891,49 @@ def save_project_snapshot(body: ProjectSavePayload):
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to save project snapshot: {exc}") from exc
+
+
+@app.post("/api/project/export-diagram")
+def export_project_diagram(body: DiagramExportPayload):
+    entry = find_project_entry(body.projectId)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    fmt = str(body.format or "png").strip().lower()
+    if fmt not in {"png", "jpeg", "jpg"}:
+        raise HTTPException(status_code=400, detail="Unsupported format. Use png or jpeg.")
+
+    image_data = str(body.imageData or "").strip()
+    data_url_match = re.match(r"^data:image\/(png|jpeg);base64,(.+)$", image_data, flags=re.IGNORECASE | re.DOTALL)
+    if not data_url_match:
+        raise HTTPException(status_code=400, detail="Invalid image payload.")
+
+    data_url_format = data_url_match.group(1).lower()
+    payload_b64 = data_url_match.group(2)
+    normalized_format = "jpeg" if fmt in {"jpeg", "jpg"} else "png"
+
+    if normalized_format != data_url_format:
+        raise HTTPException(status_code=400, detail="Image format does not match payload.")
+
+    try:
+        image_bytes = base64.b64decode(payload_b64, validate=True)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Failed to decode image payload.") from exc
+
+    extension = "jpg" if normalized_format == "jpeg" else "png"
+    project_name = sanitize_segment(body.projectName, "project")
+    file_name = f"{project_name}-{format_diagram_timestamp()}.{extension}"
+
+    diagram_dir = entry["projectDir"] / "Diagram"
+    diagram_dir.mkdir(parents=True, exist_ok=True)
+    target = diagram_dir / file_name
+    target.write_bytes(image_bytes)
+
+    return {
+        "ok": True,
+        "fileName": file_name,
+        "path": str(target.relative_to(WORKSPACE_ROOT)),
+    }
 
 
 @app.get("/api/projects")

@@ -13,7 +13,7 @@ const state = {
   projects: []
 };
 
-const MAX_PROJECT_NAME_LENGTH = 27;
+const MAX_PROJECT_NAME_LENGTH = 50;
 
 // ===== Utility Functions =====
 function generateDefaultSuffix() {
