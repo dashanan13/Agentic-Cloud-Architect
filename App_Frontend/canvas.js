@@ -133,7 +133,7 @@ const constraints = {
   bottomRightMax: layoutConfig.bottomRightMax
 };
 
-const MAX_PROJECT_NAME_LENGTH = 27;
+const MAX_PROJECT_NAME_LENGTH = 50;
 const AUTOSAVE_INTERVAL_MS = 60000;
 const CANVAS_ZOOM = {
   min: 0.05,
@@ -288,6 +288,19 @@ function renderProjectName() {
     projectNameDisplay.textContent = suffix;
   }
   state.currentProject.name = `${prefix}${suffix}`;
+}
+
+function placeCaretAtEnd(element) {
+  const selection = window.getSelection?.();
+  if (!selection) {
+    return;
+  }
+
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
 }
 
 function sanitizeProject(project) {
@@ -2206,10 +2219,24 @@ projectNameDisplay?.addEventListener("blur", () => {
 
   if (suffix) {
     state.currentProject.name = `${prefix}${suffix}`;
+    projectNameDisplay.textContent = suffix;
     saveCurrentProject();
     updateTimestamp();
   } else {
     renderProjectName();
+  }
+});
+
+projectNameDisplay?.addEventListener("input", () => {
+  if (!state.currentProject || !projectNameDisplay) {
+    return;
+  }
+
+  const rawSuffix = projectNameDisplay.textContent || "";
+  const { suffix } = splitProjectName(state.currentProject.cloud, rawSuffix);
+  if (rawSuffix !== suffix) {
+    projectNameDisplay.textContent = suffix;
+    placeCaretAtEnd(projectNameDisplay);
   }
 });
 

@@ -69,6 +69,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 0 16px;
   border-bottom: 1px solid var(--border);
   background: var(--panel);
@@ -87,7 +88,8 @@ body {
 .topbar__left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .project-name-display-wrapper {
@@ -98,6 +100,10 @@ body {
   background: var(--panel);
   border-radius: 6px;
   border: 1px solid var(--border);
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+  overflow: hidden;
 }
 
 .project-name-display-wrapper .project-label {
@@ -110,6 +116,19 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-name-prefix-display {
+  flex-shrink: 0;
+}
+
+.project-name-display {
+  display: block;
+  flex: 1;
+  min-width: 0;
 }
 
 .btn-group {
@@ -137,6 +156,15 @@ body {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text);
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+}
+
+.app-title span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-icon {
@@ -154,6 +182,62 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+.project-timestamp {
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 185px;
+  max-width: 185px;
+}
+
+.project-save-status {
+  font-size: 0.72rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 265px;
+  max-width: 265px;
+}
+
+.canvas-save-status {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  justify-content: flex-start;
+}
+
+#btn-export-diagram {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+#btn-export-diagram:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+#btn-gen-bicep,
+#btn-gen-terraform,
+#btn-project-settings {
+  color: var(--accent);
+}
+
+#btn-back-projects {
+  color: var(--text);
 }
 
 .project-label {
@@ -366,13 +450,14 @@ body {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .canvas-toolbar-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .canvas-status {
@@ -386,6 +471,7 @@ body {
   height: 32px;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .canvas-zoom-label {
@@ -1630,19 +1716,6 @@ select:not(.property-input):focus {
   font-size: 0.9rem;
   font-weight: 400;
   color: var(--text);
-}
-
-.project-timestamp {
-  font-size: 0.7rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.project-save-status {
-  font-size: 0.7rem;
-  color: var(--muted);
-  min-width: 120px;
-  text-align: right;
 }
 
 .name-input-group {
