@@ -3,7 +3,7 @@
   "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": null,
+  "selectedResource": "item-1772329322378-hri4mt",
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -31,11 +31,11 @@
       "iconSrc": "/icons/azure/ai%20+%20machine%20learning/03337-icon-service-Bonsai.svg",
       "category": "ai + machine learning",
       "isContainer": false,
-      "parentId": "item-1772329371766-pm2i4i",
+      "parentId": "item-1772481628652-qof4c1",
       "width": 360,
       "height": 240,
-      "x": 40,
-      "y": 110
+      "x": 18,
+      "y": 6
     },
     {
       "id": "item-1772329330636-pn76fz",
@@ -84,21 +84,24 @@
       "category": "networking",
       "isContainer": true,
       "parentId": "item-1772329330636-pn76fz",
-      "width": 660.8695652173913,
-      "height": 166.08695652173915,
+      "width": 295.86956521739125,
+      "height": 168.08695652173915,
       "x": 30,
+      "y": 60
+    },
+    {
+      "id": "item-1772481628652-qof4c1",
+      "name": "Resource 8",
+      "resourceType": "Subnet",
+      "iconSrc": "/icons/azure/networking/02742-icon-service-Subnet.svg",
+      "category": "networking",
+      "isContainer": true,
+      "parentId": "item-1772329371766-pm2i4i",
+      "width": 291,
+      "height": 168,
+      "x": 10,
       "y": 60
     }
   ],
-  "canvasConnections": [
-    {
-      "id": "conn-1772329422164-gvm6qf",
-      "name": "Resource 7",
-      "fromId": "item-1772329322378-hri4mt",
-      "toId": "item-1772329386760-yrn3pj",
-      "direction": "one-way",
-      "sourceAnchor": "left",
-      "targetAnchor": "top"
-    }
-  ]
+  "canvasConnections": []
 }

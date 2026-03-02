@@ -728,11 +728,21 @@ function moveItemToParent(item, nextParentId) {
   item.y = world.y - parentWorld.y - CANVAS_CONTAINER.headerHeight - CANVAS_CONTAINER.padding;
 }
 
-function removeCanvasItemTree(itemId) {
-  const directChildren = getChildrenByParentId(itemId);
-  directChildren.forEach((child) => removeCanvasItemTree(child.id));
+function removeCanvasItem(itemId) {
+  const item = getItemById(itemId);
+  if (!item) {
+    return;
+  }
 
-  state.canvasItems = state.canvasItems.filter((item) => item.id !== itemId);
+  const directChildren = getChildrenByParentId(itemId);
+  directChildren.forEach((child) => {
+    const childWorld = getItemWorldPosition(child.id);
+    child.parentId = null;
+    child.x = childWorld.x;
+    child.y = childWorld.y;
+  });
+
+  state.canvasItems = state.canvasItems.filter((candidate) => candidate.id !== itemId);
   state.canvasConnections = state.canvasConnections.filter((connection) => connection.fromId !== itemId && connection.toId !== itemId);
 
   if (state.selectedResource === itemId) {
@@ -1622,7 +1632,7 @@ function initializeCanvasInteractions() {
     event.preventDefault();
     event.stopPropagation();
 
-    removeCanvasItemTree(removeEl.dataset.itemId);
+    removeCanvasItem(removeEl.dataset.itemId);
     renderCanvasItems();
     updateCanvasStatus();
     persistCanvasLocal();
@@ -1913,7 +1923,7 @@ propertyContentEl?.addEventListener("click", (event) => {
     }
 
     if (resourceActionEl.dataset.resourceAction === "remove") {
-      removeCanvasItemTree(selectedItem.id);
+      removeCanvasItem(selectedItem.id);
       state.selectedResource = null;
       updatePropertyPanelForSelection();
       renderCanvasItems();
