@@ -220,20 +220,61 @@ body {
   justify-content: flex-start;
 }
 
+#btn-validate {
+  background: rgba(22, 163, 74, 0.18);
+  color: #4ade80;
+  border-color: #16a34a;
+}
+
+#btn-validate:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+#btn-project-save {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+  border-color: #3b82f6;
+}
+
+#btn-project-save:hover {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
 #btn-export-diagram {
-  color: var(--accent);
-  border-color: var(--accent);
+  background: rgba(147, 51, 234, 0.18);
+  color: #c084fc;
+  border-color: #9333ea;
 }
 
 #btn-export-diagram:hover {
-  background: var(--accent);
+  background: #9333ea;
   color: #ffffff;
 }
 
 #btn-gen-bicep,
-#btn-gen-terraform,
-#btn-project-settings {
+#btn-gen-terraform {
+  background: var(--selection-bg);
   color: var(--accent);
+  border-color: var(--accent);
+}
+
+#btn-gen-bicep:hover,
+#btn-gen-terraform:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+#btn-project-settings {
+  background: rgba(249, 115, 22, 0.18);
+  color: #fb923c;
+  border-color: #f97316;
+}
+
+#btn-project-settings:hover {
+  background: #f97316;
+  color: #ffffff;
 }
 
 #btn-back-projects {
