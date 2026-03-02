@@ -3,12 +3,12 @@
   "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1772329322378-hri4mt",
-  "searchTerm": "subnet",
+  "selectedResource": null,
+  "searchTerm": "network",
   "canvasView": {
-    "x": -149.09090909090912,
-    "y": 46.54545454545456,
-    "zoom": 1.1500000000000001
+    "x": 0,
+    "y": 0,
+    "zoom": 1
   },
   "canvasItems": [
     {
@@ -19,6 +19,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": "item-1772329386760-yrn3pj",
+      "width": 360,
+      "height": 240,
       "x": 8,
       "y": 6
     },
@@ -30,6 +32,8 @@
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": "item-1772329371766-pm2i4i",
+      "width": 360,
+      "height": 240,
       "x": 40,
       "y": 110
     },
@@ -86,5 +90,15 @@
       "y": 60
     }
   ],
-  "canvasConnections": []
+  "canvasConnections": [
+    {
+      "id": "conn-1772329422164-gvm6qf",
+      "name": "Resource 7",
+      "fromId": "item-1772329322378-hri4mt",
+      "toId": "item-1772329386760-yrn3pj",
+      "direction": "one-way",
+      "sourceAnchor": "left",
+      "targetAnchor": "top"
+    }
+  ]
 }

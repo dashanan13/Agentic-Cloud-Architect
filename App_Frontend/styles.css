@@ -1260,8 +1260,6 @@ select.property-input {
   color: #b0b0b0; /* Light grey for empty state messages */
   font-size: 0.85rem;
 }
-  font-size: 0.875rem;
-}
 
 /* === Create Project Column === */
 .project-create-form {
@@ -1657,7 +1655,6 @@ select:not(.property-input):focus {
   border-color: #3a3a3a;
   color: #ffffff;
   display: none; /* Hidden by default - only shows when has error/success/info class */
-}
 }
 
 .form-message__line + .form-message__line {
