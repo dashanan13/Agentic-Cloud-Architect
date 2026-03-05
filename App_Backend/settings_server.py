@@ -16,6 +16,10 @@ from Agents.AzureAIFoundry.foundry_bootstrap import (
     ensure_default_agent_and_thread,
     ensure_project_thread_for_project,
 )
+from Agents.AzureAIFoundry.foundry_messages import (
+    post_project_created_message,
+    post_project_deleted_message,
+)
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -1171,6 +1175,15 @@ def save_project_snapshot(body: ProjectSavePayload):
                 project_settings,
             )
 
+        if is_create_request and foundry_thread_id:
+            post_project_created_message(
+                app_settings,
+                thread_id=foundry_thread_id,
+                project_name=body.project.name,
+                project_id=body.project.id,
+                created_at=datetime.utcnow(),
+            )
+
         metadata_path.write_text(
             json.dumps(metadata_payload, indent=2),
             encoding="utf-8",
@@ -1320,6 +1333,26 @@ def delete_project_snapshot(project_id: str):
         raise HTTPException(status_code=404, detail="Project not found")
 
     try:
+        project_settings = load_project_settings_file(entry["projectDir"])
+        metadata = read_json_file(entry["metadataPath"], {})
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        thread_id = str(
+            project_settings.get("projectThreadId")
+            or metadata.get("foundryThreadId")
+            or ""
+        ).strip()
+
+        if thread_id:
+            post_project_deleted_message(
+                load_app_settings(),
+                thread_id=thread_id,
+                project_name=str(metadata.get("name") or entry["name"]),
+                project_id=entry["id"],
+                deleted_at=datetime.utcnow(),
+            )
+
         shutil.rmtree(entry["projectDir"])
         return {"ok": True}
     except Exception as exc:
