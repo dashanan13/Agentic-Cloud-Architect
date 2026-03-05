@@ -76,6 +76,36 @@
                   </div>
                   <small id="intro-name-hint" class="name-hint">Select cloud to lock prefix.</small>
                 </div>
+                <div class="form-group">
+                  <label for="intro-app-description">Describe the application you want to design</label>
+                  <textarea id="intro-app-description" placeholder="Describe the application you want to design" aria-label="Application description"></textarea>
+                  <div class="project-guidance">
+                    <p class="project-guidance-intro">Briefly describe what your application does, who will use it, and its main functionality.</p>
+                    <p class="project-guidance-intro">A good description includes:</p>
+                    <ol class="project-guidance-list">
+                      <li>What type of application are you building?</li>
+                      <li>Who will use it and how many users do you expect?</li>
+                      <li>What main components will it include (web app, API, database, etc.)?</li>
+                      <li>What type of data will it store?</li>
+                      <li>Any special requirements (high availability, global users, sensitive data)?</li>
+                    </ol>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="intro-app-type">Application type / use case</label>
+                  <small class="name-hint">What type of application is this?</small>
+                  <select id="intro-app-type" aria-label="Application type or use case">
+                    <option value="">Select application type...</option>
+                    <option value="Web Application">Web Application</option>
+                    <option value="API / Backend Service">API / Backend Service</option>
+                    <option value="Microservices Platform">Microservices Platform</option>
+                    <option value="Data Processing / Analytics">Data Processing / Analytics</option>
+                    <option value="AI / ML Application">AI / ML Application</option>
+                    <option value="Internal Enterprise System">Internal Enterprise System</option>
+                    <option value="IoT System">IoT System</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
                 <button type="button" class="btn btn--primary btn--block" id="btn-intro-create">Create Project</button>
                 <div id="create-project-message" class="form-message" aria-live="polite"></div>
               </form>

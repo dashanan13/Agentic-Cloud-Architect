@@ -1266,8 +1266,10 @@ select.property-input {
 
 .intro-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .intro-column {
@@ -1457,6 +1459,37 @@ select.property-input {
   margin-bottom: 8px; /* Extra spacing after Cloud Provider dropdown */
 }
 
+#intro-app-description {
+  min-height: 128px;
+  resize: vertical;
+}
+
+.project-guidance {
+  border: 1px solid #3a3a3a;
+  background: #2a2a2a;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.project-guidance-intro {
+  margin: 0;
+  color: #d4d4d4;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.project-guidance-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #bdbdbd;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  display: grid;
+  gap: 4px;
+}
+
 .btn--block {
   width: 100%;
 }
@@ -1572,7 +1605,8 @@ label {
 
 input[type="text"]:not(.property-input),
 input[type="password"]:not(.property-input),
-select:not(.property-input) {
+select:not(.property-input),
+textarea:not(.property-input):not(.chat-input) {
   padding: 8px 12px; /* Increased padding for larger inputs */
   border: 1px solid var(--input-border);
   border-radius: 6px;
@@ -1587,12 +1621,15 @@ select:not(.property-input) {
 #screen-projects input[type="text"]:not(.property-input),
 #screen-projects input[type="password"]:not(.property-input),
 #screen-projects select:not(.property-input),
+#screen-projects textarea:not(.property-input):not(.chat-input),
 #screen-settings input[type="text"]:not(.property-input),
 #screen-settings input[type="password"]:not(.property-input),
 #screen-settings select:not(.property-input),
+#screen-settings textarea:not(.property-input):not(.chat-input),
 #screen-project-settings input[type="text"]:not(.property-input),
 #screen-project-settings input[type="password"]:not(.property-input),
-#screen-project-settings select:not(.property-input) {
+#screen-project-settings select:not(.property-input),
+#screen-project-settings textarea:not(.property-input):not(.chat-input) {
   background: #ffffff;
   color: #000000;
   border: 1px solid #cccccc;
@@ -1600,7 +1637,8 @@ select:not(.property-input) {
 
 input[type="text"]:not(.property-input):focus,
 input[type="password"]:not(.property-input):focus,
-select:not(.property-input):focus {
+select:not(.property-input):focus,
+textarea:not(.property-input):not(.chat-input):focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);

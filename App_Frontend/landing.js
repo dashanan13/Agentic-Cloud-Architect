@@ -1,6 +1,8 @@
 // ===== UI Element References =====
 const introCloudSelect = document.getElementById("intro-cloud");
 const introNameInput = document.getElementById("intro-name");
+const introAppDescriptionInput = document.getElementById("intro-app-description");
+const introAppTypeSelect = document.getElementById("intro-app-type");
 const introPrefix = document.getElementById("intro-prefix");
 const introNameHint = document.getElementById("intro-name-hint");
 const createProjectMessage = document.getElementById("create-project-message");
@@ -204,6 +206,8 @@ function openSettings({ section = "app", mode = "app-only" } = {}) {
 
 async function createProject() {
   const cloud = introCloudSelect.value;
+  const applicationDescription = String(introAppDescriptionInput?.value || "").trim();
+  const applicationType = String(introAppTypeSelect?.value || "").trim();
 
   if (!cloud) {
     setCreateMessage("Please select a cloud provider.", "error");
@@ -223,6 +227,8 @@ async function createProject() {
     id: `${cloud.toLowerCase()}-${Date.now()}`,
     name,
     cloud,
+    applicationDescription,
+    applicationType,
     lastSaved: Date.now()
   };
 
@@ -249,6 +255,12 @@ async function createProject() {
     await loadProjects();
     setCreateMessage("");
     introNameInput.value = "";
+    if (introAppDescriptionInput) {
+      introAppDescriptionInput.value = "";
+    }
+    if (introAppTypeSelect) {
+      introAppTypeSelect.value = "";
+    }
     introCloudSelect.value = "";
     updateNameControlsForCloud("");
     renderProjectsList();

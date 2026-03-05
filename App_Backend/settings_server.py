@@ -55,6 +55,8 @@ class ProjectMeta(BaseModel):
     id: str
     name: str
     cloud: str
+    applicationType: str | None = None
+    applicationDescription: str | None = None
     lastSaved: int | None = None
 
 
@@ -868,6 +870,8 @@ def save_project_snapshot(body: ProjectSavePayload):
             "id": body.project.id,
             "name": body.project.name,
             "cloud": body.project.cloud,
+            "applicationType": str(body.project.applicationType or "").strip(),
+            "applicationDescription": str(body.project.applicationDescription or "").strip(),
             "lastSaved": int(body.project.lastSaved) if isinstance(body.project.lastSaved, (int, float)) else 0,
         }
 
@@ -971,6 +975,8 @@ def get_project_snapshot(project_id: str):
             "id": entry["id"],
             "name": str(metadata.get("name") or entry["name"]),
             "cloud": str(metadata.get("cloud") or entry["cloud"]),
+            "applicationType": str(metadata.get("applicationType") or ""),
+            "applicationDescription": str(metadata.get("applicationDescription") or ""),
             "lastSaved": int(entry["lastSaved"]),
         },
         "canvasState": canvas_state,
