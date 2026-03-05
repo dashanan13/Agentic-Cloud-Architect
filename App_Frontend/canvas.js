@@ -1143,7 +1143,7 @@ function buildRemoveControl(itemId) {
   removeButton.dataset.itemId = itemId;
   removeButton.setAttribute("aria-label", "Remove resource");
   removeButton.title = "Remove";
-  removeButton.textContent = "Remove";
+  removeButton.textContent = "×";
 
   return removeButton;
 }
