@@ -19,6 +19,8 @@ const ollamaBaseUrlStatus = document.getElementById("as-ollama-base-url-status")
 const foundryCodingSelect = document.getElementById("as-foundry-model-coding");
 const foundryReasoningSelect = document.getElementById("as-foundry-model-reasoning");
 const foundryFastSelect = document.getElementById("as-foundry-model-fast");
+const foundryDefaultAgentInput = document.getElementById("as-foundry-app-agent");
+const foundryDefaultThreadInput = document.getElementById("as-foundry-app-thread");
 const ollamaCodingSelect = document.getElementById("as-ollama-model-coding");
 const ollamaReasoningSelect = document.getElementById("as-ollama-model-reasoning");
 const ollamaFastSelect = document.getElementById("as-ollama-model-fast");
@@ -37,6 +39,8 @@ const DEFAULT_APP_SETTINGS = {
   foundryModelCoding: "",
   foundryModelReasoning: "",
   foundryModelFast: "",
+  foundryDefaultAgentId: "",
+  foundryDefaultThreadId: "",
   ollamaModelPathCoding: "",
   ollamaModelPathReasoning: "",
   ollamaModelPathFast: ""
@@ -341,6 +345,18 @@ async function loadAppSettings() {
   };
 }
 
+async function bootstrapFoundryDefaultsOnLoad() {
+  try {
+    await fetch("/api/foundry/bootstrap-default", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  } catch {
+  }
+}
+
 async function loadProjectDetails(projectId) {
   const response = await fetch(`/api/project/${encodeURIComponent(projectId)}`, { cache: "no-store" });
   if (!response.ok) {
@@ -396,6 +412,12 @@ function populateAppSettings() {
   document.getElementById("as-ai-foundry-project-name").value = appSettings.aiFoundryProjectName;
   document.getElementById("as-ai-foundry-endpoint").value = appSettings.aiFoundryEndpoint;
   document.getElementById("as-ollama-base-url").value = appSettings.ollamaBaseUrl;
+  if (foundryDefaultAgentInput) {
+    foundryDefaultAgentInput.value = String(appSettings.foundryDefaultAgentId || "");
+  }
+  if (foundryDefaultThreadInput) {
+    foundryDefaultThreadInput.value = String(appSettings.foundryDefaultThreadId || "");
+  }
 
   setFoundryModelOptions([], {
     coding: appSettings.foundryModelCoding,
@@ -514,6 +536,8 @@ function collectAppSettings() {
     aiFoundryProjectName: document.getElementById("as-ai-foundry-project-name").value.trim(),
     aiFoundryEndpoint: document.getElementById("as-ai-foundry-endpoint").value.trim(),
     foundryApiVersion: String(state.appSettings.foundryApiVersion || "").trim(),
+    foundryDefaultAgentId: String(state.appSettings.foundryDefaultAgentId || "").trim(),
+    foundryDefaultThreadId: String(state.appSettings.foundryDefaultThreadId || "").trim(),
     ollamaBaseUrl: document.getElementById("as-ollama-base-url").value.trim(),
     foundryModelCoding: document.getElementById("as-foundry-model-coding").value.trim(),
     foundryModelReasoning: document.getElementById("as-foundry-model-reasoning").value.trim(),
@@ -623,14 +647,26 @@ async function handleSave() {
       body: JSON.stringify({ settings })
     });
 
+    const payload = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      throw new Error("Unable to write application settings file.");
+      throw new Error(payload?.detail || "Unable to write application settings file.");
+    }
+
+    const bootstrap = payload?.foundryBootstrap || {};
+    const updatedSettings = { ...settings };
+    if (bootstrap.agentId) {
+      updatedSettings.foundryDefaultAgentId = String(bootstrap.agentId || "").trim();
+    }
+    if (bootstrap.threadId) {
+      updatedSettings.foundryDefaultThreadId = String(bootstrap.threadId || "").trim();
     }
 
     state.appSettings = {
       ...DEFAULT_APP_SETTINGS,
-      ...settings
+      ...updatedSettings
     };
+    populateAppSettings();
 
     setMessage("settings saved!", "success");
   } catch (error) {
@@ -687,6 +723,7 @@ async function initialize() {
   }
 
   try {
+    await bootstrapFoundryDefaultsOnLoad();
     await loadAppSettings();
   } catch (error) {
     state.appSettings = { ...DEFAULT_APP_SETTINGS };

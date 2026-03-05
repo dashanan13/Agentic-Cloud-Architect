@@ -10,6 +10,12 @@ from urllib import parse as urllib_parse
 from urllib import request as urllib_request
 from azure.identity import ClientSecretCredential
 from azure.ai.projects import AIProjectClient
+from Agents.AzureAIFoundry.foundry_bootstrap import (
+    FoundryConfigurationError,
+    FoundryRequestError,
+    ensure_default_agent_and_thread,
+    ensure_project_thread_for_project,
+)
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,6 +43,8 @@ DEFAULT_APP_SETTINGS = {
     "foundryModelCoding": "",
     "foundryModelReasoning": "",
     "foundryModelFast": "",
+    "foundryDefaultAgentId": "",
+    "foundryDefaultThreadId": "",
     "ollamaModelPathCoding": "",
     "ollamaModelPathReasoning": "",
     "ollamaModelPathFast": "",
@@ -57,6 +65,7 @@ class ProjectMeta(BaseModel):
     cloud: str
     applicationType: str | None = None
     applicationDescription: str | None = None
+    foundryThreadId: str | None = None
     lastSaved: int | None = None
 
 
@@ -349,6 +358,8 @@ def build_persistable_app_settings(settings: dict) -> dict:
             "foundryModelCoding",
             "foundryModelReasoning",
             "foundryModelFast",
+            "foundryDefaultAgentId",
+            "foundryDefaultThreadId",
         )
     else:
         keys = (
@@ -363,6 +374,116 @@ def build_persistable_app_settings(settings: dict) -> dict:
         )
 
     return {key: sanitized.get(key, "") for key in keys}
+
+
+def is_azure_foundry_provider(settings: dict) -> bool:
+    return str(settings.get("modelProvider") or "ollama-local").strip().lower() == "azure-foundry"
+
+
+def write_app_settings_file(settings: dict) -> Path:
+    APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
+    target = APP_STATE_DIR / "app.settings.env"
+    persistable = build_persistable_app_settings(settings)
+    target.write_text(to_env_lines(persistable), encoding="utf-8")
+    return target
+
+
+def bootstrap_default_foundry_resources(settings: dict) -> dict:
+    if not is_azure_foundry_provider(settings):
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "provider-not-azure-foundry",
+        }
+
+    known_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    known_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
+
+    try:
+        result = ensure_default_agent_and_thread(
+            settings,
+            known_agent_id=known_agent_id,
+            known_thread_id=known_thread_id,
+        )
+    except FoundryConfigurationError as exc:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "configuration-incomplete",
+            "detail": str(exc),
+        }
+    except FoundryRequestError as exc:
+        return {
+            "ok": False,
+            "skipped": False,
+            "reason": "request-failed",
+            "statusCode": exc.status_code,
+            "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
+        }
+
+    settings_patch = result.settings_patch
+    changed = False
+    for key, value in settings_patch.items():
+        if str(settings.get(key) or "") != str(value or ""):
+            changed = True
+            settings[key] = value
+
+    return {
+        "ok": True,
+        "skipped": False,
+        "agentId": result.agent_id,
+        "threadId": result.thread_id,
+        "createdAgent": result.created_agent,
+        "createdThread": result.created_thread,
+        "settingsUpdated": changed,
+    }
+
+
+def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_id: str | None = None) -> dict:
+    if not is_azure_foundry_provider(settings):
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "provider-not-azure-foundry",
+        }
+
+    safe_project_id = str(project_id or "").strip()
+    if not safe_project_id:
+        return {
+            "ok": False,
+            "skipped": False,
+            "reason": "project-id-missing",
+            "detail": "project_id is required",
+        }
+
+    try:
+        thread_result = ensure_project_thread_for_project(
+            settings,
+            project_id=safe_project_id,
+            known_thread_id=known_thread_id,
+        )
+    except FoundryConfigurationError as exc:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "configuration-incomplete",
+            "detail": str(exc),
+        }
+    except FoundryRequestError as exc:
+        return {
+            "ok": False,
+            "skipped": False,
+            "reason": "request-failed",
+            "statusCode": exc.status_code,
+            "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
+        }
+
+    return {
+        "ok": True,
+        "skipped": False,
+        "threadId": thread_result.thread_id,
+        "created": thread_result.created,
+    }
 
 
 def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
@@ -774,11 +895,23 @@ def ensure_project_structure(project_dir: Path) -> None:
 @app.post("/api/settings/app")
 def save_app_settings(body: AppSettingsPayload):
     try:
-        APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
-        target = APP_STATE_DIR / "app.settings.env"
-        persistable = build_persistable_app_settings(body.settings)
-        target.write_text(to_env_lines(persistable), encoding="utf-8")
-        return {"ok": True, "path": str(target.relative_to(WORKSPACE_ROOT))}
+        incoming_settings = body.settings if isinstance(body.settings, dict) else {}
+        effective_settings = {
+            **DEFAULT_APP_SETTINGS,
+            **incoming_settings,
+        }
+
+        target = write_app_settings_file(effective_settings)
+        bootstrap_result = bootstrap_default_foundry_resources(effective_settings)
+
+        if bootstrap_result.get("settingsUpdated"):
+            target = write_app_settings_file(effective_settings)
+
+        return {
+            "ok": True,
+            "path": str(target.relative_to(WORKSPACE_ROOT)),
+            "foundryBootstrap": bootstrap_result,
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to save app settings: {exc}") from exc
 
@@ -790,6 +923,29 @@ def get_app_settings():
         "settings": load_app_settings(),
         "path": str(target.relative_to(WORKSPACE_ROOT)) if target.exists() else None,
     }
+
+
+@app.post("/api/foundry/bootstrap-default")
+def bootstrap_foundry_defaults():
+    try:
+        settings = load_app_settings()
+        result = bootstrap_default_foundry_resources(settings)
+
+        path = None
+        if result.get("settingsUpdated"):
+            target = write_app_settings_file(settings)
+            path = str(target.relative_to(WORKSPACE_ROOT))
+        else:
+            target = APP_STATE_DIR / "app.settings.env"
+            if target.exists():
+                path = str(target.relative_to(WORKSPACE_ROOT))
+
+        return {
+            **result,
+            "path": path,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to bootstrap Foundry defaults: {exc}") from exc
 
 
 @app.get("/api/settings/app/model")
@@ -862,9 +1018,31 @@ def save_project_snapshot(body: ProjectSavePayload):
     try:
         project_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         architecture_dir = project_dir / "Architecture"
+        metadata_path = architecture_dir / "project.metadata.json"
 
         ensure_project_structure(project_dir)
         architecture_dir.mkdir(parents=True, exist_ok=True)
+
+        existing_metadata = read_json_file(metadata_path, {})
+        if not isinstance(existing_metadata, dict):
+            existing_metadata = {}
+
+        known_foundry_thread_id = str(
+            body.project.foundryThreadId
+            or existing_metadata.get("foundryThreadId")
+            or ""
+        ).strip() or None
+
+        app_settings = load_app_settings()
+        foundry_thread_result = ensure_project_foundry_thread(
+            app_settings,
+            project_id=body.project.id,
+            known_thread_id=known_foundry_thread_id,
+        )
+
+        foundry_thread_id = known_foundry_thread_id
+        if foundry_thread_result.get("threadId"):
+            foundry_thread_id = str(foundry_thread_result["threadId"]).strip() or foundry_thread_id
 
         metadata_payload = {
             "id": body.project.id,
@@ -875,7 +1053,10 @@ def save_project_snapshot(body: ProjectSavePayload):
             "lastSaved": int(body.project.lastSaved) if isinstance(body.project.lastSaved, (int, float)) else 0,
         }
 
-        (architecture_dir / "project.metadata.json").write_text(
+        if foundry_thread_id:
+            metadata_payload["foundryThreadId"] = foundry_thread_id
+
+        metadata_path.write_text(
             json.dumps(metadata_payload, indent=2),
             encoding="utf-8",
         )
@@ -888,8 +1069,9 @@ def save_project_snapshot(body: ProjectSavePayload):
         return {
             "ok": True,
             "projectPath": str(project_dir.relative_to(WORKSPACE_ROOT)),
+            "foundryThread": foundry_thread_result,
             "files": [
-                str((architecture_dir / "project.metadata.json").relative_to(WORKSPACE_ROOT)),
+                str(metadata_path.relative_to(WORKSPACE_ROOT)),
                 str((architecture_dir / "canvas.state.json").relative_to(WORKSPACE_ROOT)),
             ],
         }
@@ -977,6 +1159,7 @@ def get_project_snapshot(project_id: str):
             "cloud": str(metadata.get("cloud") or entry["cloud"]),
             "applicationType": str(metadata.get("applicationType") or ""),
             "applicationDescription": str(metadata.get("applicationDescription") or ""),
+            "foundryThreadId": str(metadata.get("foundryThreadId") or ""),
             "lastSaved": int(entry["lastSaved"]),
         },
         "canvasState": canvas_state,

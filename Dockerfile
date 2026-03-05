@@ -6,6 +6,7 @@ COPY App_Backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY App_Backend/settings_server.py ./settings_server.py
+COPY Agents ./Agents
 COPY App_Frontend ./App_Frontend
 COPY Clouds ./Clouds
 COPY Projects/Default /workspace/Projects/Default

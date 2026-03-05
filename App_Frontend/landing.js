@@ -154,6 +154,18 @@ async function loadProjects() {
   state.projects = projects.map(sanitizeProject).filter(Boolean);
 }
 
+async function bootstrapFoundryDefaultsOnLoad() {
+  try {
+    await fetch("/api/foundry/bootstrap-default", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  } catch {
+  }
+}
+
 // ===== Project List Rendering =====
 function renderProjectsList() {
   document.getElementById("projects-azure").innerHTML = "";
@@ -438,6 +450,8 @@ introNameInput.addEventListener("input", () => {
 
 // ===== Initialization =====
 async function initialize() {
+  await bootstrapFoundryDefaultsOnLoad();
+
   try {
     await loadProjects();
     renderProjectsList();
