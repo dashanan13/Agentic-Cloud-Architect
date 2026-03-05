@@ -2,6 +2,7 @@ const btnBack = document.getElementById("btn-project-settings-back");
 const btnSave = document.getElementById("btn-project-settings-save");
 const messageEl = document.getElementById("project-settings-message");
 const githubRepoUrlInput = document.getElementById("ps-github-repo-url");
+const projectThreadInput = document.getElementById("ps-project-thread");
 const contextEl = document.getElementById("project-settings-context");
 const headingEl = document.getElementById("project-settings-heading");
 
@@ -9,7 +10,8 @@ const state = {
   projectId: "",
   project: null,
   settings: {
-    githubRepoUrl: ""
+    githubRepoUrl: "",
+    projectThreadId: ""
   }
 };
 
@@ -64,13 +66,18 @@ async function loadProjectSettings(projectId) {
   const payload = await response.json();
   const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
   state.settings = {
-    githubRepoUrl: String(incoming.githubRepoUrl || "").trim()
+    githubRepoUrl: String(incoming.githubRepoUrl || "").trim(),
+    projectThreadId: String(incoming.projectThreadId || incoming.foundryThreadId || "").trim()
   };
 }
 
 function populateForm() {
   if (githubRepoUrlInput) {
     githubRepoUrlInput.value = state.settings.githubRepoUrl;
+  }
+
+  if (projectThreadInput) {
+    projectThreadInput.value = state.settings.projectThreadId;
   }
 
   const projectName = String(state.project?.name || "").trim();
@@ -86,7 +93,8 @@ function populateForm() {
 
 function collectSettings() {
   return {
-    githubRepoUrl: String(githubRepoUrlInput?.value || "").trim()
+    githubRepoUrl: String(githubRepoUrlInput?.value || "").trim(),
+    projectThreadId: String(projectThreadInput?.value || "").trim()
   };
 }
 

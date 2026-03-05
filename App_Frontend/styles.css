@@ -1719,6 +1719,7 @@ label {
 
 input[type="text"]:not(.property-input),
 input[type="password"]:not(.property-input),
+input[type="url"]:not(.property-input),
 select:not(.property-input),
 textarea:not(.property-input):not(.chat-input) {
   padding: 8px 12px; /* Increased padding for larger inputs */
@@ -1734,14 +1735,17 @@ textarea:not(.property-input):not(.chat-input) {
 /* White inputs for settings and landing screens */
 #screen-projects input[type="text"]:not(.property-input),
 #screen-projects input[type="password"]:not(.property-input),
+#screen-projects input[type="url"]:not(.property-input),
 #screen-projects select:not(.property-input),
 #screen-projects textarea:not(.property-input):not(.chat-input),
 #screen-settings input[type="text"]:not(.property-input),
 #screen-settings input[type="password"]:not(.property-input),
+#screen-settings input[type="url"]:not(.property-input),
 #screen-settings select:not(.property-input),
 #screen-settings textarea:not(.property-input):not(.chat-input),
 #screen-project-settings input[type="text"]:not(.property-input),
 #screen-project-settings input[type="password"]:not(.property-input),
+#screen-project-settings input[type="url"]:not(.property-input),
 #screen-project-settings select:not(.property-input),
 #screen-project-settings textarea:not(.property-input):not(.chat-input) {
   background: #ffffff;
@@ -2083,6 +2087,22 @@ textarea:not(.property-input):not(.chat-input):focus {
   width: min(620px, 100%);
 }
 
+.settings-form .form-group {
+  width: 100%;
+}
+
+.settings-form .input-row {
+  width: 100%;
+}
+
+.settings-form input[type="text"]:not(.property-input),
+.settings-form input[type="password"]:not(.property-input),
+.settings-form input[type="url"]:not(.property-input),
+.settings-form select:not(.property-input),
+.settings-form textarea:not(.property-input):not(.chat-input) {
+  width: 100%;
+}
+
 .settings-section {
   border: 1px solid #3a3a3a;
   border-radius: 8px;
@@ -2113,6 +2133,22 @@ textarea:not(.property-input):not(.chat-input):focus {
   background: var(--panel);
   border-color: var(--border);
   cursor: not-allowed;
+}
+
+.screen--project-settings .form-group--spaced {
+  margin-bottom: 8px;
+}
+
+.screen--project-settings .settings-footer {
+  padding-bottom: 20px;
+}
+
+.screen--project-settings .settings-actions {
+  justify-content: stretch;
+}
+
+.screen--project-settings .settings-actions .btn {
+  width: 100%;
 }
 
 .settings-footer {

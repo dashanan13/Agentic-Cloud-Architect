@@ -289,6 +289,7 @@ async function createProject() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+        create: true,
         project,
         canvasState: {
           canvasView: { x: 0, y: 0, zoom: 1 },

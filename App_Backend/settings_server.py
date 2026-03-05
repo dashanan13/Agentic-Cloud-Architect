@@ -77,6 +77,7 @@ class ProjectSettingsPayload(BaseModel):
 class ProjectSavePayload(BaseModel):
     project: ProjectMeta
     canvasState: dict = {}
+    create: bool | None = None
 
 
 class DiagramExportPayload(BaseModel):
@@ -235,6 +236,55 @@ def parse_env_file(path: Path) -> dict:
         payload[snake_to_camel(key.strip())] = value.strip()
 
     return payload
+
+
+def load_project_settings_file(project_dir: Path) -> dict:
+    target = project_dir / "project.settings.env"
+    settings = parse_env_file(target)
+    return settings if isinstance(settings, dict) else {}
+
+
+def merge_project_settings(existing: dict, incoming: dict) -> dict:
+    existing = existing if isinstance(existing, dict) else {}
+    incoming = incoming if isinstance(incoming, dict) else {}
+    merged = {**existing, **incoming}
+
+    existing_thread = str(existing.get("projectThreadId") or "").strip()
+    incoming_thread = str(incoming.get("projectThreadId") or "").strip()
+    if incoming_thread:
+        merged["projectThreadId"] = incoming_thread
+    elif existing_thread:
+        merged["projectThreadId"] = existing_thread
+    else:
+        merged.pop("projectThreadId", None)
+
+    return merged
+
+
+def build_project_settings_payload(
+    project_id: str,
+    project_name: str,
+    project_cloud: str,
+    settings: dict,
+) -> dict:
+    payload = dict(settings or {})
+    payload["projectId"] = str(project_id or "").strip()
+    payload["projectName"] = str(project_name or "").strip()
+    payload["projectCloud"] = str(project_cloud or "").strip()
+    return payload
+
+
+def persist_project_settings(
+    project_dir: Path,
+    project_id: str,
+    project_name: str,
+    project_cloud: str,
+    settings: dict,
+) -> Path:
+    target = project_dir / "project.settings.env"
+    payload = build_project_settings_payload(project_id, project_name, project_cloud, settings)
+    target.write_text(to_env_lines(payload), encoding="utf-8")
+    return target
 
 
 def load_app_settings() -> dict:
@@ -983,18 +1033,23 @@ def verify_app_settings(body: VerifySettingsPayload):
 @app.post("/api/settings/project")
 def save_project_settings(body: ProjectSettingsPayload):
     try:
+        if not find_project_entry(body.project.id):
+            raise HTTPException(status_code=404, detail="Project not found")
+
         target_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         ensure_project_structure(target_dir)
 
-        payload = {
-            "project_id": body.project.id,
-            "project_name": body.project.name,
-            "project_cloud": body.project.cloud,
-            **body.settings,
-        }
+        existing_settings = load_project_settings_file(target_dir)
+        incoming_settings = body.settings if isinstance(body.settings, dict) else {}
+        merged_settings = merge_project_settings(existing_settings, incoming_settings)
 
-        target = target_dir / "project.settings.env"
-        target.write_text(to_env_lines(payload), encoding="utf-8")
+        target = persist_project_settings(
+            target_dir,
+            body.project.id,
+            body.project.name,
+            body.project.cloud,
+            merged_settings,
+        )
         return {"ok": True, "path": str(target.relative_to(WORKSPACE_ROOT))}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to save project settings: {exc}") from exc
@@ -1006,9 +1061,47 @@ def get_project_settings(project_id: str):
     if not entry:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    target = entry["projectDir"] / "project.settings.env"
+    project_dir = entry["projectDir"]
+    settings = load_project_settings_file(project_dir)
+
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    known_thread_id = str(
+        settings.get("projectThreadId")
+        or metadata.get("foundryThreadId")
+        or ""
+    ).strip() or None
+
+    thread_result = ensure_project_foundry_thread(
+        load_app_settings(),
+        project_id=entry["id"],
+        known_thread_id=known_thread_id,
+    )
+
+    resolved_thread_id = known_thread_id
+    if thread_result.get("threadId"):
+        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+
+    if resolved_thread_id:
+        if str(settings.get("projectThreadId") or "").strip() != resolved_thread_id:
+            settings = merge_project_settings(settings, {"projectThreadId": resolved_thread_id})
+            persist_project_settings(
+                project_dir,
+                entry["id"],
+                entry["name"],
+                entry["cloud"],
+                settings,
+            )
+
+        if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
+            metadata["foundryThreadId"] = resolved_thread_id
+            entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    target = project_dir / "project.settings.env"
     return {
-        "settings": parse_env_file(target),
+        "settings": settings,
         "path": str(target.relative_to(WORKSPACE_ROOT)) if target.exists() else None,
     }
 
@@ -1016,6 +1109,14 @@ def get_project_settings(project_id: str):
 @app.post("/api/project/save")
 def save_project_snapshot(body: ProjectSavePayload):
     try:
+        existing_entry = find_project_entry(body.project.id)
+        is_create_request = bool(body.create)
+        if not existing_entry and not is_create_request:
+            raise HTTPException(
+                status_code=409,
+                detail="Project does not exist. Create a project from the landing page first.",
+            )
+
         project_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         architecture_dir = project_dir / "Architecture"
         metadata_path = architecture_dir / "project.metadata.json"
@@ -1027,8 +1128,11 @@ def save_project_snapshot(body: ProjectSavePayload):
         if not isinstance(existing_metadata, dict):
             existing_metadata = {}
 
+        project_settings = load_project_settings_file(project_dir)
+
         known_foundry_thread_id = str(
-            body.project.foundryThreadId
+            project_settings.get("projectThreadId")
+            or body.project.foundryThreadId
             or existing_metadata.get("foundryThreadId")
             or ""
         ).strip() or None
@@ -1055,6 +1159,17 @@ def save_project_snapshot(body: ProjectSavePayload):
 
         if foundry_thread_id:
             metadata_payload["foundryThreadId"] = foundry_thread_id
+            project_settings = merge_project_settings(
+                project_settings,
+                {"projectThreadId": foundry_thread_id},
+            )
+            persist_project_settings(
+                project_dir,
+                body.project.id,
+                body.project.name,
+                body.project.cloud,
+                project_settings,
+            )
 
         metadata_path.write_text(
             json.dumps(metadata_payload, indent=2),
@@ -1152,6 +1267,38 @@ def get_project_snapshot(project_id: str):
     if not isinstance(canvas_state, dict):
         canvas_state = {}
 
+    project_settings = load_project_settings_file(entry["projectDir"])
+    known_thread_id = str(
+        project_settings.get("projectThreadId")
+        or metadata.get("foundryThreadId")
+        or ""
+    ).strip() or None
+
+    thread_result = ensure_project_foundry_thread(
+        load_app_settings(),
+        project_id=entry["id"],
+        known_thread_id=known_thread_id,
+    )
+
+    resolved_thread_id = known_thread_id
+    if thread_result.get("threadId"):
+        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+
+    if resolved_thread_id:
+        if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
+            project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
+            persist_project_settings(
+                entry["projectDir"],
+                entry["id"],
+                entry["name"],
+                entry["cloud"],
+                project_settings,
+            )
+
+        if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
+            metadata["foundryThreadId"] = resolved_thread_id
+            entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
     return {
         "project": {
             "id": entry["id"],
@@ -1159,7 +1306,7 @@ def get_project_snapshot(project_id: str):
             "cloud": str(metadata.get("cloud") or entry["cloud"]),
             "applicationType": str(metadata.get("applicationType") or ""),
             "applicationDescription": str(metadata.get("applicationDescription") or ""),
-            "foundryThreadId": str(metadata.get("foundryThreadId") or ""),
+            "foundryThreadId": str(resolved_thread_id or metadata.get("foundryThreadId") or ""),
             "lastSaved": int(entry["lastSaved"]),
         },
         "canvasState": canvas_state,

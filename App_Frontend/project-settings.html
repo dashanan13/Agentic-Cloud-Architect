@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="app" id="app">
-      <div class="screen is-active" id="screen-settings">
+      <div class="screen is-active screen--project-settings" id="screen-settings">
         <header class="topbar">
           <div class="topbar__left">
             <span class="project-label project-label--strong">Project Settings</span>
@@ -28,6 +28,10 @@
               <form id="project-settings-form" class="settings-form">
                 <section class="settings-section">
                   <h3 class="settings-section-title">Project Configuration</h3>
+                  <div class="form-group form-group--spaced">
+                    <label for="ps-project-thread">Project Thread</label>
+                    <input type="text" id="ps-project-thread" class="input-readonly" placeholder="Created on project load" readonly />
+                  </div>
                   <div class="form-group">
                     <label for="ps-github-repo-url">GITHUB_REPO_URL</label>
                     <input type="url" id="ps-github-repo-url" placeholder="https://github.com/org/repo" autocomplete="off" />

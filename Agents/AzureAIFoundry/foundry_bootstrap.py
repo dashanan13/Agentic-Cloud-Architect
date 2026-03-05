@@ -149,8 +149,10 @@ class FoundryBootstrapClient:
     def ensure_named_thread(self, thread_name: str | None, known_thread_id: str | None = None) -> ThreadResult:
         normalized_name = str(thread_name or "").strip()
 
-        if known_thread_id and self._thread_exists(known_thread_id):
-            return ThreadResult(thread_id=known_thread_id, created=False)
+        if known_thread_id:
+            exists = self._thread_exists(known_thread_id)
+            if exists is not False:
+                return ThreadResult(thread_id=known_thread_id, created=False)
 
         if normalized_name:
             existing_thread_id = self._find_thread_id_by_name(normalized_name)
@@ -307,7 +309,7 @@ class FoundryBootstrapClient:
             raise FoundryRequestError("Foundry assistant create response did not include id")
         return assistant_id
 
-    def _thread_exists(self, thread_id: str) -> bool:
+    def _thread_exists(self, thread_id: str) -> bool | None:
         safe_id = str(thread_id or "").strip()
         if not safe_id:
             return False
@@ -317,30 +319,36 @@ class FoundryBootstrapClient:
             return bool(str(payload.get("id") or "").strip())
         except FoundryRequestError as exc:
             if exc.status_code in {401, 403}:
-                return False
+                return None
             if exc.status_code in {400, 404}:
                 return self._thread_exists_in_list(safe_id)
             raise
 
-    def _thread_exists_in_list(self, thread_id: str) -> bool:
-        for thread in self._list_threads():
+    def _thread_exists_in_list(self, thread_id: str) -> bool | None:
+        threads = self._list_threads()
+        if threads is None:
+            return None
+        for thread in threads:
             if str(thread.get("id") or "").strip() == thread_id:
                 return True
         return False
 
-    def _list_threads(self) -> list[dict[str, Any]]:
+    def _list_threads(self) -> list[dict[str, Any]] | None:
         try:
             payload = self._request_json("GET", "/threads")
         except FoundryRequestError as exc:
             if exc.status_code in {404, 405}:
-                return []
+                return None
             raise
 
         items = payload.get("data") if isinstance(payload.get("data"), list) else []
         return [item for item in items if isinstance(item, dict)]
 
     def _find_thread_id_by_name(self, thread_name: str) -> str | None:
-        for thread in self._list_threads():
+        threads = self._list_threads()
+        if threads is None:
+            return None
+        for thread in threads:
             metadata = thread.get("metadata") if isinstance(thread.get("metadata"), dict) else {}
             candidates = {
                 str(thread.get("name") or "").strip(),
