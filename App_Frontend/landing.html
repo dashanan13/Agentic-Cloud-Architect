@@ -102,7 +102,32 @@
                   </div>
                   <div class="form-group">
                     <label for="intro-app-description">Describe the application you want to design</label>
-                    <textarea id="intro-app-description" placeholder="Describe the application you want to design" aria-label="Application description"></textarea>
+                    <div class="quality-meter" id="description-quality-meter" aria-live="polite">
+                      <div class="quality-bar">
+                        <div class="quality-bar__fill" id="description-quality-fill"></div>
+                        <div class="quality-bar__markers" aria-hidden="true">
+                          <span class="quality-bar__marker" data-level="0"></span>
+                          <span class="quality-bar__marker" data-level="1"></span>
+                          <span class="quality-bar__marker" data-level="2"></span>
+                          <span class="quality-bar__marker" data-level="3"></span>
+                          <span class="quality-bar__marker" data-level="4"></span>
+                          <span class="quality-bar__marker" data-level="5"></span>
+                        </div>
+                      </div>
+                      <div class="quality-labels">
+                        <span class="quality-label" data-level="0">Poor</span>
+                        <span class="quality-label" data-level="1">Minimal</span>
+                        <span class="quality-label" data-level="2">Adequate</span>
+                        <span class="quality-label" data-level="3">Informative</span>
+                        <span class="quality-label" data-level="4">Rich</span>
+                        <span class="quality-label" data-level="5">Perfect</span>
+                      </div>
+                    </div>
+                    <div class="quality-status" id="description-quality-status">Quality: Not evaluated</div>
+                    <div class="description-input-wrapper">
+                      <textarea id="intro-app-description" placeholder="Describe the application you want to design" aria-label="Application description"></textarea>
+                      <button type="button" class="ai-help-btn" id="btn-improve-description" title="Improve description with AI">AI</button>
+                    </div>
                     <div class="project-guidance">
                       <p class="project-guidance-intro">Briefly describe what your application does, who will use it, and its main functionality.</p>
                       <p class="project-guidance-intro">A good description includes:</p>

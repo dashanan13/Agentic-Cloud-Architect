@@ -1557,6 +1557,14 @@ select.property-input {
   gap: 28px; /* Increased gap between form elements for better spacing */
 }
 
+.project-create-form input[type="text"]:not(.property-input),
+.project-create-form input[type="password"]:not(.property-input),
+.project-create-form input[type="url"]:not(.property-input),
+.project-create-form select:not(.property-input),
+.project-create-form textarea:not(.property-input):not(.chat-input) {
+  width: 100%;
+}
+
 .project-create-form .form-group:first-child {
   margin-bottom: 8px; /* Extra spacing after Cloud Provider dropdown */
 }
@@ -1564,6 +1572,122 @@ select.property-input {
 #intro-app-description {
   min-height: 128px;
   resize: vertical;
+}
+
+.description-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.description-input-wrapper textarea {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.ai-help-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.ai-help-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #f9fafb;
+}
+
+.ai-help-btn:disabled,
+.ai-help-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quality-meter {
+  display: grid;
+  gap: 8px;
+}
+
+.quality-bar {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #dc2626 0%, #f97316 22%, #facc15 44%, #22c55e 66%, #14b8a6 82%, #06b6d4 100%);
+  border: 1px solid #3a3a3a;
+  overflow: hidden;
+}
+
+.quality-bar__fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.quality-bar__markers {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center;
+  padding: 0 4px;
+}
+
+.quality-bar__marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  justify-self: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.quality-bar__marker.is-active {
+  transform: scale(1.2);
+  background: #ffffff;
+}
+
+.quality-labels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  font-size: 0.7rem;
+  color: #b0b0b0;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.quality-label.is-active {
+  color: #ffffff;
+}
+
+.quality-status {
+  font-size: 0.75rem;
+  color: #b0b0b0;
+}
+
+.quality-status.is-error {
+  color: #fca5a5;
+}
+
+.quality-status.is-info {
+  color: #93c5fd;
 }
 
 .project-guidance {

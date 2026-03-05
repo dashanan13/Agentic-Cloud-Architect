@@ -7,6 +7,10 @@ const introAppTypeSelect = document.getElementById("intro-app-type");
 const introPrefix = document.getElementById("intro-prefix");
 const introNameHint = document.getElementById("intro-name-hint");
 const createProjectMessage = document.getElementById("create-project-message");
+const descriptionQualityMeter = document.getElementById("description-quality-meter");
+const descriptionQualityStatus = document.getElementById("description-quality-status");
+const descriptionQualityFill = document.getElementById("description-quality-fill");
+const btnImproveDescription = document.getElementById("btn-improve-description");
 const createProjectSectionEl = document.querySelector(".intro-column--create");
 const createProjectToggleBtn = document.getElementById("create-project-toggle");
 const createProjectContentEl = document.getElementById("create-project-content");
@@ -16,10 +20,21 @@ const cloudHeaders = Array.from(document.querySelectorAll(".cloud-header"));
 
 // ===== State =====
 const state = {
-  projects: []
+  projects: [],
+  descriptionQuality: {
+    index: 0,
+    level: "Poor",
+    status: "idle"
+  },
+  descriptionEvalToken: 0,
+  descriptionEvalTimer: null,
+  descriptionImproveToken: 0
 };
 
 const MAX_PROJECT_NAME_LENGTH = 50;
+const DESCRIPTION_LEVELS = ["Poor", "Minimal", "Adequate", "Informative", "Rich", "Perfect"];
+const MIN_DESCRIPTION_LEVEL_INDEX = 2;
+const DESCRIPTION_EVAL_DELAY_MS = 4000;
 
 // ===== Utility Functions =====
 function generateDefaultSuffix() {
@@ -123,6 +138,184 @@ function setCreateMessage(message, type = "") {
   createProjectMessage.classList.remove("is-error", "is-success");
   if (type) {
     createProjectMessage.classList.add(type === "error" ? "is-error" : "is-success");
+  }
+}
+
+function setQualityStatus(message, type = "") {
+  if (!descriptionQualityStatus) {
+    return;
+  }
+
+  descriptionQualityStatus.textContent = message;
+  descriptionQualityStatus.classList.remove("is-error", "is-info");
+  if (type === "error") {
+    descriptionQualityStatus.classList.add("is-error");
+  } else if (type === "info") {
+    descriptionQualityStatus.classList.add("is-info");
+  }
+}
+
+function updateQualityMeter(levelIndex) {
+  if (!descriptionQualityMeter) {
+    return;
+  }
+
+  const markers = Array.from(descriptionQualityMeter.querySelectorAll(".quality-bar__marker"));
+  const labels = Array.from(descriptionQualityMeter.querySelectorAll(".quality-label"));
+  const allItems = [...markers, ...labels];
+
+  allItems.forEach((item) => {
+    const itemLevel = Number(item.dataset.level);
+    const level = Number.isFinite(itemLevel) ? itemLevel : 0;
+    item.classList.toggle("is-active", level === levelIndex);
+  });
+
+  if (descriptionQualityFill) {
+    const maxIndex = Math.max(DESCRIPTION_LEVELS.length - 1, 1);
+    const percent = Math.round((levelIndex / maxIndex) * 100);
+    descriptionQualityFill.style.width = `${percent}%`;
+  }
+}
+
+function updateCreateButtonState() {
+  if (!btnIntroCreate) {
+    return;
+  }
+
+  const hasCloud = Boolean(introCloudSelect?.value);
+  const hasAppType = Boolean(introAppTypeSelect?.value);
+  const hasPrereqs = hasCloud && hasAppType;
+  const isAdequate = state.descriptionQuality.index >= MIN_DESCRIPTION_LEVEL_INDEX;
+  btnIntroCreate.hidden = !hasPrereqs;
+  btnIntroCreate.disabled = !hasPrereqs || !isAdequate;
+  btnIntroCreate.title = isAdequate
+    ? "Create Project"
+    : "Description must be Adequate or better";
+}
+
+function setDescriptionQuality(levelIndex, levelLabel, status = "idle", statusMessage = "") {
+  const safeIndex = Math.min(Math.max(Number(levelIndex) || 0, 0), DESCRIPTION_LEVELS.length - 1);
+  const label = levelLabel || DESCRIPTION_LEVELS[safeIndex];
+  state.descriptionQuality = {
+    index: safeIndex,
+    level: label,
+    status
+  };
+
+  updateQualityMeter(safeIndex);
+  if (statusMessage) {
+    setQualityStatus(statusMessage, status === "checking" ? "info" : status === "error" ? "error" : "");
+  } else {
+    setQualityStatus(`Quality: ${label}`);
+  }
+  updateCreateButtonState();
+}
+
+function scheduleDescriptionEvaluation() {
+  if (!introAppDescriptionInput) {
+    return;
+  }
+
+  const description = String(introAppDescriptionInput.value || "").trim();
+  if (state.descriptionEvalTimer) {
+    window.clearTimeout(state.descriptionEvalTimer);
+  }
+
+  if (!description) {
+    setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
+    return;
+  }
+
+  setQualityStatus("Quality: Evaluating...", "info");
+  state.descriptionEvalTimer = window.setTimeout(() => {
+    evaluateDescription(description).catch(() => {
+      setDescriptionQuality(0, "Poor", "error", "Quality check failed");
+    });
+  }, DESCRIPTION_EVAL_DELAY_MS);
+}
+
+async function evaluateDescription(description) {
+  const token = ++state.descriptionEvalToken;
+  const payload = {
+    description: String(description || "").trim(),
+    appType: String(introAppTypeSelect?.value || "").trim(),
+    cloud: String(introCloudSelect?.value || "").trim()
+  };
+
+  const response = await fetch("/api/description/evaluate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (token !== state.descriptionEvalToken) {
+    return;
+  }
+
+  if (!response.ok) {
+    throw new Error("Quality check failed");
+  }
+
+  const result = await response.json();
+  if (!result?.ok || result?.skipped) {
+    setDescriptionQuality(0, "Poor", "error", "Quality check unavailable");
+    return;
+  }
+
+  setDescriptionQuality(result.levelIndex, result.level, "idle", `Quality: ${result.level}`);
+}
+
+async function improveDescription() {
+  if (!introAppDescriptionInput || !btnImproveDescription) {
+    return;
+  }
+
+  const rawDescription = String(introAppDescriptionInput.value || "").trim();
+  if (!rawDescription) {
+    setCreateMessage("Add a description first.", "error");
+    return;
+  }
+
+  const token = ++state.descriptionImproveToken;
+  btnImproveDescription.disabled = true;
+  setQualityStatus("Improving description...", "info");
+
+  try {
+    const response = await fetch("/api/description/improve", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        description: rawDescription,
+        appType: String(introAppTypeSelect?.value || "").trim(),
+        cloud: String(introCloudSelect?.value || "").trim()
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to improve description.");
+    }
+
+    const payload = await response.json();
+    if (token !== state.descriptionImproveToken) {
+      return;
+    }
+
+    const improved = String(payload?.improved || "").trim();
+    if (!improved) {
+      throw new Error("AI did not return an improved description.");
+    }
+
+    introAppDescriptionInput.value = improved;
+    scheduleDescriptionEvaluation();
+  } catch (error) {
+    setQualityStatus("Quality: Improve failed", "error");
+    setCreateMessage(error.message || "Improve failed.", "error");
+  } finally {
+    btnImproveDescription.disabled = false;
   }
 }
 
@@ -262,6 +455,11 @@ async function createProject() {
     return;
   }
 
+  if (state.descriptionQuality.index < MIN_DESCRIPTION_LEVEL_INDEX) {
+    setCreateMessage("Description must be Adequate or better.", "error");
+    return;
+  }
+
   const suffix = introNameInput.value.trim();
   const maxSuffixLength = getMaxSuffixLength(cloud);
   if (suffix.length > maxSuffixLength) {
@@ -317,6 +515,8 @@ async function createProject() {
     }
     introCloudSelect.value = "";
     updateNameControlsForCloud("");
+    setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
+    updateCreateButtonState();
     renderProjectsList();
     openProject(project.id);
   } catch (error) {
@@ -428,6 +628,13 @@ introCloudSelect.addEventListener("change", () => {
     introNameInput.value = normalized.slice(getProjectPrefix(cloud).length);
   }
   updateProjectIdPreview();
+  scheduleDescriptionEvaluation();
+  updateCreateButtonState();
+});
+
+introAppTypeSelect.addEventListener("change", () => {
+  scheduleDescriptionEvaluation();
+  updateCreateButtonState();
 });
 
 introNameInput.addEventListener("input", () => {
@@ -449,6 +656,15 @@ introNameInput.addEventListener("input", () => {
   updateProjectIdPreview();
 });
 
+introAppDescriptionInput.addEventListener("input", () => {
+  setCreateMessage("");
+  scheduleDescriptionEvaluation();
+});
+
+btnImproveDescription?.addEventListener("click", async () => {
+  await improveDescription();
+});
+
 // ===== Initialization =====
 async function initialize() {
   await bootstrapFoundryDefaultsOnLoad();
@@ -465,6 +681,8 @@ async function initialize() {
 
   updateNameControlsForCloud(introCloudSelect.value);
   setCreateProjectExpanded(false);
+  setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
+  updateCreateButtonState();
 }
 
 initialize();

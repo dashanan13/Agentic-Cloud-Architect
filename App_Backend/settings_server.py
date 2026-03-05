@@ -16,6 +16,10 @@ from Agents.AzureAIFoundry.foundry_bootstrap import (
     ensure_default_agent_and_thread,
     ensure_project_thread_for_project,
 )
+from Agents.AzureAIFoundry.foundry_description import (
+    evaluate_description_with_architect,
+    improve_description_with_architect,
+)
 from Agents.AzureAIFoundry.foundry_messages import (
     post_project_created_message,
     post_project_deleted_message,
@@ -89,6 +93,18 @@ class DiagramExportPayload(BaseModel):
     projectName: str
     format: str
     imageData: str
+
+
+class DescriptionEvaluatePayload(BaseModel):
+    description: str
+    appType: str | None = None
+    cloud: str | None = None
+
+
+class DescriptionImprovePayload(BaseModel):
+    description: str
+    appType: str | None = None
+    cloud: str | None = None
 
 
 def read_json_file(path: Path, default):
@@ -1000,6 +1016,58 @@ def bootstrap_foundry_defaults():
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to bootstrap Foundry defaults: {exc}") from exc
+
+
+@app.post("/api/description/evaluate")
+def evaluate_description(body: DescriptionEvaluatePayload):
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    thread_id = str(settings.get("foundryDefaultThreadId") or "").strip()
+    if not agent_id or not thread_id:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "default-agent-or-thread-missing",
+        }
+
+    return evaluate_description_with_architect(
+        settings,
+        description=body.description,
+        assistant_id=agent_id,
+        thread_id=thread_id,
+        app_type=body.appType,
+        cloud=body.cloud,
+    )
+
+
+@app.post("/api/description/improve")
+def improve_description(body: DescriptionImprovePayload):
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    thread_id = str(settings.get("foundryDefaultThreadId") or "").strip()
+    if not agent_id or not thread_id:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "default-agent-or-thread-missing",
+        }
+
+    return improve_description_with_architect(
+        settings,
+        description=body.description,
+        assistant_id=agent_id,
+        thread_id=thread_id,
+        app_type=body.appType,
+        cloud=body.cloud,
+    )
 
 
 @app.get("/api/settings/app/model")
