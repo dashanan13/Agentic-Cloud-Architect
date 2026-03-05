@@ -341,7 +341,7 @@ def _build_improvement_prompt(description: str, app_type: str | None, cloud: str
 
     return (
         "Improve the project description so it is clear, structured, and at least Adequate.\n"
-        "Keep it to 2-4 sentences. Do not invent facts.\n"
+        "Do not invent facts. Preserve user-provided detail; do not shorten if it reduces quality.\n"
         f"{context}\n"
         "Original Description:\n"
         f"{description}\n"

@@ -1,2 +1,4 @@
 App_State/app.settings.env
-Projects/**/project.settings.env
+Projects/*
+!Projects/**/project.settings.env
+!Projects/Default

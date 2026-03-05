@@ -24,7 +24,8 @@ const state = {
   descriptionQuality: {
     index: 0,
     level: "Poor",
-    status: "idle"
+    status: "idle",
+    score: 0
   },
   descriptionEvalToken: 0,
   descriptionEvalTimer: null,
@@ -193,13 +194,15 @@ function updateCreateButtonState() {
     : "Description must be Adequate or better";
 }
 
-function setDescriptionQuality(levelIndex, levelLabel, status = "idle", statusMessage = "") {
+function setDescriptionQuality(levelIndex, levelLabel, status = "idle", statusMessage = "", score = 0) {
   const safeIndex = Math.min(Math.max(Number(levelIndex) || 0, 0), DESCRIPTION_LEVELS.length - 1);
   const label = levelLabel || DESCRIPTION_LEVELS[safeIndex];
+  const safeScore = Number.isFinite(Number(score)) ? Number(score) : 0;
   state.descriptionQuality = {
     index: safeIndex,
     level: label,
-    status
+    status,
+    score: safeScore
   };
 
   updateQualityMeter(safeIndex);
@@ -264,7 +267,7 @@ async function evaluateDescription(description) {
     return;
   }
 
-  setDescriptionQuality(result.levelIndex, result.level, "idle", `Quality: ${result.level}`);
+  setDescriptionQuality(result.levelIndex, result.level, "idle", `Quality: ${result.level}`, result.score);
 }
 
 async function improveDescription() {
@@ -477,6 +480,9 @@ async function createProject() {
     cloud,
     applicationDescription,
     applicationType,
+    applicationDescriptionQuality: state.descriptionQuality.level,
+    applicationDescriptionQualityIndex: state.descriptionQuality.index,
+    applicationDescriptionQualityScore: state.descriptionQuality.score,
     lastSaved: Date.now()
   };
 

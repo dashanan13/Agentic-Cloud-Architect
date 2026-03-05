@@ -9,6 +9,8 @@
   --selection-bg: rgba(59, 130, 246, 0.15);
   --input-bg: #0a0a0a;
   --input-border: #444444;
+  --form-label-gap: 8px;
+  --form-group-gap: 16px;
 
   --layout-left-default: 220px;
   --layout-left-min: 220px;
@@ -515,12 +517,12 @@ body {
 
 .canvas-description-form {
   display: grid;
-  gap: 8px;
+  gap: var(--form-group-gap);
 }
 
 .canvas-description-row {
   display: grid;
-  gap: 6px;
+  gap: var(--form-label-gap);
 }
 
 .canvas-description-label {
@@ -910,7 +912,7 @@ body {
 
 .property-form {
   display: grid;
-  gap: 8px;
+  gap: var(--form-group-gap);
   min-width: 0;
 }
 
@@ -918,7 +920,7 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  gap: 6px;
+  gap: var(--form-label-gap);
   min-width: 0;
 }
 
@@ -1554,7 +1556,7 @@ select.property-input {
 .project-create-form {
   display: flex;
   flex-direction: column;
-  gap: 28px; /* Increased gap between form elements for better spacing */
+  gap: var(--form-group-gap);
 }
 
 .project-create-form input[type="text"]:not(.property-input),
@@ -1570,7 +1572,12 @@ select.property-input {
 }
 
 #intro-app-description {
-  min-height: 128px;
+  min-height: 256px;
+  resize: vertical;
+}
+
+#ps-project-description {
+  min-height: 256px;
   resize: vertical;
 }
 
@@ -1832,7 +1839,7 @@ select.property-input {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Increased gap for better spacing between label and input */
+  gap: var(--form-label-gap);
 }
 
 label {
@@ -1889,14 +1896,14 @@ textarea:not(.property-input):not(.chat-input):focus {
 .input-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--form-label-gap);
 }
 
 .label-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: var(--form-label-gap);
+  margin-bottom: var(--form-label-gap);
 }
 
 .label-row label {
@@ -2206,7 +2213,7 @@ textarea:not(.property-input):not(.chat-input):focus {
 
 .settings-form {
   display: grid;
-  gap: 12px;
+  gap: var(--form-group-gap);
   grid-template-columns: 1fr;
   width: min(620px, 100%);
 }
@@ -2233,7 +2240,7 @@ textarea:not(.property-input):not(.chat-input):focus {
   padding: 12px;
   background: #2a2a2a;
   display: grid;
-  gap: 12px;
+  gap: var(--form-group-gap);
 }
 
 .settings-section-title {
@@ -2245,7 +2252,7 @@ textarea:not(.property-input):not(.chat-input):focus {
 
 .provider-fields {
   display: grid;
-  gap: 12px;
+  gap: var(--form-group-gap);
 }
 
 .provider-fields.is-hidden {

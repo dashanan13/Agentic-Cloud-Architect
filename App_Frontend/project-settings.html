@@ -37,6 +37,65 @@
                     <input type="url" id="ps-github-repo-url" placeholder="https://github.com/org/repo" autocomplete="off" />
                   </div>
                 </section>
+
+                <section class="settings-section">
+                  <h3 class="settings-section-title">Project Details</h3>
+                  <div class="form-group">
+                    <label for="ps-project-name">Project Name</label>
+                    <input type="text" id="ps-project-name" class="input-readonly" readonly />
+                  </div>
+                  <div class="form-group">
+                    <label for="ps-project-id">Project ID</label>
+                    <input type="text" id="ps-project-id" class="input-readonly" readonly />
+                  </div>
+                  <div class="form-group">
+                    <label for="ps-project-cloud">Project Cloud</label>
+                    <input type="text" id="ps-project-cloud" class="input-readonly" readonly />
+                  </div>
+                  <div class="form-group">
+                    <label for="ps-project-type">Application Type</label>
+                    <select id="ps-project-type" aria-label="Application type">
+                      <option value="">Select application type...</option>
+                      <option value="Web Application">Web Application</option>
+                      <option value="API / Backend Service">API / Backend Service</option>
+                      <option value="Microservices Platform">Microservices Platform</option>
+                      <option value="Data Processing / Analytics">Data Processing / Analytics</option>
+                      <option value="AI / ML Application">AI / ML Application</option>
+                      <option value="Internal Enterprise System">Internal Enterprise System</option>
+                      <option value="IoT System">IoT System</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="ps-project-description">Project Description</label>
+                    <div class="quality-meter" id="ps-description-quality-meter" aria-live="polite">
+                      <div class="quality-bar">
+                        <div class="quality-bar__fill" id="ps-description-quality-fill"></div>
+                        <div class="quality-bar__markers" aria-hidden="true">
+                          <span class="quality-bar__marker" data-level="0"></span>
+                          <span class="quality-bar__marker" data-level="1"></span>
+                          <span class="quality-bar__marker" data-level="2"></span>
+                          <span class="quality-bar__marker" data-level="3"></span>
+                          <span class="quality-bar__marker" data-level="4"></span>
+                          <span class="quality-bar__marker" data-level="5"></span>
+                        </div>
+                      </div>
+                      <div class="quality-labels">
+                        <span class="quality-label" data-level="0">Poor</span>
+                        <span class="quality-label" data-level="1">Minimal</span>
+                        <span class="quality-label" data-level="2">Adequate</span>
+                        <span class="quality-label" data-level="3">Informative</span>
+                        <span class="quality-label" data-level="4">Rich</span>
+                        <span class="quality-label" data-level="5">Perfect</span>
+                      </div>
+                    </div>
+                    <div class="quality-status" id="ps-description-quality-status">Quality: Not evaluated</div>
+                    <div class="description-input-wrapper">
+                      <textarea id="ps-project-description" placeholder="Describe this project" aria-label="Project description"></textarea>
+                      <button type="button" class="ai-help-btn" id="btn-ps-improve-description" title="Improve description with AI">AI</button>
+                    </div>
+                  </div>
+                </section>
               </form>
             </div>
 

@@ -73,6 +73,9 @@ class ProjectMeta(BaseModel):
     cloud: str
     applicationType: str | None = None
     applicationDescription: str | None = None
+    applicationDescriptionQuality: str | None = None
+    applicationDescriptionQualityIndex: int | None = None
+    applicationDescriptionQualityScore: int | None = None
     foundryThreadId: str | None = None
     lastSaved: int | None = None
 
@@ -102,6 +105,13 @@ class DescriptionEvaluatePayload(BaseModel):
 
 
 class DescriptionImprovePayload(BaseModel):
+    description: str
+    appType: str | None = None
+    cloud: str | None = None
+
+
+class ProjectDescriptionPayload(BaseModel):
+    projectId: str
     description: str
     appType: str | None = None
     cloud: str | None = None
@@ -1070,6 +1080,176 @@ def improve_description(body: DescriptionImprovePayload):
     )
 
 
+@app.post("/api/description/project/evaluate")
+def evaluate_project_description(body: ProjectDescriptionPayload):
+    entry = find_project_entry(body.projectId)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    if not agent_id:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "default-agent-missing",
+        }
+
+    project_dir = entry["projectDir"]
+    project_settings = load_project_settings_file(project_dir)
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    known_thread_id = str(
+        project_settings.get("projectThreadId")
+        or metadata.get("foundryThreadId")
+        or ""
+    ).strip() or None
+
+    thread_result = ensure_project_foundry_thread(
+        settings,
+        project_id=entry["id"],
+        known_thread_id=known_thread_id,
+    )
+
+    resolved_thread_id = known_thread_id
+    if thread_result.get("threadId"):
+        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+
+    if not resolved_thread_id:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "project-thread-missing",
+        }
+
+    if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
+        project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
+        persist_project_settings(
+            project_dir,
+            entry["id"],
+            entry["name"],
+            entry["cloud"],
+            project_settings,
+        )
+
+    if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
+        metadata["foundryThreadId"] = resolved_thread_id
+        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    result = evaluate_description_with_architect(
+        settings,
+        description=body.description,
+        assistant_id=agent_id,
+        thread_id=resolved_thread_id,
+        app_type=body.appType,
+        cloud=body.cloud,
+    )
+
+    if result.get("ok") and not result.get("skipped"):
+        project_settings = merge_project_settings(
+            project_settings,
+            {
+                "projectDescription": str(body.description or "").strip(),
+                "projectApplicationType": str(body.appType or "").strip(),
+                "projectDescriptionQuality": str(result.get("level") or "").strip(),
+                "projectDescriptionQualityIndex": str(result.get("levelIndex") or "").strip(),
+                "projectDescriptionQualityScore": str(result.get("score") or "").strip(),
+            },
+        )
+        persist_project_settings(
+            project_dir,
+            entry["id"],
+            entry["name"],
+            entry["cloud"],
+            project_settings,
+        )
+
+        metadata["applicationDescription"] = str(body.description or "").strip()
+        if body.appType:
+            metadata["applicationType"] = str(body.appType or "").strip()
+        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    return result
+
+
+@app.post("/api/description/project/improve")
+def improve_project_description(body: ProjectDescriptionPayload):
+    entry = find_project_entry(body.projectId)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    if not agent_id:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "default-agent-missing",
+        }
+
+    project_dir = entry["projectDir"]
+    project_settings = load_project_settings_file(project_dir)
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    known_thread_id = str(
+        project_settings.get("projectThreadId")
+        or metadata.get("foundryThreadId")
+        or ""
+    ).strip() or None
+
+    thread_result = ensure_project_foundry_thread(
+        settings,
+        project_id=entry["id"],
+        known_thread_id=known_thread_id,
+    )
+
+    resolved_thread_id = known_thread_id
+    if thread_result.get("threadId"):
+        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+
+    if not resolved_thread_id:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "project-thread-missing",
+        }
+
+    if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
+        project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
+        persist_project_settings(
+            project_dir,
+            entry["id"],
+            entry["name"],
+            entry["cloud"],
+            project_settings,
+        )
+
+    if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
+        metadata["foundryThreadId"] = resolved_thread_id
+        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    return improve_description_with_architect(
+        settings,
+        description=body.description,
+        assistant_id=agent_id,
+        thread_id=resolved_thread_id,
+        app_type=body.appType,
+        cloud=body.cloud,
+    )
+
+
 @app.get("/api/settings/app/model")
 def get_app_model(purpose: str = "chat", profile: str | None = None):
     settings = load_app_settings()
@@ -1114,6 +1294,20 @@ def save_project_settings(body: ProjectSettingsPayload):
         existing_settings = load_project_settings_file(target_dir)
         incoming_settings = body.settings if isinstance(body.settings, dict) else {}
         merged_settings = merge_project_settings(existing_settings, incoming_settings)
+
+        metadata_path = target_dir / "Architecture" / "project.metadata.json"
+        metadata = read_json_file(metadata_path, {})
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        description_text = str(merged_settings.get("projectDescription") or "").strip()
+        application_type = str(merged_settings.get("projectApplicationType") or "").strip()
+        if description_text:
+            metadata["applicationDescription"] = description_text
+        if application_type:
+            metadata["applicationType"] = application_type
+        if metadata:
+            metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
         target = persist_project_settings(
             target_dir,
@@ -1220,6 +1414,17 @@ def save_project_snapshot(body: ProjectSavePayload):
         if foundry_thread_result.get("threadId"):
             foundry_thread_id = str(foundry_thread_result["threadId"]).strip() or foundry_thread_id
 
+        project_settings = merge_project_settings(
+            project_settings,
+            {
+                "projectDescription": str(body.project.applicationDescription or "").strip(),
+                "projectApplicationType": str(body.project.applicationType or "").strip(),
+                "projectDescriptionQuality": str(body.project.applicationDescriptionQuality or "").strip(),
+                "projectDescriptionQualityIndex": str(body.project.applicationDescriptionQualityIndex or "").strip(),
+                "projectDescriptionQualityScore": str(body.project.applicationDescriptionQualityScore or "").strip(),
+            },
+        )
+
         metadata_payload = {
             "id": body.project.id,
             "name": body.project.name,
@@ -1235,6 +1440,14 @@ def save_project_snapshot(body: ProjectSavePayload):
                 project_settings,
                 {"projectThreadId": foundry_thread_id},
             )
+            persist_project_settings(
+                project_dir,
+                body.project.id,
+                body.project.name,
+                body.project.cloud,
+                project_settings,
+            )
+        else:
             persist_project_settings(
                 project_dir,
                 body.project.id,

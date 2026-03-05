@@ -21,13 +21,6 @@ const canvasLayerEl = document.getElementById("canvas-layer");
 const canvasZoomOutBtn = document.getElementById("canvas-zoom-out");
 const canvasZoomInBtn = document.getElementById("canvas-zoom-in");
 const canvasResetViewBtn = document.getElementById("canvas-reset-view");
-const canvasDescriptionToggleBtn = document.getElementById("canvas-description-toggle");
-const canvasDescriptionPanelEl = document.getElementById("canvas-description-panel");
-const canvasProjectIdInput = document.getElementById("canvas-project-id");
-const canvasApplicationTypeInput = document.getElementById("canvas-application-type");
-const canvasProjectDescriptionInput = document.getElementById("canvas-project-description");
-const canvasDescriptionSaveBtn = document.getElementById("canvas-description-save");
-const canvasDescriptionMessageEl = document.getElementById("canvas-description-message");
 const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
 const canvasStatusEl = document.getElementById("canvas-status");
 const canvasEdgesEl = document.getElementById("canvas-edges");
@@ -2026,14 +2019,6 @@ function initializeCanvasInteractions() {
     persistCanvasLocal();
   });
 
-  canvasDescriptionToggleBtn?.addEventListener("click", () => {
-    const expanded = canvasDescriptionToggleBtn.getAttribute("aria-expanded") === "true";
-    setDescriptionPanelExpanded(!expanded);
-  });
-
-  canvasDescriptionSaveBtn?.addEventListener("click", async () => {
-    await saveDescriptionDetails();
-  });
 }
 
 function setSaveStatus(message, isError = false) {
@@ -2045,69 +2030,6 @@ function setSaveStatus(message, isError = false) {
   projectSaveStatus.style.color = isError ? "#b91c1c" : "";
 }
 
-function setDescriptionMessage(message, isError = false) {
-  if (!canvasDescriptionMessageEl) {
-    return;
-  }
-
-  canvasDescriptionMessageEl.textContent = message;
-  canvasDescriptionMessageEl.classList.toggle("is-error", isError);
-}
-
-function setDescriptionPanelExpanded(expanded) {
-  if (!canvasDescriptionToggleBtn || !canvasDescriptionPanelEl) {
-    return;
-  }
-
-  canvasDescriptionToggleBtn.setAttribute("aria-expanded", String(expanded));
-  canvasDescriptionPanelEl.toggleAttribute("hidden", !expanded);
-}
-
-function syncDescriptionPanelFromProject() {
-  if (!state.currentProject) {
-    return;
-  }
-
-  if (canvasProjectIdInput) {
-    canvasProjectIdInput.value = String(state.currentProject.id || "");
-  }
-
-  if (canvasApplicationTypeInput) {
-    canvasApplicationTypeInput.value = String(state.currentProject.applicationType || "");
-  }
-
-  if (canvasProjectDescriptionInput) {
-    canvasProjectDescriptionInput.value = String(state.currentProject.applicationDescription || "");
-  }
-
-  setDescriptionMessage("");
-}
-
-async function saveDescriptionDetails() {
-  if (!state.currentProject) {
-    return;
-  }
-
-  state.currentProject.applicationType = String(canvasApplicationTypeInput?.value || "").trim();
-  state.currentProject.applicationDescription = String(canvasProjectDescriptionInput?.value || "").trim();
-  saveCurrentProject();
-
-  if (canvasDescriptionSaveBtn) {
-    canvasDescriptionSaveBtn.disabled = true;
-  }
-
-  try {
-    updateTimestamp();
-    await saveProjectFiles();
-    setDescriptionMessage("Description saved.");
-  } catch {
-    setDescriptionMessage("Save failed.", true);
-  } finally {
-    if (canvasDescriptionSaveBtn) {
-      canvasDescriptionSaveBtn.disabled = false;
-    }
-  }
-}
 
 function buildProjectSnapshot() {
   return {
@@ -2571,8 +2493,6 @@ async function initialize() {
 
   // Update UI with project info
   renderProjectName();
-  syncDescriptionPanelFromProject();
-  setDescriptionPanelExpanded(false);
   updateTimestamp();
 
   // Initialize layout

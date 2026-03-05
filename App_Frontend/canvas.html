@@ -59,33 +59,12 @@
                 <span id="canvas-zoom-label" class="canvas-zoom-label" aria-live="polite">100%</span>
                 <button id="canvas-zoom-in" class="btn btn--sm" type="button" aria-label="Zoom in" title="Zoom in canvas view">+</button>
                 <button id="canvas-reset-view" class="btn btn--sm" type="button" title="Reset zoom and center canvas">Reset Canvas</button>
-                <button id="canvas-description-toggle" class="btn btn--sm" type="button" aria-expanded="false" aria-controls="canvas-description-panel" title="View and edit project description details">Description</button>
               </div>
               <span class="project-save-status canvas-save-status" id="project-save-status" aria-live="polite"></span>
               <div class="canvas-status" id="canvas-status" aria-live="polite">
                 2 resources · 0 connections
               </div>
             </div>
-            <section id="canvas-description-panel" class="canvas-description-panel" hidden aria-label="Project description details">
-              <div class="canvas-description-form">
-                <label class="canvas-description-row" for="canvas-project-id">
-                  <span class="canvas-description-label">Project ID</span>
-                  <input id="canvas-project-id" class="property-input canvas-description-readonly" type="text" readonly aria-readonly="true" />
-                </label>
-                <label class="canvas-description-row" for="canvas-application-type">
-                  <span class="canvas-description-label">Application Type</span>
-                  <input id="canvas-application-type" class="property-input" type="text" maxlength="120" placeholder="Application type" />
-                </label>
-                <label class="canvas-description-row" for="canvas-project-description">
-                  <span class="canvas-description-label">Project Description</span>
-                  <textarea id="canvas-project-description" class="property-input canvas-description-textarea" rows="4" placeholder="Describe this project"></textarea>
-                </label>
-                <div class="canvas-description-actions">
-                  <button id="canvas-description-save" class="btn btn--primary btn--sm" type="button">Save</button>
-                  <span id="canvas-description-message" class="canvas-description-message" aria-live="polite"></span>
-                </div>
-              </div>
-            </section>
             <div class="canvas-viewport" id="canvas-viewport" aria-label="Architecture canvas" tabindex="0">
               <div class="canvas-grid" id="canvas-grid"></div>
               <svg class="canvas-edges" id="canvas-edges" aria-hidden="true"></svg>
