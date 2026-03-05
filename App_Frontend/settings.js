@@ -214,12 +214,35 @@ function setStatusIcons(provider, status = "idle") {
   applyStatusIcon(ollamaBaseUrlStatus, showOllama, status);
 }
 
-function resetVerification() {
+function getFoundrySelectedModels() {
+  return {
+    coding: String(foundryCodingSelect?.value || "").trim(),
+    reasoning: String(foundryReasoningSelect?.value || "").trim(),
+    fast: String(foundryFastSelect?.value || "").trim()
+  };
+}
+
+function getOllamaSelectedModels() {
+  return {
+    coding: String(ollamaCodingSelect?.value || "").trim(),
+    reasoning: String(ollamaReasoningSelect?.value || "").trim(),
+    fast: String(ollamaFastSelect?.value || "").trim()
+  };
+}
+
+function resetVerification({ preserveSelections = true } = {}) {
   state.isVerified = false;
   state.foundryModels = [];
   state.ollamaModels = [];
-  setFoundryModelOptions([], {});
-  setOllamaModelOptions([], {});
+
+  if (preserveSelections) {
+    setFoundryModelOptions([], getFoundrySelectedModels());
+    setOllamaModelOptions([], getOllamaSelectedModels());
+  } else {
+    setFoundryModelOptions([], {});
+    setOllamaModelOptions([], {});
+  }
+
   setFoundryModelLocked(true);
   setOllamaModelLocked(true);
   updateSaveButtonState();
@@ -374,10 +397,18 @@ function populateAppSettings() {
   document.getElementById("as-ai-foundry-endpoint").value = appSettings.aiFoundryEndpoint;
   document.getElementById("as-ollama-base-url").value = appSettings.ollamaBaseUrl;
 
-  setFoundryModelOptions([], {});
+  setFoundryModelOptions([], {
+    coding: appSettings.foundryModelCoding,
+    reasoning: appSettings.foundryModelReasoning,
+    fast: appSettings.foundryModelFast
+  });
   setFoundryModelLocked(true);
 
-  setOllamaModelOptions([], {});
+  setOllamaModelOptions([], {
+    coding: appSettings.ollamaModelPathCoding,
+    reasoning: appSettings.ollamaModelPathReasoning,
+    fast: appSettings.ollamaModelPathFast
+  });
   setOllamaModelLocked(true);
 
   updateProviderVisibility();
@@ -501,6 +532,7 @@ function collectProjectSettings() {
 
 async function handleVerify() {
   const settings = collectAppSettings();
+  resetVerification({ preserveSelections: false });
   setMessage("checking...", "info");
   setStatusIcons(settings.modelProvider, "idle");
 
@@ -537,7 +569,7 @@ async function handleVerify() {
     updateSaveButtonState();
     setMessage(payload?.message || "Verification succeeded.", "success", "Select models to enable Save.");
   } catch (error) {
-    resetVerification();
+    resetVerification({ preserveSelections: false });
     setStatusIcons(settings.modelProvider, "error");
     setMessage(error.message || "Verification failed.", "error");
   }
