@@ -57,58 +57,63 @@
 
             <!-- Right Column: Create Project -->
             <div class="intro-column intro-column--create" data-section="create">
-              <h2 class="column-title">Create Project</h2>
-              <form class="project-create-form">
-                <div class="form-group">
-                  <label for="intro-cloud">Cloud Provider</label>
-                  <select id="intro-cloud" aria-label="Cloud provider">
-                    <option value="">Select a cloud...</option>
-                    <option value="Azure">Azure</option>
-                    <option value="AWS">AWS</option>
-                    <option value="GCP">GCP</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="intro-name">Project Name</label>
-                  <div class="name-input-group">
-                    <span id="intro-prefix" class="name-prefix">&lt;Cloud&gt;-</span>
-                    <input type="text" id="intro-name" placeholder="project-name" aria-label="Project name suffix" maxlength="50" />
+              <button type="button" id="create-project-toggle" class="create-project-toggle" aria-expanded="false" aria-controls="create-project-content">
+                <span class="column-title column-title--compact">Create Project</span>
+                <span class="collapse-indicator">Expand</span>
+              </button>
+              <div id="create-project-content" class="create-project-content" hidden>
+                <form class="project-create-form">
+                  <div class="form-group">
+                    <label for="intro-cloud">Cloud Provider</label>
+                    <select id="intro-cloud" aria-label="Cloud provider">
+                      <option value="">Select a cloud...</option>
+                      <option value="Azure">Azure</option>
+                      <option value="AWS">AWS</option>
+                      <option value="GCP">GCP</option>
+                    </select>
                   </div>
-                  <small id="intro-name-hint" class="name-hint">Select cloud to lock prefix.</small>
-                </div>
-                <div class="form-group">
-                  <label for="intro-app-description">Describe the application you want to design</label>
-                  <textarea id="intro-app-description" placeholder="Describe the application you want to design" aria-label="Application description"></textarea>
-                  <div class="project-guidance">
-                    <p class="project-guidance-intro">Briefly describe what your application does, who will use it, and its main functionality.</p>
-                    <p class="project-guidance-intro">A good description includes:</p>
-                    <ol class="project-guidance-list">
-                      <li>What type of application are you building?</li>
-                      <li>Who will use it and how many users do you expect?</li>
-                      <li>What main components will it include (web app, API, database, etc.)?</li>
-                      <li>What type of data will it store?</li>
-                      <li>Any special requirements (high availability, global users, sensitive data)?</li>
-                    </ol>
+                  <div class="form-group">
+                    <label for="intro-app-type">Application type / use case</label>
+                    <small class="name-hint">What type of application is this?</small>
+                    <select id="intro-app-type" aria-label="Application type or use case">
+                      <option value="">Select application type...</option>
+                      <option value="Web Application">Web Application</option>
+                      <option value="API / Backend Service">API / Backend Service</option>
+                      <option value="Microservices Platform">Microservices Platform</option>
+                      <option value="Data Processing / Analytics">Data Processing / Analytics</option>
+                      <option value="AI / ML Application">AI / ML Application</option>
+                      <option value="Internal Enterprise System">Internal Enterprise System</option>
+                      <option value="IoT System">IoT System</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
-                </div>
-                <div class="form-group">
-                  <label for="intro-app-type">Application type / use case</label>
-                  <small class="name-hint">What type of application is this?</small>
-                  <select id="intro-app-type" aria-label="Application type or use case">
-                    <option value="">Select application type...</option>
-                    <option value="Web Application">Web Application</option>
-                    <option value="API / Backend Service">API / Backend Service</option>
-                    <option value="Microservices Platform">Microservices Platform</option>
-                    <option value="Data Processing / Analytics">Data Processing / Analytics</option>
-                    <option value="AI / ML Application">AI / ML Application</option>
-                    <option value="Internal Enterprise System">Internal Enterprise System</option>
-                    <option value="IoT System">IoT System</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <button type="button" class="btn btn--primary btn--block" id="btn-intro-create">Create Project</button>
-                <div id="create-project-message" class="form-message" aria-live="polite"></div>
-              </form>
+                  <div class="form-group">
+                    <label for="intro-name">Project Name</label>
+                    <div class="name-input-group">
+                      <span id="intro-prefix" class="name-prefix">&lt;Cloud&gt;-</span>
+                      <input type="text" id="intro-name" placeholder="project-name" aria-label="Project name suffix" maxlength="50" />
+                    </div>
+                    <small id="intro-name-hint" class="name-hint">Select cloud to lock prefix.</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="intro-app-description">Describe the application you want to design</label>
+                    <textarea id="intro-app-description" placeholder="Describe the application you want to design" aria-label="Application description"></textarea>
+                    <div class="project-guidance">
+                      <p class="project-guidance-intro">Briefly describe what your application does, who will use it, and its main functionality.</p>
+                      <p class="project-guidance-intro">A good description includes:</p>
+                      <ol class="project-guidance-list">
+                        <li>What type of application are you building?</li>
+                        <li>Who will use it and how many users do you expect?</li>
+                        <li>What main components will it include (web app, API, database, etc.)?</li>
+                        <li>What type of data will it store?</li>
+                        <li>Any special requirements (high availability, global users, sensitive data)?</li>
+                      </ol>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn--primary btn--block" id="btn-intro-create">Create Project</button>
+                  <div id="create-project-message" class="form-message" aria-live="polite"></div>
+                </form>
+              </div>
             </div>
           </div>
         </div>

@@ -6,6 +6,9 @@ const introAppTypeSelect = document.getElementById("intro-app-type");
 const introPrefix = document.getElementById("intro-prefix");
 const introNameHint = document.getElementById("intro-name-hint");
 const createProjectMessage = document.getElementById("create-project-message");
+const createProjectSectionEl = document.querySelector(".intro-column--create");
+const createProjectToggleBtn = document.getElementById("create-project-toggle");
+const createProjectContentEl = document.getElementById("create-project-content");
 const btnIntroCreate = document.getElementById("btn-intro-create");
 const btnAppSettings = document.getElementById("btn-app-settings");
 const cloudHeaders = Array.from(document.querySelectorAll(".cloud-header"));
@@ -319,9 +322,29 @@ function toggleCloudSection(cloud) {
   }
 }
 
+function setCreateProjectExpanded(expanded) {
+  if (!createProjectSectionEl || !createProjectToggleBtn || !createProjectContentEl) {
+    return;
+  }
+
+  createProjectSectionEl.classList.toggle("is-expanded", expanded);
+  createProjectToggleBtn.setAttribute("aria-expanded", String(expanded));
+  createProjectContentEl.toggleAttribute("hidden", !expanded);
+
+  const indicator = createProjectToggleBtn.querySelector(".collapse-indicator");
+  if (indicator) {
+    indicator.textContent = expanded ? "Collapse" : "Expand";
+  }
+}
+
 // ===== Event Listeners =====
 btnIntroCreate.addEventListener("click", async () => {
   await createProject();
+});
+
+createProjectToggleBtn?.addEventListener("click", () => {
+  const expanded = createProjectToggleBtn.getAttribute("aria-expanded") === "true";
+  setCreateProjectExpanded(!expanded);
 });
 
 cloudHeaders.forEach((header) => {
@@ -386,6 +409,7 @@ async function initialize() {
   }
 
   updateNameControlsForCloud(introCloudSelect.value);
+  setCreateProjectExpanded(false);
 }
 
 initialize();

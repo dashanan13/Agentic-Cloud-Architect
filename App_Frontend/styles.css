@@ -1449,6 +1449,49 @@ select.property-input {
 }
 
 /* === Create Project Column === */
+.intro-column--create {
+  padding: 0;
+  overflow: hidden;
+}
+
+.create-project-toggle {
+  width: 100%;
+  border: none;
+  background: #2a2a2a;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.create-project-toggle:hover {
+  background: #333333;
+}
+
+.create-project-toggle:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.column-title--compact {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.intro-column--create.is-expanded .create-project-toggle {
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.create-project-content {
+  padding: 24px;
+}
+
 .project-create-form {
   display: flex;
   flex-direction: column;
@@ -1506,6 +1549,18 @@ select.property-input {
 
   .intro-column {
     padding: 24px;
+  }
+
+  .intro-column--create {
+    padding: 0;
+  }
+
+  .create-project-toggle {
+    padding: 18px 20px;
+  }
+
+  .create-project-content {
+    padding: 20px;
   }
 }
 
