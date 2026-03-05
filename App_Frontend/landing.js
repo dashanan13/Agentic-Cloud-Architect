@@ -1,6 +1,7 @@
 // ===== UI Element References =====
 const introCloudSelect = document.getElementById("intro-cloud");
 const introNameInput = document.getElementById("intro-name");
+const introProjectIdInput = document.getElementById("intro-project-id");
 const introAppDescriptionInput = document.getElementById("intro-app-description");
 const introAppTypeSelect = document.getElementById("intro-app-type");
 const introPrefix = document.getElementById("intro-prefix");
@@ -35,6 +36,38 @@ function formatTimestamp(ms) {
 
 function getProjectPrefix(cloud) {
   return `${cloud}-`;
+}
+
+function generateTimestamp() {
+  const now = new Date();
+  const pad = (n, len = 2) => String(n).padStart(len, "0");
+  return (
+    now.getFullYear().toString() +
+    pad(now.getMonth() + 1) +
+    pad(now.getDate()) +
+    pad(now.getHours()) +
+    pad(now.getMinutes()) +
+    pad(now.getSeconds()) +
+    pad(now.getMilliseconds(), 3)
+  );
+}
+
+function generateProjectId(projectName) {
+  return `${projectName}-${generateTimestamp()}`;
+}
+
+function updateProjectIdPreview() {
+  if (!introProjectIdInput) {
+    return;
+  }
+  const cloud = introCloudSelect.value;
+  const suffix = introNameInput.value.trim();
+  if (!cloud || !suffix) {
+    introProjectIdInput.value = "";
+    return;
+  }
+  const fullName = normalizeProjectName(cloud, introNameInput.value);
+  introProjectIdInput.value = generateProjectId(fullName);
 }
 
 function getMaxSuffixLength(cloud) {
@@ -226,8 +259,10 @@ async function createProject() {
 
   const name = normalizeProjectName(cloud, introNameInput.value);
 
+  const projectId = introProjectIdInput?.value || generateProjectId(name);
+
   const project = {
-    id: `${cloud.toLowerCase()}-${Date.now()}`,
+    id: projectId,
     name,
     cloud,
     applicationDescription,
@@ -258,6 +293,9 @@ async function createProject() {
     await loadProjects();
     setCreateMessage("");
     introNameInput.value = "";
+    if (introProjectIdInput) {
+      introProjectIdInput.value = "";
+    }
     if (introAppDescriptionInput) {
       introAppDescriptionInput.value = "";
     }
@@ -365,17 +403,18 @@ introCloudSelect.addEventListener("change", () => {
   setCreateMessage("");
 
   if (!cloud) {
+    updateProjectIdPreview();
     return;
   }
 
   const rawValue = introNameInput.value.trim();
   if (!rawValue) {
     introNameInput.value = generateDefaultSuffix().slice(0, getMaxSuffixLength(cloud));
-    return;
+  } else {
+    const normalized = normalizeProjectName(cloud, rawValue);
+    introNameInput.value = normalized.slice(getProjectPrefix(cloud).length);
   }
-
-  const normalized = normalizeProjectName(cloud, rawValue);
-  introNameInput.value = normalized.slice(getProjectPrefix(cloud).length);
+  updateProjectIdPreview();
 });
 
 introNameInput.addEventListener("input", () => {
@@ -394,6 +433,7 @@ introNameInput.addEventListener("input", () => {
 
   const normalized = normalizeProjectName(cloud, introNameInput.value);
   introNameInput.value = normalized.slice(getProjectPrefix(cloud).length);
+  updateProjectIdPreview();
 });
 
 // ===== Initialization =====

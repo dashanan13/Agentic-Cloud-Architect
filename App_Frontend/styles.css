@@ -479,8 +479,8 @@ body {
 .canvas-shell {
   width: 100%;
   height: 100%;
-  display: grid;
-  grid-template-rows: 44px 1fr;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
@@ -492,6 +492,7 @@ body {
   gap: 8px;
   padding: 6px 10px;
   justify-content: flex-start;
+  flex: 0 0 auto;
 }
 
 .canvas-toolbar-left {
@@ -499,6 +500,63 @@ body {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.canvas-description-panel {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding: 10px;
+  flex: 0 0 auto;
+}
+
+.canvas-description-panel[hidden] {
+  display: none;
+}
+
+.canvas-description-form {
+  display: grid;
+  gap: 8px;
+}
+
+.canvas-description-row {
+  display: grid;
+  gap: 6px;
+}
+
+.canvas-description-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.03em;
+}
+
+.canvas-description-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.canvas-description-readonly {
+  color: var(--muted);
+  background: var(--panel);
+  cursor: not-allowed;
+}
+
+.canvas-description-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.canvas-description-message {
+  color: var(--muted);
+  font-size: 0.72rem;
+  min-height: 1em;
+}
+
+.canvas-description-message.is-error {
+  color: #b91c1c;
 }
 
 .canvas-status {
@@ -526,6 +584,7 @@ body {
 .canvas-viewport {
   position: relative;
   overflow: hidden;
+  flex: 1 1 auto;
   min-height: 0;
   cursor: grab;
   background: var(--panel);
@@ -1903,6 +1962,23 @@ textarea:not(.property-input):not(.chat-input):focus {
   margin-top: 6px;
   color: #b0b0b0; /* Light grey for hints */
   font-size: 0.875rem; /* Increased font size for better readability */
+}
+
+.project-id-preview {
+  width: 100%;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  color: #808080;
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: not-allowed;
+  user-select: all;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .form-message {
