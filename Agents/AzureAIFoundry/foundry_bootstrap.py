@@ -47,11 +47,11 @@ class FoundryConnectionSettings:
         client_secret = _first_non_empty(settings, "azureClientSecret", "foundryClientSecret")
         model_deployment = _first_non_empty(
             settings,
-            "foundryModelReasoning",
             "foundryModelFast",
+            "foundryModelReasoning",
             "foundryModelCoding",
-            "modelReasoning",
             "modelFast",
+            "modelReasoning",
             "modelCoding",
         )
         api_version = _first_non_empty(settings, "foundryApiVersion") or DEFAULT_FOUNDRY_API_VERSION
