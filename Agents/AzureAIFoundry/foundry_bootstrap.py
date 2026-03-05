@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+from pathlib import Path
 from typing import Any, Mapping
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
@@ -12,10 +13,7 @@ from azure.identity import ClientSecretCredential
 DEFAULT_AGENT_NAME = "architect-agent"
 DEFAULT_THREAD_NAME = "architect-thread"
 DEFAULT_FOUNDRY_API_VERSION = "2025-05-01"
-DEFAULT_AGENT_INSTRUCTIONS = (
-    "You are an enterprise cloud architecture assistant. "
-    "Use project context to improve and refine architecture descriptions."
-)
+DEFAULT_AGENT_DEFINITION_FILE = "architect"
 
 
 class FoundryConfigurationError(ValueError):
@@ -118,13 +116,20 @@ class FoundryBootstrapClient:
         self,
         default_agent_name: str = DEFAULT_AGENT_NAME,
         default_thread_name: str = DEFAULT_THREAD_NAME,
-        agent_instructions: str = DEFAULT_AGENT_INSTRUCTIONS,
+        agent_instructions: str | None = None,
         known_agent_id: str | None = None,
         known_thread_id: str | None = None,
     ) -> DefaultResourcesResult:
+        resolved_instructions = (
+            _load_agent_instructions()
+            if agent_instructions is None
+            else str(agent_instructions).strip()
+        )
+        if not resolved_instructions:
+            raise FoundryConfigurationError("Agent instructions are empty")
         agent_id, created_agent = self._ensure_agent(
             name=default_agent_name,
-            instructions=agent_instructions,
+            instructions=resolved_instructions,
             known_agent_id=known_agent_id,
         )
         thread_result = self.ensure_named_thread(default_thread_name, known_thread_id=known_thread_id)
@@ -385,6 +390,23 @@ def ensure_project_thread_for_project(
     connection = FoundryConnectionSettings.from_app_settings(app_settings)
     client = FoundryBootstrapClient(connection)
     return client.ensure_project_thread(project_id=project_id, known_thread_id=known_thread_id)
+
+
+def _load_agent_instructions(agent_definition: str = DEFAULT_AGENT_DEFINITION_FILE) -> str:
+    agent_key = str(agent_definition or "").strip()
+    if not agent_key:
+        raise FoundryConfigurationError("agent_definition is required")
+
+    agents_dir = Path(__file__).resolve().parents[1]
+    agent_path = agents_dir / agent_key
+    try:
+        content = agent_path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError as exc:
+        raise FoundryConfigurationError(f"Missing agent definition file: {agent_path}") from exc
+
+    if not content:
+        raise FoundryConfigurationError(f"Agent definition file is empty: {agent_path}")
+    return content
 
 
 def _first_non_empty(settings: Mapping[str, Any], *keys: str) -> str:
