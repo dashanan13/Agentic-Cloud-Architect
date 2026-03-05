@@ -147,7 +147,7 @@ function renderProjectsList() {
     actions.className = "project-item-actions";
 
     const openBtn = document.createElement("button");
-    openBtn.textContent = "↗";
+    openBtn.textContent = "Open";
     openBtn.title = "Open";
     openBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -156,7 +156,7 @@ function renderProjectsList() {
 
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete";
-    deleteBtn.textContent = "✕";
+    deleteBtn.textContent = "Delete";
     deleteBtn.title = "Delete";
     deleteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -279,22 +279,31 @@ async function deleteProject(projectId) {
 }
 
 // ===== Accordion Behavior =====
+function setCloudHeaderExpanded(header, expanded) {
+  if (!header) {
+    return;
+  }
+
+  header.classList.toggle("is-expanded", expanded);
+  const indicator = header.querySelector(".collapse-indicator");
+  if (indicator) {
+    indicator.textContent = expanded ? "Collapse" : "Expand";
+  }
+}
+
 function toggleCloudSection(cloud) {
   const header = document.querySelector(`.cloud-header[data-cloud="${cloud}"]`);
-  const isExpanded = header.classList.contains("is-expanded");
+  const isExpanded = header?.classList.contains("is-expanded");
   
   if (isExpanded) {
-    // Close if already expanded
-    header.classList.remove("is-expanded");
+    setCloudHeaderExpanded(header, false);
   } else {
-    // Close all other sections
     cloudHeaders.forEach((otherHeader) => {
       if (otherHeader !== header) {
-        otherHeader.classList.remove("is-expanded");
+        setCloudHeaderExpanded(otherHeader, false);
       }
     });
-    // Open this section
-    header.classList.add("is-expanded");
+    setCloudHeaderExpanded(header, true);
   }
 }
 

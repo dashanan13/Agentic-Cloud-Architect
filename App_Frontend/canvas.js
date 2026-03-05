@@ -802,13 +802,13 @@ async function loadCatalogForCloud(cloudName) {
 function updatePropertyPanel(resourceName) {
   if (!resourceName) {
     selectedResourceNameEl.textContent = "None selected";
-    propertyContentEl.textContent = "Select a resource or connection to edit properties.";
+    propertyContentEl.textContent = "Select a resource or connection to edit property details.";
     return;
   }
 
   selectedResourceNameEl.textContent = resourceName;
   propertyContentEl.innerHTML = [
-    "Properties",
+    "Property",
     "- Name",
     "- Region",
     "- SKU / Tier",
@@ -881,7 +881,7 @@ function updatePropertyPanelForSelection() {
   }
 
   selectedResourceNameEl.textContent = "None selected";
-  propertyContentEl.textContent = "Select a resource or connection to edit properties.";
+  propertyContentEl.textContent = "Select a resource or connection to edit property details.";
 }
 
 function createResourceRow(category, resource, iconRoot) {
@@ -963,7 +963,7 @@ function renderResources() {
 
     const heading = document.createElement("h4");
     heading.className = "resource-group-title";
-    heading.innerHTML = `<span class="resource-group-toggle">▼</span><span>${titleCase(category)}</span>`;
+    heading.innerHTML = `<span>${titleCase(category)}</span>`;
     
     const groupBody = document.createElement("div");
     groupBody.className = "resource-group-body";
@@ -1143,7 +1143,7 @@ function buildRemoveControl(itemId) {
   removeButton.dataset.itemId = itemId;
   removeButton.setAttribute("aria-label", "Remove resource");
   removeButton.title = "Remove";
-  removeButton.textContent = "×";
+  removeButton.textContent = "Remove";
 
   return removeButton;
 }

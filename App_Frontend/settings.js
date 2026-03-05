@@ -190,7 +190,7 @@ function setMessage(message, type = "", secondaryMessage = "") {
 
 function applyStatusIcon(iconElement, isActive, status) {
   iconElement.classList.remove("is-ok", "is-error");
-  iconElement.textContent = "✓";
+  iconElement.textContent = "";
 
   if (!isActive || status === "idle") {
     return;
@@ -198,12 +198,12 @@ function applyStatusIcon(iconElement, isActive, status) {
 
   if (status === "ok") {
     iconElement.classList.add("is-ok");
-    iconElement.textContent = "✓";
+    iconElement.textContent = "OK";
     return;
   }
 
   iconElement.classList.add("is-error");
-  iconElement.textContent = "✕";
+  iconElement.textContent = "Error";
 }
 
 function setStatusIcons(provider, status = "idle") {

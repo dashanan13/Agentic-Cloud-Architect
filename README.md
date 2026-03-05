@@ -21,7 +21,7 @@ Access at `http://localhost:3000`
 ## 🚀 Core Features
 
 * **Visual Architecture Canvas:** Drag-and-drop interface with support for container resources (Resource Groups, VNets, Subnets, Management Groups) that visually represent Azure's resource hierarchy.
-* **Architect Chat:** Integrated AI assistant powered by **Azure MCP Architecture Tool** that provides real-time architectural guidance, suggests best practices, and can even help design complete architectures that are then rendered on the canvas.
+* **AI Chat:** Integrated AI assistant powered by **Azure MCP Architecture Tool** that provides real-time architectural guidance, suggests best practices, and can even help design complete architectures that are then rendered on the canvas.
 * **Bicep MCP Integration:** Live integration with **Bicep MCP Server** to fetch resource schemas, validate properties, and ensure type-safe configuration before code generation.
 * **Live Schema Inspection:** Real-time property suggestions, constraints, and valid ranges for every Azure resource through **Azure MCP Servers**.
 * **Modular IaC Generation:** Generates one Bicep file per resource with a `main.bicep` orchestrator for cohesive, maintainable deployments.
@@ -37,7 +37,7 @@ A3 uses a sophisticated **Agent-to-Agent (A2A)** workflow built on the **Microso
 ### 🧩 1. The Architect Agent (The Guide)
 **Role:** Architectural Expertise & Discovery.
 
-**Responsibility:** An Azure architecture expert that uses the **Azure MCP Architecture Tool** to provide context-aware guidance. When you drop a Storage Account onto the canvas, it queries the resource hierarchy and suggests: "Would you like to add Blob Service or File Share? Should we configure Private Endpoints?" Available through the **Architect Chat** tab in the right panel, users can describe their needs in natural language, and the agent will design the architecture, which—upon user approval—is rendered directly onto the canvas with proper icons and relationships.
+**Responsibility:** An Azure architecture expert that uses the **Azure MCP Architecture Tool** to provide context-aware guidance. When you drop a Storage Account onto the canvas, it queries the resource hierarchy and suggests: "Would you like to add Blob Service or File Share? Should we configure Private Endpoints?" Available through the **AI Chat** tab in the right panel, users can describe their needs in natural language, and the agent will design the architecture, which—upon user approval—is rendered directly onto the canvas with proper relationships.
 
 **Tools Used:** Azure MCP Architecture Tool, Azure MCP Documentation
 
@@ -106,16 +106,16 @@ A clean, three-panel design with resizable splitters. The **Visual Canvas** is t
 +--------------------------------------------------------------------------------------------------+
 | [Cloud Provider ▼]                                                     [Project: Default-Name]    |
 +------------------------------+-----------------------------------------------+-------------------+
-| [Search resources...]        |                                               | [Properties] [💬 Chat] |
+| [Search resources...]        |                                               | [Property] [Tips] [AI Chat] |
 |------------------------------|                                               |-------------------|
-| 📦 Resource Groups           |                                               |                   |
-| 🌐 Virtual Networks          |                                               | Resource          |
-| 💾 Storage Accounts          |           VISUAL CANVAS                       | Properties        |
-| 🗄️  Databases                |                                               | (when selected)   |
-| ⚙️  App Services             |       (drag-and-drop design area)             |                   |
-| 🔐 Key Vaults                |                                               |        OR         |
-| 📊 Container Resources       |                                               |                   |
-|   • Management Groups        |                                               | Architect Chat    |
+| Resource Groups              |                                               |                   |
+| Virtual Networks             |                                               | Resource          |
+| Storage Accounts             |           VISUAL CANVAS                       | Property          |
+| Databases                    |                                               | (when selected)   |
+| App Services                 |       (drag-and-drop design area)             |                   |
+| Key Vaults                   |                                               |        OR         |
+| Container Resources          |                                               |                   |
+|   • Management Groups        |                                               | AI Chat           |
 |   • Subscriptions            |                                               | (AI assistant)    |
 |   • Resource Groups (visual) |                                               |                   |
 |   • VNets (containers)       |                                               |                   |
@@ -126,8 +126,9 @@ Resizable splitters:
 - Vertical: Resource List ↔ Canvas ↔ Right Panel
 
 Right Panel Tabs:
-- Properties: Schema-driven form for the selected resource with live validation
-- Architect Chat: Natural language interface to Azure architecture expert
+- Property: Schema-driven form for the selected resource with live validation
+- Tips: Quick guidance and recommendations for the current design
+- AI Chat: Natural language interface to Azure architecture expert
 ```
 
 ---
@@ -140,7 +141,7 @@ Right Panel Tabs:
 ├── App_Backend/
 ├── App_Frontend/
 │   ├── landing.html            # Landing page for selecting/creating projects (served at /)
-│   ├── canvas.html             # Main design workspace page (resource list, canvas, properties, bottom panes)
+│   ├── canvas.html             # Main design workspace page (resource list, canvas, property/tips/AI chat panes)
 │   ├── landing.js              # Landing page logic (project CRUD, localStorage, cloud accordion behavior)
 │   ├── canvas.js               # Canvas page logic (catalog rendering, splitters, tabs, project name editing)
 │   ├── styles.css              # Shared UI styles for both landing and canvas pages
@@ -296,7 +297,7 @@ Open `http://localhost:3000`
 - **Connect resources** to establish relationships (e.g., App Service → SQL Database)
 
 ### 2. Get Architectural Guidance
-- Click the **💬 Chat** tab in the right panel
+- Click the **AI Chat** tab in the right panel
 - Describe your architecture: *"I need a secure web app with a database"*
 - The Architect Agent suggests a complete architecture:
   - App Service with VNet integration
@@ -307,7 +308,7 @@ Open `http://localhost:3000`
 
 ### 3. Configure Resources
 - **Select a resource** on the canvas
-- The **Properties tab** shows a schema-driven form with:
+- The **Property tab** shows a schema-driven form with:
   - Required and optional fields
   - Valid values and constraints (from Bicep MCP)
   - Real-time validation
@@ -337,7 +338,7 @@ Open `http://localhost:3000`
 ### In Progress
 - [x] Visual canvas with drag-and-drop
 - [x] Resource catalog with Azure icons
-- [x] Architect Chat with Azure MCP integration
+- [x] AI Chat with Azure MCP integration
 - [x] Modular Bicep code generation
 - [x] Application settings for Azure AD and Foundry
 - [ ] Container resource visual representation
@@ -556,9 +557,10 @@ This phase focuses only on building the working web application.
 The UI must have:
 - Left Panel: Azure resource catalog
 - Center Panel: Drag-and-drop canvas
-- Right Panel: Tabbed interface with exactly two tabs:
-  - Properties
-  - Architect Chat
+- Right Panel: Tabbed interface with exactly three tabs:
+  - Property
+  - Tips
+  - AI Chat
 
 1.3 Canvas Capabilities
 The canvas must support:
