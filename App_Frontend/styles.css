@@ -1289,7 +1289,7 @@ select.property-input {
   background: #000000;
   display: flex !important;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 40px 20px;
   min-height: 100vh;
 }
