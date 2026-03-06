@@ -193,6 +193,57 @@ def find_project_entry(project_id: str):
     return None
 
 
+def list_iac_files(iac_dir: Path) -> list[dict]:
+    if not iac_dir.exists():
+        return []
+
+    files: list[dict] = []
+    for path in sorted(iac_dir.rglob("*")):
+        if not path.is_file():
+            continue
+
+        try:
+            rel = path.relative_to(iac_dir)
+        except ValueError:
+            continue
+
+        if any(part.startswith(".") for part in rel.parts):
+            continue
+
+        stat = path.stat()
+        files.append(
+            {
+                "path": rel.as_posix(),
+                "name": path.name,
+                "size": int(stat.st_size),
+                "updated": int(stat.st_mtime * 1000),
+            }
+        )
+
+    return files
+
+
+def resolve_iac_file(iac_dir: Path, relative_path: str) -> Path:
+    if not relative_path:
+        raise HTTPException(status_code=400, detail="File path is required")
+
+    requested = Path(str(relative_path))
+    if requested.is_absolute():
+        raise HTTPException(status_code=400, detail="Invalid file path")
+
+    iac_root = iac_dir.resolve()
+    target = (iac_dir / requested).resolve()
+    try:
+        target.relative_to(iac_root)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid file path") from exc
+
+    if not target.exists() or not target.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return target
+
+
 def sanitize_segment(value: str, fallback: str) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9._-]+", "-", value.strip())
     cleaned = cleaned.strip("-._")
@@ -1612,6 +1663,40 @@ def get_project_snapshot(project_id: str):
             "lastSaved": int(entry["lastSaved"]),
         },
         "canvasState": canvas_state,
+    }
+
+
+@app.get("/api/project/{project_id}/iac/files")
+def list_project_iac_files(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    iac_dir = entry["projectDir"] / "IaC"
+    files = list_iac_files(iac_dir)
+    return {
+        "root": str(iac_dir.relative_to(WORKSPACE_ROOT)),
+        "files": files,
+    }
+
+
+@app.get("/api/project/{project_id}/iac/file")
+def get_project_iac_file(project_id: str, path: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    iac_dir = entry["projectDir"] / "IaC"
+    target = resolve_iac_file(iac_dir, path)
+    try:
+        content = target.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        content = target.read_text(encoding="utf-8", errors="replace")
+
+    return {
+        "path": str(target.relative_to(iac_dir)),
+        "name": target.name,
+        "content": content,
     }
 
 

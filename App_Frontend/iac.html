@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic Cloud Architect - IaC</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <div class="screen is-active screen--iac" id="screen-iac">
+        <header class="topbar">
+          <div class="topbar__left">
+            <span class="project-label project-label--strong">IaC</span>
+            <span class="project-name-prefix-display" id="iac-project-context">(Project)</span>
+          </div>
+          <div class="topbar__right">
+            <button id="btn-iac-back" class="btn btn--sm" type="button">Back to Canvas</button>
+          </div>
+        </header>
+
+        <main class="iac-layout">
+          <section class="iac-status is-idle" id="iac-status" aria-live="polite">
+            <p class="iac-status__text" id="iac-status-text">IaC status: waiting</p>
+            <div class="iac-status__actions">
+              <button id="btn-iac-refresh" class="btn btn--secondary btn--sm" type="button">Refresh files</button>
+            </div>
+            <div class="iac-status__progress">
+              <div class="iac-progress">
+                <div class="iac-progress__track">
+                  <div class="iac-progress__fill" id="iac-progress-fill"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="iac-panels">
+            <div class="iac-panel iac-panel--files">
+              <div class="iac-panel__header">
+                <h2>IaC Files</h2>
+                <span class="iac-panel__meta" id="iac-file-count">0 files</span>
+              </div>
+              <div class="iac-file-list" id="iac-file-list" aria-label="IaC files"></div>
+            </div>
+
+            <div class="iac-panel iac-panel--viewer">
+              <div class="iac-panel__header">
+                <h2 id="iac-viewer-title">File Preview</h2>
+                <button id="btn-iac-copy" class="btn btn--secondary btn--sm" type="button" disabled>Copy</button>
+              </div>
+              <pre class="iac-file-content is-empty" id="iac-file-content">Select a file to view its contents.</pre>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script src="./iac.js"></script>
+  </body>
+</html>

@@ -2275,6 +2275,23 @@ btnProjectSettings?.addEventListener("click", () => {
   window.location.href = `./project-settings.html?${params.toString()}`;
 });
 
+btnGenerateCode?.addEventListener("click", async () => {
+  if (!state.currentProject) {
+    return;
+  }
+
+  try {
+    updateTimestamp();
+    await saveProjectFiles({ silent: true });
+  } catch {
+    // Continue navigation even if file save fails.
+  }
+
+  const params = new URLSearchParams();
+  params.set("projectId", state.currentProject.id);
+  window.location.href = `./iac.html?${params.toString()}`;
+});
+
 btnExportDiagram?.addEventListener("click", async (event) => {
   const format = event.shiftKey ? "jpeg" : "png";
   try {
