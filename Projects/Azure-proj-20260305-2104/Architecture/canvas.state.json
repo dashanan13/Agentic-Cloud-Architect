@@ -3,7 +3,7 @@
   "rightWidth": 320,
   "bottomHeight": 130,
   "bottomRightWidth": 220,
-  "selectedResource": "item-1772744961502-icbha3",
+  "selectedResource": null,
   "searchTerm": "",
   "canvasView": {
     "x": 0,
@@ -15,10 +15,14 @@
       "id": "item-1772744961502-icbha3",
       "name": "Resource 1",
       "resourceType": "Anomaly Detector",
+      "azureResourceType": "microsoft.storage/storageaccounts",
+      "resourceConfig": {},
       "iconSrc": "/icons/azure/ai%20+%20machine%20learning/00814-icon-service-Anomaly-Detector.svg",
       "category": "ai + machine learning",
       "isContainer": false,
       "parentId": null,
+      "width": 360,
+      "height": 240,
       "x": 340,
       "y": 120
     }
