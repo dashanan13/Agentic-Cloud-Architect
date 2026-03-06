@@ -4,6 +4,7 @@ const introNameInput = document.getElementById("intro-name");
 const introProjectIdInput = document.getElementById("intro-project-id");
 const introAppDescriptionInput = document.getElementById("intro-app-description");
 const introAppTypeSelect = document.getElementById("intro-app-type");
+const introIacLanguageInputs = Array.from(document.querySelectorAll('input[name="intro-iac-language"]'));
 const introPrefix = document.getElementById("intro-prefix");
 const introNameHint = document.getElementById("intro-name-hint");
 const createProjectMessage = document.getElementById("create-project-message");
@@ -36,6 +37,7 @@ const MAX_PROJECT_NAME_LENGTH = 50;
 const DESCRIPTION_LEVELS = ["Poor", "Minimal", "Adequate", "Informative", "Rich", "Perfect"];
 const MIN_DESCRIPTION_LEVEL_INDEX = 2;
 const DESCRIPTION_EVAL_DELAY_MS = 4000;
+const DEFAULT_IAC_LANGUAGE = "bicep";
 
 // ===== Utility Functions =====
 function generateDefaultSuffix() {
@@ -111,6 +113,32 @@ function normalizeProjectName(cloud, rawName) {
   suffix = suffix.slice(0, maxSuffixLength);
 
   return `${prefix}${suffix}`;
+}
+
+function getSelectedIacLanguage(inputs, fallback = DEFAULT_IAC_LANGUAGE) {
+  const selected = (inputs || []).find((input) => input.checked)?.value;
+  return String(selected || fallback).trim().toLowerCase() || fallback;
+}
+
+function setSelectedIacLanguage(inputs, value = DEFAULT_IAC_LANGUAGE) {
+  if (!inputs || !inputs.length) {
+    return;
+  }
+
+  const target = String(value || DEFAULT_IAC_LANGUAGE).trim().toLowerCase() || DEFAULT_IAC_LANGUAGE;
+  let matched = false;
+
+  inputs.forEach((input) => {
+    const normalized = String(input.value || "").trim().toLowerCase();
+    input.checked = normalized === target;
+    if (input.checked) {
+      matched = true;
+    }
+  });
+
+  if (!matched) {
+    inputs[0].checked = true;
+  }
 }
 
 function sanitizeProject(project) {
@@ -452,6 +480,7 @@ async function createProject() {
   const cloud = introCloudSelect.value;
   const applicationDescription = String(introAppDescriptionInput?.value || "").trim();
   const applicationType = String(introAppTypeSelect?.value || "").trim();
+  const iacLanguage = getSelectedIacLanguage(introIacLanguageInputs);
 
   if (!cloud) {
     setCreateMessage("Please select a cloud provider.", "error");
@@ -480,6 +509,7 @@ async function createProject() {
     cloud,
     applicationDescription,
     applicationType,
+    iacLanguage,
     applicationDescriptionQuality: state.descriptionQuality.level,
     applicationDescriptionQualityIndex: state.descriptionQuality.index,
     applicationDescriptionQualityScore: state.descriptionQuality.score,
@@ -519,6 +549,7 @@ async function createProject() {
     if (introAppTypeSelect) {
       introAppTypeSelect.value = "";
     }
+    setSelectedIacLanguage(introIacLanguageInputs, DEFAULT_IAC_LANGUAGE);
     introCloudSelect.value = "";
     updateNameControlsForCloud("");
     setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
@@ -686,6 +717,7 @@ async function initialize() {
   }
 
   updateNameControlsForCloud(introCloudSelect.value);
+  setSelectedIacLanguage(introIacLanguageInputs, DEFAULT_IAC_LANGUAGE);
   setCreateProjectExpanded(false);
   setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
   updateCreateButtonState();

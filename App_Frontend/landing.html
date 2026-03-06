@@ -88,6 +88,16 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label for="intro-iac-bicep">IaC script language</label>
+                    <small class="name-hint">Choose the format for generated infrastructure code.</small>
+                    <div class="segmented-control" role="radiogroup" aria-label="IaC script language">
+                      <input type="radio" id="intro-iac-bicep" name="intro-iac-language" value="bicep" checked />
+                      <label for="intro-iac-bicep">Bicep</label>
+                      <input type="radio" id="intro-iac-terraform" name="intro-iac-language" value="terraform" />
+                      <label for="intro-iac-terraform">Terraform</label>
+                    </div>
+                  </div>
+                  <div class="form-group">
                     <label for="intro-name">Project Name</label>
                     <div class="name-input-group">
                       <span id="intro-prefix" class="name-prefix">&lt;Cloud&gt;-</span>

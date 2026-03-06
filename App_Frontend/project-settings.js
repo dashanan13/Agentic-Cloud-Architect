@@ -7,6 +7,7 @@ const projectNameInput = document.getElementById("ps-project-name");
 const projectIdInput = document.getElementById("ps-project-id");
 const projectCloudInput = document.getElementById("ps-project-cloud");
 const projectTypeInput = document.getElementById("ps-project-type");
+const projectIacLanguageInputs = Array.from(document.querySelectorAll('input[name="ps-iac-language"]'));
 const projectDescriptionInput = document.getElementById("ps-project-description");
 const projectDescriptionQualityMeter = document.getElementById("ps-description-quality-meter");
 const projectDescriptionQualityFill = document.getElementById("ps-description-quality-fill");
@@ -21,6 +22,7 @@ const state = {
   settings: {
     githubRepoUrl: "",
     projectThreadId: "",
+    iacLanguage: "bicep",
     projectDescription: "",
     projectDescriptionQuality: "",
     projectDescriptionQualityIndex: 0,
@@ -39,6 +41,7 @@ const state = {
 
 const DESCRIPTION_LEVELS = ["Poor", "Minimal", "Adequate", "Informative", "Rich", "Perfect"];
 const DESCRIPTION_EVAL_DELAY_MS = 4000;
+const DEFAULT_IAC_LANGUAGE = "bicep";
 
 function getParams() {
   const params = new URLSearchParams(window.location.search);
@@ -135,6 +138,32 @@ function setDescriptionQuality(levelIndex, levelLabel, statusMessage = "", score
     setQualityStatus(statusMessage, statusMessage.includes("failed") ? "error" : "");
   } else {
     setQualityStatus(`Quality: ${label}`);
+  }
+}
+
+function getSelectedIacLanguage(inputs, fallback = DEFAULT_IAC_LANGUAGE) {
+  const selected = (inputs || []).find((input) => input.checked)?.value;
+  return String(selected || fallback).trim().toLowerCase() || fallback;
+}
+
+function setSelectedIacLanguage(inputs, value = DEFAULT_IAC_LANGUAGE) {
+  if (!inputs || !inputs.length) {
+    return;
+  }
+
+  const target = String(value || DEFAULT_IAC_LANGUAGE).trim().toLowerCase() || DEFAULT_IAC_LANGUAGE;
+  let matched = false;
+
+  inputs.forEach((input) => {
+    const normalized = String(input.value || "").trim().toLowerCase();
+    input.checked = normalized === target;
+    if (input.checked) {
+      matched = true;
+    }
+  });
+
+  if (!matched) {
+    inputs[0].checked = true;
   }
 }
 
@@ -284,6 +313,7 @@ async function loadProjectSettings(projectId) {
   state.settings = {
     githubRepoUrl: String(incoming.githubRepoUrl || "").trim(),
     projectThreadId: String(incoming.projectThreadId || incoming.foundryThreadId || "").trim(),
+    iacLanguage: String(incoming.iacLanguage || incoming.projectIacLanguage || "").trim(),
     projectDescription: String(incoming.projectDescription || "").trim(),
     projectDescriptionQuality: String(incoming.projectDescriptionQuality || "").trim(),
     projectDescriptionQualityIndex: Number(incoming.projectDescriptionQualityIndex) || 0,
@@ -319,6 +349,10 @@ function populateForm() {
     ensureSelectOption(projectTypeInput, nextType);
     projectTypeInput.value = nextType;
   }
+  setSelectedIacLanguage(
+    projectIacLanguageInputs,
+    state.settings.iacLanguage || DEFAULT_IAC_LANGUAGE,
+  );
   if (projectDescriptionInput) {
     projectDescriptionInput.value = String(
       state.settings.projectDescription
@@ -354,6 +388,7 @@ function collectSettings() {
   return {
     githubRepoUrl: String(githubRepoUrlInput?.value || "").trim(),
     projectThreadId: String(projectThreadInput?.value || "").trim(),
+    iacLanguage: getSelectedIacLanguage(projectIacLanguageInputs),
     projectApplicationType: applicationType,
     projectDescription: description,
     projectDescriptionQuality: String(quality.level || "").trim(),

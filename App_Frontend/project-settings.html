@@ -36,6 +36,16 @@
                     <label for="ps-github-repo-url">GITHUB_REPO_URL</label>
                     <input type="url" id="ps-github-repo-url" placeholder="https://github.com/org/repo" autocomplete="off" />
                   </div>
+                  <div class="form-group">
+                    <label for="ps-iac-bicep">IaC script language</label>
+                    <div class="segmented-control" role="radiogroup" aria-label="IaC script language">
+                      <input type="radio" id="ps-iac-bicep" name="ps-iac-language" value="bicep" checked />
+                      <label for="ps-iac-bicep">Bicep</label>
+                      <input type="radio" id="ps-iac-terraform" name="ps-iac-language" value="terraform" />
+                      <label for="ps-iac-terraform">Terraform</label>
+                    </div>
+                    <small class="name-hint">Used when generating IaC code for this project.</small>
+                  </div>
                 </section>
 
                 <section class="settings-section">

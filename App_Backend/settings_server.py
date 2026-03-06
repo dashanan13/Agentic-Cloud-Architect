@@ -76,6 +76,7 @@ class ProjectMeta(BaseModel):
     applicationDescriptionQuality: str | None = None
     applicationDescriptionQualityIndex: int | None = None
     applicationDescriptionQualityScore: int | None = None
+    iacLanguage: str | None = None
     foundryThreadId: str | None = None
     lastSaved: int | None = None
 
@@ -1424,6 +1425,13 @@ def save_project_snapshot(body: ProjectSavePayload):
                 "projectDescriptionQualityScore": str(body.project.applicationDescriptionQualityScore or "").strip(),
             },
         )
+
+        iac_language = str(body.project.iacLanguage or "").strip()
+        if iac_language:
+            project_settings = merge_project_settings(
+                project_settings,
+                {"iacLanguage": iac_language},
+            )
 
         metadata_payload = {
             "id": body.project.id,
