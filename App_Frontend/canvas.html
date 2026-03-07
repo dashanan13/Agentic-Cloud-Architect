@@ -96,6 +96,24 @@
           </div>
 
           <div class="tab-panel right-tab-panel is-hidden" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
+            <div class="chat-runtime" id="chat-runtime" aria-live="polite">
+              <div class="chat-runtime-row">
+                <span class="chat-runtime-label">Model</span>
+                <span class="chat-runtime-value" id="chat-runtime-model">Loading...</span>
+              </div>
+              <div class="chat-runtime-row">
+                <span class="chat-runtime-label">Azure MCP</span>
+                <span class="chat-runtime-value" id="chat-runtime-mcp">Loading...</span>
+              </div>
+              <div class="chat-runtime-row">
+                <span class="chat-runtime-label">Azure AI Foundry</span>
+                <span class="chat-runtime-value" id="chat-runtime-foundry">Loading...</span>
+              </div>
+              <div class="chat-runtime-row">
+                <span class="chat-runtime-label">Last tool call</span>
+                <span class="chat-runtime-value" id="chat-runtime-tool">None</span>
+              </div>
+            </div>
             <div class="chat-history" id="chat-history" aria-live="polite">
               <div class="chat-welcome">
                 <div class="chat-welcome-text">

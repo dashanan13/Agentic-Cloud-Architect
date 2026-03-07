@@ -21,12 +21,14 @@ from Agents.AzureAIFoundry.foundry_description import (
     improve_description_with_architect,
 )
 from Agents.AzureAIFoundry.foundry_messages import (
+    list_thread_messages,
     post_project_created_message,
     post_project_deleted_message,
 )
 from Agents.AzureMCP.cloudarchitect_chat_agent import (
     AzureMcpChatConfigurationError,
     AzureMcpChatRequestError,
+    get_cloudarchitect_chat_status,
     run_cloudarchitect_chat_agent,
 )
 from fastapi import FastAPI, HTTPException
@@ -627,6 +629,50 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
         "threadId": thread_result.thread_id,
         "created": thread_result.created,
     }
+
+
+def resolve_project_foundry_thread_id(entry: dict, app_settings: dict) -> str | None:
+    project_dir = entry["projectDir"]
+    project_settings = load_project_settings_file(project_dir)
+
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    known_thread_id = str(
+        project_settings.get("projectThreadId")
+        or metadata.get("foundryThreadId")
+        or ""
+    ).strip() or None
+
+    thread_result = ensure_project_foundry_thread(
+        app_settings,
+        project_id=entry["id"],
+        known_thread_id=known_thread_id,
+    )
+
+    resolved_thread_id = known_thread_id
+    if thread_result.get("threadId"):
+        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+
+    if not resolved_thread_id:
+        return None
+
+    if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
+        project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
+        persist_project_settings(
+            project_dir,
+            entry["id"],
+            entry["name"],
+            entry["cloud"],
+            project_settings,
+        )
+
+    if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
+        metadata["foundryThreadId"] = resolved_thread_id
+        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    return resolved_thread_id
 
 
 def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
@@ -1338,6 +1384,12 @@ def architecture_chat(body: ArchitectureChatPayload):
         raise HTTPException(status_code=400, detail="message is required")
 
     settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    foundry_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    foundry_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
 
     project_context = None
     if body.projectId:
@@ -1355,12 +1407,23 @@ def architecture_chat(body: ArchitectureChatPayload):
                 "applicationDescription": str(metadata.get("applicationDescription") or ""),
             }
 
+            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
+            if resolved_thread_id:
+                foundry_thread_id = resolved_thread_id
+
+    if not foundry_agent_id:
+        raise HTTPException(status_code=400, detail="Azure AI Foundry default agent is not configured.")
+    if not foundry_thread_id:
+        raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured.")
+
     try:
         return run_cloudarchitect_chat_agent(
             app_settings=settings,
             user_message=message,
             agent_state=body.agentState if isinstance(body.agentState, dict) else None,
             project_context=project_context,
+            foundry_thread_id=foundry_thread_id,
+            foundry_agent_id=foundry_agent_id,
         )
     except AzureMcpChatConfigurationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -1368,6 +1431,73 @@ def architecture_chat(body: ArchitectureChatPayload):
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Architecture chat failed: {exc}") from exc
+
+
+@app.get("/api/chat/architecture/status")
+def architecture_chat_status(projectId: str | None = None):
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    foundry_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    foundry_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
+
+    if projectId:
+        entry = find_project_entry(projectId)
+        if entry:
+            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
+            if resolved_thread_id:
+                foundry_thread_id = resolved_thread_id
+
+    return get_cloudarchitect_chat_status(
+        settings,
+        foundry_thread_id=foundry_thread_id,
+        foundry_agent_id=foundry_agent_id,
+    )
+
+
+@app.get("/api/chat/architecture/history")
+def architecture_chat_history(projectId: str, limit: int = 300):
+    safe_project_id = str(projectId or "").strip()
+    if not safe_project_id:
+        raise HTTPException(status_code=400, detail="projectId is required")
+
+    entry = find_project_entry(safe_project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    thread_id = resolve_project_foundry_thread_id(entry, settings)
+    if not thread_id:
+        raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured.")
+
+    safe_limit = max(50, min(int(limit or 300), 1200))
+    result = list_thread_messages(settings, thread_id=thread_id, limit=safe_limit)
+
+    if result.get("ok") and not result.get("skipped"):
+        return {
+            "projectId": entry["id"],
+            "threadId": thread_id,
+            "messages": result.get("messages", []),
+        }
+
+    reason = str(result.get("reason") or "").strip().lower()
+    detail = str(result.get("detail") or "").strip()
+    if reason == "configuration-incomplete":
+        raise HTTPException(status_code=400, detail=detail or "Azure AI Foundry configuration is incomplete.")
+    if reason == "request-failed":
+        raise HTTPException(status_code=502, detail=detail or "Azure AI Foundry history request failed.")
+
+    return {
+        "projectId": entry["id"],
+        "threadId": thread_id,
+        "messages": [],
+    }
 
 
 @app.post("/api/settings/app/verify")

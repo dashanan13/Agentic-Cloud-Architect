@@ -64,6 +64,59 @@ class FoundryThreadMessenger:
 
         return ThreadMessageResult(thread_id=safe_thread_id, message_id=message_id)
 
+    def list_messages(self, thread_id: str, limit: int | None = None) -> list[dict[str, Any]]:
+        safe_thread_id = str(thread_id or "").strip()
+        if not safe_thread_id:
+            raise FoundryConfigurationError("thread_id is required")
+
+        response = self._request_json(
+            "GET",
+            f"/threads/{urllib_parse.quote(safe_thread_id)}/messages",
+            expected_status=(200,),
+        )
+        raw_messages = response.get("data") if isinstance(response.get("data"), list) else []
+
+        normalized: list[dict[str, Any]] = []
+        has_timestamp = False
+        for index, item in enumerate(raw_messages):
+            if not isinstance(item, dict):
+                continue
+
+            role = str(item.get("role") or "").strip().lower()
+            if role not in {"user", "assistant"}:
+                continue
+
+            content_text = _extract_message_text(item)
+            if not content_text:
+                continue
+
+            created_at = _coerce_created_at(item.get("created_at") or item.get("createdAt"))
+            has_timestamp = has_timestamp or created_at > 0
+
+            normalized.append(
+                {
+                    "id": str(item.get("id") or f"msg-{index}").strip() or f"msg-{index}",
+                    "role": role,
+                    "content": content_text,
+                    "createdAt": created_at,
+                    "_sequence": index,
+                }
+            )
+
+        if has_timestamp:
+            normalized.sort(key=lambda message: (int(message.get("createdAt") or 0), int(message.get("_sequence") or 0)))
+        else:
+            normalized = list(reversed(normalized))
+
+        safe_limit = limit if isinstance(limit, int) and limit > 0 else None
+        if safe_limit and len(normalized) > safe_limit:
+            normalized = normalized[-safe_limit:]
+
+        for message in normalized:
+            message.pop("_sequence", None)
+
+        return normalized
+
     def _request_json(
         self,
         method: str,
@@ -223,6 +276,59 @@ def _post_project_event_message(
         }
 
 
+def list_thread_messages(
+    app_settings: Mapping[str, Any],
+    thread_id: str,
+    limit: int | None = 300,
+) -> dict:
+    if not _is_azure_foundry_provider(app_settings):
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "provider-not-azure-foundry",
+            "messages": [],
+        }
+
+    safe_thread_id = str(thread_id or "").strip()
+    if not safe_thread_id:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "thread-id-missing",
+            "messages": [],
+        }
+
+    safe_limit = limit if isinstance(limit, int) and limit > 0 else 300
+
+    try:
+        connection = FoundryConnectionSettings.from_app_settings(app_settings)
+        messenger = FoundryThreadMessenger(connection)
+        messages = messenger.list_messages(safe_thread_id, limit=safe_limit)
+        return {
+            "ok": True,
+            "skipped": False,
+            "threadId": safe_thread_id,
+            "messages": messages,
+        }
+    except FoundryConfigurationError as exc:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "configuration-incomplete",
+            "detail": str(exc),
+            "messages": [],
+        }
+    except FoundryRequestError as exc:
+        return {
+            "ok": False,
+            "skipped": False,
+            "reason": "request-failed",
+            "statusCode": exc.status_code,
+            "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
+            "messages": [],
+        }
+
+
 def _build_project_event_message(project_name: str, project_id: str, timestamp_text: str, event: str) -> str:
     safe_name = str(project_name or "").strip() or "(unknown)"
     safe_id = str(project_id or "").strip() or "(unknown)"
@@ -238,6 +344,59 @@ def _build_project_event_message(project_name: str, project_id: str, timestamp_t
 def _format_timestamp(value: datetime | None) -> str:
     dt = value or datetime.utcnow()
     return dt.replace(microsecond=0).isoformat() + "Z"
+
+
+def _extract_message_text(message: Mapping[str, Any]) -> str:
+    content = message.get("content")
+    if isinstance(content, str):
+        return content.strip()
+
+    if isinstance(content, list):
+        parts: list[str] = []
+        for part in content:
+            if not isinstance(part, dict):
+                continue
+            if str(part.get("type") or "").strip().lower() != "text":
+                continue
+
+            text_block = part.get("text")
+            if isinstance(text_block, dict):
+                value = str(text_block.get("value") or "").strip()
+                if value:
+                    parts.append(value)
+                continue
+
+            value = str(text_block or "").strip()
+            if value:
+                parts.append(value)
+
+        return "\n".join(parts).strip()
+
+    text_block = message.get("text")
+    if isinstance(text_block, dict):
+        value = str(text_block.get("value") or "").strip()
+        if value:
+            return value
+
+    return ""
+
+
+def _coerce_created_at(value: Any) -> int:
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, int):
+        return max(value, 0)
+    if isinstance(value, float):
+        return max(int(value), 0)
+
+    text = str(value or "").strip()
+    if text.isdigit():
+        try:
+            return max(int(text), 0)
+        except Exception:
+            return 0
+
+    return 0
 
 
 def _is_azure_foundry_provider(settings: Mapping[str, Any]) -> bool:

@@ -9,8 +9,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from Agents.AzureAIFoundry.foundry_bootstrap import (
+    FoundryConfigurationError as FoundryChatConfigurationError,
+    FoundryConnectionSettings,
+    FoundryRequestError as FoundryChatRequestError,
+)
+from Agents.AzureAIFoundry.foundry_description import FoundryAssistantRunner
+
 DEFAULT_TOTAL_QUESTIONS = 4
 DEFAULT_AGENT_DEFINITION_FILE = "cloudarchitect_chat_agent.md"
+DEFAULT_AGENT_NAME = "Azure Cloud Architect"
+DEFAULT_RULE_BASED_MODEL = "Rule-based Azure Architect"
 DEFAULT_SYSTEM_PROMPT = """You are a senior cloud architect.
 
 You help users design cloud architectures.
@@ -21,6 +30,69 @@ You will receive:
 You should:
 - answer the architecture question
 """
+
+ARCHITECTURE_KEYWORDS = {
+    "azure",
+    "cloud",
+    "architecture",
+    "infra",
+    "infrastructure",
+    "api",
+    "backend",
+    "web app",
+    "app service",
+    "container",
+    "aks",
+    "kubernetes",
+    "vnet",
+    "subnet",
+    "network",
+    "security",
+    "compliance",
+    "latency",
+    "throughput",
+    "rto",
+    "rpo",
+    "waf",
+    "entra",
+    "key vault",
+    "apim",
+    "front door",
+    "storage",
+    "cosmos",
+    "sql",
+    "redis",
+    "service bus",
+    "event hub",
+    "bicep",
+    "terraform",
+    "iac",
+    "availability",
+    "scalability",
+}
+
+FAMILIARIZATION_PATTERNS = [
+    r"\bwho are you\b",
+    r"\bwhat can you do\b",
+    r"\bhow can you help\b",
+    r"\bhelp me\b",
+    r"\bintroduce yourself\b",
+    r"\bwhat model\b",
+    r"\bconnected\b",
+    r"\bmcp\b",
+    r"\bfoundry\b",
+]
+
+GREETING_PATTERNS = [
+    r"^hi$",
+    r"^hello$",
+    r"^hey$",
+    r"^good morning$",
+    r"^good afternoon$",
+    r"^good evening$",
+    r"^thanks$",
+    r"^thank you$",
+]
 
 
 class AzureMcpChatConfigurationError(ValueError):
@@ -68,82 +140,207 @@ def run_cloudarchitect_chat_agent(
     user_message: str,
     agent_state: Mapping[str, Any] | None = None,
     project_context: Mapping[str, Any] | None = None,
+    foundry_thread_id: str | None = None,
+    foundry_agent_id: str | None = None,
 ) -> dict[str, Any]:
     text = str(user_message or "").strip()
     if not text:
         raise AzureMcpChatConfigurationError("message is required")
 
-    credentials = AzureMcpCredentials.from_app_settings(app_settings)
     normalized_state = _normalize_agent_state(agent_state)
+    model_info = _resolve_model_info(app_settings)
+    mcp_configured, mcp_configuration_error = _resolve_mcp_configuration(app_settings)
+    foundry_configured = bool(model_info.get("foundryConfigured"))
 
     turn_count = normalized_state["turnCount"] + 1
     total_questions = int(normalized_state.get("totalQuestions") or DEFAULT_TOTAL_QUESTIONS)
-    follow_up_question = _next_clarifying_question(turn_count)
-
-    question_for_tool = follow_up_question
-    next_question_needed = _needs_clarification(text, turn_count)
-
-    tool_args: dict[str, Any] = {
-        "command": "cloudarchitect_design",
-        "question": question_for_tool,
-        "answer": text,
-        "question-number": turn_count,
-        "total-questions": total_questions,
-        "next-question-needed": next_question_needed,
-        "state": json.dumps(normalized_state["cloudArchitectState"], ensure_ascii=False),
-    }
-
-    try:
-        tool_result = _run_async(_invoke_cloudarchitect(credentials, tool_args))
-    except AzureMcpChatConfigurationError:
-        raise
-    except AzureMcpChatRequestError:
-        raise
-    except Exception as exc:
-        raise AzureMcpChatRequestError(f"Azure MCP Cloud Architect call failed: {exc}") from exc
-
-    response_object = _extract_response_object(tool_result.get("payload"))
-
-    cloud_state = _coerce_state(response_object.get("state"))
-    if not cloud_state:
-        cloud_state = normalized_state["cloudArchitectState"]
+    architecture_turn_count = int(normalized_state.get("architectureTurnCount") or 0)
+    intent = _classify_user_intent(text)
 
     recent_user_messages = list(normalized_state.get("recentUserMessages") or [])
     recent_user_messages.append(text)
     recent_user_messages = recent_user_messages[-6:]
 
     scenario = _classify_scenario("\n".join(recent_user_messages))
-    if next_question_needed:
-        assistant_message = follow_up_question
-    else:
-        assistant_message = _render_architecture_response(
-            scenario=scenario,
+    question_for_tool = ""
+    next_question_needed = False
+    response_object: dict[str, Any] = {}
+    cloud_state = normalized_state["cloudArchitectState"]
+    tool_calls: list[dict[str, Any]] = []
+    mcp_connected = False
+    foundry_connected = False
+    follow_up_question = _next_clarifying_question(max(architecture_turn_count + 1, 1))
+    assistant_message = ""
+
+    if intent == "architecture":
+        architecture_turn_count += 1
+        follow_up_question = _next_clarifying_question(architecture_turn_count)
+        question_for_tool = follow_up_question
+        next_question_needed = _needs_clarification(text, architecture_turn_count)
+
+        if not mcp_configured:
+            raise AzureMcpChatConfigurationError(
+                mcp_configuration_error or "Azure MCP credentials are not configured."
+            )
+
+        mcp_hint = ""
+        credentials = AzureMcpCredentials.from_app_settings(app_settings)
+        tool_args: dict[str, Any] = {
+            "command": "cloudarchitect_design",
+            "question": question_for_tool,
+            "answer": text,
+            "question-number": architecture_turn_count,
+            "total-questions": total_questions,
+            "next-question-needed": next_question_needed,
+            "state": json.dumps(normalized_state["cloudArchitectState"], ensure_ascii=False),
+        }
+
+        try:
+            tool_result = _run_async(_invoke_cloudarchitect(credentials, tool_args))
+            response_object = _extract_response_object(tool_result.get("payload"))
+            cloud_state = _coerce_state(response_object.get("state"))
+            if not cloud_state:
+                cloud_state = normalized_state["cloudArchitectState"]
+
+            mcp_hint = str(response_object.get("displayHint") or "").strip()
+            mcp_connected = True
+            tool_calls.append(
+                {
+                    "name": str(tool_result.get("toolName") or "cloudarchitect_design"),
+                    "success": True,
+                }
+            )
+        except Exception as exc:
+            tool_calls.append(
+                {
+                    "name": "cloudarchitect_design",
+                    "success": False,
+                    "error": str(exc),
+                }
+            )
+            raise AzureMcpChatRequestError(f"Azure MCP Cloud Architect call failed: {exc}") from exc
+
+        foundry_prompt = _build_foundry_architect_prompt(
             user_message=text,
-            system_prompt=_load_agent_definition(),
-            mcp_hint=str(response_object.get("displayHint") or "").strip(),
+            scenario=scenario,
             project_context=project_context,
             follow_up_question=follow_up_question,
+            mcp_hint=mcp_hint,
         )
+        foundry_text, foundry_meta = _try_foundry_architect_response(
+            app_settings=app_settings,
+            prompt=foundry_prompt,
+            foundry_thread_id=foundry_thread_id,
+            foundry_agent_id=foundry_agent_id,
+        )
+        foundry_connected = bool(foundry_meta.get("connected"))
+        assistant_message = foundry_text
+        model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
+        model_info["usedFoundryModel"] = True
+    elif intent == "familiarization":
+        foundry_prompt = _build_foundry_familiarization_prompt(
+            user_message=text,
+            mcp_configured=mcp_configured,
+            foundry_configured=foundry_configured,
+            configured_model=str(model_info.get("configuredModel") or ""),
+        )
+        foundry_text, foundry_meta = _try_foundry_architect_response(
+            app_settings=app_settings,
+            prompt=foundry_prompt,
+            foundry_thread_id=foundry_thread_id,
+            foundry_agent_id=foundry_agent_id,
+        )
+        foundry_connected = bool(foundry_meta.get("connected"))
+        assistant_message = foundry_text
+        model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
+        model_info["usedFoundryModel"] = True
+    else:
+        assistant_message = _render_out_of_scope_response()
+
+    next_question_flag = bool(response_object.get("nextQuestionNeeded", next_question_needed)) if intent == "architecture" else False
+    question_number = int(response_object.get("questionNumber") or architecture_turn_count)
 
     updated_state = {
         "turnCount": turn_count,
-        "questionNumber": int(response_object.get("questionNumber") or turn_count),
+        "architectureTurnCount": architecture_turn_count,
+        "questionNumber": question_number,
         "totalQuestions": int(response_object.get("totalQuestions") or total_questions),
-        "nextQuestionNeeded": bool(response_object.get("nextQuestionNeeded", next_question_needed)),
+        "nextQuestionNeeded": next_question_flag,
         "cloudArchitectState": cloud_state,
         "recentUserMessages": recent_user_messages,
         "lastToolQuestion": question_for_tool,
+        "lastIntent": intent,
     }
+
+    primary_tool_call = tool_calls[-1] if tool_calls else None
 
     return {
         "ok": True,
         "message": assistant_message,
         "agentState": updated_state,
         "meta": {
-            "tool": "cloudarchitect_design",
+            "agentName": DEFAULT_AGENT_NAME,
+            "intent": intent,
+            "tool": str(primary_tool_call.get("name") if isinstance(primary_tool_call, dict) else ""),
             "questionUsed": question_for_tool,
             "nextQuestionNeeded": updated_state["nextQuestionNeeded"],
+            "model": {
+                "provider": str(model_info.get("provider") or ""),
+                "configuredModel": str(model_info.get("configuredModel") or ""),
+                "activeModel": str(model_info.get("activeModel") or DEFAULT_RULE_BASED_MODEL),
+                "usedFoundryModel": bool(model_info.get("usedFoundryModel")),
+            },
+            "connections": {
+                "azureMcp": {
+                    "configured": bool(mcp_configured),
+                    "connected": bool(mcp_connected),
+                },
+                "azureFoundry": {
+                    "configured": bool(foundry_configured),
+                    "connected": bool(foundry_connected),
+                },
+            },
+            "memory": {
+                "threadId": str(foundry_thread_id or "").strip(),
+                "assistantId": str(foundry_agent_id or "").strip(),
+            },
+            "toolCalls": tool_calls,
         },
+    }
+
+
+def get_cloudarchitect_chat_status(
+    app_settings: Mapping[str, Any],
+    foundry_thread_id: str | None = None,
+    foundry_agent_id: str | None = None,
+) -> dict[str, Any]:
+    model_info = _resolve_model_info(app_settings)
+    mcp_configured, _ = _resolve_mcp_configuration(app_settings)
+    foundry_configured = bool(model_info.get("foundryConfigured")) and bool(str(foundry_thread_id or "").strip()) and bool(str(foundry_agent_id or "").strip())
+
+    return {
+        "agentName": DEFAULT_AGENT_NAME,
+        "model": {
+            "provider": str(model_info.get("provider") or ""),
+            "configuredModel": str(model_info.get("configuredModel") or ""),
+            "activeModel": str(model_info.get("activeModel") or DEFAULT_RULE_BASED_MODEL),
+            "usedFoundryModel": False,
+        },
+        "connections": {
+            "azureMcp": {
+                "configured": bool(mcp_configured),
+                "connected": False,
+            },
+            "azureFoundry": {
+                "configured": bool(foundry_configured),
+                "connected": False,
+            },
+        },
+        "memory": {
+            "threadId": str(foundry_thread_id or "").strip(),
+            "assistantId": str(foundry_agent_id or "").strip(),
+        },
+        "toolCalls": [],
     }
 
 
@@ -255,6 +452,7 @@ def _normalize_agent_state(agent_state: Mapping[str, Any] | None) -> dict[str, A
     if not isinstance(agent_state, Mapping):
         return {
             "turnCount": 0,
+            "architectureTurnCount": 0,
             "questionNumber": 0,
             "totalQuestions": DEFAULT_TOTAL_QUESTIONS,
             "nextQuestionNeeded": False,
@@ -269,6 +467,7 @@ def _normalize_agent_state(agent_state: Mapping[str, Any] | None) -> dict[str, A
 
     return {
         "turnCount": _coerce_int(agent_state.get("turnCount"), 0),
+        "architectureTurnCount": _coerce_int(agent_state.get("architectureTurnCount"), 0),
         "questionNumber": _coerce_int(agent_state.get("questionNumber"), 0),
         "totalQuestions": _coerce_int(agent_state.get("totalQuestions"), DEFAULT_TOTAL_QUESTIONS),
         "nextQuestionNeeded": bool(agent_state.get("nextQuestionNeeded", False)),
@@ -320,6 +519,270 @@ def _default_cloudarchitect_state() -> dict[str, Any]:
             "assumptionRisk": 0,
         },
     }
+
+
+def _normalize_provider(settings: Mapping[str, Any]) -> str:
+    value = str(settings.get("modelProvider") or "").strip().lower() if isinstance(settings, Mapping) else ""
+    if value == "azure-foundry":
+        return "azure-foundry"
+    if value == "ollama-local":
+        return "ollama-local"
+    return "rule-based"
+
+
+def _configured_model_name(settings: Mapping[str, Any]) -> str:
+    provider = _normalize_provider(settings)
+    if provider == "azure-foundry":
+        return _first_non_empty(
+            settings,
+            "foundryModelReasoning",
+            "foundryModelFast",
+            "foundryModelCoding",
+            "modelReasoning",
+            "modelFast",
+            "modelCoding",
+        ) or ""
+    if provider == "ollama-local":
+        return _first_non_empty(
+            settings,
+            "ollamaModelPathReasoning",
+            "ollamaModelPathFast",
+            "ollamaModelPathCoding",
+        ) or ""
+    return ""
+
+
+def _resolve_model_info(settings: Mapping[str, Any]) -> dict[str, Any]:
+    provider = _normalize_provider(settings)
+    configured_model = _configured_model_name(settings)
+    foundry_configured = False
+
+    if provider == "azure-foundry":
+        try:
+            FoundryConnectionSettings.from_app_settings(settings)
+            foundry_configured = True
+        except FoundryChatConfigurationError:
+            foundry_configured = False
+
+    return {
+        "provider": provider,
+        "configuredModel": configured_model,
+        "activeModel": DEFAULT_RULE_BASED_MODEL,
+        "usedFoundryModel": False,
+        "foundryConfigured": foundry_configured,
+    }
+
+
+def _resolve_foundry_chat_model(settings: Mapping[str, Any]) -> str:
+    return _first_non_empty(
+        settings,
+        "foundryModelReasoning",
+        "modelReasoning",
+        "foundryModelFast",
+        "modelFast",
+        "foundryModelCoding",
+        "modelCoding",
+    ) or ""
+
+
+def _resolve_mcp_configuration(settings: Mapping[str, Any]) -> tuple[bool, str]:
+    try:
+        AzureMcpCredentials.from_app_settings(settings)
+        return True, ""
+    except AzureMcpChatConfigurationError as exc:
+        return False, str(exc)
+
+
+def _matches_any_pattern(value: str, patterns: list[str]) -> bool:
+    for pattern in patterns:
+        if re.search(pattern, value, flags=re.IGNORECASE):
+            return True
+    return False
+
+
+def _is_architecture_related(message: str) -> bool:
+    text = str(message or "").strip().lower()
+    if not text:
+        return False
+
+    for keyword in ARCHITECTURE_KEYWORDS:
+        if keyword in text:
+            return True
+
+    if re.search(r"\b(sla|rto|rpo|pii|pci|hipaa|soc2)\b", text):
+        return True
+
+    return False
+
+
+def _classify_user_intent(message: str) -> str:
+    text = str(message or "").strip().lower()
+
+    if _is_architecture_related(text):
+        return "architecture"
+
+    if _matches_any_pattern(text, GREETING_PATTERNS) or _matches_any_pattern(text, FAMILIARIZATION_PATTERNS):
+        return "familiarization"
+
+    return "out_of_scope"
+
+
+def _render_familiarization_response(
+    mcp_configured: bool,
+    foundry_configured: bool,
+    configured_model: str,
+) -> str:
+    mcp_state = "configured" if mcp_configured else "not configured"
+    foundry_state = "configured" if foundry_configured else "not configured"
+    model_label = configured_model or DEFAULT_RULE_BASED_MODEL
+
+    return "\n".join(
+        [
+            "I’m your Azure Cloud Architect assistant.",
+            "I can help with Azure architecture design, service selection, networking/security patterns, reliability targets, and IaC planning.",
+            "",
+            f"Current runtime: model={model_label}, Azure MCP={mcp_state}, Azure AI Foundry={foundry_state}.",
+            "",
+            "Share what you’re building and constraints (traffic, region, security/compliance, RTO/RPO), and I’ll propose an architecture.",
+        ]
+    )
+
+
+def _build_foundry_familiarization_prompt(
+    user_message: str,
+    mcp_configured: bool,
+    foundry_configured: bool,
+    configured_model: str,
+) -> str:
+    mcp_state = "configured" if mcp_configured else "not configured"
+    foundry_state = "configured" if foundry_configured else "not configured"
+    model_label = configured_model or "not configured"
+
+    lines = [
+        "You are an Azure cloud architect assistant.",
+        "Respond to the user in a warm and concise way.",
+        "You may answer greetings and familiarization questions, but remain strictly in Azure cloud architecture scope.",
+        "If asked about non-architecture topics, politely decline and redirect to Azure architecture.",
+        "",
+        f"Runtime context: model={model_label}, Azure MCP={mcp_state}, Azure AI Foundry={foundry_state}.",
+        f"User message: {user_message}",
+    ]
+    return "\n".join(lines)
+
+
+def _render_out_of_scope_response() -> str:
+    return "\n".join(
+        [
+            "I’m specialized for Azure cloud architecture only, so I can’t help with non-architecture topics.",
+            "You can ask me about Azure design patterns, security, scalability, reliability, data, networking, or IaC decisions.",
+        ]
+    )
+
+
+def _build_foundry_architect_prompt(
+    user_message: str,
+    scenario: str,
+    project_context: Mapping[str, Any] | None,
+    follow_up_question: str,
+    mcp_hint: str,
+) -> str:
+    project_name = ""
+    app_type = ""
+    if isinstance(project_context, Mapping):
+        project_name = str(project_context.get("name") or "").strip()
+        app_type = str(project_context.get("applicationType") or "").strip()
+
+    context_line = ""
+    if project_name or app_type:
+        context_parts = [part for part in [project_name, app_type] if part]
+        context_line = f"Project context: {' | '.join(context_parts)}"
+
+    hint_line = f"MCP hint: {mcp_hint}" if mcp_hint else "MCP hint: none"
+
+    lines = [
+        "You are an Azure cloud architect assistant.",
+        "Stay strictly within Azure cloud architecture scope.",
+        "Provide practical, production-minded guidance and keep it concise.",
+        "",
+        f"Scenario hint: {scenario}",
+        context_line or "Project context: none",
+        hint_line,
+        "",
+        f"User request: {user_message}",
+        "",
+        "Respond with:",
+        "1) A concise recommendation paragraph",
+        "2) A component table (Component | Purpose | Tier/SKU)",
+        "3) 2-4 implementation notes",
+        f"4) One next refinement question: {follow_up_question}",
+    ]
+    return "\n".join(lines)
+
+
+def _try_foundry_architect_response(
+    app_settings: Mapping[str, Any],
+    prompt: str,
+    foundry_thread_id: str | None = None,
+    foundry_agent_id: str | None = None,
+) -> tuple[str, dict[str, Any]]:
+    status = {
+        "configured": False,
+        "connected": False,
+        "model": "",
+        "threadId": "",
+        "assistantId": "",
+        "error": "",
+    }
+
+    provider = _normalize_provider(app_settings)
+    if provider != "azure-foundry":
+        raise AzureMcpChatConfigurationError("Architecture chat requires modelProvider=azure-foundry.")
+
+    chat_model = _resolve_foundry_chat_model(app_settings)
+    if not chat_model:
+        raise AzureMcpChatConfigurationError("A Foundry thinking model is required for architecture chat.")
+
+    try:
+        base_connection = FoundryConnectionSettings.from_app_settings(app_settings)
+        status["configured"] = True
+        status["model"] = chat_model
+    except FoundryChatConfigurationError as exc:
+        raise AzureMcpChatConfigurationError(str(exc)) from exc
+
+    connection = FoundryConnectionSettings(
+        endpoint=base_connection.endpoint,
+        tenant_id=base_connection.tenant_id,
+        client_id=base_connection.client_id,
+        client_secret=base_connection.client_secret,
+        model_deployment=chat_model,
+        api_version=base_connection.api_version,
+    )
+
+    assistant_id = str(foundry_agent_id or app_settings.get("foundryDefaultAgentId") or "").strip()
+    thread_id = str(foundry_thread_id or app_settings.get("foundryDefaultThreadId") or "").strip()
+    if not assistant_id or not thread_id:
+        raise AzureMcpChatConfigurationError("Foundry agent and thread are required for architecture chat memory.")
+
+    status["assistantId"] = assistant_id
+    status["threadId"] = thread_id
+
+    try:
+        runner = FoundryAssistantRunner(connection, timeout_seconds=30)
+        result = runner.run_assistant(
+            assistant_id=assistant_id,
+            thread_id=thread_id,
+            content=str(prompt or "").strip(),
+        )
+        response = str(result.response_text or "").strip()
+        if not response:
+            raise AzureMcpChatRequestError("Foundry returned an empty response")
+
+        status["connected"] = True
+        return response, status
+    except (FoundryChatConfigurationError, FoundryChatRequestError) as exc:
+        raise AzureMcpChatRequestError(str(exc)) from exc
+    except Exception as exc:
+        raise AzureMcpChatRequestError(str(exc)) from exc
 
 
 def _needs_clarification(user_message: str, turn_count: int) -> bool:

@@ -28,6 +28,10 @@ const statusRightWidthEl = document.getElementById("status-right-width");
 const chatHistoryEl = document.getElementById("chat-history");
 const chatInputEl = document.getElementById("chat-input");
 const chatSendBtn = document.getElementById("chat-send");
+const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
+const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
+const chatRuntimeFoundryEl = document.getElementById("chat-runtime-foundry");
+const chatRuntimeToolEl = document.getElementById("chat-runtime-tool");
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
@@ -2180,7 +2184,116 @@ tabGroups.forEach((group) => {
   });
 });
 
-function appendChatMessage(message) {
+function setChatRuntimeValue(targetEl, text, tone = "") {
+  if (!targetEl) {
+    return;
+  }
+
+  targetEl.classList.remove("chat-runtime-value--ok", "chat-runtime-value--warn", "chat-runtime-value--error");
+  if (tone === "ok") {
+    targetEl.classList.add("chat-runtime-value--ok");
+  } else if (tone === "warn") {
+    targetEl.classList.add("chat-runtime-value--warn");
+  } else if (tone === "error") {
+    targetEl.classList.add("chat-runtime-value--error");
+  }
+
+  targetEl.textContent = String(text || "");
+}
+
+function formatConnectionLabel(connection) {
+  if (!connection || typeof connection !== "object") {
+    return { text: "Unknown", tone: "warn" };
+  }
+
+  if (connection.connected) {
+    return { text: "Connected", tone: "ok" };
+  }
+
+  if (connection.configured) {
+    return { text: "Configured (idle)", tone: "warn" };
+  }
+
+  return { text: "Not configured", tone: "error" };
+}
+
+function updateChatRuntimeStatus(meta) {
+  const runtime = meta && typeof meta === "object" ? meta : {};
+  const model = runtime.model && typeof runtime.model === "object" ? runtime.model : {};
+
+  const configuredModel = String(model.configuredModel || "").trim();
+  const activeModel = String(model.activeModel || configuredModel || "Rule-based Azure Architect").trim();
+  const provider = String(model.provider || "").trim();
+  const usedFoundryModel = Boolean(model.usedFoundryModel);
+
+  let modelLabel = activeModel;
+  if (provider === "azure-foundry" && configuredModel && !usedFoundryModel) {
+    modelLabel = `${activeModel} (fallback active)`;
+  }
+  if (provider === "azure-foundry" && configuredModel && usedFoundryModel) {
+    modelLabel = `${activeModel} (Azure AI Foundry)`;
+  }
+
+  const modelTone = usedFoundryModel ? "ok" : (provider === "azure-foundry" ? "warn" : "");
+  setChatRuntimeValue(chatRuntimeModelEl, modelLabel, modelTone);
+
+  const connections = runtime.connections && typeof runtime.connections === "object"
+    ? runtime.connections
+    : {};
+  const mcpStatus = formatConnectionLabel(connections.azureMcp);
+  const foundryStatus = formatConnectionLabel(connections.azureFoundry);
+
+  setChatRuntimeValue(chatRuntimeMcpEl, mcpStatus.text, mcpStatus.tone);
+  setChatRuntimeValue(chatRuntimeFoundryEl, foundryStatus.text, foundryStatus.tone);
+
+  const toolCalls = Array.isArray(runtime.toolCalls) ? runtime.toolCalls : [];
+  const lastTool = toolCalls.length ? toolCalls[toolCalls.length - 1] : null;
+
+  if (lastTool && typeof lastTool === "object") {
+    const toolName = String(lastTool.name || "tool").trim() || "tool";
+    const success = Boolean(lastTool.success);
+    setChatRuntimeValue(
+      chatRuntimeToolEl,
+      `${toolName} (${success ? "success" : "failed"})`,
+      success ? "ok" : "error"
+    );
+    return;
+  }
+
+  const fallbackTool = String(runtime.tool || "").trim();
+  if (fallbackTool) {
+    setChatRuntimeValue(chatRuntimeToolEl, `${fallbackTool} (requested)`, "warn");
+  } else {
+    setChatRuntimeValue(chatRuntimeToolEl, "None");
+  }
+}
+
+async function loadArchitectureChatStatus() {
+  try {
+    const projectId = state.currentProject?.id ? String(state.currentProject.id) : "";
+    const query = projectId ? `?projectId=${encodeURIComponent(projectId)}` : "";
+    const response = await fetch(`/api/chat/architecture/status${query}`, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to load AI chat runtime status.");
+    }
+
+    const payload = await response.json();
+    updateChatRuntimeStatus(payload);
+  } catch {
+    setChatRuntimeValue(chatRuntimeModelEl, "Unavailable", "warn");
+    setChatRuntimeValue(chatRuntimeMcpEl, "Unknown", "warn");
+    setChatRuntimeValue(chatRuntimeFoundryEl, "Unknown", "warn");
+    setChatRuntimeValue(chatRuntimeToolEl, "None");
+  }
+}
+
+function appendChatMessage(message, autoScroll = true) {
   if (!chatHistoryEl) {
     return;
   }
@@ -2189,12 +2302,14 @@ function appendChatMessage(message) {
   messageEl.className = "chat-message chat-message--user";
   messageEl.textContent = message;
   chatHistoryEl.appendChild(messageEl);
-  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  if (autoScroll) {
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }
 
   return messageEl;
 }
 
-function appendAssistantMessage(message) {
+function appendAssistantMessage(message, autoScroll = true) {
   if (!chatHistoryEl) {
     return null;
   }
@@ -2203,7 +2318,9 @@ function appendAssistantMessage(message) {
   messageEl.className = "chat-message chat-message--assistant";
   messageEl.textContent = message;
   chatHistoryEl.appendChild(messageEl);
-  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  if (autoScroll) {
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }
   return messageEl;
 }
 
@@ -2220,6 +2337,67 @@ function appendLoadingMessage() {
   return messageEl;
 }
 
+async function loadArchitectureChatHistory() {
+  if (!chatHistoryEl) {
+    return;
+  }
+
+  const projectId = state.currentProject?.id ? String(state.currentProject.id).trim() : "";
+  if (!projectId) {
+    chatHistoryEl.innerHTML = chatInitialMarkup;
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/chat/architecture/history?projectId=${encodeURIComponent(projectId)}`, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to load AI chat history.");
+    }
+
+    const payload = await response.json();
+    const threadMessages = Array.isArray(payload?.messages) ? payload.messages : [];
+
+    const validMessages = threadMessages
+      .map((item) => {
+        const role = String(item?.role || "").trim().toLowerCase();
+        const content = String(item?.content || "").trim();
+        return { role, content };
+      })
+      .filter((item) => {
+        if (!item.content) {
+          return false;
+        }
+        return item.role === "user" || item.role === "assistant";
+      });
+
+    if (!validMessages.length) {
+      chatHistoryEl.innerHTML = chatInitialMarkup;
+      chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+      return;
+    }
+
+    chatHistoryEl.innerHTML = "";
+    validMessages.forEach((item) => {
+      if (item.role === "user") {
+        appendChatMessage(item.content, false);
+      } else {
+        appendAssistantMessage(item.content, false);
+      }
+    });
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  } catch {
+    chatHistoryEl.innerHTML = chatInitialMarkup;
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }
+}
+
 function setChatBusy(isBusy) {
   chatRequestInFlight = Boolean(isBusy);
   if (chatSendBtn) {
@@ -2230,16 +2408,24 @@ function setChatBusy(isBusy) {
   }
 }
 
-function resetChatPanel() {
+async function resetChatPanel() {
   chatAgentState = null;
   setChatBusy(false);
 
-  if (!chatHistoryEl) {
-    return;
+  setChatRuntimeValue(chatRuntimeToolEl, "None");
+  setChatRuntimeValue(chatRuntimeModelEl, "Loading...", "warn");
+  setChatRuntimeValue(chatRuntimeMcpEl, "Loading...", "warn");
+  setChatRuntimeValue(chatRuntimeFoundryEl, "Loading...", "warn");
+
+  if (chatHistoryEl) {
+    chatHistoryEl.innerHTML = chatInitialMarkup;
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
   }
 
-  chatHistoryEl.innerHTML = chatInitialMarkup;
-  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  await Promise.allSettled([
+    loadArchitectureChatStatus(),
+    loadArchitectureChatHistory(),
+  ]);
 }
 
 async function requestArchitectureChat(message) {
@@ -2296,12 +2482,15 @@ async function sendChatMessage() {
       ? payload.agentState
       : null;
 
+    updateChatRuntimeStatus(payload?.meta);
+
     const assistantMessage = String(payload?.message || "I could not generate a response.").trim();
     appendAssistantMessage(assistantMessage || "I could not generate a response.");
   } catch (error) {
     if (loadingMessageEl) {
       loadingMessageEl.remove();
     }
+    setChatRuntimeValue(chatRuntimeToolEl, "Request failed", "error");
     appendAssistantMessage(error?.message || "Unable to complete AI chat request.");
   } finally {
     setChatBusy(false);
@@ -2597,7 +2786,7 @@ async function initialize() {
     return;
   }
 
-  resetChatPanel();
+  await resetChatPanel();
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;
