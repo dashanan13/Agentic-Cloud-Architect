@@ -1375,11 +1375,22 @@ select.property-input {
   color: var(--text);
   line-height: 1.5;
   font-size: 0.8rem;
+  white-space: pre-wrap;
 }
 
 .chat-message--user {
   justify-self: end;
   max-width: 100%;
+}
+
+.chat-message--assistant {
+  justify-self: start;
+  max-width: 100%;
+}
+
+.chat-message--loading {
+  opacity: 0.8;
+  font-style: italic;
 }
 
 .chat-compose {

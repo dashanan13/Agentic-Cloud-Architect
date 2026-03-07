@@ -426,3 +426,284 @@ The platform bridges the gap between **visual cloud architecture design and Infr
 
 This significantly reduces the time required to move from **conceptual architecture to deployable infrastructure** while ensuring adherence to cloud best practices.
 
+
+User Interface
+   | 
+   |-- Canvas Engine
+   |       |
+   |       └── Architecture Graph (shared state)
+   |
+   |-- AI Chat → Architecture Advisor Agent
+   |
+   |-- Validate → Architecture Planning Agent
+   |
+   └-- Generate Code → IaC Generation Engine
+
+
+
+Your **Validate-triggered analysis idea absolutely makes sense** 👍 and is actually the **better engineering decision**.
+
+Running AI continuously while the user drags resources would cause:
+
+* unnecessary **token consumption**
+* unnecessary **latency**
+* unnecessary **complexity**
+* noisy suggestions while the user is still designing
+
+Triggering AI **only when the user clicks “Validate”** creates a **clear workflow moment**:
+*“I think my architecture is ready to be reviewed.”*
+
+This mirrors how real architecture reviews work.
+
+So the design becomes:
+
+```text
+Design → Validate → Review Tips → Implement → Re-Validate → Generate Code
+```
+
+Efficient, intentional, and predictable.
+
+---
+
+# Agent and Engine Architecture Summary
+
+## System Philosophy
+
+The platform is primarily a **deterministic architecture modeling system** with **AI-assisted reasoning**.
+Core infrastructure modeling, canvas manipulation, and code generation are handled by **deterministic engines**, while **AI agents provide architecture reasoning, suggestions, and conversational guidance**.
+
+This separation ensures:
+
+* predictable behavior
+* low token consumption
+* high reliability
+* controlled AI usage
+
+---
+
+# Core Components
+
+## 1. Canvas Engine (Deterministic)
+
+The **Canvas Engine** manages the visual architecture diagram and maintains the internal **architecture graph model**.
+
+Responsibilities:
+
+* add/remove resources
+* connect resources
+* maintain architecture graph (nodes and edges)
+* enforce resource schema
+* load and update resource properties
+* provide architecture state to AI agents
+
+The canvas is **not AI-driven** because these operations are deterministic UI interactions.
+
+---
+
+## 2. Architecture Graph (Shared State)
+
+The architecture is stored as a **graph model**.
+
+Structure:
+
+* **Nodes:** Azure resources
+* **Edges:** relationships or dependencies
+* **Properties:** configuration parameters
+
+Example:
+
+```
+VNet
+ └── Subnet
+      └── VM
+```
+
+This graph is the **single source of truth** used by:
+
+* AI chat analysis
+* architecture validation
+* IaC generation
+
+---
+
+## 3. Architecture Advisor Agent (AI Chat)
+
+The **Architecture Advisor Agent** powers the **AI Chat tab**.
+
+It uses the Azure MCP tool **`cloudarchitect_design`** to assist with architecture design discussions.
+
+Responsibilities:
+
+* interpret user questions
+* analyze current canvas architecture
+* suggest improvements
+* generate architecture patterns
+* convert approved suggestions into structured canvas actions
+
+The agent acts as a **conversational architecture assistant**.
+
+---
+
+## 4. Architecture Planning Agent (Tips Engine)
+
+The **Architecture Planning Agent** powers the **Tips panel**.
+
+It uses the Azure MCP tool **`architecture_planning`**.
+
+This agent is executed when the user clicks **Validate**.
+
+Responsibilities:
+
+* analyze the current architecture graph
+* identify missing components
+* detect best-practice violations
+* suggest architecture improvements
+* generate implementable recommendations
+
+Each recommendation includes an **Implement action** that can be executed by the Canvas Engine.
+
+---
+
+## 5. IaC Generation Engine
+
+The **IaC Generation Engine** converts the finalized architecture graph into deployable Infrastructure-as-Code.
+
+Supported outputs:
+
+* Azure Bicep
+* Terraform
+
+Generation is primarily **deterministic**, using predefined templates based on resource schemas and properties.
+
+The engine can optionally:
+
+* run a dry-run validation
+* deploy to a temporary test subscription
+* delete test resources after validation
+
+---
+
+## 6. AI Controller (Light Orchestration Layer)
+
+A lightweight controller coordinates interactions between:
+
+* UI
+* Canvas Engine
+* AI agents
+* IaC generator
+
+Responsibilities:
+
+* provide canvas state to agents
+* route requests to the correct agent
+* translate AI responses into canvas operations
+* ensure safe architecture modifications
+
+This component is simpler than a full multi-agent orchestrator.
+
+---
+
+# Validation Workflow
+
+The **Validate** button triggers architecture analysis.
+
+Process:
+
+1. User clicks **Validate**
+2. Architecture Planning Agent analyzes canvas graph
+3. Tips panel populates with:
+
+   * improvement suggestions
+   * architecture conflicts
+   * best-practice violations
+4. User may click **Implement** on any tip
+5. Canvas Engine applies the modification
+6. User may re-run validation
+
+This ensures AI is used **only when needed**, preventing unnecessary compute or token usage.
+
+---
+
+# Final Architecture Overview
+
+```
+User Interface
+   | 
+   |-- Canvas Engine
+   |       |
+   |       └── Architecture Graph (shared state)
+   |
+   |-- AI Chat → Architecture Advisor Agent
+   |
+   |-- Validate → Architecture Planning Agent
+   |
+   └-- Generate Code → IaC Generation Engine
+```
+
+---
+
+# Development Guidance
+
+Key design principles:
+
+1. **Keep canvas operations deterministic**
+2. **Use AI only for reasoning tasks**
+3. **Use the architecture graph as the single source of truth**
+4. **Trigger AI analysis intentionally (Validate / Chat)**
+5. **Convert AI suggestions into structured canvas actions**
+
+This approach ensures the platform remains **stable, efficient, and scalable** while still providing powerful **AI-assisted cloud architecture design**.
+
+
+
+
+-----------------------
+I have implemented Azure MCP server and a few of its functions in the file MCP/AzureMCP_test.py.
+I want you to take inspiration from this implementation and use Azure MCP function "Azure Cloud Architect design tool or cloudarchitect_design tool" (likn: https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/tools/azure-cloud-architect) to create AI chat feature.
+I now want to implement an AI agent that controls the chat in AI chat panel. 
+
+Goal: create a chat-based AI agent that answers Azure architecture questions using the MCP tool cloudarchitect_design.
+
+
+maybe the system prompt can be:
+----------------------
+You are a senior cloud architect.
+
+You help users design cloud architectures.
+
+You will receive:
+- a user question
+
+You should:
+- answer the architecture question
+----------------------
+
+all this will lead to a minimal AI Architecture Advisor Chat for my application.
+
+A simple chat interface with:
+
+scrollable message history
+user input field
+send button
+loading state
+
+ architecture_planning tools, Returns instructions for selecting appropriate Azure services for discovered application components and designing infrastructure architecture. The LLM agent should execute these instructions using available tools. Use this tool when: - Discovery analysis has been completed and azd-arch-plan.md exists - Application components have been identified and classified - Need to map components to Azure hosting services - Ready to plan containerization and database strategies 
+
+ sample questions that could be asked:
+ "How should I design a scalable web app in Azure?"
+"What is the best architecture for an AI application?"
+"How can I secure an API in Azure?"
+
+
+can you let me know what you understand and what to implement?
+
+
+Later the AI will need to:
+
+• analyze architectures
+• generate tips
+• suggest architecture improvements
+• propose canvas changes
+• generate IaC
+
+Those are actions, not just text.

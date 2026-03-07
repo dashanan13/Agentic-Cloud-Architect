@@ -1,9 +1,12 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
 WORKDIR /app
 
 COPY App_Backend/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends nodejs npm \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& pip install --no-cache-dir -r requirements.txt
 
 COPY App_Backend/settings_server.py ./settings_server.py
 COPY Agents ./Agents

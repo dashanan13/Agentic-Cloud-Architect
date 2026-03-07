@@ -28,6 +28,9 @@ const statusRightWidthEl = document.getElementById("status-right-width");
 const chatHistoryEl = document.getElementById("chat-history");
 const chatInputEl = document.getElementById("chat-input");
 const chatSendBtn = document.getElementById("chat-send");
+const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
+let chatAgentState = null;
+let chatRequestInFlight = false;
 const tabGroups = Array.from(document.querySelectorAll('[role="tablist"]'))
   .map((tabListEl) => {
     const groupTabs = Array.from(tabListEl.querySelectorAll('.tab[role="tab"]'));
@@ -2187,10 +2190,88 @@ function appendChatMessage(message) {
   messageEl.textContent = message;
   chatHistoryEl.appendChild(messageEl);
   chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+
+  return messageEl;
 }
 
-function sendChatMessage() {
-  if (!chatInputEl) {
+function appendAssistantMessage(message) {
+  if (!chatHistoryEl) {
+    return null;
+  }
+
+  const messageEl = document.createElement("div");
+  messageEl.className = "chat-message chat-message--assistant";
+  messageEl.textContent = message;
+  chatHistoryEl.appendChild(messageEl);
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  return messageEl;
+}
+
+function appendLoadingMessage() {
+  if (!chatHistoryEl) {
+    return null;
+  }
+
+  const messageEl = document.createElement("div");
+  messageEl.className = "chat-message chat-message--assistant chat-message--loading";
+  messageEl.textContent = "Thinking...";
+  chatHistoryEl.appendChild(messageEl);
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  return messageEl;
+}
+
+function setChatBusy(isBusy) {
+  chatRequestInFlight = Boolean(isBusy);
+  if (chatSendBtn) {
+    chatSendBtn.disabled = chatRequestInFlight;
+  }
+  if (chatInputEl) {
+    chatInputEl.disabled = chatRequestInFlight;
+  }
+}
+
+function resetChatPanel() {
+  chatAgentState = null;
+  setChatBusy(false);
+
+  if (!chatHistoryEl) {
+    return;
+  }
+
+  chatHistoryEl.innerHTML = chatInitialMarkup;
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+}
+
+async function requestArchitectureChat(message) {
+  const response = await fetch("/api/chat/architecture", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message,
+      projectId: state.currentProject?.id || null,
+      agentState: chatAgentState || null
+    })
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = payload?.detail ? String(payload.detail) : "AI chat request failed.";
+    throw new Error(detail);
+  }
+
+  return payload;
+}
+
+async function sendChatMessage() {
+  if (!chatInputEl || chatRequestInFlight) {
     return;
   }
 
@@ -2201,6 +2282,31 @@ function sendChatMessage() {
 
   appendChatMessage(message);
   chatInputEl.value = "";
+
+  setChatBusy(true);
+  const loadingMessageEl = appendLoadingMessage();
+
+  try {
+    const payload = await requestArchitectureChat(message);
+    if (loadingMessageEl) {
+      loadingMessageEl.remove();
+    }
+
+    chatAgentState = payload?.agentState && typeof payload.agentState === "object"
+      ? payload.agentState
+      : null;
+
+    const assistantMessage = String(payload?.message || "I could not generate a response.").trim();
+    appendAssistantMessage(assistantMessage || "I could not generate a response.");
+  } catch (error) {
+    if (loadingMessageEl) {
+      loadingMessageEl.remove();
+    }
+    appendAssistantMessage(error?.message || "Unable to complete AI chat request.");
+  } finally {
+    setChatBusy(false);
+    chatInputEl.focus();
+  }
 }
 
 chatSendBtn?.addEventListener("click", sendChatMessage);
@@ -2490,6 +2596,8 @@ async function initialize() {
     window.location.href = "./landing.html";
     return;
   }
+
+  resetChatPanel();
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;

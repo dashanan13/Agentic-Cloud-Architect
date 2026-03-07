@@ -24,6 +24,11 @@ from Agents.AzureAIFoundry.foundry_messages import (
     post_project_created_message,
     post_project_deleted_message,
 )
+from Agents.AzureMCP.cloudarchitect_chat_agent import (
+    AzureMcpChatConfigurationError,
+    AzureMcpChatRequestError,
+    run_cloudarchitect_chat_agent,
+)
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -116,6 +121,12 @@ class ProjectDescriptionPayload(BaseModel):
     description: str
     appType: str | None = None
     cloud: str | None = None
+
+
+class ArchitectureChatPayload(BaseModel):
+    message: str
+    projectId: str | None = None
+    agentState: dict | None = None
 
 
 def read_json_file(path: Path, default):
@@ -1318,6 +1329,45 @@ def get_app_model(purpose: str = "chat", profile: str | None = None):
         "variable": variable,
         "model": model,
     }
+
+
+@app.post("/api/chat/architecture")
+def architecture_chat(body: ArchitectureChatPayload):
+    message = str(body.message or "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="message is required")
+
+    settings = load_app_settings()
+
+    project_context = None
+    if body.projectId:
+        entry = find_project_entry(body.projectId)
+        if entry:
+            metadata = read_json_file(entry["metadataPath"], {})
+            if not isinstance(metadata, dict):
+                metadata = {}
+
+            project_context = {
+                "id": entry["id"],
+                "name": str(metadata.get("name") or entry["name"]),
+                "cloud": str(metadata.get("cloud") or entry["cloud"]),
+                "applicationType": str(metadata.get("applicationType") or ""),
+                "applicationDescription": str(metadata.get("applicationDescription") or ""),
+            }
+
+    try:
+        return run_cloudarchitect_chat_agent(
+            app_settings=settings,
+            user_message=message,
+            agent_state=body.agentState if isinstance(body.agentState, dict) else None,
+            project_context=project_context,
+        )
+    except AzureMcpChatConfigurationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except AzureMcpChatRequestError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Architecture chat failed: {exc}") from exc
 
 
 @app.post("/api/settings/app/verify")
