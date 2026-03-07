@@ -87,6 +87,7 @@ class FoundryThreadMessenger:
                 continue
 
             content_text = _extract_message_text(item)
+            content_text = _normalize_message_for_display(role, content_text)
             if not content_text:
                 continue
 
@@ -379,6 +380,100 @@ def _extract_message_text(message: Mapping[str, Any]) -> str:
             return value
 
     return ""
+
+
+def _normalize_message_for_display(role: str, content: str) -> str:
+    safe_role = str(role or "").strip().lower()
+    safe_content = str(content or "").strip()
+    if not safe_content:
+        return ""
+
+    if safe_content.startswith("[Architect Agent] Project "):
+        return ""
+
+    if safe_role == "user":
+        extracted_user = _extract_user_message_from_prompt(safe_content)
+        if extracted_user:
+            return extracted_user
+        if _looks_like_internal_prompt(safe_content):
+            return ""
+        return safe_content
+
+    if safe_role == "assistant":
+        if _looks_like_internal_prompt(safe_content):
+            tail = _extract_tail_after_user_marker(safe_content)
+            if tail:
+                return tail
+            return ""
+        return safe_content
+
+    return safe_content
+
+
+def _looks_like_internal_prompt(text: str) -> bool:
+    safe_text = str(text or "")
+    if not safe_text:
+        return False
+
+    if "You are an Azure cloud architect assistant." not in safe_text:
+        return False
+
+    return (
+        "User request:" in safe_text
+        or "User message:" in safe_text
+        or "Scenario hint:" in safe_text
+        or "Runtime context:" in safe_text
+        or "Response shape:" in safe_text
+    )
+
+
+def _extract_user_message_from_prompt(text: str) -> str:
+    safe_text = str(text or "")
+    if not safe_text:
+        return ""
+
+    labels = ["User request:", "User message:"]
+    for label in labels:
+        index = safe_text.rfind(label)
+        if index < 0:
+            continue
+
+        remainder = safe_text[index + len(label) :].strip()
+        extracted = remainder.splitlines()[0].strip() if remainder else ""
+        if extracted:
+            return extracted
+
+    return ""
+
+
+def _extract_tail_after_user_marker(text: str) -> str:
+    safe_text = str(text or "")
+    if not safe_text:
+        return ""
+
+    labels = ["User request:", "User message:"]
+    last_index = -1
+    for label in labels:
+        index = safe_text.rfind(label)
+        if index > last_index:
+            last_index = index
+
+    if last_index < 0:
+        return ""
+
+    line_end = safe_text.find("\n", last_index)
+    if line_end < 0:
+        return ""
+
+    tail = safe_text[line_end + 1 :].strip()
+    if not tail:
+        return ""
+
+    if _looks_like_internal_prompt(tail):
+        nested = _extract_tail_after_user_marker(tail)
+        return nested or ""
+
+    return tail
 
 
 def _coerce_created_at(value: Any) -> int:
