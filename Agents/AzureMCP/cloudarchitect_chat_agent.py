@@ -74,7 +74,13 @@ ARCHITECTURE_KEYWORDS = {
 FAMILIARIZATION_PATTERNS = [
     r"\bwho are you\b",
     r"\bwhat can you do\b",
+    r"\bwhat can you answer\b",
+    r"\bwhat can i ask\b",
+    r"\bwhat topics\b",
+    r"\bwhat do you cover\b",
+    r"\bcan you answer\b",
     r"\bhow can you help\b",
+    r"\bwhat can you help with\b",
     r"\bhelp me\b",
     r"\bintroduce yourself\b",
     r"\bwhat model\b",
@@ -171,8 +177,10 @@ def run_cloudarchitect_chat_agent(
     foundry_connected = False
     follow_up_question = _next_clarifying_question(max(architecture_turn_count + 1, 1))
     assistant_message = ""
+    out_of_scope_count = int(normalized_state.get("outOfScopeCount") or 0)
 
     if intent == "architecture":
+        out_of_scope_count = 0
         architecture_turn_count += 1
         follow_up_question = _next_clarifying_question(architecture_turn_count)
         question_for_tool = follow_up_question
@@ -238,6 +246,7 @@ def run_cloudarchitect_chat_agent(
         model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
         model_info["usedFoundryModel"] = True
     elif intent == "familiarization":
+        out_of_scope_count = 0
         foundry_prompt = _build_foundry_familiarization_prompt(
             user_message=text,
             mcp_configured=mcp_configured,
@@ -255,7 +264,26 @@ def run_cloudarchitect_chat_agent(
         model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
         model_info["usedFoundryModel"] = True
     else:
-        assistant_message = _render_out_of_scope_response()
+        out_of_scope_count += 1
+        try:
+            foundry_prompt = _build_foundry_out_of_scope_prompt(
+                user_message=text,
+                mcp_configured=mcp_configured,
+                foundry_configured=foundry_configured,
+                configured_model=str(model_info.get("configuredModel") or ""),
+            )
+            foundry_text, foundry_meta = _try_foundry_architect_response(
+                app_settings=app_settings,
+                prompt=foundry_prompt,
+                foundry_thread_id=foundry_thread_id,
+                foundry_agent_id=foundry_agent_id,
+            )
+            foundry_connected = bool(foundry_meta.get("connected"))
+            assistant_message = foundry_text
+            model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
+            model_info["usedFoundryModel"] = True
+        except Exception:
+            assistant_message = _render_out_of_scope_response(text, out_of_scope_count)
 
     next_question_flag = bool(response_object.get("nextQuestionNeeded", next_question_needed)) if intent == "architecture" else False
     question_number = int(response_object.get("questionNumber") or architecture_turn_count)
@@ -269,6 +297,7 @@ def run_cloudarchitect_chat_agent(
         "cloudArchitectState": cloud_state,
         "recentUserMessages": recent_user_messages,
         "lastToolQuestion": question_for_tool,
+        "outOfScopeCount": out_of_scope_count,
         "lastIntent": intent,
     }
 
@@ -459,6 +488,7 @@ def _normalize_agent_state(agent_state: Mapping[str, Any] | None) -> dict[str, A
             "cloudArchitectState": _default_cloudarchitect_state(),
             "recentUserMessages": [],
             "lastToolQuestion": "",
+            "outOfScopeCount": 0,
         }
 
     cloud_state = _coerce_state(agent_state.get("cloudArchitectState"))
@@ -474,6 +504,7 @@ def _normalize_agent_state(agent_state: Mapping[str, Any] | None) -> dict[str, A
         "cloudArchitectState": cloud_state,
         "recentUserMessages": _coerce_string_list(agent_state.get("recentUserMessages")),
         "lastToolQuestion": str(agent_state.get("lastToolQuestion") or "").strip(),
+        "outOfScopeCount": _coerce_int(agent_state.get("outOfScopeCount"), 0),
     }
 
 
@@ -657,12 +688,19 @@ def _build_foundry_familiarization_prompt(
     mcp_state = "configured" if mcp_configured else "not configured"
     foundry_state = "configured" if foundry_configured else "not configured"
     model_label = configured_model or "not configured"
+    agent_definition = _load_agent_definition()
 
     lines = [
         "You are an Azure cloud architect assistant.",
-        "Respond to the user in a warm and concise way.",
+        "Use this playbook as behavior baseline:",
+        agent_definition,
+        "",
+        "Respond like a human architect teammate: clear, warm, and concise.",
+        "A touch of wit is welcome, but keep it professional.",
+        "Keep this answer under 120 words and avoid long bullet dumps.",
         "You may answer greetings and familiarization questions, but remain strictly in Azure cloud architecture scope.",
-        "If asked about non-architecture topics, politely decline and redirect to Azure architecture.",
+        "Do not repeat the exact same refusal sentence across turns.",
+        "If the user asks out-of-scope questions, gently decline and redirect to architecture topics they can ask.",
         "",
         f"Runtime context: model={model_label}, Azure MCP={mcp_state}, Azure AI Foundry={foundry_state}.",
         f"User message: {user_message}",
@@ -670,13 +708,56 @@ def _build_foundry_familiarization_prompt(
     return "\n".join(lines)
 
 
-def _render_out_of_scope_response() -> str:
-    return "\n".join(
-        [
-            "I’m specialized for Azure cloud architecture only, so I can’t help with non-architecture topics.",
-            "You can ask me about Azure design patterns, security, scalability, reliability, data, networking, or IaC decisions.",
-        ]
-    )
+def _render_out_of_scope_response(user_message: str, out_of_scope_count: int = 1) -> str:
+    message_text = str(user_message or "").strip().lower()
+    safe_count = max(int(out_of_scope_count or 1), 1)
+    seed = sum(ord(char) for char in message_text) + safe_count
+
+    openings = [
+        "That’s a fun detour — but I’m your Azure architecture copilot, not a general coding bot.",
+        "Tempting ask 😄, but I stay focused on Azure cloud architecture conversations.",
+        "I can’t take that route directly; I’m scoped to Azure architecture only.",
+        "Good curveball — my lane is Azure architecture design and trade-off decisions.",
+    ]
+    redirects = [
+        "If you want, I can map how to host a Python app on Azure with secure defaults and low cost.",
+        "Ask me about web app security, identity, networking, data choices, or IaC structure and I’ll jump in.",
+        "Try: “How should I design this on Azure for scale, security, and cost?” and I’ll give you a concrete plan.",
+        "We can turn this into architecture quickly — share your app type and I’ll suggest an Azure setup.",
+    ]
+
+    opening = openings[seed % len(openings)]
+    redirect = redirects[(seed // 3) % len(redirects)]
+    return "\n".join([opening, redirect])
+
+
+def _build_foundry_out_of_scope_prompt(
+    user_message: str,
+    mcp_configured: bool,
+    foundry_configured: bool,
+    configured_model: str,
+) -> str:
+    mcp_state = "configured" if mcp_configured else "not configured"
+    foundry_state = "configured" if foundry_configured else "not configured"
+    model_label = configured_model or "not configured"
+    agent_definition = _load_agent_definition()
+
+    lines = [
+        "You are an Azure cloud architect assistant.",
+        "Use this playbook as behavior baseline:",
+        agent_definition,
+        "",
+        "The user's request is OUT OF SCOPE for Azure cloud architecture.",
+        "Respond in 2-4 short lines, conversational and human.",
+        "Add a little personality or light wit, while staying professional.",
+        "Do not sound like a policy bot. Avoid repeating the same sentence from prior turns.",
+        "Structure: (1) brief acknowledgment, (2) clear scope boundary, (3) redirect to architecture topics.",
+        "Do NOT provide instructions/code for the out-of-scope request.",
+        "",
+        f"Runtime context: model={model_label}, Azure MCP={mcp_state}, Azure AI Foundry={foundry_state}.",
+        f"User message: {user_message}",
+    ]
+    return "\n".join(lines)
 
 
 def _build_foundry_architect_prompt(
@@ -698,11 +779,19 @@ def _build_foundry_architect_prompt(
         context_line = f"Project context: {' | '.join(context_parts)}"
 
     hint_line = f"MCP hint: {mcp_hint}" if mcp_hint else "MCP hint: none"
+    agent_definition = _load_agent_definition()
 
     lines = [
         "You are an Azure cloud architect assistant.",
+        "Use this playbook as behavior baseline:",
+        agent_definition,
+        "",
         "Stay strictly within Azure cloud architecture scope.",
-        "Provide practical, production-minded guidance and keep it concise.",
+        "Write like a human architect speaking to a teammate.",
+        "Add a little personality and warmth when appropriate, but stay technical and precise.",
+        "Avoid rigid numbered templates unless the user asks for that format.",
+        "Default response length: about 120-220 words, unless the user asks for a deep dive.",
+        "Do not flood the user with long lists.",
         "",
         f"Scenario hint: {scenario}",
         context_line or "Project context: none",
@@ -710,11 +799,12 @@ def _build_foundry_architect_prompt(
         "",
         f"User request: {user_message}",
         "",
-        "Respond with:",
-        "1) A concise recommendation paragraph",
-        "2) A component table (Component | Purpose | Tier/SKU)",
-        "3) 2-4 implementation notes",
-        f"4) One next refinement question: {follow_up_question}",
+        "Response shape:",
+        "- Start with one brief acknowledgment sentence about the user's question.",
+        "- Give a concise recommendation in plain language (2-4 sentences).",
+        "- Add compact technical detail (max 4 bullets).",
+        "- Include a mini component table ONLY if it truly helps (max 4 rows).",
+        f"- End with one natural follow-up question, ideally: {follow_up_question}",
     ]
     return "\n".join(lines)
 
