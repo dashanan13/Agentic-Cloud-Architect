@@ -40,8 +40,9 @@
           <aside class="panel-status" aria-label="Status messages">
             <div class="status-title">Status Messages</div>
             <ul>
-              <li><span class="badge badge--info">INFO</span> Left panel width: <strong id="status-left-width">-</strong></li>
-              <li><span class="badge badge--info">INFO</span> Right panel width: <strong id="status-right-width">-</strong></li>
+              <li class="status-ai-row"><span class="status-ai-label">Model</span><span class="status-ai-value" id="chat-runtime-model">Loading...</span></li>
+              <li class="status-ai-row"><span class="status-ai-label">Azure MCP</span><span class="status-ai-value" id="chat-runtime-mcp">Loading...</span></li>
+              <li class="status-ai-row"><span class="status-ai-label">Context</span><span class="status-ai-value" id="chat-runtime-ctx">—</span></li>
             </ul>
           </aside>
         </section>
@@ -96,20 +97,6 @@
           </div>
 
           <div class="tab-panel right-tab-panel is-hidden" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
-            <div class="chat-runtime" id="chat-runtime" aria-live="polite">
-              <div class="chat-runtime-row">
-                <span class="chat-runtime-label">Model</span>
-                <span class="chat-runtime-value" id="chat-runtime-model">Loading...</span>
-              </div>
-              <div class="chat-runtime-row">
-                <span class="chat-runtime-label">Azure MCP</span>
-                <span class="chat-runtime-value" id="chat-runtime-mcp">Loading...</span>
-              </div>
-              <div class="chat-runtime-row">
-                <span class="chat-runtime-label">Context</span>
-                <span class="chat-runtime-value" id="chat-runtime-ctx">—</span>
-              </div>
-            </div>
             <div class="chat-context-notice" id="chat-context-notice" aria-label="Context notice">
               <span class="chat-context-notice__icon">&#9432;</span>
               <span class="chat-context-notice__text">AI uses your <strong>project description</strong> as context. Updating or changing the description starts a new chat session.</span>

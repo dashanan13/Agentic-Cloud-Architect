@@ -1243,6 +1243,29 @@ select.property-input {
   font-size: 0.62rem;
 }
 
+.status-ai-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-ai-label {
+  font-size: 0.62rem;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-ai-value {
+  font-size: 0.62rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.status-ai-value.chat-runtime-value--ok   { color: #4ade80; }
+.status-ai-value.chat-runtime-value--warn  { color: #fbbf24; }
+.status-ai-value.chat-runtime-value--error { color: #fca5a5; }
+
 .tabs {
   display: flex;
   gap: 0;

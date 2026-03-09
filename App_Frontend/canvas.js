@@ -2279,9 +2279,11 @@ function updateChatRuntimeStatus(meta) {
   const provider = String(model.provider || "").trim();
   const usedFoundryModel = Boolean(model.usedFoundryModel);
 
-  let modelLabel = activeModel;
+  // Prefer the configured model name for display; fall back to activeModel if unavailable.
+  const namedModel = (provider === "azure-foundry" && configuredModel) ? configuredModel : activeModel;
+  let modelLabel = namedModel;
   if (provider === "azure-foundry" && configuredModel && !usedFoundryModel) {
-    modelLabel = `${activeModel} (fallback active)`;
+    modelLabel = `${namedModel} (fallback active)`;
   }
   if (provider === "azure-foundry" && configuredModel && usedFoundryModel) {
     modelLabel = `${activeModel} (Azure AI Foundry)`;
