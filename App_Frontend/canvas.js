@@ -2869,6 +2869,11 @@ async function initialize() {
   renderCanvasView();
   updateCanvasStatus();
 
+  // All core canvas data is ready — lift the skeleton loading state.
+  // Resource-list skeleton self-clears when renderResources() runs below.
+  // Property-content skeleton self-clears when updatePropertyPanel() runs below.
+  appEl.classList.remove("is-canvas-loading");
+
   setSaveStatus("Autosave: every 60s");
   window.setInterval(async () => {
     try {

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="app" id="app">
+    <div class="app is-canvas-loading" id="app">
       <div class="screen is-active" id="screen-canvas">
         <header class="topbar">
           <div class="topbar__left">
@@ -15,6 +15,7 @@
               <span>Agentic Cloud Architect</span>
             </div>
             <div class="project-name-display-wrapper">
+              <div class="skel-bar skel-bar--project-name" aria-hidden="true"></div>
               <span id="project-iac-icon" class="project-iac-icon" aria-hidden="true"></span>
               <span class="project-label">Project:</span>
               <span id="project-name-prefix-display" class="project-name-prefix-display"></span>
@@ -37,7 +38,23 @@
           <div class="panel__header">
             <input type="search" id="search-input" placeholder="Search resources" aria-label="Search resources" />
           </div>
-          <div class="resource-list" id="resource-list" aria-label="Resource list"></div>
+          <div class="resource-list" id="resource-list" aria-label="Resource list">
+            <!-- skeleton rows — wiped automatically by renderResources() -->
+            <div class="skel-res-title" aria-hidden="true"></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name skel-res-name--short"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name skel-res-name--short"></div></div>
+            <div class="skel-res-title" aria-hidden="true" style="margin-top:18px"></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name skel-res-name--short"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name"></div></div>
+            <div class="skel-res-title" aria-hidden="true" style="margin-top:18px"></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name skel-res-name--short"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name"></div></div>
+            <div class="skel-res-row" aria-hidden="true"><div class="skel-res-icon"></div><div class="skel-res-name skel-res-name--short"></div></div>
+          </div>
           <aside class="panel-status" aria-label="Status messages">
             <div class="status-title">Status Messages</div>
             <ul>
@@ -67,8 +84,7 @@
             <div class="canvas-viewport" id="canvas-viewport" aria-label="Architecture canvas" tabindex="0">
               <div class="canvas-grid" id="canvas-grid"></div>
               <svg class="canvas-edges" id="canvas-edges" aria-hidden="true"></svg>
-              <div class="canvas-layer" id="canvas-layer"></div>
-            </div>
+              <div class="canvas-layer" id="canvas-layer"></div>              <div class="skel-canvas-overlay" aria-hidden="true"></div>            </div>
           </div>
         </section>
 
@@ -87,7 +103,13 @@
               <strong id="selected-resource-name">None selected</strong>
             </div>
             <div class="property-content" id="property-content">
-              Select a resource or connection to edit property details.
+              <!-- skeleton lines — wiped automatically by updatePropertyPanel() -->
+              <div class="skel-prop-row skel-prop-row--label" aria-hidden="true"></div>
+              <div class="skel-prop-row" aria-hidden="true"></div>
+              <div class="skel-prop-row skel-prop-row--label" aria-hidden="true"></div>
+              <div class="skel-prop-row skel-prop-row--half" aria-hidden="true"></div>
+              <div class="skel-prop-row skel-prop-row--label" aria-hidden="true"></div>
+              <div class="skel-prop-row" aria-hidden="true"></div>
             </div>
           </div>
 
