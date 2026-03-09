@@ -1,18 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 import json
 import re
 import time
 from typing import Any, Mapping
-from urllib import error as urllib_error
-from urllib import parse as urllib_parse
-from urllib import request as urllib_request
-
-from azure.identity import ClientSecretCredential
 
 from Agents.AzureAIFoundry.foundry_bootstrap import (
-    DEFAULT_FOUNDRY_API_VERSION,
     FoundryConfigurationError,
     FoundryConnectionSettings,
     FoundryRequestError,
@@ -35,11 +30,6 @@ class FoundryAssistantRunner:
     def __init__(self, settings: FoundryConnectionSettings, timeout_seconds: int = 20):
         self.settings = settings
         self.timeout_seconds = timeout_seconds
-        self._credential = ClientSecretCredential(
-            tenant_id=settings.tenant_id,
-            client_id=settings.client_id,
-            client_secret=settings.client_secret,
-        )
 
     def run_assistant(
         self,
@@ -60,133 +50,150 @@ class FoundryAssistantRunner:
         if not message_text:
             raise FoundryConfigurationError("message content is required")
 
-        message_payload = {
-            "role": str(role or "user").strip() or "user",
-            "content": message_text,
-        }
-        message_response = self._request_json(
-            "POST",
-            f"/threads/{urllib_parse.quote(safe_thread_id)}/messages",
-            payload=message_payload,
-            expected_status=(200, 201),
-        )
-        message_id = str(message_response.get("id") or "").strip()
-        if not message_id:
-            raise FoundryRequestError("Foundry message create response did not include id")
-
-        run_response = self._request_json(
-            "POST",
-            f"/threads/{urllib_parse.quote(safe_thread_id)}/runs",
-            payload={"assistant_id": safe_assistant_id},
-            expected_status=(200, 201),
-        )
-        run_id = str(run_response.get("id") or "").strip()
-        if not run_id:
-            raise FoundryRequestError("Foundry run create response did not include id")
-
-        status = str(run_response.get("status") or "").strip().lower()
-        deadline = time.time() + self.timeout_seconds
-        while time.time() < deadline and status not in {"completed", "succeeded"}:
-            if status in {"failed", "cancelled", "canceled", "expired"}:
-                raise FoundryRequestError(f"Foundry run failed with status {status}")
-            time.sleep(poll_interval)
-            run_state = self._request_json(
-                "GET",
-                f"/threads/{urllib_parse.quote(safe_thread_id)}/runs/{urllib_parse.quote(run_id)}",
+        return _run_sync(
+            self._run_assistant_with_framework(
+                assistant_id=safe_assistant_id,
+                thread_id=safe_thread_id,
+                content=message_text,
+                role=str(role or "user").strip() or "user",
+                poll_interval=float(poll_interval or 0.6),
             )
-            status = str(run_state.get("status") or "").strip().lower()
-
-        if status not in {"completed", "succeeded"}:
-            raise FoundryRequestError("Foundry run did not complete in time")
-
-        messages_payload = self._request_json(
-            "GET",
-            f"/threads/{urllib_parse.quote(safe_thread_id)}/messages",
         )
-        messages = messages_payload.get("data") if isinstance(messages_payload.get("data"), list) else []
-        response_text = _extract_assistant_response(messages, run_id)
 
+    async def _run_assistant_with_framework(
+        self,
+        assistant_id: str,
+        thread_id: str,
+        content: str,
+        role: str,
+        poll_interval: float,
+    ) -> AssistantRunResult:
+        del role
+        del poll_interval
+
+        try:
+            from agent_framework import Agent
+            from agent_framework import AgentSession
+            from agent_framework.azure import AzureAIAgentClient
+            from azure.identity.aio import ClientSecretCredential as AsyncClientSecretCredential
+        except ModuleNotFoundError as exc:
+            raise FoundryConfigurationError(
+                "Python package 'agent-framework-azure-ai' is required for Foundry chat. "
+                "Install backend dependencies and rebuild the app container."
+            ) from exc
+
+        try:
+            async with AsyncClientSecretCredential(
+                tenant_id=self.settings.tenant_id,
+                client_id=self.settings.client_id,
+                client_secret=self.settings.client_secret,
+            ) as credential:
+                chat_client = AzureAIAgentClient(
+                    project_endpoint=self.settings.endpoint,
+                    model_deployment_name=self.settings.model_deployment,
+                    credential=credential,
+                    agent_id=assistant_id,
+                )
+
+                try:
+                    agent = self._build_framework_agent(Agent, chat_client)
+                    async with agent:
+                        response = await asyncio.wait_for(
+                            self._run_framework_agent(agent, AgentSession, content, thread_id),
+                            timeout=float(self.timeout_seconds),
+                        )
+                finally:
+                    close_method = getattr(chat_client, "close", None)
+                    if callable(close_method):
+                        close_result = close_method()
+                        if asyncio.iscoroutine(close_result):
+                            await close_result
+        except asyncio.TimeoutError as exc:
+            raise FoundryRequestError("Foundry run did not complete in time") from exc
+        except FoundryRequestError:
+            raise
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry run failed via Agent Framework: {exc}") from exc
+
+        response_text = self._extract_response_text(response)
         if not response_text:
             raise FoundryRequestError("Foundry run completed, but no assistant response was found")
 
+        run_id = self._extract_response_id(response, "response_id", "run_id", "id")
+        if not run_id:
+            run_id = f"af-run-{int(time.time() * 1000)}"
+
+        message_id = self._extract_response_id(response, "message_id", "id")
+        if not message_id:
+            message_id = run_id
+
         return AssistantRunResult(
-            thread_id=safe_thread_id,
+            thread_id=thread_id,
             run_id=run_id,
             message_id=message_id,
             response_text=response_text,
         )
 
-    def _request_json(
-        self,
-        method: str,
-        path: str,
-        payload: dict[str, Any] | None = None,
-        expected_status: tuple[int, ...] = (200,),
-    ) -> dict[str, Any]:
-        preferred_version = str(self.settings.api_version or "").strip() or DEFAULT_FOUNDRY_API_VERSION
-        versions_to_try = [preferred_version]
-        for candidate in (DEFAULT_FOUNDRY_API_VERSION, "2025-05-15-preview"):
-            if candidate not in versions_to_try:
-                versions_to_try.append(candidate)
-
-        for index, api_version in enumerate(versions_to_try):
-            query = urllib_parse.urlencode({"api-version": api_version})
-            url = f"{self.settings.endpoint}{path}?{query}"
-            headers = {
-                "Authorization": f"Bearer {self._get_access_token()}",
-                "Accept": "application/json",
-            }
-
-            body: bytes | None = None
-            if payload is not None:
-                headers["Content-Type"] = "application/json"
-                body = json.dumps(payload).encode("utf-8")
-
-            request = urllib_request.Request(url, method=method, headers=headers, data=body)
+    def _build_framework_agent(self, agent_type: Any, chat_client: Any) -> Any:
+        attempts = [
+            {
+                "chat_client": chat_client,
+                "name": "architect-agent",
+                "instructions": "You are a helpful assistant.",
+            },
+            {
+                "client": chat_client,
+                "name": "architect-agent",
+                "instructions": "You are a helpful assistant.",
+            },
+        ]
+        for kwargs in attempts:
             try:
-                with urllib_request.urlopen(request, timeout=self.timeout_seconds) as response:
-                    if response.status not in expected_status:
-                        raise FoundryRequestError(
-                            f"Unexpected status {response.status} for {method} {path}",
-                            status_code=response.status,
-                        )
+                return agent_type(**kwargs)
+            except TypeError:
+                continue
 
-                    text = response.read().decode("utf-8", errors="ignore").strip()
-                    if not text:
-                        return {}
+        raise FoundryConfigurationError("Unable to initialize Agent Framework agent for Foundry.")
 
-                    try:
-                        parsed = json.loads(text)
-                        if isinstance(parsed, dict):
-                            return parsed
-                        return {"data": parsed}
-                    except json.JSONDecodeError:
-                        return {}
-            except urllib_error.HTTPError as exc:
-                detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
-                if (
-                    exc.code == 400
-                    and "api version not supported" in detail.lower()
-                    and index < len(versions_to_try) - 1
-                ):
-                    continue
+    async def _run_framework_agent(self, agent: Any, session_type: Any, content: str, thread_id: str) -> Any:
+        try:
+            return await agent.run(content, conversation_id=thread_id)
+        except TypeError:
+            session = session_type(service_session_id=thread_id)
+            return await agent.run(content, session=session)
 
-                raise FoundryRequestError(
-                    f"Foundry request failed for {method} {path}: HTTP {exc.code}",
-                    status_code=exc.code,
-                    detail=detail,
-                ) from exc
-            except urllib_error.URLError as exc:
-                raise FoundryRequestError(f"Foundry request failed for {method} {path}: {exc}") from exc
+    def _extract_response_text(self, response: Any) -> str:
+        direct_text = str(getattr(response, "text", "") or "").strip()
+        if direct_text:
+            return direct_text
 
-        raise FoundryRequestError(f"Foundry request failed for {method} {path}: unsupported API version")
+        messages = getattr(response, "messages", None)
+        if isinstance(messages, list):
+            for message in reversed(messages):
+                message_text = str(getattr(message, "text", "") or "").strip()
+                if message_text:
+                    return message_text
 
-    def _get_access_token(self) -> str:
-        token = self._credential.get_token("https://ai.azure.com/.default")
-        value = str(token.token or "").strip()
-        if not value:
-            raise FoundryRequestError("Failed to acquire Azure AI token")
-        return value
+        rendered = str(response or "").strip()
+        if rendered and rendered.lower() != "none":
+            return rendered
+
+        return ""
+
+    def _extract_response_id(self, response: Any, *candidates: str) -> str:
+        for candidate in candidates:
+            value = str(getattr(response, candidate, "") or "").strip()
+            if value:
+                return value
+        return ""
+
+
+def _run_sync(coro):
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    raise FoundryRequestError("Synchronous Foundry operation called while an event loop is already running")
 
 
 def evaluate_description_with_architect(

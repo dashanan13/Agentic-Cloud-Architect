@@ -1,14 +1,13 @@
 from __future__ import annotations
 
+import asyncio
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
-import json
 from pathlib import Path
 from typing import Any, Mapping
-from urllib import error as urllib_error
-from urllib import parse as urllib_parse
-from urllib import request as urllib_request
-
-from azure.identity import ClientSecretCredential
+from azure.ai.agents.aio import AgentsClient
+from azure.core.exceptions import HttpResponseError
+from azure.identity.aio import ClientSecretCredential as AsyncClientSecretCredential
 
 DEFAULT_AGENT_NAME = "architect-agent"
 DEFAULT_THREAD_NAME = "architect-thread"
@@ -106,11 +105,6 @@ class FoundryBootstrapClient:
     def __init__(self, settings: FoundryConnectionSettings, timeout_seconds: int = 20):
         self.settings = settings
         self.timeout_seconds = timeout_seconds
-        self._credential = ClientSecretCredential(
-            tenant_id=settings.tenant_id,
-            client_id=settings.client_id,
-            client_secret=settings.client_secret,
-        )
 
     def ensure_default_agent_and_thread(
         self,
@@ -127,12 +121,17 @@ class FoundryBootstrapClient:
         )
         if not resolved_instructions:
             raise FoundryConfigurationError("Agent instructions are empty")
-        agent_id, created_agent = self._ensure_agent(
-            name=default_agent_name,
-            instructions=resolved_instructions,
-            known_agent_id=known_agent_id,
+
+        agent_id, created_agent, thread_result = _run_sync(
+            self._ensure_default_agent_and_thread_async(
+                default_agent_name=default_agent_name,
+                default_thread_name=default_thread_name,
+                resolved_instructions=resolved_instructions,
+                known_agent_id=known_agent_id,
+                known_thread_id=known_thread_id,
+            )
         )
-        thread_result = self.ensure_named_thread(default_thread_name, known_thread_id=known_thread_id)
+
         return DefaultResourcesResult(
             agent_id=agent_id,
             thread_id=thread_result.thread_id,
@@ -147,234 +146,305 @@ class FoundryBootstrapClient:
         return self.ensure_named_thread(project_name, known_thread_id=known_thread_id)
 
     def ensure_named_thread(self, thread_name: str | None, known_thread_id: str | None = None) -> ThreadResult:
+        return _run_sync(self._ensure_named_thread_async(thread_name=thread_name, known_thread_id=known_thread_id))
+
+    async def _ensure_default_agent_and_thread_async(
+        self,
+        default_agent_name: str,
+        default_thread_name: str,
+        resolved_instructions: str,
+        known_agent_id: str | None,
+        known_thread_id: str | None,
+    ) -> tuple[str, bool, ThreadResult]:
+        async with self._agents_client_context() as agents_client:
+            agent_id, created_agent = await self._ensure_agent_async(
+                agents_client=agents_client,
+                name=default_agent_name,
+                instructions=resolved_instructions,
+                known_agent_id=known_agent_id,
+            )
+            thread_result = await self._ensure_named_thread_async(
+                thread_name=default_thread_name,
+                known_thread_id=known_thread_id,
+                agents_client=agents_client,
+            )
+            return agent_id, created_agent, thread_result
+
+    async def _ensure_named_thread_async(
+        self,
+        thread_name: str | None,
+        known_thread_id: str | None,
+        agents_client: AgentsClient | None = None,
+    ) -> ThreadResult:
         normalized_name = str(thread_name or "").strip()
 
+        if agents_client is not None:
+            return await self._ensure_named_thread_with_client_async(
+                agents_client=agents_client,
+                thread_name=normalized_name,
+                known_thread_id=known_thread_id,
+            )
+
+        async with self._agents_client_context() as scoped_client:
+            return await self._ensure_named_thread_with_client_async(
+                agents_client=scoped_client,
+                thread_name=normalized_name,
+                known_thread_id=known_thread_id,
+            )
+
+    async def _ensure_named_thread_with_client_async(
+        self,
+        agents_client: AgentsClient,
+        thread_name: str,
+        known_thread_id: str | None,
+    ) -> ThreadResult:
         if known_thread_id:
-            exists = self._thread_exists(known_thread_id)
+            exists = await self._thread_exists_async(agents_client, known_thread_id)
             if exists is not False:
                 return ThreadResult(thread_id=known_thread_id, created=False)
 
-        if normalized_name:
-            existing_thread_id = self._find_thread_id_by_name(normalized_name)
+        if thread_name:
+            existing_thread_id = await self._find_thread_id_by_name_async(agents_client, thread_name)
             if existing_thread_id:
                 return ThreadResult(thread_id=existing_thread_id, created=False)
 
-        created_id = self._create_thread()
+        created_id = await self._create_thread_async(agents_client, thread_name)
         return ThreadResult(thread_id=created_id, created=True)
 
-    def _ensure_agent(
+    async def _ensure_agent_async(
         self,
+        agents_client: AgentsClient,
         name: str,
         instructions: str,
         known_agent_id: str | None,
     ) -> tuple[str, bool]:
-        if known_agent_id and self._assistant_exists(known_agent_id):
+        if known_agent_id and await self._assistant_exists_async(agents_client, known_agent_id):
             return known_agent_id, False
 
-        existing_agent_id = self._find_assistant_id_by_name(name)
+        existing_agent_id = await self._find_assistant_id_by_name_async(agents_client, name)
         if existing_agent_id:
             return existing_agent_id, False
 
-        created_id = self._create_assistant(name=name, instructions=instructions)
+        created_id = await self._create_assistant_async(agents_client=agents_client, name=name, instructions=instructions)
         return created_id, True
 
-    def _request_json(
-        self,
-        method: str,
-        path: str,
-        payload: dict[str, Any] | None = None,
-        expected_status: tuple[int, ...] = (200,),
-    ) -> dict[str, Any]:
-        preferred_version = str(self.settings.api_version or "").strip() or DEFAULT_FOUNDRY_API_VERSION
-        versions_to_try = [preferred_version]
-        for candidate in (DEFAULT_FOUNDRY_API_VERSION, "2025-05-15-preview"):
-            if candidate not in versions_to_try:
-                versions_to_try.append(candidate)
-
-        for index, api_version in enumerate(versions_to_try):
-            query = urllib_parse.urlencode({"api-version": api_version})
-            url = f"{self.settings.endpoint}{path}?{query}"
-            headers = {
-                "Authorization": f"Bearer {self._get_access_token()}",
-                "Accept": "application/json",
-            }
-
-            body: bytes | None = None
-            if payload is not None:
-                headers["Content-Type"] = "application/json"
-                body = json.dumps(payload).encode("utf-8")
-
-            request = urllib_request.Request(url, method=method, headers=headers, data=body)
-            try:
-                with urllib_request.urlopen(request, timeout=self.timeout_seconds) as response:
-                    if response.status not in expected_status:
-                        raise FoundryRequestError(
-                            f"Unexpected status {response.status} for {method} {path}",
-                            status_code=response.status,
-                        )
-
-                    text = response.read().decode("utf-8", errors="ignore").strip()
-                    if not text:
-                        return {}
-
-                    try:
-                        parsed = json.loads(text)
-                        if isinstance(parsed, dict):
-                            return parsed
-                        return {"data": parsed}
-                    except json.JSONDecodeError:
-                        return {}
-            except urllib_error.HTTPError as exc:
-                detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
-                if (
-                    exc.code == 400
-                    and "api version not supported" in detail.lower()
-                    and index < len(versions_to_try) - 1
-                ):
-                    continue
-
-                raise FoundryRequestError(
-                    f"Foundry request failed for {method} {path}: HTTP {exc.code}",
-                    status_code=exc.code,
-                    detail=detail,
-                ) from exc
-            except urllib_error.URLError as exc:
-                raise FoundryRequestError(f"Foundry request failed for {method} {path}: {exc}") from exc
-
-        raise FoundryRequestError(f"Foundry request failed for {method} {path}: unsupported API version")
-
-    def _get_access_token(self) -> str:
-        token = self._credential.get_token("https://ai.azure.com/.default")
-        value = str(token.token or "").strip()
-        if not value:
-            raise FoundryRequestError("Failed to acquire Azure AI token")
-        return value
-
-    def _assistant_exists(self, assistant_id: str) -> bool:
+    async def _assistant_exists_async(self, agents_client: AgentsClient, assistant_id: str) -> bool:
         safe_id = str(assistant_id or "").strip()
         if not safe_id:
             return False
 
         try:
-            payload = self._request_json("GET", f"/assistants/{urllib_parse.quote(safe_id)}")
-            return bool(str(payload.get("id") or "").strip())
-        except FoundryRequestError as exc:
-            if exc.status_code in {401, 403}:
+            agent = await agents_client.get_agent(safe_id)
+            return bool(self._as_text(self._model_get(agent, "id")))
+        except HttpResponseError as exc:
+            status = self._status_code(exc)
+            if status in {401, 403}:
                 return False
-            if exc.status_code in {400, 404}:
-                return self._assistant_exists_in_list(safe_id)
-            raise
+            if status in {400, 404}:
+                return await self._assistant_exists_in_list_async(agents_client, safe_id)
+            self._raise_request_error(exc, "get_agent")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for get_agent: {exc}") from exc
 
-    def _assistant_exists_in_list(self, assistant_id: str) -> bool:
-        try:
-            payload = self._request_json("GET", "/assistants")
-        except FoundryRequestError:
-            return False
-
-        items = payload.get("data") if isinstance(payload.get("data"), list) else []
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-            if str(item.get("id") or "").strip() == assistant_id:
+    async def _assistant_exists_in_list_async(self, agents_client: AgentsClient, assistant_id: str) -> bool:
+        agents = await self._list_agents_async(agents_client)
+        for agent in agents:
+            if self._as_text(self._model_get(agent, "id")) == assistant_id:
                 return True
         return False
 
-    def _find_assistant_id_by_name(self, assistant_name: str) -> str | None:
-        payload = self._request_json("GET", "/assistants")
-        items = payload.get("data") if isinstance(payload.get("data"), list) else []
-
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-            if str(item.get("name") or "").strip() == assistant_name:
-                candidate = str(item.get("id") or "").strip()
+    async def _find_assistant_id_by_name_async(self, agents_client: AgentsClient, assistant_name: str) -> str | None:
+        agents = await self._list_agents_async(agents_client)
+        for agent in agents:
+            if self._as_text(self._model_get(agent, "name")) == assistant_name:
+                candidate = self._as_text(self._model_get(agent, "id"))
                 if candidate:
                     return candidate
         return None
 
-    def _create_assistant(self, name: str, instructions: str) -> str:
-        payload = self._request_json(
-            "POST",
-            "/assistants",
-            payload={
-                "name": name,
-                "instructions": instructions,
-                "model": self.settings.model_deployment,
-            },
-            expected_status=(200, 201),
-        )
+    async def _create_assistant_async(self, agents_client: AgentsClient, name: str, instructions: str) -> str:
+        try:
+            agent = await agents_client.create_agent(
+                model=self.settings.model_deployment,
+                name=name,
+                instructions=instructions,
+            )
+        except HttpResponseError as exc:
+            self._raise_request_error(exc, "create_agent")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for create_agent: {exc}") from exc
 
-        assistant_id = str(payload.get("id") or "").strip()
+        assistant_id = self._as_text(self._model_get(agent, "id"))
         if not assistant_id:
             raise FoundryRequestError("Foundry assistant create response did not include id")
         return assistant_id
 
-    def _thread_exists(self, thread_id: str) -> bool | None:
+    async def _thread_exists_async(self, agents_client: AgentsClient, thread_id: str) -> bool | None:
         safe_id = str(thread_id or "").strip()
         if not safe_id:
             return False
 
         try:
-            payload = self._request_json("GET", f"/threads/{urllib_parse.quote(safe_id)}")
-            return bool(str(payload.get("id") or "").strip())
-        except FoundryRequestError as exc:
-            if exc.status_code in {401, 403}:
+            thread = await agents_client.threads.get(safe_id)
+            return bool(self._as_text(self._model_get(thread, "id")))
+        except HttpResponseError as exc:
+            status = self._status_code(exc)
+            if status in {401, 403}:
                 return None
-            if exc.status_code in {400, 404}:
-                return self._thread_exists_in_list(safe_id)
-            raise
+            if status in {400, 404}:
+                return await self._thread_exists_in_list_async(agents_client, safe_id)
+            self._raise_request_error(exc, "threads.get")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for threads.get: {exc}") from exc
 
-    def _thread_exists_in_list(self, thread_id: str) -> bool | None:
-        threads = self._list_threads()
+    async def _thread_exists_in_list_async(self, agents_client: AgentsClient, thread_id: str) -> bool | None:
+        threads = await self._list_threads_async(agents_client)
         if threads is None:
             return None
         for thread in threads:
-            if str(thread.get("id") or "").strip() == thread_id:
+            if self._as_text(self._model_get(thread, "id")) == thread_id:
                 return True
         return False
 
-    def _list_threads(self) -> list[dict[str, Any]] | None:
+    async def _list_agents_async(self, agents_client: AgentsClient) -> list[Any]:
         try:
-            payload = self._request_json("GET", "/threads")
-        except FoundryRequestError as exc:
-            if exc.status_code in {404, 405}:
+            items: list[Any] = []
+            async for agent in agents_client.list_agents(limit=200):
+                items.append(agent)
+            return items
+        except HttpResponseError as exc:
+            self._raise_request_error(exc, "list_agents")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for list_agents: {exc}") from exc
+
+    async def _list_threads_async(self, agents_client: AgentsClient) -> list[Any] | None:
+        try:
+            items: list[Any] = []
+            async for thread in agents_client.threads.list(limit=200):
+                items.append(thread)
+            return items
+        except HttpResponseError as exc:
+            if self._status_code(exc) in {404, 405}:
                 return None
-            raise
+            self._raise_request_error(exc, "threads.list")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for threads.list: {exc}") from exc
 
-        items = payload.get("data") if isinstance(payload.get("data"), list) else []
-        return [item for item in items if isinstance(item, dict)]
-
-    def _find_thread_id_by_name(self, thread_name: str) -> str | None:
-        threads = self._list_threads()
+    async def _find_thread_id_by_name_async(self, agents_client: AgentsClient, thread_name: str) -> str | None:
+        threads = await self._list_threads_async(agents_client)
         if threads is None:
             return None
+
         for thread in threads:
-            metadata = thread.get("metadata") if isinstance(thread.get("metadata"), dict) else {}
+            metadata = self._coerce_mapping(self._model_get(thread, "metadata"))
             candidates = {
-                str(thread.get("name") or "").strip(),
-                str(metadata.get("name") or "").strip(),
-                str(metadata.get("threadName") or "").strip(),
-                str(metadata.get("displayName") or "").strip(),
-                str(metadata.get("projectId") or "").strip(),
+                self._as_text(self._model_get(thread, "name")),
+                self._as_text(metadata.get("name")),
+                self._as_text(metadata.get("threadName")),
+                self._as_text(metadata.get("displayName")),
+                self._as_text(metadata.get("projectId")),
             }
             if thread_name in candidates:
-                candidate = str(thread.get("id") or "").strip()
+                candidate = self._as_text(self._model_get(thread, "id"))
                 if candidate:
                     return candidate
         return None
 
-    def _create_thread(self) -> str:
-        payload = self._request_json(
-            "POST",
-            "/threads",
-            payload={},
-            expected_status=(200, 201),
-        )
+    async def _create_thread_async(self, agents_client: AgentsClient, thread_name: str | None) -> str:
+        metadata: dict[str, str] | None = None
+        if thread_name:
+            metadata = {
+                "name": thread_name,
+                "threadName": thread_name,
+                "displayName": thread_name,
+                "projectId": thread_name,
+            }
 
-        thread_id = str(payload.get("id") or "").strip()
+        try:
+            if metadata:
+                thread = await agents_client.threads.create(metadata=metadata)
+            else:
+                thread = await agents_client.threads.create()
+        except HttpResponseError as exc:
+            self._raise_request_error(exc, "threads.create")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for threads.create: {exc}") from exc
+
+        thread_id = self._as_text(self._model_get(thread, "id"))
         if not thread_id:
             raise FoundryRequestError("Foundry thread create response did not include id")
         return thread_id
+
+    @asynccontextmanager
+    async def _agents_client_context(self):
+        async with AsyncClientSecretCredential(
+            tenant_id=self.settings.tenant_id,
+            client_id=self.settings.client_id,
+            client_secret=self.settings.client_secret,
+        ) as credential:
+            async with AgentsClient(
+                endpoint=self.settings.endpoint,
+                credential=credential,
+            ) as agents_client:
+                yield agents_client
+
+    def _model_get(self, model: Any, key: str) -> Any:
+        if hasattr(model, "get"):
+            try:
+                value = model.get(key)
+                if value is not None:
+                    return value
+            except Exception:
+                pass
+
+        value = getattr(model, key, None)
+        if value is not None:
+            return value
+
+        as_dict = getattr(model, "as_dict", None)
+        if callable(as_dict):
+            try:
+                payload = as_dict()
+                if isinstance(payload, Mapping):
+                    return payload.get(key)
+            except Exception:
+                pass
+
+        return None
+
+    def _coerce_mapping(self, value: Any) -> dict[str, Any]:
+        if isinstance(value, Mapping):
+            return dict(value)
+        return {}
+
+    def _as_text(self, value: Any) -> str:
+        if value is None:
+            return ""
+        return str(value).strip()
+
+    def _status_code(self, exc: HttpResponseError) -> int:
+        code = getattr(exc, "status_code", None)
+        try:
+            return int(code or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _raise_request_error(self, exc: HttpResponseError, operation: str) -> None:
+        status = self._status_code(exc)
+        detail = str(exc)
+        raise FoundryRequestError(
+            f"Foundry request failed for {operation}: HTTP {status or 'unknown'}",
+            status_code=status or None,
+            detail=detail,
+        ) from exc
+
+
+def _run_sync(coro):
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    raise FoundryRequestError("Synchronous Foundry operation called while an event loop is already running")
 
 
 def ensure_default_agent_and_thread(

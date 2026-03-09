@@ -1,20 +1,19 @@
 from __future__ import annotations
 
+import asyncio
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from typing import Any, Mapping
-from urllib import error as urllib_error
-from urllib import parse as urllib_parse
-from urllib import request as urllib_request
-
-from azure.identity import ClientSecretCredential
+from azure.ai.agents.aio import AgentsClient
+from azure.ai.agents.models import ListSortOrder
+from azure.core.exceptions import HttpResponseError
+from azure.identity.aio import ClientSecretCredential as AsyncClientSecretCredential
 
 from Agents.AzureAIFoundry.foundry_bootstrap import (
     FoundryConfigurationError,
     FoundryConnectionSettings,
     FoundryRequestError,
-    DEFAULT_FOUNDRY_API_VERSION,
 )
 
 DEFAULT_THREAD_MESSAGE_ROLE = "user"
@@ -31,11 +30,6 @@ class FoundryThreadMessenger:
     def __init__(self, settings: FoundryConnectionSettings, timeout_seconds: int = 20):
         self.settings = settings
         self.timeout_seconds = timeout_seconds
-        self._credential = ClientSecretCredential(
-            tenant_id=settings.tenant_id,
-            client_id=settings.client_id,
-            client_secret=settings.client_secret,
-        )
 
     def post_message(self, thread_id: str, content: str, role: str = DEFAULT_THREAD_MESSAGE_ROLE) -> ThreadMessageResult:
         safe_thread_id = str(thread_id or "").strip()
@@ -46,43 +40,62 @@ class FoundryThreadMessenger:
         if not message:
             raise FoundryConfigurationError("message content is required")
 
-        payload = {
-            "role": str(role or DEFAULT_THREAD_MESSAGE_ROLE).strip() or DEFAULT_THREAD_MESSAGE_ROLE,
-            "content": message,
-        }
-
-        response = self._request_json(
-            "POST",
-            f"/threads/{urllib_parse.quote(safe_thread_id)}/messages",
-            payload=payload,
-            expected_status=(200, 201),
+        return _run_sync(
+            self._post_message_async(
+                thread_id=safe_thread_id,
+                content=message,
+                role=str(role or DEFAULT_THREAD_MESSAGE_ROLE).strip() or DEFAULT_THREAD_MESSAGE_ROLE,
+            )
         )
-
-        message_id = str(response.get("id") or "").strip()
-        if not message_id:
-            raise FoundryRequestError("Foundry message create response did not include id")
-
-        return ThreadMessageResult(thread_id=safe_thread_id, message_id=message_id)
 
     def list_messages(self, thread_id: str, limit: int | None = None) -> list[dict[str, Any]]:
         safe_thread_id = str(thread_id or "").strip()
         if not safe_thread_id:
             raise FoundryConfigurationError("thread_id is required")
 
-        response = self._request_json(
-            "GET",
-            f"/threads/{urllib_parse.quote(safe_thread_id)}/messages",
-            expected_status=(200,),
-        )
-        raw_messages = response.get("data") if isinstance(response.get("data"), list) else []
+        safe_limit = limit if isinstance(limit, int) and limit > 0 else None
+        return _run_sync(self._list_messages_async(safe_thread_id, safe_limit))
+
+    async def _post_message_async(self, thread_id: str, content: str, role: str) -> ThreadMessageResult:
+        async with self._agents_client_context() as agents_client:
+            try:
+                message = await agents_client.messages.create(
+                    thread_id=thread_id,
+                    role=role,
+                    content=content,
+                )
+            except HttpResponseError as exc:
+                self._raise_request_error(exc, "messages.create")
+            except Exception as exc:
+                raise FoundryRequestError(f"Foundry request failed for messages.create: {exc}") from exc
+
+            message_id = self._as_text(self._model_get(message, "id"))
+            if not message_id:
+                raise FoundryRequestError("Foundry message create response did not include id")
+
+            return ThreadMessageResult(thread_id=thread_id, message_id=message_id)
+
+    async def _list_messages_async(self, thread_id: str, limit: int | None) -> list[dict[str, Any]]:
+        async with self._agents_client_context() as agents_client:
+            try:
+                pageable = agents_client.messages.list(
+                    thread_id=thread_id,
+                    order=ListSortOrder.ASCENDING,
+                )
+                raw_messages: list[Any] = []
+                async for item in pageable:
+                    raw_messages.append(item)
+                    if limit and len(raw_messages) >= limit:
+                        break
+            except HttpResponseError as exc:
+                self._raise_request_error(exc, "messages.list")
+            except Exception as exc:
+                raise FoundryRequestError(f"Foundry request failed for messages.list: {exc}") from exc
 
         normalized: list[dict[str, Any]] = []
         has_timestamp = False
         for index, item in enumerate(raw_messages):
-            if not isinstance(item, dict):
-                continue
-
-            role = str(item.get("role") or "").strip().lower()
+            role = self._normalize_role(self._model_get(item, "role"))
             if role not in {"user", "assistant"}:
                 continue
 
@@ -91,12 +104,16 @@ class FoundryThreadMessenger:
             if not content_text:
                 continue
 
-            created_at = _coerce_created_at(item.get("created_at") or item.get("createdAt"))
+            created_at = _coerce_created_at(
+                self._model_get(item, "created_at")
+                or self._model_get(item, "createdAt")
+                or self._model_get(item, "created_on")
+            )
             has_timestamp = has_timestamp or created_at > 0
 
             normalized.append(
                 {
-                    "id": str(item.get("id") or f"msg-{index}").strip() or f"msg-{index}",
+                    "id": self._as_text(self._model_get(item, "id")) or f"msg-{index}",
                     "role": role,
                     "content": content_text,
                     "createdAt": created_at,
@@ -109,86 +126,85 @@ class FoundryThreadMessenger:
         else:
             normalized = list(reversed(normalized))
 
-        safe_limit = limit if isinstance(limit, int) and limit > 0 else None
-        if safe_limit and len(normalized) > safe_limit:
-            normalized = normalized[-safe_limit:]
+        if limit and len(normalized) > limit:
+            normalized = normalized[-limit:]
 
         for message in normalized:
             message.pop("_sequence", None)
 
         return normalized
 
-    def _request_json(
-        self,
-        method: str,
-        path: str,
-        payload: dict[str, Any] | None = None,
-        expected_status: tuple[int, ...] = (200,),
-    ) -> dict[str, Any]:
-        preferred_version = str(self.settings.api_version or "").strip() or DEFAULT_FOUNDRY_API_VERSION
-        versions_to_try = [preferred_version]
-        for candidate in (DEFAULT_FOUNDRY_API_VERSION, "2025-05-15-preview"):
-            if candidate not in versions_to_try:
-                versions_to_try.append(candidate)
+    @asynccontextmanager
+    async def _agents_client_context(self):
+        async with AsyncClientSecretCredential(
+            tenant_id=self.settings.tenant_id,
+            client_id=self.settings.client_id,
+            client_secret=self.settings.client_secret,
+        ) as credential:
+            async with AgentsClient(
+                endpoint=self.settings.endpoint,
+                credential=credential,
+            ) as agents_client:
+                yield agents_client
 
-        for index, api_version in enumerate(versions_to_try):
-            query = urllib_parse.urlencode({"api-version": api_version})
-            url = f"{self.settings.endpoint}{path}?{query}"
-            headers = {
-                "Authorization": f"Bearer {self._get_access_token()}",
-                "Accept": "application/json",
-            }
-
-            body: bytes | None = None
-            if payload is not None:
-                headers["Content-Type"] = "application/json"
-                body = json.dumps(payload).encode("utf-8")
-
-            request = urllib_request.Request(url, method=method, headers=headers, data=body)
+    def _model_get(self, model: Any, key: str) -> Any:
+        if hasattr(model, "get"):
             try:
-                with urllib_request.urlopen(request, timeout=self.timeout_seconds) as response:
-                    if response.status not in expected_status:
-                        raise FoundryRequestError(
-                            f"Unexpected status {response.status} for {method} {path}",
-                            status_code=response.status,
-                        )
+                value = model.get(key)
+                if value is not None:
+                    return value
+            except Exception:
+                pass
 
-                    text = response.read().decode("utf-8", errors="ignore").strip()
-                    if not text:
-                        return {}
+        value = getattr(model, key, None)
+        if value is not None:
+            return value
 
-                    try:
-                        parsed = json.loads(text)
-                        if isinstance(parsed, dict):
-                            return parsed
-                        return {"data": parsed}
-                    except json.JSONDecodeError:
-                        return {}
-            except urllib_error.HTTPError as exc:
-                detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
-                if (
-                    exc.code == 400
-                    and "api version not supported" in detail.lower()
-                    and index < len(versions_to_try) - 1
-                ):
-                    continue
+        as_dict = getattr(model, "as_dict", None)
+        if callable(as_dict):
+            try:
+                payload = as_dict()
+                if isinstance(payload, Mapping):
+                    return payload.get(key)
+            except Exception:
+                pass
 
-                raise FoundryRequestError(
-                    f"Foundry request failed for {method} {path}: HTTP {exc.code}",
-                    status_code=exc.code,
-                    detail=detail,
-                ) from exc
-            except urllib_error.URLError as exc:
-                raise FoundryRequestError(f"Foundry request failed for {method} {path}: {exc}") from exc
+        return None
 
-        raise FoundryRequestError(f"Foundry request failed for {method} {path}: unsupported API version")
+    def _normalize_role(self, value: Any) -> str:
+        text = self._as_text(value).lower()
+        if "." in text:
+            text = text.split(".")[-1]
+        return text
 
-    def _get_access_token(self) -> str:
-        token = self._credential.get_token("https://ai.azure.com/.default")
-        value = str(token.token or "").strip()
-        if not value:
-            raise FoundryRequestError("Failed to acquire Azure AI token")
-        return value
+    def _as_text(self, value: Any) -> str:
+        if value is None:
+            return ""
+        return str(value).strip()
+
+    def _status_code(self, exc: HttpResponseError) -> int:
+        code = getattr(exc, "status_code", None)
+        try:
+            return int(code or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _raise_request_error(self, exc: HttpResponseError, operation: str) -> None:
+        status = self._status_code(exc)
+        detail = str(exc)
+        raise FoundryRequestError(
+            f"Foundry request failed for {operation}: HTTP {status or 'unknown'}",
+            status_code=status or None,
+            detail=detail,
+        ) from exc
+
+
+def _run_sync(coro):
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    raise FoundryRequestError("Synchronous Foundry operation called while an event loop is already running")
 
 
 def post_project_created_message(
@@ -347,7 +363,31 @@ def _format_timestamp(value: datetime | None) -> str:
     return dt.replace(microsecond=0).isoformat() + "Z"
 
 
-def _extract_message_text(message: Mapping[str, Any]) -> str:
+def _extract_message_text(message: Any) -> str:
+    text_messages = getattr(message, "text_messages", None)
+    if isinstance(text_messages, list):
+        parts: list[str] = []
+        for item in text_messages:
+            text_obj = getattr(item, "text", None)
+            value = str(getattr(text_obj, "value", "") or "").strip()
+            if value:
+                parts.append(value)
+        if parts:
+            return "\n".join(parts).strip()
+
+    if not isinstance(message, Mapping):
+        as_dict = getattr(message, "as_dict", None)
+        if callable(as_dict):
+            try:
+                payload = as_dict()
+                if isinstance(payload, Mapping):
+                    message = payload
+            except Exception:
+                return ""
+
+    if not isinstance(message, Mapping):
+        return ""
+
     content = message.get("content")
     if isinstance(content, str):
         return content.strip()
@@ -477,6 +517,9 @@ def _extract_tail_after_user_marker(text: str) -> str:
 
 
 def _coerce_created_at(value: Any) -> int:
+    if isinstance(value, datetime):
+        return max(int(value.timestamp()), 0)
+
     if isinstance(value, bool):
         return 0
     if isinstance(value, int):

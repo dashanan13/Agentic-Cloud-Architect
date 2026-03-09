@@ -848,7 +848,7 @@ def _try_foundry_architect_response(
     status["threadId"] = thread_id
 
     try:
-        runner = FoundryAssistantRunner(connection, timeout_seconds=30)
+        runner = FoundryAssistantRunner(connection, timeout_seconds=90)
         result = runner.run_assistant(
             assistant_id=assistant_id,
             thread_id=thread_id,
