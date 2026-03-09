@@ -23,6 +23,7 @@ const canvasResetViewBtn = document.getElementById("canvas-reset-view");
 const canvasZoomLabelEl = document.getElementById("canvas-zoom-label");
 const canvasStatusEl = document.getElementById("canvas-status");
 const canvasEdgesEl = document.getElementById("canvas-edges");
+const workspaceEl = document.getElementById("workspace");
 const statusLeftWidthEl = document.getElementById("status-left-width");
 const statusRightWidthEl = document.getElementById("status-right-width");
 const chatHistoryEl = document.getElementById("chat-history");
@@ -30,8 +31,6 @@ const chatInputEl = document.getElementById("chat-input");
 const chatSendBtn = document.getElementById("chat-send");
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
-const chatRuntimeFoundryEl = document.getElementById("chat-runtime-foundry");
-const chatRuntimeToolEl = document.getElementById("chat-runtime-tool");
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
@@ -66,12 +65,12 @@ function readCssPxVar(variableName, fallback) {
 }
 
 const layoutConfig = {
-  leftDefault: readCssPxVar("--layout-left-default", 180),
-  leftMin: readCssPxVar("--layout-left-min", 160),
-  leftMax: readCssPxVar("--layout-left-max", 480),
-  rightDefault: readCssPxVar("--layout-right-default", 360),
-  rightMin: readCssPxVar("--layout-right-min", 360),
-  rightMax: readCssPxVar("--layout-right-max", 560),
+  leftDefault: readCssPxVar("--layout-left-default", 15),
+  leftMin: readCssPxVar("--layout-left-min", 10),
+  leftMax: readCssPxVar("--layout-left-max", 30),
+  rightDefault: readCssPxVar("--layout-right-default", 20),
+  rightMin: readCssPxVar("--layout-right-min", 15),
+  rightMax: readCssPxVar("--layout-right-max", 40),
   bottomDefault: readCssPxVar("--layout-bottom-default", 130),
   bottomMin: readCssPxVar("--layout-bottom-min", 120),
   bottomMax: readCssPxVar("--layout-bottom-max", 380),
@@ -2099,17 +2098,17 @@ async function saveProjectFiles(options = {}) {
 
 // ===== Sizing & Splitters =====
 function applySizes() {
-  appEl.style.setProperty("--left-width", `${state.leftWidth}px`);
-  appEl.style.setProperty("--right-width", `${state.rightWidth}px`);
+  appEl.style.setProperty("--left-width", `${state.leftWidth}%`);
+  appEl.style.setProperty("--right-width", `${state.rightWidth}%`);
   appEl.style.setProperty("--bottom-height", `${state.bottomHeight}px`);
   appEl.style.setProperty("--bottom-right-width", `${state.bottomRightWidth}px`);
 
   if (statusLeftWidthEl) {
-    statusLeftWidthEl.textContent = `${Math.round(state.leftWidth)}px`;
+    statusLeftWidthEl.textContent = `${Math.round(state.leftWidth)}%`;
   }
 
   if (statusRightWidthEl) {
-    statusRightWidthEl.textContent = `${Math.round(state.rightWidth)}px`;
+    statusRightWidthEl.textContent = `${Math.round(state.rightWidth)}%`;
   }
 }
 
@@ -2132,16 +2131,29 @@ function startDrag(getValue) {
   window.addEventListener("mouseup", onUp);
 }
 
-document.querySelector('[data-splitter="left"]')?.addEventListener("mousedown", () => {
+document.querySelector('[data-splitter="left"]')?.addEventListener("mousedown", (mouseDownEvent) => {
+  mouseDownEvent.preventDefault();
   startDrag((event) => {
-    state.leftWidth = clamp(event.clientX, constraints.leftMin, constraints.leftMax);
+    const workspaceRect = workspaceEl?.getBoundingClientRect();
+    if (!workspaceRect || workspaceRect.width <= 0) {
+      return;
+    }
+
+    const nextPercent = ((event.clientX - workspaceRect.left) / workspaceRect.width) * 100;
+    state.leftWidth = clamp(nextPercent, constraints.leftMin, constraints.leftMax);
   });
 });
 
-document.querySelector('[data-splitter="right"]')?.addEventListener("mousedown", () => {
+document.querySelector('[data-splitter="right"]')?.addEventListener("mousedown", (mouseDownEvent) => {
+  mouseDownEvent.preventDefault();
   startDrag((event) => {
-    const width = window.innerWidth - event.clientX;
-    state.rightWidth = clamp(width, constraints.rightMin, constraints.rightMax);
+    const workspaceRect = workspaceEl?.getBoundingClientRect();
+    if (!workspaceRect || workspaceRect.width <= 0) {
+      return;
+    }
+
+    const nextPercent = ((workspaceRect.right - event.clientX) / workspaceRect.width) * 100;
+    state.rightWidth = clamp(nextPercent, constraints.rightMin, constraints.rightMax);
   });
 });
 
@@ -2241,31 +2253,8 @@ function updateChatRuntimeStatus(meta) {
     ? runtime.connections
     : {};
   const mcpStatus = formatConnectionLabel(connections.azureMcp);
-  const foundryStatus = formatConnectionLabel(connections.azureFoundry);
 
   setChatRuntimeValue(chatRuntimeMcpEl, mcpStatus.text, mcpStatus.tone);
-  setChatRuntimeValue(chatRuntimeFoundryEl, foundryStatus.text, foundryStatus.tone);
-
-  const toolCalls = Array.isArray(runtime.toolCalls) ? runtime.toolCalls : [];
-  const lastTool = toolCalls.length ? toolCalls[toolCalls.length - 1] : null;
-
-  if (lastTool && typeof lastTool === "object") {
-    const toolName = String(lastTool.name || "tool").trim() || "tool";
-    const success = Boolean(lastTool.success);
-    setChatRuntimeValue(
-      chatRuntimeToolEl,
-      `${toolName} (${success ? "success" : "failed"})`,
-      success ? "ok" : "error"
-    );
-    return;
-  }
-
-  const fallbackTool = String(runtime.tool || "").trim();
-  if (fallbackTool) {
-    setChatRuntimeValue(chatRuntimeToolEl, `${fallbackTool} (requested)`, "warn");
-  } else {
-    setChatRuntimeValue(chatRuntimeToolEl, "None");
-  }
 }
 
 async function loadArchitectureChatStatus() {
@@ -2288,8 +2277,6 @@ async function loadArchitectureChatStatus() {
   } catch {
     setChatRuntimeValue(chatRuntimeModelEl, "Unavailable", "warn");
     setChatRuntimeValue(chatRuntimeMcpEl, "Unknown", "warn");
-    setChatRuntimeValue(chatRuntimeFoundryEl, "Unknown", "warn");
-    setChatRuntimeValue(chatRuntimeToolEl, "None");
   }
 }
 
@@ -2412,10 +2399,8 @@ async function resetChatPanel() {
   chatAgentState = null;
   setChatBusy(false);
 
-  setChatRuntimeValue(chatRuntimeToolEl, "None");
   setChatRuntimeValue(chatRuntimeModelEl, "Loading...", "warn");
   setChatRuntimeValue(chatRuntimeMcpEl, "Loading...", "warn");
-  setChatRuntimeValue(chatRuntimeFoundryEl, "Loading...", "warn");
 
   if (chatHistoryEl) {
     chatHistoryEl.innerHTML = chatInitialMarkup;
@@ -2490,7 +2475,6 @@ async function sendChatMessage() {
     if (loadingMessageEl) {
       loadingMessageEl.remove();
     }
-    setChatRuntimeValue(chatRuntimeToolEl, "Request failed", "error");
     appendAssistantMessage(error?.message || "Unable to complete AI chat request.");
   } finally {
     setChatBusy(false);

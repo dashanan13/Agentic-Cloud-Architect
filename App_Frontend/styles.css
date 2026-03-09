@@ -12,13 +12,13 @@
   --form-label-gap: 8px;
   --form-group-gap: 16px;
 
-  --layout-left-default: 220px;
-  --layout-left-min: 220px;
-  --layout-left-max: 480px;
+  --layout-left-default: 15%;
+  --layout-left-min: 10%;
+  --layout-left-max: 30%;
 
-  --layout-right-default: 320px;
-  --layout-right-min: 320px;
-  --layout-right-max: 700px;
+  --layout-right-default: 20%;
+  --layout-right-min: 15%;
+  --layout-right-max: 40%;
 
   --layout-bottom-default: 130px;
   --layout-bottom-min: 120px;
@@ -1333,9 +1333,9 @@ select.property-input {
   border-bottom: 1px solid var(--border);
   background: var(--panel);
   padding: 6px 10px;
-  min-height: 72px;
-  max-height: 72px;
-  overflow: hidden;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
   display: grid;
   gap: 3px;
 }
