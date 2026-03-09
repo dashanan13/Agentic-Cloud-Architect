@@ -1399,12 +1399,20 @@ def architecture_chat(body: ArchitectureChatPayload):
             if not isinstance(metadata, dict):
                 metadata = {}
 
+            project_settings = load_project_settings_file(entry["projectDir"])
+            project_description = str(
+                project_settings.get("projectDescription")
+                or metadata.get("applicationDescription")
+                or ""
+            ).strip()
+
             project_context = {
                 "id": entry["id"],
                 "name": str(metadata.get("name") or entry["name"]),
                 "cloud": str(metadata.get("cloud") or entry["cloud"]),
-                "applicationType": str(metadata.get("applicationType") or ""),
+                "applicationType": str(metadata.get("applicationType") or project_settings.get("projectApplicationType") or ""),
                 "applicationDescription": str(metadata.get("applicationDescription") or ""),
+                "projectDescription": project_description,
             }
 
             resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
