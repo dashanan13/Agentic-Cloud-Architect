@@ -129,14 +129,20 @@ GREETING_PATTERNS = [
 # Tiered-memory configuration
 # ---------------------------------------------------------------------------
 # How many recent turn-pairs to keep verbatim in the context window
-RECENT_TURNS_WINDOW: int = 4
+RECENT_TURNS_WINDOW: int = 8
 # Maximum persistent key-facts to carry forward
 KEY_FACTS_MAX: int = 24
 # When recentTurns exceeds this number of pairs, oldest ones are compressed
-COMPRESS_TRIGGER: int = 6
-# Max characters per side (user / assistant) stored in a recent turn
-RECENT_TURN_USER_CHARS: int = 400
-RECENT_TURN_ASSISTANT_CHARS: int = 500
+COMPRESS_TRIGGER: int = 10
+# Max characters for user messages stored in a recent turn (kept close to exact)
+RECENT_TURN_USER_CHARS: int = 600
+# Max characters for assistant messages stored in a recent turn (compressed — LLM replies tend to be long)
+RECENT_TURN_ASSISTANT_CHARS: int = 280
+
+
+def _desc_fingerprint(text: str) -> str:
+    """Normalised fingerprint of a description string — used to detect changes between turns."""
+    return " ".join(str(text or "").lower().split())[:300]
 
 
 class AzureMcpChatConfigurationError(ValueError):
@@ -196,7 +202,7 @@ def run_cloudarchitect_chat_agent(
     mcp_configured, mcp_configuration_error = _resolve_mcp_configuration(app_settings)
     foundry_configured = bool(model_info.get("foundryConfigured"))
 
-    # --- Tiered memory: seed project description on first turn or if missing ----
+    # --- Tiered memory: project description change detection and context reset ----
     project_description = ""
     if isinstance(project_context, Mapping):
         project_description = str(
@@ -205,12 +211,39 @@ def run_cloudarchitect_chat_agent(
             or ""
         ).strip()
 
-    memory = _normalize_memory(normalized_state.get("memory"), project_description)
-    # Always keep the project description up-to-date (may be passed fresh each call)
-    if project_description and not memory.get("projectDescription"):
+    # Normalize memory WITHOUT auto-filling description so we can compare cleanly
+    memory = _normalize_memory(normalized_state.get("memory"), "")
+    _new_fp = _desc_fingerprint(project_description)
+    _prev_fp = str(memory.get("projectDescriptionHash") or "").strip()
+    if not _prev_fp:
+        # Backward-compat: derive fingerprint from stored description text for existing agent states
+        _prev_fp = _desc_fingerprint(str((normalized_state.get("memory") or {}).get("projectDescription") or ""))
+
+    description_was_reset = bool(_prev_fp) and bool(_new_fp) and _prev_fp != _new_fp
+    if description_was_reset:
+        # Description changed — wipe stale in-memory context so the LLM starts
+        # fresh with the new requirements instead of outdated facts.
+        memory["recentTurns"] = []
+        memory["keyFacts"] = []
+        memory["olderSummary"] = ""
+        memory["openQuestions"] = []
+
+    # Always sync to the current authoritative project description
+    if project_description:
         memory["projectDescription"] = project_description
+        memory["projectDescriptionHash"] = _new_fp
+    elif not memory.get("projectDescription"):
+        memory["projectDescription"] = ""
 
     memory_context = _build_tiered_memory_context(memory)
+    if description_was_reset:
+        # Inject a sentinel that the Foundry thread will record — the LLM is instructed
+        # (below, in each prompt builder) to ignore all thread history before it.
+        memory_context = (
+            "[DESCRIPTION_RESET] Project requirements have been updated by the user. "
+            "Treat this as a completely fresh conversation and ignore all prior thread history.\n\n"
+            + memory_context
+        )
     # ---------------------------------------------------------------------------
 
     turn_count = normalized_state["turnCount"] + 1
@@ -409,6 +442,7 @@ def run_cloudarchitect_chat_agent(
                 "keyFactsCount": len(memory.get("keyFacts") or []),
                 "hasSummary": bool(str(memory.get("olderSummary") or "").strip()),
                 "hasProjectDescription": bool(str(memory.get("projectDescription") or "").strip()),
+                "descriptionWasReset": bool(description_was_reset),
             },
             "toolCalls": tool_calls,
         },
@@ -615,6 +649,7 @@ def _normalize_memory(raw: Any, project_description: str = "") -> dict[str, Any]
         raw = {}
     mem: dict[str, Any] = {
         "projectDescription": str(raw.get("projectDescription") or project_description or "").strip(),
+        "projectDescriptionHash": str(raw.get("projectDescriptionHash") or "").strip(),
         "keyFacts": _coerce_string_list(raw.get("keyFacts")),
         "olderSummary": str(raw.get("olderSummary") or "").strip(),
         "recentTurns": [],
@@ -640,7 +675,12 @@ def _build_tiered_memory_context(memory: dict[str, Any]) -> str:
 
     desc = str(memory.get("projectDescription") or "").strip()
     if desc:
-        parts.append(f"[Project Description]\n{desc}")
+        parts.append(
+            "[Project Requirements & Scope]\n"
+            "The following is the project brief that defines the starting context for this design conversation.\n"
+            "All architecture discussions should be grounded in these requirements:\n"
+            f"{desc}"
+        )
 
     key_facts = [f for f in _coerce_string_list(memory.get("keyFacts")) if f]
     if key_facts:
@@ -775,9 +815,11 @@ def _compress_turns_to_summary(
 
     compression_prompt = "\n".join([
         "You are summarizing part of a cloud architecture design conversation.",
-        "Produce 2-4 sentences that capture: architecture decisions made, requirements stated, constraints,",
-        "service choices selected, and trade-offs discussed.",
-        "Be direct and factual. Start directly with content — no preamble.",
+        "Write a clear narrative summary that captures: architecture decisions made, requirements stated,",
+        "constraints, service choices, trade-offs discussed, and any open questions raised.",
+        "Be thorough — this summary replaces the original turns, so important details must not be lost.",
+        "Write in paragraph form. Aim for 4-8 sentences, more if needed to preserve decision history.",
+        "Start directly with content — no preamble, no labels.",
         "",
         existing_prefix + f"Turns to compress:\n{turns_block}",
     ])
@@ -1018,6 +1060,7 @@ def _build_foundry_familiarization_prompt(
 
     lines = [
         "You are an Azure cloud architect assistant.",
+        "THREAD CONTEXT RULE: If the context block contains [DESCRIPTION_RESET], the project requirements were updated by the user. Ignore all prior thread history and respond only from the new requirements below.",
         "Respond like a human architect teammate: clear, warm, and concise.",
         "Keep this answer under 150 words.",
         "You may answer greetings, self-introduction, and context-recall questions.",
@@ -1067,6 +1110,7 @@ def _build_foundry_out_of_scope_prompt(
 
     lines = [
         "You are an Azure cloud architect assistant.",
+        "THREAD CONTEXT RULE: If the context block contains [DESCRIPTION_RESET], the project requirements were updated by the user. Ignore all prior thread history and respond only from the new requirements below.",
         "The user's request is outside your scope of Azure cloud architecture.",
         "Respond in 2-3 short sentences. Be warm, direct, and never condescending or sarcastic.",
         "Do NOT mock, belittle, or dismiss the user. Never use phrases like 'not my job' or imply the user is confused.",
@@ -1108,6 +1152,7 @@ def _build_foundry_architect_prompt(
 
     lines = [
         "You are an Azure cloud architect assistant.",
+        "THREAD CONTEXT RULE: If the context block contains [DESCRIPTION_RESET], the project requirements were updated by the user. Ignore all prior thread history and respond only from the new requirements below.",
         "Stay strictly within Azure cloud architecture scope.",
         "Write like a human architect speaking to a teammate.",
         "Add a little personality and warmth when appropriate, but stay technical and precise.",

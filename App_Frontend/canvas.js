@@ -31,6 +31,47 @@ const chatInputEl = document.getElementById("chat-input");
 const chatSendBtn = document.getElementById("chat-send");
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
+const chatRuntimeCtxEl = document.getElementById("chat-runtime-ctx");
+
+// Known context window sizes (tokens) for Azure AI Foundry models.
+// Keys are lowercase substrings matched against the model deployment name.
+const MODEL_CONTEXT_WINDOWS = [
+  { match: "kimi-k2",           tokens: 131072 },
+  { match: "o3-mini",           tokens: 200000 },
+  { match: "o3",                tokens: 200000 },
+  { match: "o1-mini",           tokens: 128000 },
+  { match: "o1",                tokens: 200000 },
+  { match: "gpt-4o-mini",       tokens: 128000 },
+  { match: "gpt-4o",            tokens: 128000 },
+  { match: "gpt-4-turbo",       tokens: 128000 },
+  { match: "gpt-4",             tokens: 8192   },
+  { match: "gpt-35-turbo",      tokens: 16385  },
+  { match: "deepseek-r1",       tokens: 128000 },
+  { match: "deepseek-v3",       tokens: 128000 },
+  { match: "deepseek",          tokens: 128000 },
+  { match: "phi-4-multimodal",  tokens: 16384  },
+  { match: "phi-4",             tokens: 16384  },
+  { match: "llama-3.3",         tokens: 128000 },
+  { match: "llama-3.1",         tokens: 128000 },
+  { match: "llama-3",           tokens: 8192   },
+  { match: "mistral-large",     tokens: 131072 },
+  { match: "mistral-small",     tokens: 32768  },
+  { match: "mistral",           tokens: 32768  },
+  { match: "cohere-command-r",  tokens: 131072 },
+  { match: "jamba",             tokens: 256000 },
+];
+
+function formatContextWindow(modelName) {
+  if (!modelName) return null;
+  const lower = modelName.toLowerCase();
+  for (const entry of MODEL_CONTEXT_WINDOWS) {
+    if (lower.includes(entry.match)) {
+      const k = entry.tokens / 1024;
+      return k >= 1 ? `${Math.round(k)}K tokens` : `${entry.tokens} tokens`;
+    }
+  }
+  return null;
+}
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
@@ -2255,6 +2296,13 @@ function updateChatRuntimeStatus(meta) {
   const mcpStatus = formatConnectionLabel(connections.azureMcp);
 
   setChatRuntimeValue(chatRuntimeMcpEl, mcpStatus.text, mcpStatus.tone);
+
+  const ctxLabel = formatContextWindow(configuredModel || activeModel);
+  if (ctxLabel) {
+    setChatRuntimeValue(chatRuntimeCtxEl, ctxLabel, "");
+  } else {
+    setChatRuntimeValue(chatRuntimeCtxEl, "—", "");
+  }
 }
 
 async function loadArchitectureChatStatus() {
@@ -2277,6 +2325,7 @@ async function loadArchitectureChatStatus() {
   } catch {
     setChatRuntimeValue(chatRuntimeModelEl, "Unavailable", "warn");
     setChatRuntimeValue(chatRuntimeMcpEl, "Unknown", "warn");
+    setChatRuntimeValue(chatRuntimeCtxEl, "—", "");
   }
 }
 

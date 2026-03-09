@@ -1375,6 +1375,30 @@ select.property-input {
   color: #fca5a5;
 }
 
+.chat-context-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  font-size: 0.66rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.chat-context-notice__icon {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-size: 0.75rem;
+  margin-top: 1px;
+}
+
+.chat-context-notice__text strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .chat-welcome {
   display: flex;
   align-items: flex-start;
