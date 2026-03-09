@@ -1872,6 +1872,7 @@ def get_project_snapshot(project_id: str):
             "applicationDescription": str(metadata.get("applicationDescription") or ""),
             "foundryThreadId": str(resolved_thread_id or metadata.get("foundryThreadId") or ""),
             "lastSaved": int(entry["lastSaved"]),
+            "iacLanguage": str(project_settings.get("iacLanguage") or "bicep").strip().lower(),
         },
         "canvasState": canvas_state,
     }

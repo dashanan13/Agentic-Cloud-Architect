@@ -32,6 +32,14 @@ const chatSendBtn = document.getElementById("chat-send");
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
 const chatRuntimeCtxEl = document.getElementById("chat-runtime-ctx");
+const projectIacIconEl = document.getElementById("project-iac-icon");
+
+// IaC tool icon paths served from the static icons folder.
+const IAC_ICONS = {
+  bicep:     "/icons/azure-bicep-icon.png",
+  terraform: "/icons/terraform-icon.png",
+  opentofu:  "/icons/terraform-icon.png",
+};
 
 // Known context window sizes (tokens) for Azure AI Foundry models.
 // Keys are lowercase substrings matched against the model deployment name.
@@ -319,6 +327,16 @@ function getNextResourceDefaultName() {
   });
 
   return `Resource ${maxIndex + 1}`;
+}
+
+function renderIacIcon() {
+  if (!projectIacIconEl) {
+    return;
+  }
+  const lang = String(state.currentProject?.iacLanguage || "bicep").trim().toLowerCase();
+  const src = IAC_ICONS[lang] || IAC_ICONS.bicep;
+  const label = lang === "terraform" ? "Terraform" : lang === "opentofu" ? "OpenTofu" : "Bicep";
+  projectIacIconEl.innerHTML = `<img src="${src}" alt="${label}" title="${label}" width="22" height="22" />`;
 }
 
 function renderProjectName() {
@@ -2841,6 +2859,7 @@ async function initialize() {
 
   // Update UI with project info
   renderProjectName();
+  renderIacIcon();
   updateTimestamp();
 
   // Initialize layout
