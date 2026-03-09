@@ -1406,6 +1406,28 @@ def architecture_chat(body: ArchitectureChatPayload):
                 or ""
             ).strip()
 
+            # Read canvas state directly from Architecture/canvas.state.json on disk
+            canvas_state_raw = read_json_file(entry["statePath"], {})
+            if not isinstance(canvas_state_raw, dict):
+                canvas_state_raw = {}
+            raw_items = canvas_state_raw.get("canvasItems") if isinstance(canvas_state_raw.get("canvasItems"), list) else []
+            raw_conns = canvas_state_raw.get("canvasConnections") if isinstance(canvas_state_raw.get("canvasConnections"), list) else []
+            # Build id→name map for connection resolution
+            id_to_name = {str(i.get("id") or ""): str(i.get("name") or "") for i in raw_items if isinstance(i, dict)}
+            canvas_items_slim = [
+                {"name": str(i.get("name") or ""), "resourceType": str(i.get("resourceType") or ""), "category": str(i.get("category") or "")}
+                for i in raw_items if isinstance(i, dict)
+            ]
+            canvas_connections_slim = [
+                {
+                    "from": id_to_name.get(str(c.get("fromId") or ""), str(c.get("fromId") or "")),
+                    "to":   id_to_name.get(str(c.get("toId") or ""), str(c.get("toId") or "")),
+                    "direction": str(c.get("direction") or "one-way"),
+                }
+                for c in raw_conns if isinstance(c, dict)
+            ]
+            canvas_context = {"items": canvas_items_slim, "connections": canvas_connections_slim} if canvas_items_slim else None
+
             project_context = {
                 "id": entry["id"],
                 "name": str(metadata.get("name") or entry["name"]),
@@ -1413,6 +1435,7 @@ def architecture_chat(body: ArchitectureChatPayload):
                 "applicationType": str(metadata.get("applicationType") or project_settings.get("projectApplicationType") or ""),
                 "applicationDescription": str(metadata.get("applicationDescription") or ""),
                 "projectDescription": project_description,
+                "canvasContext": canvas_context,
             }
 
             resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)

@@ -2471,7 +2471,7 @@ async function requestArchitectureChat(message) {
     body: JSON.stringify({
       message,
       projectId: state.currentProject?.id || null,
-      agentState: chatAgentState || null
+      agentState: chatAgentState || null,
     })
   });
 
