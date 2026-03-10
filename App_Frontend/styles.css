@@ -402,16 +402,6 @@ body {
   flex-shrink: 0;
 }
 
-.project-timestamp {
-  font-size: 0.7rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 185px;
-  max-width: 185px;
-}
-
 .project-save-status {
   font-size: 0.72rem;
   color: var(--muted);

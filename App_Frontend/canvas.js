@@ -6,9 +6,8 @@ const btnValidate = document.getElementById("btn-validate");
 const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnGenerateCode = document.getElementById("btn-generate-code");
 const projectSaveStatus = document.getElementById("project-save-status");
-const projectNamePrefixDisplay = document.getElementById("project-name-prefix-display");
 const projectNameDisplay = document.getElementById("project-name-suffix-display");
-const projectTimestamp = document.getElementById("project-timestamp");
+const projectNamePrefixDisplay = document.getElementById("project-name-prefix-display");
 const resourceListEl = document.getElementById("resource-list");
 const searchInput = document.getElementById("search-input");
 const selectedResourceNameEl = document.getElementById("selected-resource-name");
@@ -1058,7 +1057,7 @@ function updateTimestamp() {
   if (state.currentProject) {
     state.currentProject.lastSaved = Date.now();
     saveCurrentProject();
-    projectTimestamp.textContent = `Last saved: ${formatTimestamp(state.currentProject.lastSaved)}`;
+    setSaveStatus(`Last saved: ${formatTimestamp(state.currentProject.lastSaved)} (Autosave: every 60s)`);
   }
 }
 
@@ -2145,7 +2144,7 @@ async function saveProjectFiles(options = {}) {
     }
 
     if (!silent) {
-      setSaveStatus(`Saved at ${new Date().toLocaleTimeString()}`);
+      setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 60s)`);
     }
   } catch {
     if (!silent) {
@@ -2873,8 +2872,6 @@ async function initialize() {
   // Resource-list skeleton self-clears when renderResources() runs below.
   // Property-content skeleton self-clears when updatePropertyPanel() runs below.
   appEl.classList.remove("is-canvas-loading");
-
-  setSaveStatus("Autosave: every 60s");
   window.setInterval(async () => {
     try {
       updateTimestamp();
