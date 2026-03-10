@@ -101,7 +101,12 @@
                     </div>
                     <div class="quality-status" id="ps-description-quality-status">Quality: Not evaluated</div>
                     <div class="description-input-wrapper">
-                      <textarea id="ps-project-description" placeholder="Describe this project" aria-label="Project description"></textarea>
+                      <div class="textarea-placeholder" id="ps-description-placeholder" aria-hidden="true">
+                        <p>This description is used as <strong>AI context</strong> throughout your entire project — the AI architect will read it before every conversation to understand your <strong>goals</strong>, <strong>constraints</strong>, and <strong>design intent</strong>. The richer and more specific it is, the better the AI guidance you will receive.</p>
+                        <p class="placeholder-example">Example: A global API service handling <strong>identity verification</strong> for a consumer web app. Expected <strong>10k daily users worldwide</strong>, storing <strong>PII data</strong> with <strong>GDPR compliance</strong>, requiring <strong>high availability</strong> and <strong>low latency</strong>.</p>
+                        <p class="placeholder-tip">💡 Descriptions over <strong>500 characters</strong> give the AI enough context to provide meaningful architecture guidance.</p>
+                      </div>
+                      <textarea id="ps-project-description" aria-label="Project description"></textarea>
                       <button type="button" class="ai-help-btn" id="btn-ps-improve-description" title="Improve description with AI">AI</button>
                     </div>
                   </div>

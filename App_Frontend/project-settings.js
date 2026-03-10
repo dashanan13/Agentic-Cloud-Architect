@@ -13,6 +13,13 @@ const projectDescriptionQualityMeter = document.getElementById("ps-description-q
 const projectDescriptionQualityFill = document.getElementById("ps-description-quality-fill");
 const projectDescriptionQualityStatus = document.getElementById("ps-description-quality-status");
 const btnImproveDescription = document.getElementById("btn-ps-improve-description");
+const descriptionPlaceholderEl = document.getElementById("ps-description-placeholder");
+
+function syncDescriptionPlaceholder() {
+  if (descriptionPlaceholderEl) {
+    descriptionPlaceholderEl.classList.toggle("is-hidden", (projectDescriptionInput?.value?.length ?? 0) > 0);
+  }
+}
 const contextEl = document.getElementById("project-settings-context");
 const headingEl = document.getElementById("project-settings-heading");
 
@@ -272,6 +279,7 @@ async function improveDescription() {
     }
 
     projectDescriptionInput.value = improved;
+    syncDescriptionPlaceholder();
     scheduleDescriptionEvaluation();
   } catch (error) {
     setQualityStatus("Quality: Improve failed", "error");
@@ -359,6 +367,7 @@ function populateForm() {
         || state.project?.applicationDescription
         || ""
     ).trim();
+    syncDescriptionPlaceholder();
   }
 
   const qualityIndex = Number(state.settings.projectDescriptionQualityIndex) || 0;
@@ -468,6 +477,15 @@ async function initialize() {
 
   projectDescriptionInput?.addEventListener("input", () => {
     scheduleDescriptionEvaluation();
+    syncDescriptionPlaceholder();
+  });
+
+  projectDescriptionInput?.addEventListener("focus", () => {
+    if (descriptionPlaceholderEl) descriptionPlaceholderEl.classList.add("is-hidden");
+  });
+
+  projectDescriptionInput?.addEventListener("blur", () => {
+    syncDescriptionPlaceholder();
   });
 
   projectTypeInput?.addEventListener("change", () => {
