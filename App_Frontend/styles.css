@@ -1903,6 +1903,56 @@ select.property-input {
 .description-input-wrapper textarea {
   width: 100%;
   padding-right: 48px;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.textarea-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 48px;
+  padding: 8px 10px;
+  pointer-events: none;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  user-select: none;
+  z-index: 2;
+}
+
+.textarea-placeholder p {
+  margin: 0 0 6px;
+}
+
+.textarea-placeholder p:last-child {
+  margin-bottom: 0;
+}
+
+.textarea-placeholder strong {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.textarea-placeholder .placeholder-example {
+  border-left: 2px solid #d1d5db;
+  padding-left: 8px;
+  font-style: italic;
+}
+
+.textarea-placeholder .placeholder-tip {
+  margin-top: 6px;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.textarea-placeholder .placeholder-tip strong {
+  color: #6b7280;
+}
+
+.textarea-placeholder.is-hidden {
+  display: none;
 }
 
 .ai-help-btn {

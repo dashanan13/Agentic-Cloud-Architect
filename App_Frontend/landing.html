@@ -135,18 +135,22 @@
                     </div>
                     <div class="quality-status" id="description-quality-status">Quality: Not evaluated</div>
                     <div class="description-input-wrapper">
-                      <textarea id="intro-app-description" placeholder="Describe the application you want to design" aria-label="Application description"></textarea>
+                      <div class="textarea-placeholder" id="description-placeholder" aria-hidden="true">
+                        <p>This description is used as <strong>AI context</strong> throughout your entire project — the AI architect will read it before every conversation to understand your <strong>goals</strong>, <strong>constraints</strong>, and <strong>design intent</strong>. The richer and more specific it is, the better the AI guidance you will receive.</p>
+                        <p class="placeholder-example">Example: A global API service handling <strong>identity verification</strong> for a consumer web app. Expected <strong>10k daily users worldwide</strong>, storing <strong>PII data</strong> with <strong>GDPR compliance</strong>, requiring <strong>high availability</strong> and <strong>low latency</strong>.</p>
+                        <p class="placeholder-tip">💡 Descriptions over <strong>500 characters</strong> give the AI enough context to provide meaningful architecture guidance.</p>
+                      </div>
+                      <textarea id="intro-app-description" aria-label="Application description"></textarea>
                       <button type="button" class="ai-help-btn" id="btn-improve-description" title="Improve description with AI">AI</button>
                     </div>
                     <div class="project-guidance">
-                      <p class="project-guidance-intro">Briefly describe what your application does, who will use it, and its main functionality.</p>
                       <p class="project-guidance-intro">A good description includes:</p>
                       <ol class="project-guidance-list">
-                        <li>What type of application are you building?</li>
-                        <li>Who will use it and how many users do you expect?</li>
+                        <li>What type of application are you building and what problem does it solve?</li>
+                        <li>Who will use it, from where, and how many users do you expect?</li>
                         <li>What main components will it include (web app, API, database, etc.)?</li>
-                        <li>What type of data will it store?</li>
-                        <li>Any special requirements (high availability, global users, sensitive data)?</li>
+                        <li>What type of data will it handle — including any sensitive or regulated data?</li>
+                        <li>Any specific requirements: high availability, compliance (GDPR, HIPAA), latency, cost constraints?</li>
                       </ol>
                     </div>
                   </div>

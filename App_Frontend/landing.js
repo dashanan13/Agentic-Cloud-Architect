@@ -12,6 +12,7 @@ const descriptionQualityMeter = document.getElementById("description-quality-met
 const descriptionQualityStatus = document.getElementById("description-quality-status");
 const descriptionQualityFill = document.getElementById("description-quality-fill");
 const btnImproveDescription = document.getElementById("btn-improve-description");
+const descriptionPlaceholderEl = document.getElementById("description-placeholder");
 const createProjectSectionEl = document.querySelector(".intro-column--create");
 const createProjectToggleBtn = document.getElementById("create-project-toggle");
 const createProjectContentEl = document.getElementById("create-project-content");
@@ -696,6 +697,15 @@ introNameInput.addEventListener("input", () => {
 introAppDescriptionInput.addEventListener("input", () => {
   setCreateMessage("");
   scheduleDescriptionEvaluation();
+  if (descriptionPlaceholderEl) descriptionPlaceholderEl.classList.toggle("is-hidden", introAppDescriptionInput.value.length > 0);
+});
+
+introAppDescriptionInput.addEventListener("focus", () => {
+  if (descriptionPlaceholderEl) descriptionPlaceholderEl.classList.add("is-hidden");
+});
+
+introAppDescriptionInput.addEventListener("blur", () => {
+  if (descriptionPlaceholderEl) descriptionPlaceholderEl.classList.toggle("is-hidden", introAppDescriptionInput.value.length > 0);
 });
 
 btnImproveDescription?.addEventListener("click", async () => {
