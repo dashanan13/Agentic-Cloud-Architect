@@ -1,0 +1,255 @@
+{
+  "resourceName": "Container Registries",
+  "bicepType": "Microsoft.ContainerRegistry/registries@2023-07-01",
+  "terraformType": "azurerm_container_registry",
+  "category": "containers",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.containerregistry/registries",
+  "definition": {
+    "version": 2,
+    "block": {
+      "attributes": {
+        "admin_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "admin_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "admin_username": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "anonymous_pull_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "data_endpoint_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "data_endpoint_host_names": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "encryption": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "identity_client_id": "string",
+                "key_vault_key_id": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "export_policy_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "login_server": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "network_rule_bypass_option": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "network_rule_set": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "default_action": "string",
+                "ip_rule": [
+                  "set",
+                  [
+                    "object",
+                    {
+                      "action": "string",
+                      "ip_range": "string"
+                    }
+                  ]
+                ]
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "quarantine_policy_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "retention_policy_in_days": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "trust_policy_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "zone_redundancy_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "georeplications": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "location": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "regional_endpoint_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tags": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "zone_redundancy_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

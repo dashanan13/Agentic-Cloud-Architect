@@ -1,0 +1,357 @@
+{
+  "resourceName": "Azure Workbooks",
+  "bicepType": "Microsoft.Insights/workbooks@2023-06-01",
+  "terraformType": "azurerm_application_insights_workbook",
+  "category": "monitor",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.insights/workbooks",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Insights/workbooks@2023-06-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Insights/workbooks"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-06-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "displayName": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The user-defined name (display name) of the workbook."
+              },
+              "serializedData": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Configuration of this particular workbook. Configuration data is a string containing valid JSON"
+              },
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Workbook schema version format, like 'Notebook/1.0', which should match the workbook in serializedData"
+              },
+              "timeModified": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Date and time in UTC of the last modification that was made to this workbook definition."
+              },
+              "category": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Workbook category, as defined by the user at creation time."
+              },
+              "tags": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Being deprecated, please use the other tags field"
+              },
+              "userId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Unique user id of the specific user that owns this workbook."
+              },
+              "sourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ResourceId for a source resource."
+              },
+              "storageUri": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resourceId to the storage account when bring your own storage is used"
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The description of the workbook."
+              },
+              "revision": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique revision id for this workbook definition"
+              }
+            }
+          },
+          "description": "Metadata describing a workbook for an Azure resource."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity (where both SystemAssigned and UserAssigned types are allowed)."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The set of user assigned identities associated with the resource. The userAssignedIdentities dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}. The dictionary values can be empty objects ({}) in requests."
+              }
+            }
+          },
+          "description": "Identity used for BYOS"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "shared"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "The kind of workbook. Only valid value is shared."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource etag"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        }
+      }
+    }
+  }
+}

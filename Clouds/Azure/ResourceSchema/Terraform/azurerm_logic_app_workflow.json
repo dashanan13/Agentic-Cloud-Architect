@@ -1,0 +1,297 @@
+{
+  "resourceName": "Logic Apps",
+  "bicepType": "Microsoft.Logic/workflows@2019-05-01",
+  "terraformType": "azurerm_logic_app_workflow",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.logic/workflows",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "access_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "connector_endpoint_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "connector_outbound_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "integration_service_environment_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "logic_app_integration_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "parameters": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workflow_endpoint_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "workflow_outbound_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "workflow_parameters": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workflow_schema": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workflow_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "access_control": {
+          "nesting_mode": "list",
+          "block": {
+            "block_types": {
+              "action": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_caller_ip_address_range": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "content": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_caller_ip_address_range": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "trigger": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_caller_ip_address_range": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "block_types": {
+                    "open_authentication_policy": {
+                      "nesting_mode": "set",
+                      "block": {
+                        "attributes": {
+                          "name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "block_types": {
+                          "claim": {
+                            "nesting_mode": "set",
+                            "block": {
+                              "attributes": {
+                                "name": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            },
+                            "min_items": 1
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "workflow_management": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_caller_ip_address_range": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

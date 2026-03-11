@@ -1,0 +1,953 @@
+{
+  "resourceName": "Container Apps Environments",
+  "bicepType": "Microsoft.App/managedEnvironments@2024-08-02-preview",
+  "terraformType": "azurerm_container_app_environment",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.app/managedenvironments",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.App/managedEnvironments@2024-08-02-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.App/managedEnvironments"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-08-02-preview"
+          },
+          "description": "The resource api version"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of the Environment."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity (where both SystemAssigned and UserAssigned types are allowed)."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The set of user assigned identities associated with the resource. The userAssignedIdentities dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}. The dictionary values can be empty objects ({}) in requests."
+              }
+            }
+          },
+          "description": "Managed identities for the Managed Environment to interact with other Azure services without maintaining any secrets or credentials in code."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Waiting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InitializationInProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InfrastructureSetupInProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InfrastructureSetupComplete"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ScheduledForDelete"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpgradeRequested"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpgradeFailed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Provisioning state of the Environment."
+              },
+              "daprAIInstrumentationKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "Azure Monitor instrumentation key used by Dapr to export Service to Service communication telemetry"
+              },
+              "daprAIConnectionString": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "Application Insights connection string used by Dapr to export Service to Service communication telemetry"
+              },
+              "vnetConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "internal": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Boolean indicating the environment only has an internal load balancer. These environments do not have a public static IP resource. They must provide infrastructureSubnetId if enabling this property"
+                    },
+                    "infrastructureSubnetId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID of a subnet for infrastructure components. Must not overlap with any other provided IP ranges."
+                    },
+                    "dockerBridgeCidr": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "CIDR notation IP range assigned to the Docker bridge, network. Must not overlap with any other provided IP ranges."
+                    },
+                    "platformReservedCidr": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "IP range in CIDR notation that can be reserved for environment infrastructure IP addresses. Must not overlap with any other provided IP ranges."
+                    },
+                    "platformReservedDnsIP": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "An IP address from the IP range defined by platformReservedCidr that will be reserved for the internal DNS server."
+                    }
+                  }
+                },
+                "description": "Vnet configuration for the environment"
+              },
+              "deploymentErrors": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Any errors that occurred during deployment or deployment validation"
+              },
+              "defaultDomain": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Default Domain Name for the cluster"
+              },
+              "staticIp": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Static IP of the Environment"
+              },
+              "appLogsConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "destination": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Logs destination, can be 'log-analytics', 'azure-monitor' or 'none'"
+                    },
+                    "logAnalyticsConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "customerId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Log analytics customer id"
+                          },
+                          "sharedKey": {
+                            "flags": 4,
+                            "type": {
+                              "$type": "StringType",
+                              "sensitive": true
+                            },
+                            "description": "Log analytics customer key"
+                          },
+                          "dynamicJsonColumns": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Boolean indicating whether to parse json string log into dynamic json columns"
+                          }
+                        }
+                      },
+                      "description": "Log Analytics configuration, must only be provided when destination is configured as 'log-analytics'"
+                    }
+                  }
+                },
+                "description": "Cluster configuration which enables the log daemon to export app logs to configured destination."
+              },
+              "appInsightsConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "connectionString": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Application Insights connection string"
+                    }
+                  }
+                },
+                "description": "Environment level Application Insights configuration"
+              },
+              "openTelemetryConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "destinationsConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "dataDogConfiguration": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "site": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The data dog site"
+                                },
+                                "key": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The data dog api key"
+                                }
+                              }
+                            },
+                            "description": "Open telemetry datadog destination configuration"
+                          },
+                          "otlpConfigurations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Open telemetry otlp configurations"
+                          }
+                        }
+                      },
+                      "description": "Open telemetry destinations configuration"
+                    },
+                    "tracesConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "includeDapr": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Boolean indicating if including dapr traces"
+                          },
+                          "destinations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Open telemetry traces destinations"
+                          }
+                        }
+                      },
+                      "description": "Open telemetry trace configuration"
+                    },
+                    "logsConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "destinations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Open telemetry logs destinations"
+                          }
+                        }
+                      },
+                      "description": "Open telemetry logs configuration"
+                    },
+                    "metricsConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "includeKeda": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Boolean indicating if including keda metrics"
+                          },
+                          "destinations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Open telemetry metrics destinations"
+                          }
+                        }
+                      },
+                      "description": "Open telemetry metrics configuration"
+                    }
+                  }
+                },
+                "description": "Environment Open Telemetry configuration"
+              },
+              "zoneRedundant": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether or not this Managed Environment is zone-redundant."
+              },
+              "customDomainConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "customDomainVerificationId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Id used to verify domain name ownership"
+                    },
+                    "dnsSuffix": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Dns suffix for the environment domain"
+                    },
+                    "certificateKeyVaultProperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "identity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource ID of a managed identity to authenticate with Azure Key Vault, or System to use a system-assigned identity."
+                          },
+                          "keyVaultUrl": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "URL pointing to the Azure Key Vault secret that holds the certificate."
+                          }
+                        }
+                      },
+                      "description": "Certificate stored in Azure Key Vault."
+                    },
+                    "certificateValue": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "AnyType"
+                      },
+                      "description": "PFX or PEM blob"
+                    },
+                    "certificatePassword": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Certificate password"
+                    },
+                    "expirationDate": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Certificate expiration date."
+                    },
+                    "thumbprint": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Certificate thumbprint."
+                    },
+                    "subjectName": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Subject name of the certificate."
+                    }
+                  }
+                },
+                "description": "Custom domain configuration for the environment"
+              },
+              "eventStreamEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The endpoint of the eventstream of the Environment."
+              },
+              "workloadProfiles": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Workload profile type for the workloads to run on."
+                      },
+                      "enableFips": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Whether to use a FIPS-enabled OS. Supported only for dedicated workload profiles."
+                      },
+                      "workloadProfileType": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Workload profile type for the workloads to run on."
+                      },
+                      "minimumCount": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The minimum capacity."
+                      },
+                      "maximumCount": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The maximum capacity."
+                      }
+                    }
+                  }
+                },
+                "description": "Workload profiles configured for the Managed Environment."
+              },
+              "kedaConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "version": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The version of Keda"
+                    }
+                  }
+                },
+                "description": "The configuration of Keda component."
+              },
+              "daprConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "version": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The version of Dapr"
+                    }
+                  }
+                },
+                "description": "The configuration of Dapr component."
+              },
+              "infrastructureResourceGroup": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. If a subnet ID is provided, this resource group will be created in the same subscription as the subnet."
+              },
+              "peerAuthentication": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "mtls": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "enabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Boolean indicating whether the mutual TLS authentication is enabled"
+                          }
+                        }
+                      },
+                      "description": "Mutual TLS authentication settings for the Managed Environment"
+                    }
+                  }
+                },
+                "description": "Peer authentication settings for the Managed Environment"
+              },
+              "peerTrafficConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "encryption": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "enabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Boolean indicating whether the peer traffic encryption is enabled"
+                          }
+                        }
+                      },
+                      "description": "Peer traffic encryption settings for the Managed Environment"
+                    }
+                  }
+                },
+                "description": "Peer traffic settings for the Managed Environment"
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "groupIds": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The group ids for the private endpoint resource."
+                            },
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource of private end point."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. E.g. \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}\""
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "Private endpoint connections to the resource."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Property to allow or block all public traffic. Allowed Values: 'Enabled', 'Disabled'."
+              }
+            }
+          },
+          "description": "Managed environment resource specific properties"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

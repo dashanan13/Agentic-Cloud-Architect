@@ -1,0 +1,801 @@
+{
+  "resourceName": "Bot Services",
+  "bicepType": "Microsoft.BotService/botServices@2023-09-15-preview",
+  "terraformType": "azurerm_bot_service_azure_bot",
+  "category": "ai + machine learning",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.botservice/botservices",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.BotService/botServices@2023-09-15-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 2,
+            "maxLength": 64,
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.BotService/botServices"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-09-15-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "displayName": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Name of the bot"
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The description of the bot"
+              },
+              "iconUrl": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Icon Url of the bot"
+              },
+              "endpoint": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The bot's endpoint"
+              },
+              "endpointVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The bot's endpoint version"
+              },
+              "allSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Contains resource all settings defined as key/value pairs."
+              },
+              "parameters": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Contains resource parameters defined as key/value pairs."
+              },
+              "manifestUrl": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The bot's manifest url"
+              },
+              "msaAppType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssignedMSI"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SingleTenant"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MultiTenant"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Microsoft App Type for the bot"
+              },
+              "msaAppId": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Microsoft App Id for the bot"
+              },
+              "msaAppTenantId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Microsoft App Tenant Id for the bot"
+              },
+              "msaAppMSIResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Microsoft App Managed Identity Resource Id for the bot"
+              },
+              "configuredChannels": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Collection of channels for which the bot is configured"
+              },
+              "enabledChannels": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Collection of channels for which the bot is enabled"
+              },
+              "developerAppInsightKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Application Insights key"
+              },
+              "developerAppInsightsApiKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Application Insights Api Key"
+              },
+              "developerAppInsightsApplicationId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Application Insights App Id"
+              },
+              "luisAppIds": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Collection of LUIS App Ids"
+              },
+              "luisKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The LUIS Key"
+              },
+              "isCmekEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether Cmek is enabled"
+              },
+              "cmekKeyVaultUrl": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The CMK Url"
+              },
+              "cmekEncryptionStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The CMK encryption status"
+              },
+              "tenantId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Tenant Id for the bot"
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SecuredByPerimeter"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether the bot is in an isolated network"
+              },
+              "isStreamingSupported": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether the bot is streaming supported"
+              },
+              "isDeveloperAppInsightsApiKeySet": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether the bot is developerAppInsightsApiKey set"
+              },
+              "migrationToken": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Token used to migrate non Azure bot to azure subscription"
+              },
+              "disableLocalAuth": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Opt-out of local authentication and ensure only MSI and AAD can be used exclusively for authentication."
+              },
+              "schemaTransformationVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The channel schema transformation version for the bot"
+              },
+              "storageResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The storage resourceId for the bot"
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource of private end point."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            },
+                            "groupIds": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Group ids"
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "List of Private Endpoint Connections configured for the bot"
+              },
+              "networkSecurityPerimeterConfigurations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "provisioningState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "provisioningIssues": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of Provisioning Issues if any"
+                            },
+                            "networkSecurityPerimeter": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Information about Network Security Perimeter"
+                            },
+                            "resourceAssociation": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Information about resource association"
+                            },
+                            "profile": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Information about profile"
+                            }
+                          }
+                        },
+                        "description": "Properties of the Network Security Perimeter configuration"
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "List of Network Security Perimeter configurations for the bot"
+              },
+              "openWithHint": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The hint to browser (e.g. protocol handler) on how to open the bot for authoring"
+              },
+              "appPasswordHint": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The hint (e.g. keyVault secret resourceId) on how to fetch the app secret"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Provisioning state of the resource"
+              },
+              "publishingCredentials": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Publishing credentials of the resource"
+              }
+            }
+          },
+          "description": "The set of properties specific to bot resource"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Specifies the location of the resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Contains resource tags defined as key/value pairs."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "F0"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "S1"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The sku name"
+              },
+              "tier": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Gets the sku tier. This is based on the SKU name."
+              }
+            }
+          },
+          "description": "Gets or sets the SKU of the resource."
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "sdk"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "designer"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "bot"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "function"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "azurebot"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "Required. Gets or sets the Kind of the resource."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Entity Tag."
+        },
+        "zones": {
+          "flags": 2,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Entity zones"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

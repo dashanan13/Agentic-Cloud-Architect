@@ -1,0 +1,236 @@
+{
+  "resourceName": "Microsoft Defender EASM",
+  "bicepType": "Microsoft.Easm/workspaces@2022-04-01-preview",
+  "terraformType": "azurerm_security_center_subscription_pricing",
+  "category": "security",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.easm/workspaces",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Easm/workspaces@2022-04-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Easm/workspaces"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-04-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "dataPlaneEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Data plane endpoint."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSpecified"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ProvisioningResources"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InstallingApplication"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ConfiguringApplication"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MigratingApplicationData"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RunningValidations"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CreatingArtifacts"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DeletingArtifacts"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Resource provisioning state."
+              }
+            }
+          },
+          "description": "Workspace properties."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

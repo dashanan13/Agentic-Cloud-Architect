@@ -1,0 +1,278 @@
+{
+  "resourceName": "AVS VM",
+  "bicepType": "Microsoft.AVS/privateClouds/clusters@2023-09-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.avs/privateclouds/clusters",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AVS/privateClouds/clusters@2023-09-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[-\\w\\._]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AVS/privateClouds/clusters"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-09-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "clusterSize": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The cluster size"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The state of the cluster provisioning"
+              },
+              "clusterId": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The identity"
+              },
+              "hosts": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The hosts"
+              },
+              "vsanDatastoreName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the vsan datastore associated with the cluster"
+              }
+            }
+          },
+          "description": "The resource-specific properties for this resource."
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the SKU. E.g. P3. It is typically a letter+number code"
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    }
+                  ]
+                },
+                "description": "This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted."
+              }
+            }
+          },
+          "description": "The SKU (Stock Keeping Unit) assigned to this resource."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

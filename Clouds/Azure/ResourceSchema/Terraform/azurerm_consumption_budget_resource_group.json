@@ -1,0 +1,212 @@
+{
+  "resourceName": "Cost Alerts",
+  "bicepType": "Microsoft.CostManagement/budgets@2023-11-01",
+  "terraformType": "azurerm_consumption_budget_resource_group",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.costmanagement/budgets",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "amount": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        },
+        "etag": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "time_grain": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "filter": {
+          "nesting_mode": "list",
+          "block": {
+            "block_types": {
+              "dimension": {
+                "nesting_mode": "set",
+                "block": {
+                  "attributes": {
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "operator": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "values": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "tag": {
+                "nesting_mode": "set",
+                "block": {
+                  "attributes": {
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "operator": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "values": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "notification": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "contact_emails": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "contact_groups": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "contact_roles": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "operator": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "threshold": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "threshold_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1
+        },
+        "time_period": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "end_date": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "start_date": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

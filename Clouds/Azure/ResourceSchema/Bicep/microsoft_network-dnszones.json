@@ -1,0 +1,315 @@
+{
+  "resourceName": "DNS Multistack",
+  "bicepType": "Microsoft.Network/dnsZones@2023-07-01-preview",
+  "terraformType": "azurerm_dns_zone",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/dnszones",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/dnsZones@2023-07-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/dnsZones"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-07-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "maxNumberOfRecordSets": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The maximum number of record sets that can be created in this DNS zone.  This is a read-only property and any attempt to set this value will be ignored."
+              },
+              "maxNumberOfRecordsPerRecordSet": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The maximum number of records per record set that can be created in this DNS zone.  This is a read-only property and any attempt to set this value will be ignored."
+              },
+              "numberOfRecordSets": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The current number of record sets in this DNS zone.  This is a read-only property and any attempt to set this value will be ignored."
+              },
+              "nameServers": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The name servers for this DNS zone. This is a read-only property and any attempt to set this value will be ignored."
+              },
+              "zoneType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Public"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Private"
+                    }
+                  ]
+                },
+                "description": "The type of this DNS zone (Public or Private)."
+              },
+              "registrationVirtualNetworks": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Id."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of references to virtual networks that register hostnames in this DNS zone. This is a only when ZoneType is Private."
+              },
+              "resolutionVirtualNetworks": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Id."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of references to virtual networks that resolve records in this DNS zone. This is a only when ZoneType is Private."
+              },
+              "signingKeys": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "delegationSignerInfo": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The delegation signer information."
+                      },
+                      "flags": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The flags specifies how the key is used."
+                      },
+                      "keyTag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The key tag value of the DNSKEY Resource Record."
+                      },
+                      "protocol": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The protocol value. The value is always 3."
+                      },
+                      "publicKey": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The public key, represented as a Base64 encoding."
+                      },
+                      "securityAlgorithmType": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The security algorithm type represents the standard security algorithm number of the DNSKEY Resource Record. See: https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml"
+                      }
+                    }
+                  }
+                },
+                "description": "The list of signing keys."
+              }
+            }
+          },
+          "description": "The properties of the zone."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The etag of the zone."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

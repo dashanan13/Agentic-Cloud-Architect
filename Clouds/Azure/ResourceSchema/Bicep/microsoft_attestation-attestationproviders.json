@@ -1,0 +1,426 @@
+{
+  "resourceName": "AzureAttestation",
+  "bicepType": "Microsoft.Attestation/attestationProviders@2021-06-01-preview",
+  "terraformType": "azurerm_attestation_provider",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.attestation/attestationproviders",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Attestation/attestationProviders@2021-06-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Attestation/attestationProviders"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2021-06-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The supported Azure location where the attestation provider should be created."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The tags that will be assigned to the attestation provider."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Controls whether traffic from the public network is allowed to access the Attestation Provider APIs."
+              },
+              "policySigningCertificates": {
+                "flags": 4,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keys": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "alg": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The \"alg\" (algorithm) parameter identifies the algorithm intended for\nuse with the key.  The values used should either be registered in the\nIANA \"JSON Web Signature and Encryption Algorithms\" registry\nestablished by [JWA] or be a value that contains a Collision-\nResistant Name."
+                            },
+                            "crv": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The \"crv\" (curve) parameter identifies the curve type"
+                            },
+                            "d": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA private exponent or ECC private key"
+                            },
+                            "dp": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA Private Key Parameter"
+                            },
+                            "dq": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA Private Key Parameter"
+                            },
+                            "e": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA public exponent, in Base64"
+                            },
+                            "k": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Symmetric key"
+                            },
+                            "kid": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The \"kid\" (key ID) parameter is used to match a specific key.  This\nis used, for instance, to choose among a set of keys within a JWK Set\nduring key rollover.  The structure of the \"kid\" value is\nunspecified.  When \"kid\" values are used within a JWK Set, different\nkeys within the JWK Set SHOULD use distinct \"kid\" values.  (One\nexample in which different keys might use the same \"kid\" value is if\nthey have different \"kty\" (key type) values but are considered to be\nequivalent alternatives by the application using them.)  The \"kid\"\nvalue is a case-sensitive string."
+                            },
+                            "kty": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The \"kty\" (key type) parameter identifies the cryptographic algorithm\nfamily used with the key, such as \"RSA\" or \"EC\". \"kty\" values should\neither be registered in the IANA \"JSON Web Key Types\" registry\nestablished by [JWA] or be a value that contains a Collision-\nResistant Name.  The \"kty\" value is a case-sensitive string."
+                            },
+                            "n": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA modulus, in Base64"
+                            },
+                            "p": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA secret prime"
+                            },
+                            "q": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA secret prime, with p < q"
+                            },
+                            "qi": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "RSA Private Key Parameter"
+                            },
+                            "use": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Use (\"public key use\") identifies the intended use of\nthe public key. The \"use\" parameter is employed to indicate whether\na public key is used for encrypting data or verifying the signature\non data. Values are commonly \"sig\" (signature) or \"enc\" (encryption)."
+                            },
+                            "x": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "X coordinate for the Elliptic Curve point"
+                            },
+                            "x5c": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The \"x5c\" (X.509 certificate chain) parameter contains a chain of one\nor more PKIX certificates [RFC5280].  The certificate chain is\nrepresented as a JSON array of certificate value strings.  Each\nstring in the array is a base64-encoded (Section 4 of [RFC4648] --\nnot base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.\nThe PKIX certificate containing the key value MUST be the first\ncertificate."
+                            },
+                            "y": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Y coordinate for the Elliptic Curve point"
+                            }
+                          }
+                        }
+                      },
+                      "description": "The value of the \"keys\" parameter is an array of JWK values.  By\ndefault, the order of the JWK values within the array does not imply\nan order of preference among them, although applications of JWK Sets\ncan choose to assign a meaning to the order for their purposes, if\ndesired."
+                    }
+                  }
+                },
+                "description": "JSON Web Key Set defining a set of X.509 Certificates that will represent the parent certificate for the signing certificate used for policy operations"
+              },
+              "trustModel": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Trust model for the attestation provider."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotReady"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Error"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Status of attestation service."
+              },
+              "attestUri": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the uri of attestation service"
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource of private end point."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "List of private endpoint connections associated with the attestation provider."
+              }
+            }
+          },
+          "description": "Properties of the attestation provider"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "The system metadata relating to this resource"
+        }
+      }
+    }
+  }
+}

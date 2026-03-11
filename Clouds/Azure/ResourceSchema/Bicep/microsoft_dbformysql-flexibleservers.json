@@ -1,0 +1,932 @@
+{
+  "resourceName": "Azure Database MySQL Server",
+  "bicepType": "Microsoft.DBforMySQL/flexibleServers@2023-12-30",
+  "terraformType": "azurerm_mysql_flexible_server",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.dbformysql/flexibleservers",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DBforMySQL/flexibleServers@2023-12-30",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[a-z0-9][-a-z0-9]*(?<!-)$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DBforMySQL/flexibleServers"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-12-30"
+          },
+          "description": "The resource api version"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ObjectId from the KeyVault"
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "TenantId from the KeyVault"
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "AnyType"
+                  }
+                },
+                "description": "Metadata of user assigned identity."
+              }
+            }
+          },
+          "description": "The cmk identity for the server."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the sku, e.g. Standard_D32s_v3."
+              },
+              "tier": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Burstable"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GeneralPurpose"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MemoryOptimized"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The tier of the particular SKU, e.g. GeneralPurpose."
+              }
+            }
+          },
+          "description": "The SKU (pricing tier) of the server."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "administratorLogin": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The administrator's login name of a server. Can only be specified when the server is being created (and is required for creation)."
+              },
+              "administratorLoginPassword": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "The password of the administrator login (required for server creation)."
+              },
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "5.7"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "8.0.21"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Server version."
+              },
+              "availabilityZone": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "availability Zone information of the server."
+              },
+              "createMode": {
+                "flags": 4,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Default"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PointInTimeRestore"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Replica"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GeoRestore"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The mode to create a new MySQL server."
+              },
+              "sourceServerResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The source MySQL server id."
+              },
+              "restorePointInTime": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Restore point creation time (ISO8601 format), specifying the time to restore from."
+              },
+              "replicationRole": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Source"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Replica"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The replication role."
+              },
+              "replicaCapacity": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType",
+                  "minValue": 0
+                },
+                "description": "The maximum number of replicas that a primary server can have."
+              },
+              "dataEncryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "primaryUserAssignedIdentityId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Primary user identity resource id"
+                    },
+                    "primaryKeyURI": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Primary key uri"
+                    },
+                    "geoBackupUserAssignedIdentityId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Geo backup user identity resource id as identity can't cross region, need identity in same region as geo backup"
+                    },
+                    "geoBackupKeyURI": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Geo backup key uri as key vault can't cross region, need cmk in same region as geo backup"
+                    },
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AzureKeyVault"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SystemManaged"
+                          }
+                        ]
+                      },
+                      "description": "The key type, AzureKeyVault for enable cmk, SystemManaged for disable cmk."
+                    }
+                  }
+                },
+                "description": "The Data Encryption for CMK."
+              },
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Dropping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Starting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopped"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The state of a server."
+              },
+              "fullyQualifiedDomainName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The fully qualified domain name of a server."
+              },
+              "storage": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "storageSizeGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Max storage size allowed for a server."
+                    },
+                    "iops": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Storage IOPS for a server."
+                    },
+                    "autoGrow": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Enable Storage Auto Grow or not."
+                    },
+                    "logOnDisk": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Enable Log On Disk or not."
+                    },
+                    "storageSku": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The sku name of the server storage."
+                    },
+                    "autoIoScaling": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Enable IO Auto Scaling or not."
+                    }
+                  }
+                },
+                "description": "Storage related properties of a server."
+              },
+              "backup": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "backupRetentionDays": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Backup retention days for the server."
+                    },
+                    "backupIntervalHours": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Backup interval hours for the server."
+                    },
+                    "geoRedundantBackup": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Whether or not geo redundant backup is enabled."
+                    },
+                    "earliestRestoreDate": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Earliest restore point creation time (ISO8601 format)"
+                    }
+                  }
+                },
+                "description": "Backup related properties of a server."
+              },
+              "highAvailability": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "mode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ZoneRedundant"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SameZone"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "High availability mode for a server."
+                    },
+                    "state": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NotEnabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CreatingStandby"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Healthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "FailingOver"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "RemovingStandby"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The state of server high availability."
+                    },
+                    "standbyAvailabilityZone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Availability zone of the standby server."
+                    }
+                  }
+                },
+                "description": "High availability related properties of a server."
+              },
+              "network": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "publicNetworkAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Whether or not public network access is allowed for this server. Value is 'Disabled' when server has VNet integration."
+                    },
+                    "delegatedSubnetResourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Delegated subnet resource id used to setup vnet for a server."
+                    },
+                    "privateDnsZoneResourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Private DNS zone resource id."
+                    }
+                  }
+                },
+                "description": "Network related properties of a server."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "groupIds": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The group ids for the private endpoint resource."
+                            },
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private endpoint resource."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. E.g. \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}\""
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "PrivateEndpointConnections related properties of a server."
+              },
+              "maintenanceWindow": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "customWindow": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "indicates whether custom window is enabled or disabled"
+                    },
+                    "startHour": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "start hour for maintenance window"
+                    },
+                    "startMinute": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "start minute for maintenance window"
+                    },
+                    "dayOfWeek": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "day of week for maintenance window"
+                    }
+                  }
+                },
+                "description": "Maintenance window of a server."
+              },
+              "importSourceProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "storageType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AzureBlob"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Storage type of import source."
+                    },
+                    "storageUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Uri of the import source storage."
+                    },
+                    "sasToken": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Sas token for accessing source storage. Read and list permissions are required for sas token."
+                    },
+                    "dataDirPath": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Relative path of data directory in storage."
+                    }
+                  }
+                },
+                "description": "Source properties for import from storage."
+              }
+            }
+          },
+          "description": "Properties of the server."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

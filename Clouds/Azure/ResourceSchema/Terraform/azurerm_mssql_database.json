@@ -1,0 +1,397 @@
+{
+  "resourceName": "Production Ready Database",
+  "bicepType": "Microsoft.Sql/servers/databases@2023-05-01-preview",
+  "terraformType": "azurerm_mssql_database",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sql/servers/databases",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "auto_pause_delay_in_minutes": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "collation": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "create_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "creation_source_database_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "elastic_pool_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "enclave_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "geo_backup_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "ledger_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "license_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "maintenance_configuration_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "max_size_gb": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "min_capacity": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "read_replica_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "read_scale": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "recover_database_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "recovery_point_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "restore_dropped_database_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "restore_long_term_retention_backup_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "restore_point_in_time": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "sample_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "secondary_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "server_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "storage_account_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "transparent_data_encryption_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "transparent_data_encryption_key_automatic_rotation_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "transparent_data_encryption_key_vault_key_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "zone_redundant": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        }
+      },
+      "block_types": {
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "import": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "administrator_login": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "administrator_login_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "authentication_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_account_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "storage_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "storage_key_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_uri": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "long_term_retention_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "immutable_backups_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "monthly_retention": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "week_of_year": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "weekly_retention": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "yearly_retention": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "short_term_retention_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "backup_interval_in_hours": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "retention_days": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "threat_detection_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "disabled_alerts": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "email_account_admins": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "email_addresses": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "retention_days": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "state": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "storage_account_access_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "storage_endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

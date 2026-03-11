@@ -1,0 +1,143 @@
+{
+  "resourceName": "Solutions",
+  "bicepType": "Microsoft.OperationsManagement/solutions@2015-11-01-preview",
+  "terraformType": "azurerm_log_analytics_solution",
+  "category": "management + governance",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.operationsmanagement/solutions",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.OperationsManagement/solutions@2015-11-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.OperationsManagement/solutions"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2015-11-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        },
+        "plan": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "name of the solution to be created. For Microsoft published solution it should be in the format of solutionType(workspaceName). SolutionType part is case sensitive. For third party solution, it can be anything."
+              },
+              "publisher": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Publisher name. For gallery solution, it is Microsoft."
+              },
+              "promotionCode": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "promotionCode, Not really used now, can you left as empty"
+              },
+              "product": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "name of the solution to enabled/add. For Microsoft published gallery solution it should be in the format of OMSGallery/<solutionType>. This is case sensitive"
+              }
+            }
+          },
+          "description": "Plan for solution object supported by the OperationsManagement resource provider."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "workspaceResourceId": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The azure resourceId for the workspace where the solution will be deployed/enabled."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state for the solution."
+              },
+              "containedResources": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The azure resources that will be contained within the solutions. They will be locked and gets deleted automatically when the solution is deleted."
+              },
+              "referencedResources": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The resources that will be referenced from this solution. Deleting any of those solution out of band will break the solution."
+              }
+            }
+          },
+          "description": "Properties for solution object supported by the OperationsManagement resource provider."
+        }
+      }
+    }
+  }
+}

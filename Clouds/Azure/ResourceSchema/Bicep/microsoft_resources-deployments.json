@@ -1,0 +1,657 @@
+{
+  "resourceName": "Templates",
+  "bicepType": "Microsoft.Resources/deployments@2024-03-01",
+  "terraformType": "azurerm_resource_group_template_deployment",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.resources/deployments",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Resources/deployments@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[-\\w\\._\\(\\)]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Resources/deployments"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location to store the deployment data."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "template": {
+                "flags": 4,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "The template content. You use this element when you want to pass the template syntax directly in the request rather than link to an existing template. It can be a JObject or well-formed JSON string. Use either the templateLink property or the template property, but not both."
+              },
+              "templateLink": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "uri": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The URI of the template to deploy. Use either the uri or id property, but not both."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource id of a Template Spec. Use either the id or uri property, but not both."
+                    },
+                    "relativePath": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The relativePath property can be used to deploy a linked template at a location relative to the parent. If the parent template was linked with a TemplateSpec, this will reference an artifact in the TemplateSpec.  If the parent was linked with a URI, the child deployment will be a combination of the parent and relativePath URIs"
+                    },
+                    "contentVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "If included, must match the ContentVersion in the template."
+                    },
+                    "queryString": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The query string (for example, a SAS token) to be used with the templateLink URI."
+                    }
+                  }
+                },
+                "description": "The URI of the template. Use either the templateLink property or the template property, but not both."
+              },
+              "parameters": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "value": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "AnyType"
+                        },
+                        "description": "Input value to the parameter ."
+                      },
+                      "reference": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "keyVault": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Azure Key Vault reference."
+                            },
+                            "secretName": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Azure Key Vault secret name."
+                            },
+                            "secretVersion": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Azure Key Vault secret version."
+                            }
+                          }
+                        },
+                        "description": "Azure Key Vault parameter reference."
+                      }
+                    }
+                  }
+                },
+                "description": "Name and value pairs that define the deployment parameters for the template. You use this element when you want to provide the parameter values directly in the request rather than link to an existing parameter file. Use either the parametersLink property or the parameters property, but not both. It can be a JObject or a well formed JSON string."
+              },
+              "parametersLink": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "uri": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The URI of the parameters file."
+                    },
+                    "contentVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "If included, must match the ContentVersion in the template."
+                    }
+                  }
+                },
+                "description": "The URI of parameters file. You use this element to link to an existing parameters file. Use either the parametersLink property or the parameters property, but not both."
+              },
+              "mode": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Incremental"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Complete"
+                    }
+                  ]
+                },
+                "description": "The mode that is used to deploy resources. This value can be either Incremental or Complete. In Incremental mode, resources are deployed without deleting existing resources that are not included in the template. In Complete mode, resources are deployed and existing resources in the resource group that are not included in the template are deleted. Be careful when using Complete mode as you may unintentionally delete resources."
+              },
+              "debugSetting": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "detailLevel": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the type of information to log for debugging. The permitted values are none, requestContent, responseContent, or both requestContent and responseContent separated by a comma. The default is none. When setting this value, carefully consider the type of information you are passing in during deployment. By logging information about the request or response, you could potentially expose sensitive data that is retrieved through the deployment operations."
+                    }
+                  }
+                },
+                "description": "The debug setting of the deployment."
+              },
+              "onErrorDeployment": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LastSuccessful"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SpecificDeployment"
+                          }
+                        ]
+                      },
+                      "description": "The deployment on error behavior type. Possible values are LastSuccessful and SpecificDeployment."
+                    },
+                    "deploymentName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The deployment to be used on error case."
+                    },
+                    "provisioningState": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The state of the provisioning for the on error deployment."
+                    }
+                  }
+                },
+                "description": "The deployment on error behavior."
+              },
+              "expressionEvaluationOptions": {
+                "flags": 4,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "scope": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NotSpecified"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Outer"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Inner"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The scope to be used for evaluation of parameters, variables and functions in a nested template."
+                    }
+                  }
+                },
+                "description": "Specifies whether template expressions are evaluated within the scope of the parent template or nested template. Only applicable to nested templates. If not specified, default value is outer."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSpecified"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Running"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Created"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Denotes the state of provisioning."
+              },
+              "correlationId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The correlation ID of the deployment."
+              },
+              "timestamp": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of the template deployment."
+              },
+              "duration": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The duration of the template deployment."
+              },
+              "outputs": {
+                "flags": 2,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "Key/value pairs that represent deployment output."
+              },
+              "providers": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The provider ID."
+                      },
+                      "namespace": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The namespace of the resource provider."
+                      },
+                      "registrationState": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The registration state of the resource provider."
+                      },
+                      "registrationPolicy": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The registration policy of the resource provider."
+                      },
+                      "resourceTypes": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The collection of provider resource types."
+                      },
+                      "providerAuthorizationConsentState": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The provider authorization consent state."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of resource providers needed for the deployment."
+              },
+              "dependencies": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "dependsOn": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The list of dependencies."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The ID of the dependency."
+                      },
+                      "resourceType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The dependency resource type."
+                      },
+                      "resourceName": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The dependency resource name."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of deployment dependencies."
+              },
+              "templateHash": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The hash produced for the template."
+              },
+              "outputResources": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The fully qualified resource Id."
+                      }
+                    }
+                  }
+                },
+                "description": "Array of provisioned resources."
+              },
+              "validatedResources": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The fully qualified resource Id."
+                      }
+                    }
+                  }
+                },
+                "description": "Array of validated resources."
+              },
+              "error": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "code": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The error code."
+                    },
+                    "message": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The error message."
+                    },
+                    "target": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The error target."
+                    },
+                    "details": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "code": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error code."
+                            },
+                            "message": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error message."
+                            },
+                            "target": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error target."
+                            },
+                            "details": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error details."
+                            },
+                            "additionalInfo": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error additional info."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The error details."
+                    },
+                    "additionalInfo": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "type": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The additional info type."
+                            },
+                            "info": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The additional info."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The error additional info."
+                    }
+                  }
+                },
+                "description": "The deployment error."
+              }
+            }
+          },
+          "description": "The deployment properties."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Deployment tags"
+        }
+      }
+    }
+  }
+}

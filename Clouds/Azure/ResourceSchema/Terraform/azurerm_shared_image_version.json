@@ -1,0 +1,158 @@
+{
+  "resourceName": "Image Versions",
+  "bicepType": "Microsoft.Compute/galleries/images/versions@2024-03-02",
+  "terraformType": "azurerm_shared_image_version",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/galleries/images/versions",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "blob_uri": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "deletion_of_replicated_locations_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "end_of_life_date": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "exclude_from_latest": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "gallery_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "image_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "managed_image_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "os_disk_snapshot_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "replication_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "target_region": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "disk_encryption_set_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "exclude_from_latest_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "regional_replica_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_account_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

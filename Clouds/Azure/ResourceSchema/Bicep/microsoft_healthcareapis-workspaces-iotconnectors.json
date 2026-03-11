@@ -1,0 +1,373 @@
+{
+  "resourceName": "MedTech Service",
+  "bicepType": "Microsoft.HealthcareApis/workspaces/iotconnectors@2023-11-01",
+  "terraformType": "azurerm_healthcare_medtech_service",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.healthcareapis/workspaces/iotconnectors",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.HealthcareApis/workspaces/iotconnectors@2023-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 24
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.HealthcareApis/workspaces/iotconnectors"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Verifying"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deprovisioned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Moving"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Warned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemMaintenance"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state."
+              },
+              "ingestionEndpointConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "eventHubName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Event Hub name to connect to."
+                    },
+                    "consumerGroup": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Consumer group of the event hub to connected to."
+                    },
+                    "fullyQualifiedEventHubNamespace": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fully qualified namespace of the Event Hub to connect to."
+                    }
+                  }
+                },
+                "description": "Source configuration."
+              },
+              "deviceMapping": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "content": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "AnyType"
+                      },
+                      "description": "The mapping."
+                    }
+                  }
+                },
+                "description": "Device Mappings."
+              }
+            }
+          },
+          "description": "IoT Connector configuration."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of identity being specified, currently SystemAssigned and None are allowed."
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The set of user assigned identities associated with the resource. The userAssignedIdentities dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}. The dictionary values can be empty objects ({}) in requests."
+              }
+            }
+          },
+          "description": "Setting indicating whether the service has a managed identity associated with it."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource location."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "An etag associated with the resource, used for optimistic concurrency when editing it."
+        }
+      }
+    }
+  }
+}

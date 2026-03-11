@@ -1,0 +1,416 @@
+{
+  "resourceName": "Azure Fileshares",
+  "bicepType": "Microsoft.Storage/storageAccounts/fileServices/shares@2024-01-01",
+  "terraformType": "azurerm_storage_share",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/fileservices/shares",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Storage/storageAccounts/fileServices/shares@2024-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 63
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Storage/storageAccounts/fileServices/shares"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "lastModifiedTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Returns the date and time the share was last modified."
+              },
+              "metadata": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "A name-value pair to associate with the share as metadata."
+              },
+              "shareQuota": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The provisioned size of the share, in gibibytes. Must be greater than 0, and less than or equal to 5TB (5120). For Large File Shares, the maximum size is 102400. For file shares created under Files Provisioned v2 account type, please refer to the GetFileServiceUsage API response for the minimum and maximum allowed provisioned storage size."
+              },
+              "provisionedIops": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The provisioned IOPS of the share. This property is only for file shares created under Files Provisioned v2 account type. Please refer to the GetFileServiceUsage API response for the minimum and maximum allowed value for provisioned IOPS."
+              },
+              "provisionedBandwidthMibps": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The provisioned bandwidth of the share, in mebibytes per second. This property is only for file shares created under Files Provisioned v2 account type. Please refer to the GetFileServiceUsage API response for the minimum and maximum allowed value for provisioned bandwidth."
+              },
+              "includedBurstIops": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The calculated burst IOPS of the share. This property is only for file shares created under Files Provisioned v2 account type."
+              },
+              "maxBurstCreditsForIops": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The calculated maximum burst credits for the share. This property is only for file shares created under Files Provisioned v2 account type."
+              },
+              "nextAllowedQuotaDowngradeTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Returns the next allowed provisioned storage size downgrade time for the share. This property is only for file shares created under Files Provisioned v1 SSD and Files Provisioned v2 account type"
+              },
+              "nextAllowedProvisionedIopsDowngradeTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Returns the next allowed provisioned IOPS downgrade time for the share. This property is only for file shares created under Files Provisioned v2 account type."
+              },
+              "nextAllowedProvisionedBandwidthDowngradeTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Returns the next allowed provisioned bandwidth downgrade time for the share. This property is only for file shares created under Files Provisioned v2 account type."
+              },
+              "enabledProtocols": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SMB"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NFS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The authentication protocol that is used for the file share. Can only be specified when creating a share."
+              },
+              "rootSquash": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NoRootSquash"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RootSquash"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AllSquash"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The property is for NFS share only. The default is NoRootSquash."
+              },
+              "version": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The version of the share."
+              },
+              "deleted": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether the share was deleted."
+              },
+              "deletedTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The deleted time if the share was deleted."
+              },
+              "remainingRetentionDays": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Remaining retention days for share that was soft deleted."
+              },
+              "accessTier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TransactionOptimized"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Hot"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cool"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Access tier for specific share. GpV2 account can choose between TransactionOptimized (default), Hot, and Cool. FileStorage account can choose Premium."
+              },
+              "accessTierChangeTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Indicates the last modification time for share access tier."
+              },
+              "accessTierStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Indicates if there is a pending transition for access tier."
+              },
+              "shareUsageBytes": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The approximate size of the data stored on the share. Note that this value may not include all recently created or recently resized files."
+              },
+              "leaseStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Locked"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unlocked"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The lease status of the share."
+              },
+              "leaseState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Available"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Leased"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Breaking"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Broken"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Lease state of the share."
+              },
+              "leaseDuration": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Infinite"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Fixed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Specifies whether the lease on a share is of infinite or fixed duration, only when the share is leased."
+              },
+              "signedIdentifiers": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "An unique identifier of the stored access policy."
+                      },
+                      "accessPolicy": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "startTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Start time of the access policy"
+                            },
+                            "expiryTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Expiry time of the access policy"
+                            },
+                            "permission": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of abbreviated permissions."
+                            }
+                          }
+                        },
+                        "description": "Access policy"
+                      }
+                    }
+                  }
+                },
+                "description": "List of stored access policies specified on the share."
+              },
+              "snapshotTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Creation time of share snapshot returned in the response of list shares with expand param \"snapshots\"."
+              },
+              "fileSharePaidBursting": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "paidBurstingEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates whether paid bursting is enabled for the share. This property is only for file shares created under Files Provisioned v1 SSD account type."
+                    },
+                    "paidBurstingMaxIops": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The maximum paid bursting IOPS for the share. This property is only for file shares created under Files Provisioned v1 SSD account type. The maximum allowed value is 102400 which is the maximum allowed IOPS for a share."
+                    },
+                    "paidBurstingMaxBandwidthMibps": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The maximum paid bursting bandwidth for the share, in mebibytes per second. This property is only for file shares created under Files Provisioned v1 SSD account type. The maximum allowed value is 10340 which is the maximum allowed bandwidth for a share."
+                    }
+                  }
+                },
+                "description": "File Share Paid Bursting properties."
+              }
+            }
+          },
+          "description": "Properties of the file share."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Etag."
+        }
+      }
+    }
+  }
+}

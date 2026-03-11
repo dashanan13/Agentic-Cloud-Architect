@@ -1,0 +1,124 @@
+{
+  "resourceName": "IoT Central Applications",
+  "bicepType": "Microsoft.IoTCentral/iotApps@2021-11-01-preview",
+  "terraformType": "azurerm_iotcentral_application",
+  "category": "iot",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.iotcentral/iotapps",
+  "definition": {
+    "version": 2,
+    "block": {
+      "attributes": {
+        "display_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sub_domain": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "template": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

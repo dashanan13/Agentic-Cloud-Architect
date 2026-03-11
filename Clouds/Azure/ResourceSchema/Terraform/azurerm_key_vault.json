@@ -1,0 +1,223 @@
+{
+  "resourceName": "Key Vaults",
+  "bicepType": "Microsoft.KeyVault/vaults@2024-04-01-preview",
+  "terraformType": "azurerm_key_vault",
+  "category": "security",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.keyvault/vaults",
+  "definition": {
+    "version": 2,
+    "block": {
+      "attributes": {
+        "access_policy": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "application_id": "string",
+                "certificate_permissions": [
+                  "list",
+                  "string"
+                ],
+                "key_permissions": [
+                  "list",
+                  "string"
+                ],
+                "object_id": "string",
+                "secret_permissions": [
+                  "list",
+                  "string"
+                ],
+                "storage_permissions": [
+                  "list",
+                  "string"
+                ],
+                "tenant_id": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "enable_rbac_authorization": {
+          "type": "bool",
+          "description_kind": "plain",
+          "deprecated": true,
+          "optional": true,
+          "computed": true
+        },
+        "enabled_for_deployment": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "enabled_for_disk_encryption": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "enabled_for_template_deployment": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "purge_protection_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "rbac_authorization_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "soft_delete_retention_days": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tenant_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "vault_uri": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "contact": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "email": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "phone": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain",
+            "deprecated": true
+          }
+        },
+        "network_acls": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "bypass": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "default_action": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "ip_rules": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "virtual_network_subnet_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,736 @@
+{
+  "resourceName": "FHIR Service",
+  "bicepType": "Microsoft.HealthcareApis/workspaces/fhirservices@2023-11-01",
+  "terraformType": "azurerm_healthcare_fhir_service",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.healthcareapis/workspaces/fhirservices",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.HealthcareApis/workspaces/fhirservices@2023-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 24
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.HealthcareApis/workspaces/fhirservices"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "fhir-Stu3"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "fhir-R4"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "The kind of the service."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Verifying"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deprovisioned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Moving"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Warned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemMaintenance"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state."
+              },
+              "acrConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "loginServers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The list of the Azure container registry login servers."
+                    },
+                    "ociArtifacts": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "loginServer": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The Azure Container Registry login server."
+                            },
+                            "imageName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The artifact name."
+                            },
+                            "digest": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The artifact digest."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of Open Container Initiative (OCI) artifacts."
+                    }
+                  }
+                },
+                "description": "Fhir Service Azure container registry configuration."
+              },
+              "authenticationConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "authority": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The authority url for the service"
+                    },
+                    "audience": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The audience url for the service"
+                    },
+                    "smartProxyEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "If the SMART on FHIR proxy is enabled"
+                    }
+                  }
+                },
+                "description": "Fhir Service authentication configuration."
+              },
+              "corsConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "origins": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType",
+                          "pattern": "^(?:(?:(?:[hH][tT][tT][pP](?:[sS]|))\\:\\/\\/(?:[a-zA-Z0-9-]+[.]?)+(?:\\:[0-9]{1,5})?|[*]))$"
+                        }
+                      },
+                      "description": "The origins to be allowed via CORS."
+                    },
+                    "headers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The headers to be allowed via CORS."
+                    },
+                    "methods": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The methods to be allowed via CORS."
+                    },
+                    "maxAge": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 99999
+                      },
+                      "description": "The max age to be allowed via CORS."
+                    },
+                    "allowCredentials": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "If credentials are allowed via CORS."
+                    }
+                  }
+                },
+                "description": "Fhir Service Cors configuration."
+              },
+              "exportConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "storageAccountName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the default export storage account."
+                    }
+                  }
+                },
+                "description": "Fhir Service export configuration."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource of private end point."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "The list of private endpoint connections that are set up for this resource."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Control permission for data plane traffic coming from public networks while private endpoint is enabled."
+              },
+              "eventState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Fhir Service event support status."
+              },
+              "resourceVersionPolicyConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "default": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "no-version"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "versioned"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "versioned-update"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The default value for tracking history across all resources."
+                    },
+                    "resourceTypeOverrides": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "A list of FHIR Resources and their version policy overrides."
+                    }
+                  }
+                },
+                "description": "Determines tracking of history for resources."
+              },
+              "importConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "integrationDataStore": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the default integration storage account."
+                    },
+                    "initialImportMode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "If the FHIR service is in InitialImportMode."
+                    },
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "If the import operation is enabled."
+                    }
+                  }
+                },
+                "description": "Fhir Service import configuration."
+              },
+              "implementationGuidesConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "usCoreMissingData": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "If US Core Missing Data requirement is enabled."
+                    }
+                  }
+                },
+                "description": "Implementation Guides configuration."
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "customerManagedKeyEncryption": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyEncryptionKeyUrl": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URL of the key to use for encryption"
+                          }
+                        }
+                      },
+                      "description": "The encryption settings for the customer-managed key"
+                    }
+                  }
+                },
+                "description": "The encryption settings of the FHIR service"
+              }
+            }
+          },
+          "description": "Fhir Service configuration."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of identity being specified, currently SystemAssigned and None are allowed."
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The set of user assigned identities associated with the resource. The userAssignedIdentities dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}. The dictionary values can be empty objects ({}) in requests."
+              }
+            }
+          },
+          "description": "Setting indicating whether the service has a managed identity associated with it."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource location."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "An etag associated with the resource, used for optimistic concurrency when editing it."
+        }
+      }
+    }
+  }
+}

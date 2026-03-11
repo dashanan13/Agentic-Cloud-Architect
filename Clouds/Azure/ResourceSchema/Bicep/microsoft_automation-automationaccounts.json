@@ -1,0 +1,497 @@
+{
+  "resourceName": "Automation Accounts",
+  "bicepType": "Microsoft.Automation/automationAccounts@2023-11-01",
+  "terraformType": "azurerm_automation_account",
+  "category": "management + governance",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.automation/automationaccounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Automation/automationAccounts@2023-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Automation/automationAccounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Free"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Gets or sets the SKU name of the account."
+                    },
+                    "family": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets or sets the SKU family."
+                    },
+                    "capacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Gets or sets the SKU capacity."
+                    }
+                  }
+                },
+                "description": "Gets or sets account SKU."
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keyVaultProperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyvaultUri": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URI of the key vault key used to encrypt data."
+                          },
+                          "keyName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of key used to encrypt data."
+                          },
+                          "keyVersion": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The key version of the key used to encrypt data."
+                          }
+                        }
+                      },
+                      "description": "Key vault properties."
+                    },
+                    "keySource": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.Automation"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.Keyvault"
+                          }
+                        ]
+                      },
+                      "description": "Encryption Key Source"
+                    },
+                    "identity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "userAssignedIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "AnyType"
+                            },
+                            "description": "The user identity used for CMK. It will be an ARM resource id in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+                          }
+                        }
+                      },
+                      "description": "User identity used for CMK."
+                    }
+                  }
+                },
+                "description": "Set the encryption properties for the automation account"
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether traffic on the non-ARM endpoint (Webhook/Agent) is allowed from the public internet"
+              },
+              "disableLocalAuth": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether requests using non-AAD authentication are blocked"
+              },
+              "lastModifiedBy": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets the last modified by."
+              },
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ok"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unavailable"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Gets status of account."
+              },
+              "creationTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the creation time."
+              },
+              "lastModifiedTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the last modified time."
+              },
+              "description": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets the description."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Private endpoint which the connection belongs to."
+                            },
+                            "groupIds": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Gets the groupIds."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Connection State of the Private Endpoint Connection."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource Id for the resource"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource."
+                      }
+                    }
+                  }
+                },
+                "description": "List of Automation operations supported by the Automation resource provider."
+              },
+              "automationHybridServiceUrl": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "URL of automation hybrid service which is used for hybrid worker on-boarding."
+              }
+            }
+          },
+          "description": "Gets or sets account create or update properties."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Gets or sets the location of the resource."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID of resource identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant ID of resource."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The identity type."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+              }
+            }
+          },
+          "description": "Sets the identity property for automation account"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Gets or sets the tags attached to the resource."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Gets or sets the etag of the resource."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Resource system metadata."
+        }
+      }
+    }
+  }
+}

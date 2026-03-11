@@ -1,0 +1,233 @@
+{
+  "resourceName": "Azure API for FHIR",
+  "bicepType": "Microsoft.HealthcareApis/services@2023-11-01",
+  "terraformType": "azurerm_healthcare_fhir_service",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.healthcareapis/services",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "access_policy_object_ids": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "configuration_export_storage_account_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "container_registry_login_server_url": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "kind": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workspace_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "authentication": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "audience": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "authority": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "smart_proxy_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "cors": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "allowed_headers": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "allowed_methods": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "allowed_origins": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "credentials_allowed": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_age_in_seconds": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "oci_artifact": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "digest": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "image_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "login_server": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

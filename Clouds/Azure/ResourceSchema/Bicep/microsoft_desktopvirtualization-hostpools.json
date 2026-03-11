@@ -1,0 +1,826 @@
+{
+  "resourceName": "Host Pools",
+  "bicepType": "Microsoft.DesktopVirtualization/hostPools@2024-04-03",
+  "terraformType": "azurerm_virtual_desktop_host_pool",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.desktopvirtualization/hostpools",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DesktopVirtualization/hostPools@2024-04-03",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9@.\\-_ ]*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DesktopVirtualization/hostPools"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-04-03"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "objectId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ObjectId of HostPool. (internal use)"
+              },
+              "friendlyName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Friendly name of HostPool."
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Description of HostPool."
+              },
+              "hostPoolType": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Personal"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pooled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BYODesktop"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "HostPool type for desktop."
+              },
+              "personalDesktopAssignmentType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Automatic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Direct"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "PersonalDesktopAssignment type for HostPool."
+              },
+              "customRdpProperty": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Custom rdp property of HostPool."
+              },
+              "maxSessionLimit": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The max session limit of HostPool."
+              },
+              "loadBalancerType": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BreadthFirst"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DepthFirst"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Persistent"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the load balancer."
+              },
+              "ring": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The ring number of HostPool."
+              },
+              "validationEnvironment": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Is validation environment."
+              },
+              "registrationInfo": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "expirationTime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Expiration time of registration token."
+                    },
+                    "token": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The registration token base64 encoded string."
+                    },
+                    "registrationTokenOperation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Delete"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Update"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of resetting the token."
+                    }
+                  }
+                },
+                "description": "The registration info of HostPool."
+              },
+              "vmTemplate": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "VM template for sessionhosts configuration within hostpool."
+              },
+              "applicationGroupReferences": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of applicationGroup links."
+              },
+              "appAttachPackageReferences": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of App Attach Package links."
+              },
+              "ssoadfsAuthority": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "URL to customer ADFS server for signing WVD SSO certificates."
+              },
+              "ssoClientId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ClientId for the registered Relying Party used to issue WVD SSO certificates."
+              },
+              "ssoClientSecretKeyVaultPath": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Path to Azure KeyVault storing the secret used for communication to ADFS."
+              },
+              "ssoSecretType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SharedKey"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Certificate"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SharedKeyInKeyVault"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CertificateInKeyVault"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of single sign on Secret Type."
+              },
+              "preferredAppGroupType": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Desktop"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RailApplications"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of preferred application group type, default to Desktop Application Group"
+              },
+              "startVMOnConnect": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "The flag to turn on/off StartVMOnConnect feature."
+              },
+              "cloudPcResource": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Is cloud pc resource."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EnabledForSessionHostsOnly"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EnabledForClientsOnly"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Enabled allows this resource to be accessed from both public and private networks, Disabled allows this resource to only be accessed via private endpoints"
+              },
+              "agentUpdate": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Default"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Scheduled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of maintenance for session host components."
+                    },
+                    "useSessionHostLocalTime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Whether to use localTime of the virtual machine."
+                    },
+                    "maintenanceWindowTimeZone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Time zone for maintenance as defined in https://docs.microsoft.com/en-us/dotnet/api/system.timezoneinfo.findsystemtimezonebyid?view=net-5.0. Must be set if useLocalTime is true."
+                    },
+                    "maintenanceWindows": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "hour": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The update start hour of the day. (0 - 23)"
+                            },
+                            "dayOfWeek": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Day of the week."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of maintenance windows. Maintenance windows are 2 hours long."
+                    }
+                  }
+                },
+                "description": "The session host configuration for updating agent, monitoring agent, and stack component."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "groupIds": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The group ids for the private endpoint resource."
+                            },
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private endpoint resource."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. E.g. \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}\""
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "List of private endpoint connection associated with the specified resource"
+              }
+            }
+          },
+          "description": "Detailed properties for HostPool"
+        },
+        "managedBy": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource."
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[-\\w\\._,\\(\\)]+$"
+          },
+          "description": "Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type. E.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The etag field is *not* required. If it is provided in the response body, it must also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The principal ID of resource identity. The value must be an UUID."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of resource. The value must be an UUID."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringLiteralType",
+                  "value": "SystemAssigned"
+                },
+                "description": "The identity type."
+              }
+            }
+          }
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the SKU. E.g. P3. It is typically a letter+number code"
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    }
+                  ]
+                },
+                "description": "This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted."
+              }
+            }
+          }
+        },
+        "plan": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A user defined name of the 3rd Party Artifact that is being procured."
+              },
+              "publisher": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The publisher of the 3rd Party Artifact that is being bought. E.g. NewRelic"
+              },
+              "product": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The 3rd Party artifact that is being procured. E.g. NewRelic. Product maps to the OfferID specified for the artifact at the time of Data Market onboarding."
+              },
+              "promotionCode": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A publisher provided promotion code as provisioned in Data Market for the said product/artifact."
+              },
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The version of the desired product/artifact."
+              }
+            }
+          }
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

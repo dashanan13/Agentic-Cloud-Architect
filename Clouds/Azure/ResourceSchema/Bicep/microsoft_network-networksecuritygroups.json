@@ -1,0 +1,1048 @@
+{
+  "resourceName": "Network Security Groups",
+  "bicepType": "Microsoft.Network/networkSecurityGroups@2024-03-01",
+  "terraformType": "azurerm_network_security_group",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/networksecuritygroups",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/networkSecurityGroups@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/networkSecurityGroups"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "flushConnection": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "When enabled, flows created from Network Security Group connections will be re-evaluated when rules are updates. Initial enablement will trigger re-evaluation."
+              },
+              "securityRules": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "description": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A description for this rule. Restricted to 140 chars."
+                            },
+                            "protocol": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Network protocol this rule applies to."
+                            },
+                            "sourcePortRange": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The source port or range. Integer or range between 0 and 65535. Asterisk '*' can also be used to match all ports."
+                            },
+                            "destinationPortRange": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination port or range. Integer or range between 0 and 65535. Asterisk '*' can also be used to match all ports."
+                            },
+                            "sourceAddressPrefix": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The CIDR or source IP range. Asterisk '*' can also be used to match all source IPs. Default tags such as 'VirtualNetwork', 'AzureLoadBalancer' and 'Internet' can also be used. If this is an ingress rule, specifies where network traffic originates from."
+                            },
+                            "sourceAddressPrefixes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The CIDR or source IP ranges."
+                            },
+                            "sourceApplicationSecurityGroups": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The application security group specified as source."
+                            },
+                            "destinationAddressPrefix": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination address prefix. CIDR or destination IP range. Asterisk '*' can also be used to match all source IPs. Default tags such as 'VirtualNetwork', 'AzureLoadBalancer' and 'Internet' can also be used."
+                            },
+                            "destinationAddressPrefixes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination address prefixes. CIDR or destination IP ranges."
+                            },
+                            "destinationApplicationSecurityGroups": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The application security group specified as destination."
+                            },
+                            "sourcePortRanges": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The source port ranges."
+                            },
+                            "destinationPortRanges": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination port ranges."
+                            },
+                            "access": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The network traffic is allowed or denied."
+                            },
+                            "priority": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The priority of the rule. The value can be between 100 and 4096. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule."
+                            },
+                            "direction": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The direction of the rule. The direction specifies if rule will be evaluated on incoming or outgoing traffic."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the security rule resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the security rule."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "A collection of security rules of the network security group."
+              },
+              "defaultSecurityRules": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "description": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A description for this rule. Restricted to 140 chars."
+                            },
+                            "protocol": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Network protocol this rule applies to."
+                            },
+                            "sourcePortRange": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The source port or range. Integer or range between 0 and 65535. Asterisk '*' can also be used to match all ports."
+                            },
+                            "destinationPortRange": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination port or range. Integer or range between 0 and 65535. Asterisk '*' can also be used to match all ports."
+                            },
+                            "sourceAddressPrefix": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The CIDR or source IP range. Asterisk '*' can also be used to match all source IPs. Default tags such as 'VirtualNetwork', 'AzureLoadBalancer' and 'Internet' can also be used. If this is an ingress rule, specifies where network traffic originates from."
+                            },
+                            "sourceAddressPrefixes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The CIDR or source IP ranges."
+                            },
+                            "sourceApplicationSecurityGroups": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The application security group specified as source."
+                            },
+                            "destinationAddressPrefix": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination address prefix. CIDR or destination IP range. Asterisk '*' can also be used to match all source IPs. Default tags such as 'VirtualNetwork', 'AzureLoadBalancer' and 'Internet' can also be used."
+                            },
+                            "destinationAddressPrefixes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination address prefixes. CIDR or destination IP ranges."
+                            },
+                            "destinationApplicationSecurityGroups": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The application security group specified as destination."
+                            },
+                            "sourcePortRanges": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The source port ranges."
+                            },
+                            "destinationPortRanges": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The destination port ranges."
+                            },
+                            "access": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The network traffic is allowed or denied."
+                            },
+                            "priority": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The priority of the rule. The value can be between 100 and 4096. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule."
+                            },
+                            "direction": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The direction of the rule. The direction specifies if rule will be evaluated on incoming or outgoing traffic."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the security rule resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the security rule."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "The default security rules of network security group."
+              },
+              "networkInterfaces": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "extendedLocation": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the extended location."
+                            },
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of the extended location."
+                            }
+                          }
+                        },
+                        "description": "The extended location of the network interface."
+                      },
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "virtualMachine": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to a virtual machine."
+                            },
+                            "networkSecurityGroup": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to the NetworkSecurityGroup resource."
+                            },
+                            "privateEndpoint": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A reference to the private endpoint to which the network interface is linked."
+                            },
+                            "ipConfigurations": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A list of IPConfigurations of the network interface."
+                            },
+                            "tapConfigurations": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A list of TapConfigurations of the network interface."
+                            },
+                            "dnsSettings": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The DNS settings in network interface."
+                            },
+                            "macAddress": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The MAC address of the network interface."
+                            },
+                            "primary": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Whether this is a primary network interface on a virtual machine."
+                            },
+                            "vnetEncryptionSupported": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Whether the virtual machine this nic is attached to supports encryption."
+                            },
+                            "enableAcceleratedNetworking": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "If the network interface is configured for accelerated networking. Not applicable to VM sizes which require accelerated networking."
+                            },
+                            "disableTcpStateTracking": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Indicates whether to disable tcp state tracking."
+                            },
+                            "enableIPForwarding": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Indicates whether IP forwarding is enabled on this network interface."
+                            },
+                            "hostedWorkloads": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A list of references to linked BareMetal resources."
+                            },
+                            "dscpConfiguration": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A reference to the dscp configuration to which the network interface is linked."
+                            },
+                            "resourceGuid": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource GUID property of the network interface resource."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the network interface resource."
+                            },
+                            "workloadType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "WorkloadType of the NetworkInterface for BareMetal resources"
+                            },
+                            "nicType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of Network Interface resource."
+                            },
+                            "privateLinkService": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Privatelinkservice of the network interface resource."
+                            },
+                            "migrationPhase": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Migration phase of Network Interface resource."
+                            },
+                            "auxiliaryMode": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Auxiliary mode of Network Interface resource."
+                            },
+                            "auxiliarySku": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Auxiliary sku of Network Interface resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the network interface."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource name."
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource type."
+                      },
+                      "location": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource location."
+                      },
+                      "tags": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Resource tags."
+                      }
+                    }
+                  }
+                },
+                "description": "A collection of references to network interfaces."
+              },
+              "subnets": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "addressPrefix": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The address prefix for the subnet."
+                            },
+                            "addressPrefixes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of address prefixes for the subnet."
+                            },
+                            "networkSecurityGroup": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to the NetworkSecurityGroup resource."
+                            },
+                            "routeTable": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to the RouteTable resource."
+                            },
+                            "natGateway": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Nat gateway associated with this subnet."
+                            },
+                            "serviceEndpoints": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of service endpoints."
+                            },
+                            "serviceEndpointPolicies": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of service endpoint policies."
+                            },
+                            "privateEndpoints": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of references to private endpoints."
+                            },
+                            "ipConfigurations": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of references to the network interface IP configurations using subnet."
+                            },
+                            "ipConfigurationProfiles": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Array of IP configuration profiles which reference this subnet."
+                            },
+                            "ipAllocations": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Array of IpAllocation which reference this subnet."
+                            },
+                            "resourceNavigationLinks": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of references to the external resources using subnet."
+                            },
+                            "serviceAssociationLinks": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of references to services injecting into this subnet."
+                            },
+                            "delegations": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An array of references to the delegations on the subnet."
+                            },
+                            "purpose": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A read-only string identifying the intention of use for this subnet based on delegations and other user-defined properties."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the subnet resource."
+                            },
+                            "privateEndpointNetworkPolicies": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Enable or Disable apply network policies on private end point in the subnet."
+                            },
+                            "privateLinkServiceNetworkPolicies": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Enable or Disable apply network policies on private link service in the subnet."
+                            },
+                            "applicationGatewayIPConfigurations": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Application gateway IP configurations of virtual network resource."
+                            },
+                            "sharingScope": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Set this property to Tenant to allow sharing subnet with other subscriptions in your AAD tenant. This property can only be set if defaultOutboundAccess is set to false, both properties can only be set if subnet is empty."
+                            },
+                            "defaultOutboundAccess": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Set this property to false to disable default outbound connectivity for all VMs in the subnet. This property can only be set at the time of subnet creation and cannot be updated for an existing subnet."
+                            }
+                          }
+                        },
+                        "description": "Properties of the subnet."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource type."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "A collection of references to subnets."
+              },
+              "flowLogs": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "targetResourceId": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "ID of network security group to which flow log will be applied."
+                            },
+                            "targetResourceGuid": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Guid of network security group to which flow log will be applied."
+                            },
+                            "storageId": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "ID of the storage account which is used to store the flow log."
+                            },
+                            "enabledFilteringCriteria": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Optional field to filter network traffic logs based on SrcIP, SrcPort, DstIP, DstPort, Protocol, Encryption, Direction and Action. If not specified, all network traffic will be logged."
+                            },
+                            "enabled": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Flag to enable/disable flow logging."
+                            },
+                            "retentionPolicy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Parameters that define the retention policy for flow log."
+                            },
+                            "format": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Parameters that define the flow log format."
+                            },
+                            "flowAnalyticsConfiguration": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Parameters that define the configuration of traffic analytics."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the flow log."
+                            }
+                          }
+                        },
+                        "description": "Properties of the flow log."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "identity": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "principalId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The principal id of the system assigned identity. This property will only be provided for a system assigned identity."
+                            },
+                            "tenantId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The tenant id of the system assigned identity. This property will only be provided for a system assigned identity."
+                            },
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity used for the resource. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the virtual machine."
+                            },
+                            "userAssignedIdentities": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of user identities associated with resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+                            }
+                          }
+                        },
+                        "description": "FlowLog resource Managed Identity"
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource name."
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource type."
+                      },
+                      "location": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource location."
+                      },
+                      "tags": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Resource tags."
+                      }
+                    }
+                  }
+                },
+                "description": "A collection of references to flow log resources."
+              },
+              "resourceGuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource GUID property of the network security group resource."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the network security group resource."
+              }
+            }
+          },
+          "description": "Properties of the network security group."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

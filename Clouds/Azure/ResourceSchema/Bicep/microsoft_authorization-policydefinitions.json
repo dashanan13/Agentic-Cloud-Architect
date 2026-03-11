@@ -1,0 +1,338 @@
+{
+  "resourceName": "Policy",
+  "bicepType": "Microsoft.Authorization/policyDefinitions@2023-04-01",
+  "terraformType": "azurerm_policy_definition",
+  "category": "management + governance",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.authorization/policydefinitions",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Authorization/policyDefinitions@2023-04-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[^<>*%&:\\?.+/]*[^<>*%&:\\?.+/ ]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Authorization/policyDefinitions"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-04-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "policyType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSpecified"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BuiltIn"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Custom"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Static"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of policy definition. Possible values are NotSpecified, BuiltIn, Custom, and Static."
+              },
+              "mode": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The policy definition mode. Some examples are All, Indexed, Microsoft.KeyVault.Data."
+              },
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The display name of the policy definition."
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The policy definition description."
+              },
+              "policyRule": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "The policy rule."
+              },
+              "metadata": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "The policy definition metadata.  Metadata is an open ended object and is typically a collection of key value pairs."
+              },
+              "parameters": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The data type of the parameter."
+                      },
+                      "allowedValues": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The allowed values for the parameter."
+                      },
+                      "defaultValue": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "AnyType"
+                        },
+                        "description": "The default value for the parameter if no value is provided."
+                      },
+                      "schema": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "AnyType"
+                        },
+                        "description": "Provides validation of parameter inputs during assignment using a self-defined JSON schema. This property is only supported for object-type parameters and follows the Json.NET Schema 2019-09 implementation. You can learn more about using schemas at https://json-schema.org/ and test draft schemas at https://www.jsonschemavalidator.net/."
+                      },
+                      "metadata": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "displayName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The display name for the parameter."
+                            },
+                            "description": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The description of the parameter."
+                            },
+                            "strongType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Used when assigning the policy definition through the portal. Provides a context aware list of values for the user to choose from."
+                            },
+                            "assignPermissions": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Set to true to have Azure portal create role assignments on the resource ID or resource scope value of this parameter during policy assignment. This property is useful in case you wish to assign permissions outside the assignment scope."
+                            }
+                          },
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "General metadata for the parameter."
+                      }
+                    }
+                  }
+                },
+                "description": "The parameter definitions for parameters used in the policy rule. The keys are the parameter names."
+              },
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The policy definition version in #.#.# format."
+              },
+              "versions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "A list of available versions for this policy definition."
+              }
+            }
+          },
+          "description": "The policy definition properties."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "The system metadata relating to this resource."
+        }
+      }
+    }
+  }
+}

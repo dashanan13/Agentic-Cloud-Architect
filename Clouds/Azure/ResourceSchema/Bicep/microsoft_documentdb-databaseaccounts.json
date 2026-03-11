@@ -1,0 +1,1226 @@
+{
+  "resourceName": "Azure Cosmos DB",
+  "bicepType": "Microsoft.DocumentDB/databaseAccounts@2024-05-15",
+  "terraformType": "azurerm_cosmosdb_account",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.documentdb/databaseaccounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DocumentDB/databaseAccounts@2024-05-15",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DocumentDB/databaseAccounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-05-15"
+          },
+          "description": "The resource api version"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "GlobalDocumentDB"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "MongoDB"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "Parse"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "Indicates the type of database account. This can only be set at database account creation."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal id of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant id of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the resource. The type 'SystemAssigned,UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the service."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+              }
+            }
+          },
+          "description": "Identity for the resource."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "consistencyPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "defaultConsistencyLevel": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Eventual"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Session"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "BoundedStaleness"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Strong"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ConsistentPrefix"
+                          }
+                        ]
+                      },
+                      "description": "The default consistency level and configuration settings of the Cosmos DB account."
+                    },
+                    "maxStalenessPrefix": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1,
+                        "maxValue": 2147483647
+                      },
+                      "description": "When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. Accepted range for this value is 1 \u2013 2,147,483,647. Required when defaultConsistencyPolicy is set to 'BoundedStaleness'."
+                    },
+                    "maxIntervalInSeconds": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 5,
+                        "maxValue": 86400
+                      },
+                      "description": "When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is 5 - 86400. Required when defaultConsistencyPolicy is set to 'BoundedStaleness'."
+                    }
+                  }
+                },
+                "description": "The consistency policy for the Cosmos DB account."
+              },
+              "locations": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The unique identifier of the region within the database account. Example: &lt;accountName&gt;-&lt;locationName&gt;."
+                      },
+                      "locationName": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the region."
+                      },
+                      "documentEndpoint": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The connection endpoint for the specific region. Example: https://&lt;accountName&gt;-&lt;locationName&gt;.documents.azure.com:443/"
+                      },
+                      "provisioningState": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The status of the Cosmos DB account at the time the operation was called. The status can be one of following. 'Creating' \u2013 the Cosmos DB account is being created. When an account is in Creating state, only properties that are specified as input for the Create Cosmos DB account operation are returned. 'Succeeded' \u2013 the Cosmos DB account is active for use. 'Updating' \u2013 the Cosmos DB account is being updated. 'Deleting' \u2013 the Cosmos DB account is being deleted. 'Failed' \u2013 the Cosmos DB account failed creation. 'DeletionFailed' \u2013 the Cosmos DB account deletion failed."
+                      },
+                      "failoverPriority": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0
+                        },
+                        "description": "The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists."
+                      },
+                      "isZoneRedundant": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Flag to indicate whether or not this region is an AvailabilityZone region"
+                      }
+                    }
+                  }
+                },
+                "description": "An array that contains the georeplication locations enabled for the Cosmos DB account."
+              },
+              "databaseAccountOfferType": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringLiteralType",
+                  "value": "Standard"
+                },
+                "description": "The offer type for the database"
+              },
+              "ipRules": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "ipAddressOrRange": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A single IPv4 address or a single IPv4 address range in CIDR format. Provided IPs must be well-formatted and cannot be contained in one of the following ranges: 10.0.0.0/8, 100.64.0.0/10, 172.16.0.0/12, 192.168.0.0/16, since these are not enforceable by the IP address filter. Example of valid inputs: \u201c23.40.210.245\u201d or \u201c23.40.210.0/8\u201d."
+                      }
+                    }
+                  }
+                },
+                "description": "List of IpRules."
+              },
+              "isVirtualNetworkFilterEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to indicate whether to enable/disable Virtual Network ACL rules."
+              },
+              "enableAutomaticFailover": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account."
+              },
+              "capabilities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Name of the Cosmos DB capability. For example, \"name\": \"EnableCassandra\". Current values also include \"EnableTable\" and \"EnableGremlin\"."
+                      }
+                    }
+                  }
+                },
+                "description": "List of Cosmos DB capabilities for the account"
+              },
+              "virtualNetworkRules": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID of a subnet, for example: /subscriptions/{subscriptionId}/resourceGroups/{groupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}."
+                      },
+                      "ignoreMissingVNetServiceEndpoint": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Create firewall rule before the virtual network has vnet service endpoint enabled."
+                      }
+                    }
+                  }
+                },
+                "description": "List of Virtual Network ACL rules configured for the Cosmos DB account."
+              },
+              "enableMultipleWriteLocations": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enables the account to write in multiple locations"
+              },
+              "enableCassandraConnector": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enables the cassandra connector on the Cosmos DB C* account"
+              },
+              "connectorOffer": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Small"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The cassandra connector offer type for the Cosmos DB database C* account."
+              },
+              "disableKeyBasedMetadataWriteAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Disable write operations on metadata resources (databases, containers, throughput) via account keys"
+              },
+              "keyVaultKeyUri": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The URI of the key vault"
+              },
+              "defaultIdentity": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The default identity for accessing key vault used in features like customer managed keys. The default identity needs to be explicitly set by the users. It can be \"FirstPartyIdentity\", \"SystemAssignedIdentity\" and more."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SecuredByPerimeter"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether requests from Public Network are allowed"
+              },
+              "enableFreeTier": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to indicate whether Free Tier is enabled."
+              },
+              "apiProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "serverVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "3.2"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "3.6"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "4.0"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "4.2"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "5.0"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "6.0"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Describes the ServerVersion of an a MongoDB account."
+                    }
+                  }
+                },
+                "description": "API specific properties. Currently, supported only for MongoDB API."
+              },
+              "enableAnalyticalStorage": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to indicate whether to enable storage analytics."
+              },
+              "analyticalStorageConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "schemaType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "WellDefined"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "FullFidelity"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Describes the types of schema for analytical storage."
+                    }
+                  }
+                },
+                "description": "Analytical storage specific properties."
+              },
+              "createMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Default"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Restore"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Enum to indicate the mode of account creation."
+              },
+              "backupPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "DiscriminatedObjectType",
+                  "name": "BackupPolicy",
+                  "discriminator": "type",
+                  "baseProperties": {
+                    "migrationState": {
+                      "type": {
+                        "$ref": "#/60"
+                      },
+                      "flags": 0,
+                      "description": "The object representing the state of the migration between the backup policies."
+                    }
+                  },
+                  "elements": {
+                    "Continuous": {
+                      "$ref": "#/69"
+                    },
+                    "Periodic": {
+                      "$ref": "#/75"
+                    }
+                  }
+                },
+                "description": "The object representing the policy for taking backups on an account."
+              },
+              "cors": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "allowedOrigins": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The origin domains that are permitted to make a request against the service via CORS."
+                      },
+                      "allowedMethods": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The methods (HTTP request verbs) that the origin domain may use for a CORS request."
+                      },
+                      "allowedHeaders": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The request headers that the origin domain may specify on the CORS request."
+                      },
+                      "exposedHeaders": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The response headers that may be sent in the response to the CORS request and exposed by the browser to the request issuer."
+                      },
+                      "maxAgeInSeconds": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 1,
+                          "maxValue": 2147483647
+                        },
+                        "description": "The maximum amount time that a browser should cache the preflight OPTIONS request."
+                      }
+                    }
+                  }
+                },
+                "description": "The CORS policy for the Cosmos DB database account."
+              },
+              "networkAclBypass": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AzureServices"
+                    }
+                  ]
+                },
+                "description": "Indicates what services are allowed to bypass firewall checks."
+              },
+              "networkAclBypassResourceIds": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "An array that contains the Resource Ids for Network Acl Bypass for the Cosmos DB account."
+              },
+              "disableLocalAuth": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Opt-out of local authentication and ensure only MSI and AAD can be used exclusively for authentication."
+              },
+              "restoreParameters": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "restoreMode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PointInTime"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Describes the mode of the restore."
+                    },
+                    "databasesToRestore": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "databaseName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the database available for restore."
+                            },
+                            "collectionNames": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The names of the collections available for restore."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of specific databases available for restore."
+                    },
+                    "gremlinDatabasesToRestore": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "databaseName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the gremlin database available for restore."
+                            },
+                            "graphNames": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The names of the graphs available for restore."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of specific gremlin databases available for restore."
+                    },
+                    "tablesToRestore": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of specific tables available for restore."
+                    },
+                    "restoreSource": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The id of the restorable database account from which the restore has to be initiated. For example: /subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}"
+                    },
+                    "restoreTimestampInUtc": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Time to which the account has to be restored (ISO-8601 format)."
+                    }
+                  }
+                },
+                "description": "Parameters to indicate the information about the restore."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "totalThroughputLimit": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": -1
+                      },
+                      "description": "The total throughput limit imposed on the account. A totalThroughputLimit of 2000 imposes a strict limit of max throughput that can be provisioned on that account to be 2000. A totalThroughputLimit of -1 indicates no limits on provisioning of throughput."
+                    }
+                  }
+                },
+                "description": "The object that represents all properties related to capacity enforcement on an account."
+              },
+              "keysMetadata": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "primaryMasterKey": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "generationTime": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Generation time in UTC of the key in ISO-8601 format. If the value is missing from the object, it means that the last key regeneration was triggered before 2022-06-18."
+                          }
+                        }
+                      },
+                      "description": "The metadata related to the Primary Read-Write Key for the given Cosmos DB database account."
+                    },
+                    "secondaryMasterKey": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "generationTime": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Generation time in UTC of the key in ISO-8601 format. If the value is missing from the object, it means that the last key regeneration was triggered before 2022-06-18."
+                          }
+                        }
+                      },
+                      "description": "The metadata related to the Secondary Read-Write Key for the given Cosmos DB database account."
+                    },
+                    "primaryReadonlyMasterKey": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "generationTime": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Generation time in UTC of the key in ISO-8601 format. If the value is missing from the object, it means that the last key regeneration was triggered before 2022-06-18."
+                          }
+                        }
+                      },
+                      "description": "The metadata related to the Primary Read-Only Key for the given Cosmos DB database account."
+                    },
+                    "secondaryReadonlyMasterKey": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "generationTime": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Generation time in UTC of the key in ISO-8601 format. If the value is missing from the object, it means that the last key regeneration was triggered before 2022-06-18."
+                          }
+                        }
+                      },
+                      "description": "The metadata related to the Secondary Read-Only Key for the given Cosmos DB database account."
+                    }
+                  }
+                },
+                "description": "This property is ignored during the update/create operation, as the metadata is read-only. The object represents the metadata for the Account Keys of the Cosmos DB account."
+              },
+              "enablePartitionMerge": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to indicate enabling/disabling of Partition Merge feature on the account"
+              },
+              "minimalTlsVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Tls"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Tls11"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Tls12"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Indicates the minimum allowed Tls version. The default value is Tls 1.2. Cassandra and Mongo APIs only work with Tls 1.2."
+              },
+              "enableBurstCapacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to indicate enabling/disabling of Burst Capacity feature on the account"
+              },
+              "customerManagedKeyStatus": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Indicates the status of the Customer Managed Key feature on the account. In case there are errors, the property provides troubleshooting guidance."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The status of the Cosmos DB account at the time the operation was called. The status can be one of following. 'Creating' \u2013 the Cosmos DB account is being created. When an account is in Creating state, only properties that are specified as input for the Create Cosmos DB account operation are returned. 'Succeeded' \u2013 the Cosmos DB account is active for use. 'Updating' \u2013 the Cosmos DB account is being updated. 'Deleting' \u2013 the Cosmos DB account is being deleted. 'Failed' \u2013 the Cosmos DB account failed creation. 'DeletionFailed' \u2013 the Cosmos DB account deletion failed."
+              },
+              "documentEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The connection endpoint for the Cosmos DB database account."
+              },
+              "writeLocations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The unique identifier of the region within the database account. Example: &lt;accountName&gt;-&lt;locationName&gt;."
+                      },
+                      "locationName": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the region."
+                      },
+                      "documentEndpoint": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The connection endpoint for the specific region. Example: https://&lt;accountName&gt;-&lt;locationName&gt;.documents.azure.com:443/"
+                      },
+                      "provisioningState": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The status of the Cosmos DB account at the time the operation was called. The status can be one of following. 'Creating' \u2013 the Cosmos DB account is being created. When an account is in Creating state, only properties that are specified as input for the Create Cosmos DB account operation are returned. 'Succeeded' \u2013 the Cosmos DB account is active for use. 'Updating' \u2013 the Cosmos DB account is being updated. 'Deleting' \u2013 the Cosmos DB account is being deleted. 'Failed' \u2013 the Cosmos DB account failed creation. 'DeletionFailed' \u2013 the Cosmos DB account deletion failed."
+                      },
+                      "failoverPriority": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0
+                        },
+                        "description": "The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists."
+                      },
+                      "isZoneRedundant": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Flag to indicate whether or not this region is an AvailabilityZone region"
+                      }
+                    }
+                  }
+                },
+                "description": "An array that contains the write location for the Cosmos DB account."
+              },
+              "readLocations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The unique identifier of the region within the database account. Example: &lt;accountName&gt;-&lt;locationName&gt;."
+                      },
+                      "locationName": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the region."
+                      },
+                      "documentEndpoint": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The connection endpoint for the specific region. Example: https://&lt;accountName&gt;-&lt;locationName&gt;.documents.azure.com:443/"
+                      },
+                      "provisioningState": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The status of the Cosmos DB account at the time the operation was called. The status can be one of following. 'Creating' \u2013 the Cosmos DB account is being created. When an account is in Creating state, only properties that are specified as input for the Create Cosmos DB account operation are returned. 'Succeeded' \u2013 the Cosmos DB account is active for use. 'Updating' \u2013 the Cosmos DB account is being updated. 'Deleting' \u2013 the Cosmos DB account is being deleted. 'Failed' \u2013 the Cosmos DB account failed creation. 'DeletionFailed' \u2013 the Cosmos DB account deletion failed."
+                      },
+                      "failoverPriority": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0
+                        },
+                        "description": "The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists."
+                      },
+                      "isZoneRedundant": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Flag to indicate whether or not this region is an AvailabilityZone region"
+                      }
+                    }
+                  }
+                },
+                "description": "An array that contains of the read locations enabled for the Cosmos DB account."
+              },
+              "failoverPolicies": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The unique identifier of the region in which the database account replicates to. Example: &lt;accountName&gt;-&lt;locationName&gt;."
+                      },
+                      "locationName": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the region in which the database account exists."
+                      },
+                      "failoverPriority": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0
+                        },
+                        "description": "The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists."
+                      }
+                    }
+                  }
+                },
+                "description": "An array that contains the regions ordered by their failover priorities."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Private endpoint which the connection belongs to."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Connection State of the Private Endpoint Connection."
+                            },
+                            "groupId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Group id of the private endpoint."
+                            },
+                            "provisioningState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Provisioning state of the private endpoint."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "List of Private Endpoint Connections configured for the Cosmos DB account."
+              },
+              "instanceId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A unique identifier assigned to the database account"
+              }
+            }
+          },
+          "description": "Properties to create and update Azure Cosmos DB database accounts."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the resource group to which the resource belongs."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Tags are a list of key-value pairs that describe the resource. These tags can be used in viewing and grouping this resource (across resource groups). A maximum of 15 tags can be provided for a resource. Each tag must have a key no greater than 128 characters and value no greater than 256 characters. For example, the default experience for a template type is set with \"defaultExperience\": \"Cassandra\". Current \"defaultExperience\" values also include \"Table\", \"Graph\", \"DocumentDB\", and \"MongoDB\"."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "The system meta data relating to this resource."
+        }
+      }
+    }
+  }
+}

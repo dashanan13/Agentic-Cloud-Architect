@@ -1,0 +1,86 @@
+{
+  "resourceName": "Storage Queue",
+  "bicepType": "Microsoft.Storage/storageAccounts/queueServices/queues@2024-01-01",
+  "terraformType": "azurerm_storage_queue",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/queueservices/queues",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "metadata": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_manager_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "deprecated": true,
+          "computed": true
+        },
+        "storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_account_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "deprecated": true,
+          "optional": true
+        },
+        "url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

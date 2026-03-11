@@ -1,0 +1,863 @@
+{
+  "resourceName": "Entra Connect Sync",
+  "bicepType": "Microsoft.AAD/domainServices@2022-12-01",
+  "terraformType": "",
+  "category": "identity",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.aad/domainservices",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AAD/domainServices@2022-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AAD/domainServices"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "version": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Data Model Version"
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure Active Directory Tenant Id"
+              },
+              "domainName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the Azure domain that the user would like to deploy Domain Services to."
+              },
+              "deploymentId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Deployment Id"
+              },
+              "syncOwner": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SyncOwner ReplicaSet Id"
+              },
+              "syncApplicationId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique sync application id of the Azure AD Domain Services deployment."
+              },
+              "replicaSets": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "replicaSetId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "ReplicaSet Id"
+                      },
+                      "location": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Virtual network location"
+                      },
+                      "vnetSiteId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Virtual network site id"
+                      },
+                      "subnetId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the virtual network that Domain Services will be deployed on. The id of the subnet that Domain Services will be deployed on. /virtualNetwork/vnetName/subnets/subnetName."
+                      },
+                      "domainControllerIpAddress": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "List of Domain Controller IP Address"
+                      },
+                      "externalAccessIpAddress": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "External access ip address."
+                      },
+                      "serviceStatus": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Status of Domain Service instance"
+                      },
+                      "healthLastEvaluated": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Last domain evaluation run DateTime"
+                      },
+                      "healthMonitors": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "List of Domain Health Monitors"
+                      },
+                      "healthAlerts": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "List of Domain Health Alerts"
+                      }
+                    }
+                  }
+                },
+                "description": "List of ReplicaSets"
+              },
+              "ldapsSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ldaps": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not Secure LDAP is enabled or disabled."
+                    },
+                    "pfxCertificate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The certificate required to configure Secure LDAP. The parameter passed here should be a base64encoded representation of the certificate pfx file."
+                    },
+                    "pfxCertificatePassword": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The password to decrypt the provided Secure LDAP certificate pfx file."
+                    },
+                    "publicCertificate": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Public certificate used to configure secure ldap."
+                    },
+                    "certificateThumbprint": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Thumbprint of configure ldaps certificate."
+                    },
+                    "certificateNotAfter": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "NotAfter DateTime of configure ldaps certificate."
+                    },
+                    "externalAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not Secure LDAP access over the internet is enabled or disabled."
+                    }
+                  }
+                },
+                "description": "Secure LDAP Settings"
+              },
+              "resourceForestSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "settings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "trustedDomainFqdn": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Trusted Domain FQDN"
+                            },
+                            "trustDirection": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Trust Direction"
+                            },
+                            "friendlyName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Friendly Name"
+                            },
+                            "remoteDnsIps": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Remote Dns ips"
+                            },
+                            "trustPassword": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Trust Password"
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of settings for Resource Forest"
+                    },
+                    "resourceForest": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource Forest"
+                    }
+                  }
+                },
+                "description": "Resource Forest Settings"
+              },
+              "domainSecuritySettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ntlmV1": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not NtlmV1 is enabled or disabled."
+                    },
+                    "tlsV1": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not TlsV1 is enabled or disabled."
+                    },
+                    "syncNtlmPasswords": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not SyncNtlmPasswords is enabled or disabled."
+                    },
+                    "syncKerberosPasswords": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not SyncKerberosPasswords is enabled or disabled."
+                    },
+                    "syncOnPremPasswords": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not SyncOnPremPasswords is enabled or disabled."
+                    },
+                    "kerberosRc4Encryption": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not KerberosRc4Encryption is enabled or disabled."
+                    },
+                    "kerberosArmoring": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not KerberosArmoring is enabled or disabled."
+                    },
+                    "ldapSigning": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not LdapSigning is enabled or disabled."
+                    },
+                    "channelBinding": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "A flag to determine whether or not ChannelBinding is enabled or disabled."
+                    }
+                  }
+                },
+                "description": "DomainSecurity Settings"
+              },
+              "domainConfigurationType": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Domain Configuration Type"
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Sku Type"
+              },
+              "filteredSync": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Enabled or Disabled flag to turn on Group-based filtered sync"
+              },
+              "syncScope": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "All"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CloudOnly"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "All or CloudOnly, All users in AAD are synced to AAD DS domain or only users actively syncing in the cloud"
+              },
+              "notificationSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "notifyGlobalAdmins": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Should global admins be notified"
+                    },
+                    "notifyDcAdmins": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Should domain controller admins be notified"
+                    },
+                    "additionalRecipients": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The list of additional recipients"
+                    }
+                  }
+                },
+                "description": "Notification Settings"
+              },
+              "migrationProperties": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "oldSubnetId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Old Subnet Id"
+                    },
+                    "oldVnetSiteId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Old Vnet Site Id"
+                    },
+                    "migrationProgress": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "completionPercentage": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Completion Percentage"
+                          },
+                          "progressMessage": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Progress Message"
+                          }
+                        }
+                      },
+                      "description": "Migration Progress"
+                    }
+                  }
+                },
+                "description": "Migration Properties"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "the current deployment or provisioning state, which only appears in the response."
+              },
+              "configDiagnostics": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "lastExecuted": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last domain configuration diagnostics DateTime"
+                    },
+                    "validatorResults": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "validatorId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Validator identifier"
+                            },
+                            "replicaSetSubnetDisplayName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Replica set location and subnet name"
+                            },
+                            "status": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Status for individual validator after running diagnostics."
+                            },
+                            "issues": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of resource config validation issues."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of Configuration Diagnostics validator results."
+                    }
+                  }
+                },
+                "description": "Configuration diagnostics data containing latest execution from client."
+              }
+            }
+          },
+          "description": "Domain service properties"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource etag"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "The system meta data relating to this resource."
+        }
+      }
+    }
+  }
+}

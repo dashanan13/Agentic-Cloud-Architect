@@ -1,0 +1,744 @@
+{
+  "resourceName": "Batch Accounts",
+  "bicepType": "Microsoft.Batch/batchAccounts@2024-07-01",
+  "terraformType": "azurerm_batch_account",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.batch/batchaccounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Batch/batchAccounts@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 24,
+            "pattern": "^[a-zA-Z0-9]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Batch/batchAccounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The region in which to create the account."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The user-specified tags associated with the account."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "autoStorage": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "storageAccountId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the storage account to be used for auto-storage account."
+                    },
+                    "authenticationMode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StorageKeys"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "BatchAccountManagedIdentity"
+                          }
+                        ]
+                      },
+                      "description": "The authentication mode which the Batch service will use to manage the auto-storage account."
+                    },
+                    "nodeIdentityReference": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "resourceId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The ARM resource id of the user assigned identity."
+                          }
+                        }
+                      },
+                      "description": "The identity referenced here must be assigned to pools which have compute nodes that need access to auto-storage."
+                    },
+                    "lastKeySync": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The UTC time at which storage keys were last synchronized with the Batch account."
+                    }
+                  }
+                },
+                "description": "The properties related to the auto-storage account."
+              },
+              "poolAllocationMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BatchService"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserSubscription"
+                    }
+                  ]
+                },
+                "description": "The pool allocation mode also affects how clients may authenticate to the Batch Service API. If the mode is BatchService, clients may authenticate using access keys or Microsoft Entra ID. If the mode is UserSubscription, clients must use Microsoft Entra ID. The default is BatchService."
+              },
+              "keyVaultReference": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the Azure key vault associated with the Batch account."
+                    },
+                    "url": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The URL of the Azure key vault associated with the Batch account."
+                    }
+                  }
+                },
+                "description": "A reference to the Azure key vault associated with the Batch account."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SecuredByPerimeter"
+                    }
+                  ]
+                },
+                "description": "The network access type for operating on the resources in the Batch account."
+              },
+              "networkProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "accountAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "defaultAction": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Default action for endpoint access. It is only applicable when publicNetworkAccess is enabled."
+                          },
+                          "ipRules": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Array of IP ranges to filter client IP address."
+                          }
+                        }
+                      },
+                      "description": "Network access profile for batchAccount endpoint (Batch account data plane API)."
+                    },
+                    "nodeManagementAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "defaultAction": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Default action for endpoint access. It is only applicable when publicNetworkAccess is enabled."
+                          },
+                          "ipRules": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Array of IP ranges to filter client IP address."
+                          }
+                        }
+                      },
+                      "description": "Network access profile for nodeManagement endpoint (Batch service managing compute nodes for Batch pools)."
+                    }
+                  }
+                },
+                "description": "The network profile only takes effect when publicNetworkAccess is enabled."
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keySource": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.Batch"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.KeyVault"
+                          }
+                        ]
+                      },
+                      "description": "Type of the key source."
+                    },
+                    "keyVaultProperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyIdentifier": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Full path to the secret with or without version. Example https://mykeyvault.vault.azure.net/keys/testkey/6e34a81fef704045975661e297a4c053. or https://mykeyvault.vault.azure.net/keys/testkey. To be usable the following prerequisites must be met:\n\nThe Batch Account has a System Assigned identity\nThe account identity has been granted Key/Get, Key/Unwrap and Key/Wrap permissions\nThe KeyVault has soft-delete and purge protection enabled"
+                          }
+                        }
+                      },
+                      "description": "Additional details when using Microsoft.KeyVault"
+                    }
+                  }
+                },
+                "description": "Configures how customer data is encrypted inside the Batch account. By default, accounts are encrypted using a Microsoft managed key. For additional control, a customer-managed key can be used instead."
+              },
+              "allowedAuthenticationModes": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "UnionType",
+                    "elements": [
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "SharedKey"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "AAD"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "TaskAuthenticationToken"
+                      }
+                    ]
+                  }
+                },
+                "description": "List of allowed authentication modes for the Batch account that can be used to authenticate with the data plane. This does not affect authentication with the control plane."
+              },
+              "accountEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The account endpoint used to interact with the Batch service."
+              },
+              "nodeManagementEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The endpoint used by compute node to connect to the Batch node management service."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Invalid"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    }
+                  ]
+                },
+                "description": "The provisioned state of the resource"
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection."
+                            },
+                            "privateEndpoint": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private endpoint of the private endpoint connection."
+                            },
+                            "groupIds": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The value has one and only one group id."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private link service connection state of the private endpoint connection."
+                            }
+                          }
+                        },
+                        "description": "The properties associated with the private endpoint connection."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The ETag of the resource, used for concurrency statements."
+                      },
+                      "tags": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The tags of the resource."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. E.g. \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}\""
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "List of private endpoint connections associated with the Batch account"
+              },
+              "dedicatedCoreQuota": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned."
+              },
+              "lowPriorityCoreQuota": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned."
+              },
+              "dedicatedCoreQuotaPerVMFamily": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Virtual Machine family name."
+                      },
+                      "coreQuota": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The core quota for the VM family for the Batch account."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of the dedicated core quota per Virtual Machine family for the Batch account. For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned."
+              },
+              "dedicatedCoreQuotaPerVMFamilyEnforced": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If this flag is true, dedicated core quota is enforced via both the dedicatedCoreQuotaPerVMFamily and dedicatedCoreQuota properties on the account. If this flag is false, dedicated core quota is enforced only via the dedicatedCoreQuota property on the account and does not consider Virtual Machine family."
+              },
+              "poolQuota": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The pool quota for the Batch account."
+              },
+              "activeJobAndJobScheduleQuota": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The active job and job schedule quota for the Batch account."
+              }
+            }
+          },
+          "description": "The properties of the Batch account."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal id of the Batch account. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant id associated with the Batch account. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the Batch account."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with the Batch account."
+              }
+            }
+          },
+          "description": "The identity of the Batch account."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

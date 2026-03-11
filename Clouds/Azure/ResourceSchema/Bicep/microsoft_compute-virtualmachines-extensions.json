@@ -1,0 +1,308 @@
+{
+  "resourceName": "Extensions",
+  "bicepType": "Microsoft.Compute/virtualMachines/extensions@2024-07-01",
+  "terraformType": "azurerm_virtual_machine_extension",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/virtualmachines/extensions",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Compute/virtualMachines/extensions@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Compute/virtualMachines/extensions"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "forceUpdateTag": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "How the extension handler should be forced to update even if the extension configuration has not changed."
+              },
+              "publisher": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extension handler publisher."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the type of the extension; an example is \"CustomScriptExtension\"."
+              },
+              "typeHandlerVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the version of the script handler."
+              },
+              "autoUpgradeMinorVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true."
+              },
+              "enableAutomaticUpgrade": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether the extension should be automatically upgraded by the platform if there is a newer version of the extension available."
+              },
+              "settings": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "Json formatted public settings for the extension."
+              },
+              "protectedSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "The extension can contain either protectedSettings or protectedSettingsFromKeyVault or no protected settings at all."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state, which only appears in the response."
+              },
+              "instanceView": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The virtual machine extension name."
+                    },
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the type of the extension; an example is \"CustomScriptExtension\"."
+                    },
+                    "typeHandlerVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the version of the script handler."
+                    },
+                    "substatuses": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "code": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The status code."
+                            },
+                            "level": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The level code."
+                            },
+                            "displayStatus": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The short localizable label for the status."
+                            },
+                            "message": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The detailed status message, including for alerts and error messages."
+                            },
+                            "time": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The time of the status."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The resource status information."
+                    },
+                    "statuses": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "code": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The status code."
+                            },
+                            "level": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The level code."
+                            },
+                            "displayStatus": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The short localizable label for the status."
+                            },
+                            "message": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The detailed status message, including for alerts and error messages."
+                            },
+                            "time": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The time of the status."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The resource status information."
+                    }
+                  }
+                },
+                "description": "The virtual machine extension instance view."
+              },
+              "suppressFailures": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether failures stemming from the extension will be suppressed (Operational failures such as not connecting to the VM will not be suppressed regardless of this value). The default is false."
+              },
+              "protectedSettingsFromKeyVault": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "secretUrl": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The URL referencing a secret in a Key Vault."
+                    },
+                    "sourceVault": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource Id"
+                          }
+                        }
+                      },
+                      "description": "The relative URL of the Key Vault containing the secret."
+                    }
+                  }
+                },
+                "description": "The extensions protected settings that are passed by reference, and consumed from key vault"
+              },
+              "provisionAfterExtensions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Collection of extension names after which this extension needs to be provisioned."
+              }
+            }
+          },
+          "description": "Describes the properties of a Virtual Machine Extension."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

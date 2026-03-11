@@ -1,0 +1,104 @@
+{
+  "resourceName": "Route Tables",
+  "bicepType": "Microsoft.Network/routeTables@2024-03-01",
+  "terraformType": "azurerm_route_table",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/routetables",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "bgp_route_propagation_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "route": {
+          "type": [
+            "set",
+            [
+              "object",
+              {
+                "address_prefix": "string",
+                "name": "string",
+                "next_hop_in_ip_address": "string",
+                "next_hop_type": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "subnets": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

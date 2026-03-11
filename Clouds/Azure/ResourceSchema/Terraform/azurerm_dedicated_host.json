@@ -1,0 +1,94 @@
+{
+  "resourceName": "Hosts",
+  "bicepType": "Microsoft.Compute/hostGroups/hosts@2024-07-01",
+  "terraformType": "azurerm_dedicated_host",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/hostgroups/hosts",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "auto_replace_on_failure": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "dedicated_host_group_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "license_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "platform_fault_domain": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

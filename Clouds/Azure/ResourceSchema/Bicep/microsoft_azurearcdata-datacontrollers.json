@@ -1,0 +1,471 @@
+{
+  "resourceName": "Arc Data services",
+  "bicepType": "Microsoft.AzureArcData/dataControllers@2023-01-15-preview",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.azurearcdata/datacontrollers",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AzureArcData/dataControllers@2023-01-15-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AzureArcData/dataControllers"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-01-15-preview"
+          },
+          "description": "The resource api version"
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CustomLocation"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "The extendedLocation of the resource."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "infrastructure": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "azure"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "gcp"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "aws"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "alibaba"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "onpremises"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "other"
+                    }
+                  ]
+                },
+                "description": "The infrastructure the data controller is running on."
+              },
+              "onPremiseProperty": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "A globally unique ID identifying the associated Kubernetes cluster"
+                    },
+                    "publicSigningKey": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Certificate that contains the Kubernetes cluster public key used to verify signing"
+                    },
+                    "signingCertificateThumbprint": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Unique thumbprint returned to customer to verify the certificate being uploaded"
+                    }
+                  }
+                },
+                "description": "Properties from the Kubernetes data controller"
+              },
+              "k8sRaw": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "The raw kubernetes information"
+              },
+              "uploadWatermark": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "metrics": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last uploaded date for metrics from kubernetes cluster. Defaults to current date time"
+                    },
+                    "logs": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last uploaded date for logs from kubernetes cluster. Defaults to current date time"
+                    },
+                    "usages": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last uploaded date for usages from kubernetes cluster. Defaults to current date time"
+                    }
+                  }
+                },
+                "description": "Properties on upload watermark.  Mostly timestamp for each upload data type"
+              },
+              "lastUploadedDate": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Last uploaded date from Kubernetes cluster. Defaults to current date time"
+              },
+              "basicLoginInformation": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "username": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Login username."
+                    },
+                    "password": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Login password."
+                    }
+                  }
+                },
+                "description": "Deprecated. Azure Arc Data Services data controller no longer expose any endpoint. All traffic are exposed through Kubernetes native API."
+              },
+              "metricsDashboardCredential": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "username": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Login username."
+                    },
+                    "password": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Login password."
+                    }
+                  }
+                },
+                "description": "Login credential for metrics dashboard on the Kubernetes cluster."
+              },
+              "logsDashboardCredential": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "username": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Login username."
+                    },
+                    "password": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Login password."
+                    }
+                  }
+                },
+                "description": "Login credential for logs dashboard on the Kubernetes cluster."
+              },
+              "logAnalyticsWorkspaceConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "workspaceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "Azure Log Analytics workspace ID"
+                    },
+                    "primaryKey": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Primary key of the workspace"
+                    }
+                  }
+                },
+                "description": "Log analytics workspace id and primary key"
+              },
+              "uploadServicePrincipal": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "clientId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "Client ID of the service principal for uploading data."
+                    },
+                    "tenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "Tenant ID of the service principal."
+                    },
+                    "authority": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Authority for the service principal. Example: https://login.microsoftonline.com/"
+                    },
+                    "clientSecret": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "Secret of the service principal"
+                    }
+                  }
+                },
+                "description": "Deprecated. Service principal is deprecated in favor of Arc Kubernetes service extension managed identity."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state of the Arc Data Controller resource."
+              },
+              "clusterId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If a CustomLocation is provided, this contains the ARM id of the connected cluster the custom location belongs to."
+              },
+              "extensionId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If a CustomLocation is provided, this contains the ARM id of the extension the custom location belongs to."
+              }
+            }
+          },
+          "description": "The data controller's properties"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

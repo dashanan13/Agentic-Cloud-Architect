@@ -1,0 +1,105 @@
+{
+  "resourceName": "Azure Databox Gateway",
+  "bicepType": "Microsoft.DataBoxEdge/dataBoxEdgeDevices@2023-12-01",
+  "terraformType": "azurerm_databox_edge_device",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.databoxedge/databoxedgedevices",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "device_properties": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "capacity": "number",
+                "configured_role_types": [
+                  "list",
+                  "string"
+                ],
+                "culture": "string",
+                "hcs_version": "string",
+                "model": "string",
+                "node_count": "number",
+                "serial_number": "string",
+                "software_version": "string",
+                "status": "string",
+                "time_zone": "string",
+                "type": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "resourceName": "Azure Lighthouse",
+  "bicepType": "Microsoft.ManagedServices/registrationDefinitions@2022-10-01",
+  "terraformType": "azurerm_lighthouse_definition",
+  "category": "management + governance",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.managedservices/registrationdefinitions",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "description": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "lighthouse_definition_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "managing_tenant_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "scope": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "authorization": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "delegated_role_definition_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_display_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "role_definition_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1
+        },
+        "eligible_authorization": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "principal_display_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "role_definition_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "just_in_time_access_policy": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "maximum_activation_duration": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "multi_factor_auth_provider": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "block_types": {
+                    "approver": {
+                      "nesting_mode": "set",
+                      "block": {
+                        "attributes": {
+                          "principal_display_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "principal_id": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "plan": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "product": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "publisher": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "version": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

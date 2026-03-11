@@ -1,0 +1,89 @@
+{
+  "resourceName": "Landing Zone",
+  "bicepType": "Microsoft.Resources/resourceGroups@2024-03-01",
+  "terraformType": "azurerm_resource_group",
+  "category": "new icons",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.resources/resourcegroups",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Resources/resourceGroups@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 90,
+            "pattern": "^[-\\w\\._\\(\\)]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Resources/resourceGroups"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state."
+              }
+            }
+          },
+          "description": "The resource group properties."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the resource group. It cannot be changed after the resource group has been created. It must be one of the supported Azure locations."
+        },
+        "managedBy": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The ID of the resource that manages this resource group."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The tags attached to the resource group."
+        }
+      }
+    }
+  }
+}

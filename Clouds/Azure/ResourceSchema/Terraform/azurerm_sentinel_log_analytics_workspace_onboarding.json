@@ -1,0 +1,56 @@
+{
+  "resourceName": "Azure Sentinel",
+  "bicepType": "Microsoft.OperationalInsights/workspaces@2023-09-01",
+  "terraformType": "azurerm_sentinel_log_analytics_workspace_onboarding",
+  "category": "security",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.operationalinsights/workspaces",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "customer_managed_key_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "workspace_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,1009 @@
+{
+  "resourceName": "Notification Hub Namespaces",
+  "bicepType": "Microsoft.NotificationHubs/namespaces@2023-09-01",
+  "terraformType": "azurerm_notification_hub_namespace",
+  "category": "iot",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.notificationhubs/namespaces",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.NotificationHubs/namespaces@2023-09-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "^[a-zA-Z][a-zA-Z0-9-]*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.NotificationHubs/namespaces"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-09-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Namespace SKU name."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets the tier of particular sku"
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets the Sku size"
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets the Sku Family"
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Gets or sets the capacity of the resource"
+              }
+            }
+          },
+          "description": "The Sku description for a namespace"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the Notification Hubs namespace. This is immutable property, set automatically \r\nby the service when the namespace is created."
+              },
+              "provisioningState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Defines values for OperationProvisioningState."
+              },
+              "status": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Created"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Namespace status."
+              },
+              "enabled": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Gets or sets whether or not the namespace is currently enabled."
+              },
+              "critical": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Gets or sets whether or not the namespace is set as Critical."
+              },
+              "subscriptionId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Namespace subscription id."
+              },
+              "region": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Region. The value is always set to the same value as Namespace.Location, so we are deprecating\r\nthis property."
+              },
+              "metricId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure Insights Metrics id."
+              },
+              "createdAt": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Time when the namespace was created."
+              },
+              "updatedAt": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Time when the namespace was updated."
+              },
+              "namespaceType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Messaging"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotificationHub"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Defines values for NamespaceType."
+              },
+              "replicationRegion": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Default"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "WestUs2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NorthEurope"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AustraliaEast"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BrazilSouth"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SouthEastAsia"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SouthAfricaNorth"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Allowed replication region"
+              },
+              "zoneRedundancy": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Namespace SKU name."
+              },
+              "networkAcls": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ipRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "ipMask": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP mask."
+                            },
+                            "rights": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of access rights."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of IP rules."
+                    },
+                    "publicNetworkRule": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "rights": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "List of access rights."
+                          }
+                        }
+                      },
+                      "description": "A default (public Internet) network authorization rule, which contains rights if no other network rule matches."
+                    }
+                  }
+                },
+                "description": "A collection of network authorization rules."
+              },
+              "pnsCredentials": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "admCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "clientId": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the client identifier."
+                                },
+                                "clientSecret": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the credential secret access key."
+                                },
+                                "authTokenUrl": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the URL of the authorization token."
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub AdmCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub AdmCredential."
+                    },
+                    "apnsCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "apnsCertificate": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the APNS certificate."
+                                },
+                                "certificateKey": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the certificate key."
+                                },
+                                "endpoint": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the endpoint of this credential."
+                                },
+                                "thumbprint": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the APNS certificate Thumbprint"
+                                },
+                                "keyId": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets a 10-character key identifier (kid) key, obtained from\r\nyour developer account"
+                                },
+                                "appName": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the name of the application"
+                                },
+                                "appId": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the issuer (iss) registered claim key, whose value is\r\nyour 10-character Team ID, obtained from your developer account"
+                                },
+                                "token": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets provider Authentication Token, obtained through your\r\ndeveloper account"
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub ApnsCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub ApnsCredential."
+                    },
+                    "baiduCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "baiduApiKey": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets baidu Api Key."
+                                },
+                                "baiduEndPoint": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets baidu Endpoint."
+                                },
+                                "baiduSecretKey": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets baidu Secret Key"
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub BaiduCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub BaiduCredential."
+                    },
+                    "browserCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "subject": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets web push subject."
+                                },
+                                "vapidPrivateKey": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets VAPID private key."
+                                },
+                                "vapidPublicKey": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets VAPID public key."
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub BrowserCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub BrowserCredential."
+                    },
+                    "gcmCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "gcmEndpoint": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the GCM endpoint."
+                                },
+                                "googleApiKey": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the Google API key."
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub GcmCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub GcmCredential."
+                    },
+                    "mpnsCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "mpnsCertificate": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the MPNS certificate."
+                                },
+                                "certificateKey": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the certificate key for this credential."
+                                },
+                                "thumbprint": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the MPNS certificate Thumbprint"
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub MpnsCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub MpnsCredential."
+                    },
+                    "wnsCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "packageSid": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the package ID for this credential."
+                                },
+                                "secretKey": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the secret key."
+                                },
+                                "windowsLiveEndpoint": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the Windows Live endpoint."
+                                },
+                                "certificateKey": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Ges or sets the WNS Certificate Key."
+                                },
+                                "wnsCertificate": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets the WNS Certificate."
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub WnsCredential."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub WnsCredential."
+                    },
+                    "xiaomiCredential": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "appSecret": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets app secret."
+                                },
+                                "endpoint": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets xiaomi service endpoint."
+                                }
+                              }
+                            },
+                            "description": "Description of a NotificationHub XiaomiCredentialProperties."
+                          }
+                        }
+                      },
+                      "description": "Description of a NotificationHub XiaomiCredential."
+                    }
+                  }
+                },
+                "description": "Collection of Notification Hub or Notification Hub Namespace PNS credentials."
+              },
+              "serviceBusEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets endpoint you can use to perform NotificationHub\r\noperations."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "provisioningState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "State of Private Endpoint Connection."
+                            },
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Represents a Private Endpoint that is connected to Notification Hubs namespace using Private Endpoint Connection."
+                            },
+                            "groupIds": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of group ids. For Notification Hubs, it always contains a single \"namespace\" element."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "State of the Private Link Service connection."
+                            }
+                          }
+                        },
+                        "description": "Private Endpoint Connection properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. E.g. \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}\""
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                },
+                "description": "Private Endpoint Connections for namespace"
+              },
+              "scaleUnit": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets or sets scaleUnit where the namespace gets created"
+              },
+              "dataCenter": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Deprecated."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of public network access."
+              }
+            }
+          },
+          "description": "Represents namespace properties."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,906 @@
+{
+  "resourceName": "App Service Domains",
+  "bicepType": "Microsoft.DomainRegistration/domains@2023-01-01",
+  "terraformType": "azurerm_app_service_domain",
+  "category": "app services",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.domainregistration/domains",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DomainRegistration/domains@2023-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "[a-zA-Z0-9][a-zA-Z0-9\\.-]+"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DomainRegistration/domains"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "contactAdmin": {
+                "flags": 5,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressMailing": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "address1": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "First line of an Address."
+                          },
+                          "address2": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The second line of the Address. Optional."
+                          },
+                          "city": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The city for the address."
+                          },
+                          "country": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The country for the address."
+                          },
+                          "postalCode": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The postal code for the address."
+                          },
+                          "state": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The state or province for the address."
+                          }
+                        }
+                      },
+                      "description": "Mailing address."
+                    },
+                    "email": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Email address."
+                    },
+                    "fax": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fax number."
+                    },
+                    "jobTitle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Job title."
+                    },
+                    "nameFirst": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "First name."
+                    },
+                    "nameLast": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last name."
+                    },
+                    "nameMiddle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Middle name."
+                    },
+                    "organization": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Organization contact belongs to."
+                    },
+                    "phone": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number."
+                    }
+                  }
+                },
+                "description": "Administrative contact."
+              },
+              "contactBilling": {
+                "flags": 5,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressMailing": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "address1": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "First line of an Address."
+                          },
+                          "address2": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The second line of the Address. Optional."
+                          },
+                          "city": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The city for the address."
+                          },
+                          "country": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The country for the address."
+                          },
+                          "postalCode": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The postal code for the address."
+                          },
+                          "state": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The state or province for the address."
+                          }
+                        }
+                      },
+                      "description": "Mailing address."
+                    },
+                    "email": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Email address."
+                    },
+                    "fax": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fax number."
+                    },
+                    "jobTitle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Job title."
+                    },
+                    "nameFirst": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "First name."
+                    },
+                    "nameLast": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last name."
+                    },
+                    "nameMiddle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Middle name."
+                    },
+                    "organization": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Organization contact belongs to."
+                    },
+                    "phone": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number."
+                    }
+                  }
+                },
+                "description": "Billing contact."
+              },
+              "contactRegistrant": {
+                "flags": 5,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressMailing": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "address1": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "First line of an Address."
+                          },
+                          "address2": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The second line of the Address. Optional."
+                          },
+                          "city": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The city for the address."
+                          },
+                          "country": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The country for the address."
+                          },
+                          "postalCode": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The postal code for the address."
+                          },
+                          "state": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The state or province for the address."
+                          }
+                        }
+                      },
+                      "description": "Mailing address."
+                    },
+                    "email": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Email address."
+                    },
+                    "fax": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fax number."
+                    },
+                    "jobTitle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Job title."
+                    },
+                    "nameFirst": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "First name."
+                    },
+                    "nameLast": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last name."
+                    },
+                    "nameMiddle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Middle name."
+                    },
+                    "organization": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Organization contact belongs to."
+                    },
+                    "phone": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number."
+                    }
+                  }
+                },
+                "description": "Registrant contact."
+              },
+              "contactTech": {
+                "flags": 5,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressMailing": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "address1": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "First line of an Address."
+                          },
+                          "address2": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The second line of the Address. Optional."
+                          },
+                          "city": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The city for the address."
+                          },
+                          "country": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The country for the address."
+                          },
+                          "postalCode": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The postal code for the address."
+                          },
+                          "state": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The state or province for the address."
+                          }
+                        }
+                      },
+                      "description": "Mailing address."
+                    },
+                    "email": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Email address."
+                    },
+                    "fax": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fax number."
+                    },
+                    "jobTitle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Job title."
+                    },
+                    "nameFirst": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "First name."
+                    },
+                    "nameLast": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last name."
+                    },
+                    "nameMiddle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Middle name."
+                    },
+                    "organization": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Organization contact belongs to."
+                    },
+                    "phone": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number."
+                    }
+                  }
+                },
+                "description": "Technical contact."
+              },
+              "registrationStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Active"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Awaiting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Confiscated"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Excluded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Held"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Locked"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Parked"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Reserved"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Reverted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Transferred"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unlocked"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unparked"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updated"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "JsonConverterFailed"
+                    }
+                  ]
+                },
+                "description": "Domain registration status."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    }
+                  ]
+                },
+                "description": "Domain provisioning state."
+              },
+              "nameServers": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Name servers."
+              },
+              "privacy": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if domain privacy is enabled for this domain; otherwise, <code>false</code>."
+              },
+              "createdTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Domain creation timestamp."
+              },
+              "expirationTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Domain expiration timestamp."
+              },
+              "lastRenewedTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Timestamp when the domain was renewed last time."
+              },
+              "autoRenew": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if the domain should be automatically renewed; otherwise, <code>false</code>."
+              },
+              "readyForDnsRecordManagement": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if Azure can assign this domain to App Service apps; otherwise, <code>false</code>. This value will be <code>true</code> if domain registration status is active and \n it is hosted on name servers Azure has programmatic access to."
+              },
+              "managedHostNames": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Name of the hostname."
+                      },
+                      "siteNames": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "List of apps the hostname is assigned to. This list will have more than one app only if the hostname is pointing to a Traffic Manager."
+                      },
+                      "azureResourceName": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Name of the Azure resource the hostname is assigned to. If it is assigned to a Traffic Manager then it will be the Traffic Manager name otherwise it will be the app name."
+                      },
+                      "azureResourceType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Type of the Azure resource the hostname is assigned to."
+                      },
+                      "customHostNameDnsRecordType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Type of the DNS record."
+                      },
+                      "hostNameType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Type of the hostname."
+                      }
+                    }
+                  }
+                },
+                "description": "All hostnames derived from the domain and assigned to Azure resources."
+              },
+              "consent": {
+                "flags": 5,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "agreementKeys": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of applicable legal agreement keys. This list can be retrieved using ListLegalAgreements API under <code>TopLevelDomain</code> resource."
+                    },
+                    "agreedBy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Client IP address."
+                    },
+                    "agreedAt": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Timestamp when the agreements were accepted."
+                    }
+                  }
+                },
+                "description": "Legal agreement consent."
+              },
+              "domainNotRenewableReasons": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "UnionType",
+                    "elements": [
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "RegistrationStatusNotSupportedForRenewal"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "ExpirationNotInRenewalTimeRange"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "SubscriptionNotActive"
+                      },
+                      {
+                        "$type": "StringType"
+                      }
+                    ]
+                  }
+                },
+                "description": "Reasons why domain is not renewable."
+              },
+              "dnsType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AzureDns"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DefaultDomainRegistrarDns"
+                    }
+                  ]
+                },
+                "description": "Current DNS type"
+              },
+              "dnsZoneId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure DNS Zone to use"
+              },
+              "targetDnsType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AzureDns"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DefaultDomainRegistrarDns"
+                    }
+                  ]
+                },
+                "description": "Target DNS type (would be used for migration)"
+              },
+              "authCode": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                }
+              }
+            }
+          },
+          "description": "Domain resource specific properties"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

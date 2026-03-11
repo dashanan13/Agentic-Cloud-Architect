@@ -1,0 +1,505 @@
+{
+  "resourceName": "Virtual WAN Hub",
+  "bicepType": "Microsoft.Network/virtualHubs@2024-03-01",
+  "terraformType": "azurerm_virtual_hub",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/virtualhubs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/virtualHubs@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/virtualHubs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "virtualWan": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The VirtualWAN to which the VirtualHub belongs."
+              },
+              "vpnGateway": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The VpnGateway associated with this VirtualHub."
+              },
+              "p2SVpnGateway": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The P2SVpnGateway associated with this VirtualHub."
+              },
+              "expressRouteGateway": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The expressRouteGateway associated with this VirtualHub."
+              },
+              "azureFirewall": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The azureFirewall associated with this VirtualHub."
+              },
+              "securityPartnerProvider": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The securityPartnerProvider associated with this VirtualHub."
+              },
+              "addressPrefix": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Address-prefix for this VirtualHub."
+              },
+              "routeTable": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "routes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "addressPrefixes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of all addressPrefixes."
+                            },
+                            "nextHopIpAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "NextHop ip address."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of all routes."
+                    }
+                  }
+                },
+                "description": "The routeTable associated with this virtual hub."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the virtual hub resource."
+              },
+              "securityProviderName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Security Provider name."
+              },
+              "virtualHubRouteTableV2s": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "routes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of all routes."
+                            },
+                            "attachedConnections": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of all connections attached to this route table v2."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the virtual hub route table v2 resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the virtual hub route table v2."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of all virtual hub route table v2s associated with this VirtualHub."
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The sku of this VirtualHub."
+              },
+              "routingState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The routing state."
+              },
+              "bgpConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of references to Bgp Connections."
+              },
+              "ipConfigurations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of references to IpConfigurations."
+              },
+              "routeMaps": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of references to RouteMaps."
+              },
+              "virtualRouterAsn": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType",
+                  "minValue": 0,
+                  "maxValue": 4294967295
+                },
+                "description": "VirtualRouter ASN."
+              },
+              "virtualRouterIps": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "VirtualRouter IPs."
+              },
+              "allowBranchToBranchTraffic": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to control transit for VirtualRouter hub."
+              },
+              "preferredRoutingGateway": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ExpressRoute"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "VpnGateway"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The preferred gateway to route on-prem traffic"
+              },
+              "hubRoutingPreference": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ExpressRoute"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "VpnGateway"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ASPath"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The hubRoutingPreference of this VirtualHub."
+              },
+              "virtualRouterAutoScaleConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "minCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "The minimum number of scale units for VirtualHub Router."
+                    }
+                  }
+                },
+                "description": "The VirtualHub Router autoscale configuration."
+              }
+            }
+          },
+          "description": "Properties of the virtual hub."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "kind": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of service virtual hub. This is metadata used for the Azure portal experience for Route Server."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

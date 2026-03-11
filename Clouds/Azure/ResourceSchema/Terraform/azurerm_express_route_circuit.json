@@ -1,0 +1,146 @@
+{
+  "resourceName": "ExpressRoute Circuits",
+  "bicepType": "Microsoft.Network/expressRouteCircuits@2024-03-01",
+  "terraformType": "azurerm_express_route_circuit",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/expressroutecircuits",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "allow_classic_operations": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "authorization_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "bandwidth_in_gbps": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "bandwidth_in_mbps": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "express_route_port_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "peering_location": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "rate_limiting_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "service_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "service_provider_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "service_provider_provisioning_state": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "sku": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "family": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "tier": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,354 @@
+{
+  "resourceName": "Application Insights",
+  "bicepType": "Microsoft.Insights/components@2020-02-02",
+  "terraformType": "azurerm_application_insights",
+  "category": "monitor",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.insights/components",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Insights/components@2020-02-02",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Insights/components"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2020-02-02"
+          },
+          "description": "The resource api version"
+        },
+        "kind": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The kind of application that this component refers to, used to customize UI. This value is a freeform string, values should typically be one of the following: web, ios, other, store, java, phone."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource etag"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "ApplicationId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique ID of your application. This field mirrors the 'Name' field and cannot be changed."
+              },
+              "AppId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Application Insights Unique ID for your Application."
+              },
+              "Name": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Application name."
+              },
+              "Application_Type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "web"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "other"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of application being monitored."
+              },
+              "Flow_Type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Bluefield"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Used by the Application Insights system to determine what kind of flow this component was created by. This is to be set to 'Bluefield' when creating/updating a component via the REST API."
+              },
+              "Request_Source": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "rest"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Describes what tool created this Application Insights component. Customers using this API should set this to the default 'rest'."
+              },
+              "InstrumentationKey": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Application Insights Instrumentation key. A read-only value that applications can use to identify the destination for all telemetry sent to Azure Application Insights. This value will be supplied upon construction of each new Application Insights component."
+              },
+              "CreationDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Creation Date for the Application Insights component, in ISO 8601 format."
+              },
+              "TenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure Tenant Id."
+              },
+              "HockeyAppId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique application ID created when a new application is added to HockeyApp, used for communications with HockeyApp."
+              },
+              "HockeyAppToken": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Token used to authenticate communications with between Application Insights and HockeyApp."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Current state of this component: whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed."
+              },
+              "SamplingPercentage": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Percentage of the data produced by the application being monitored that is being sampled for Application Insights telemetry."
+              },
+              "ConnectionString": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Application Insights component connection string."
+              },
+              "RetentionInDays": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Retention period in days."
+              },
+              "DisableIpMasking": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Disable IP masking."
+              },
+              "ImmediatePurgeDataOn30Days": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Purge data immediately after 30 days."
+              },
+              "WorkspaceResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Resource Id of the log analytics workspace which the data will be ingested to. This property is required to create an application with this API version. Applications from older versions will not have this property."
+              },
+              "LaMigrationDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The date which the component got migrated to LA, in ISO 8601 format."
+              },
+              "PrivateLinkScopedResources": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "ResourceId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The full resource Id of the private link scope resource."
+                      },
+                      "ScopeId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The private link scope unique Identifier."
+                      }
+                    }
+                  }
+                },
+                "description": "List of linked private link scope resources."
+              },
+              "publicNetworkAccessForIngestion": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The network access type for accessing Application Insights ingestion."
+              },
+              "publicNetworkAccessForQuery": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The network access type for accessing Application Insights query."
+              },
+              "IngestionMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ApplicationInsights"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ApplicationInsightsWithDiagnosticSettings"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "LogAnalytics"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Indicates the flow of the ingestion."
+              },
+              "DisableLocalAuth": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Disable Non-AAD based Auth."
+              },
+              "ForceCustomerStorageForProfiler": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Force users to create their own storage account for profiler and debugger."
+              }
+            }
+          },
+          "description": "Properties that define an Application Insights component resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

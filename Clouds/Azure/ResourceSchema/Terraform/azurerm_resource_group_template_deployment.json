@@ -1,0 +1,101 @@
+{
+  "resourceName": "Template Specs",
+  "bicepType": "Microsoft.Resources/templateSpecs@2022-02-01",
+  "terraformType": "azurerm_resource_group_template_deployment",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.resources/templatespecs",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "debug_level": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "deployment_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "output_content": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "parameters_content": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "template_content": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "template_spec_version_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

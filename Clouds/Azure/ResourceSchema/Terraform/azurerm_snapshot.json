@@ -1,0 +1,173 @@
+{
+  "resourceName": "Disks Snapshots",
+  "bicepType": "Microsoft.Compute/snapshots@2024-03-02",
+  "terraformType": "azurerm_snapshot",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/snapshots",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "create_option": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "disk_access_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "disk_size_gb": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "incremental_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "network_access_policy": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "source_resource_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "source_uri": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "trusted_launch_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "encryption_settings": {
+          "nesting_mode": "list",
+          "block": {
+            "block_types": {
+              "disk_encryption_key": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "secret_url": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "source_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1,
+                "max_items": 1
+              },
+              "key_encryption_key": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "key_url": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "source_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

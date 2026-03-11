@@ -1,0 +1,181 @@
+{
+  "resourceName": "Host Groups",
+  "bicepType": "Microsoft.Compute/hostGroups@2024-07-01",
+  "terraformType": "azurerm_dedicated_host_group",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/hostgroups",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Compute/hostGroups@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Compute/hostGroups"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "platformFaultDomainCount": {
+                "flags": 1,
+                "type": {
+                  "$type": "IntegerType",
+                  "minValue": 1
+                },
+                "description": "Number of fault domains that the host group can span."
+              },
+              "hosts": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Id"
+                      }
+                    }
+                  }
+                },
+                "description": "A list of references to all dedicated hosts in the dedicated host group."
+              },
+              "instanceView": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "hosts": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the dedicated host."
+                            },
+                            "assetId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Specifies the unique id of the dedicated physical machine on which the dedicated host resides."
+                            },
+                            "availableCapacity": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Unutilized capacity of the dedicated host."
+                            },
+                            "statuses": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource status information."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of instance view of the dedicated hosts under the dedicated host group."
+                    }
+                  }
+                },
+                "description": "The dedicated host group instance view, which has the list of instance view of the dedicated hosts under the dedicated host group."
+              },
+              "supportAutomaticPlacement": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Specifies whether virtual machines or virtual machine scale sets can be placed automatically on the dedicated host group. Automatic placement means resources are allocated on dedicated hosts, that are chosen by Azure, under the dedicated host group. The value is defaulted to 'false' when not provided. Minimum api-version: 2020-06-01."
+              },
+              "additionalCapabilities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ultraSSDEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "The flag that enables or disables a capability to have UltraSSD Enabled Virtual Machines on Dedicated Hosts of the Dedicated Host Group. For the Virtual Machines to be UltraSSD Enabled, UltraSSDEnabled flag for the resource needs to be set true as well. The value is defaulted to 'false' when not provided. Please refer to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-enable-ultra-ssd for more details on Ultra SSD feature. **Note:** The ultraSSDEnabled setting can only be enabled for Host Groups that are created as zonal. Minimum api-version: 2022-03-01."
+                    }
+                  }
+                },
+                "description": "Enables or disables a capability on the dedicated host group. Minimum api-version: 2022-03-01."
+              }
+            }
+          },
+          "description": "Dedicated Host Group Properties."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Availability Zone to use for this host group. Only single zone is supported. The zone can be assigned only during creation. If not provided, the group supports all zones in the region. If provided, enforces each host in the group to be in the same zone."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

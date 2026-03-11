@@ -1,0 +1,2089 @@
+{
+  "resourceName": "Public IP Addresses",
+  "bicepType": "Microsoft.Network/publicIPAddresses@2024-03-01",
+  "terraformType": "azurerm_public_ip",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/publicipaddresses",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/publicIPAddresses@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/publicIPAddresses"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeZone"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "The extended location of the public ip address."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Name of a public IP address SKU."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Regional"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Global"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Tier of a public IP address SKU."
+              }
+            }
+          },
+          "description": "The public IP address SKU."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "publicIPAllocationMethod": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Static"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Dynamic"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The public IP address allocation method."
+              },
+              "publicIPAddressVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "IPv4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "IPv6"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The public IP address version."
+              },
+              "ipConfiguration": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "privateIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The private IP address of the IP configuration."
+                          },
+                          "privateIPAllocationMethod": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The private IP address allocation method."
+                          },
+                          "subnet": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Properties of the subnet."
+                                },
+                                "name": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "type": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The reference to the subnet resource."
+                          },
+                          "publicIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "extendedLocation": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The extended location of the public ip address."
+                                },
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The public IP address SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Public IP address properties."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The reference to the public IP resource."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the IP configuration resource."
+                          }
+                        }
+                      },
+                      "description": "Properties of the IP configuration."
+                    },
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The IP configuration associated with the public IP address."
+              },
+              "dnsSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "domainNameLabel": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The domain name label. The concatenation of the domain name label and the regionalized DNS zone make up the fully qualified domain name associated with the public IP address. If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system."
+                    },
+                    "domainNameLabelScope": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TenantReuse"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SubscriptionReuse"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ResourceGroupReuse"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NoReuse"
+                          }
+                        ]
+                      },
+                      "description": "The domain name label scope. If a domain name label and a domain name label scope are specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system with a hashed value includes in FQDN."
+                    },
+                    "fqdn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The Fully Qualified Domain Name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone."
+                    },
+                    "reverseFqdn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The reverse FQDN. A user-visible, fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN."
+                    }
+                  }
+                },
+                "description": "The FQDN of the DNS record associated with the public IP address."
+              },
+              "ddosSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "protectionMode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VirtualNetworkInherited"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The DDoS protection mode of the public IP"
+                    },
+                    "ddosProtectionPlan": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource ID."
+                          }
+                        }
+                      },
+                      "description": "The DDoS protection plan associated with the public IP. Can only be set if ProtectionMode is Enabled"
+                    }
+                  }
+                },
+                "description": "The DDoS protection custom policy associated with the public IP address."
+              },
+              "ipTags": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "ipTagType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The IP tag type. Example: FirstPartyUsage."
+                      },
+                      "tag": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The value of the IP tag associated with the public IP. Example: SQL."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of tags associated with the public IP address."
+              },
+              "ipAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The IP address associated with the public IP address resource."
+              },
+              "publicIPPrefix": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The Public IP Prefix this Public IP Address should be allocated from."
+              },
+              "idleTimeoutInMinutes": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The idle timeout of the public IP address."
+              },
+              "resourceGuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource GUID property of the public IP address resource."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the public IP address resource."
+              },
+              "servicePublicIPAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "extendedLocation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the extended location."
+                          },
+                          "type": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of the extended location."
+                          }
+                        }
+                      },
+                      "description": "The extended location of the public ip address."
+                    },
+                    "sku": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Name of a public IP address SKU."
+                          },
+                          "tier": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Tier of a public IP address SKU."
+                          }
+                        }
+                      },
+                      "description": "The public IP address SKU."
+                    },
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "publicIPAllocationMethod": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The public IP address allocation method."
+                          },
+                          "publicIPAddressVersion": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The public IP address version."
+                          },
+                          "ipConfiguration": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Properties of the IP configuration."
+                                },
+                                "name": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The IP configuration associated with the public IP address."
+                          },
+                          "dnsSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "domainNameLabel": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The domain name label. The concatenation of the domain name label and the regionalized DNS zone make up the fully qualified domain name associated with the public IP address. If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system."
+                                },
+                                "domainNameLabelScope": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The domain name label scope. If a domain name label and a domain name label scope are specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system with a hashed value includes in FQDN."
+                                },
+                                "fqdn": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The Fully Qualified Domain Name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone."
+                                },
+                                "reverseFqdn": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The reverse FQDN. A user-visible, fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN."
+                                }
+                              }
+                            },
+                            "description": "The FQDN of the DNS record associated with the public IP address."
+                          },
+                          "ddosSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "protectionMode": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The DDoS protection mode of the public IP"
+                                },
+                                "ddosProtectionPlan": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The DDoS protection plan associated with the public IP. Can only be set if ProtectionMode is Enabled"
+                                }
+                              }
+                            },
+                            "description": "The DDoS protection custom policy associated with the public IP address."
+                          },
+                          "ipTags": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The list of tags associated with the public IP address."
+                          },
+                          "ipAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The IP address associated with the public IP address resource."
+                          },
+                          "publicIPPrefix": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The Public IP Prefix this Public IP Address should be allocated from."
+                          },
+                          "idleTimeoutInMinutes": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The idle timeout of the public IP address."
+                          },
+                          "resourceGuid": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The resource GUID property of the public IP address resource."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the public IP address resource."
+                          },
+                          "servicePublicIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "extendedLocation": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The extended location of the public ip address."
+                                },
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The public IP address SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Public IP address properties."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The service public IP address of the public IP address resource."
+                          },
+                          "natGateway": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The nat gateway SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Nat Gateway properties."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the zone in which Nat Gateway should be deployed."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The NatGateway for the Public IP address."
+                          },
+                          "migrationPhase": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Migration phase of Public IP Address."
+                          },
+                          "linkedPublicIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "extendedLocation": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The extended location of the public ip address."
+                                },
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The public IP address SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Public IP address properties."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The linked public IP address of the public IP address resource."
+                          },
+                          "deleteOption": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Specify what happens to the public IP address when the VM using it is deleted"
+                          }
+                        }
+                      },
+                      "description": "Public IP address properties."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "zones": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource location."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Resource tags."
+                    }
+                  }
+                },
+                "description": "The service public IP address of the public IP address resource."
+              },
+              "natGateway": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "sku": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Name of Nat Gateway SKU."
+                          }
+                        }
+                      },
+                      "description": "The nat gateway SKU."
+                    },
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "idleTimeoutInMinutes": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The idle timeout of the nat gateway."
+                          },
+                          "publicIpAddresses": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of public ip addresses associated with the nat gateway resource."
+                          },
+                          "publicIpPrefixes": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of public ip prefixes associated with the nat gateway resource."
+                          },
+                          "subnets": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of references to the subnets using this nat gateway resource."
+                          },
+                          "resourceGuid": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The resource GUID property of the NAT gateway resource."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the NAT gateway resource."
+                          }
+                        }
+                      },
+                      "description": "Nat Gateway properties."
+                    },
+                    "zones": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "A list of availability zones denoting the zone in which Nat Gateway should be deployed."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource location."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Resource tags."
+                    }
+                  }
+                },
+                "description": "The NatGateway for the Public IP address."
+              },
+              "migrationPhase": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Prepare"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Commit"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Abort"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Committed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Migration phase of Public IP Address."
+              },
+              "linkedPublicIPAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "extendedLocation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the extended location."
+                          },
+                          "type": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of the extended location."
+                          }
+                        }
+                      },
+                      "description": "The extended location of the public ip address."
+                    },
+                    "sku": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Name of a public IP address SKU."
+                          },
+                          "tier": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Tier of a public IP address SKU."
+                          }
+                        }
+                      },
+                      "description": "The public IP address SKU."
+                    },
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "publicIPAllocationMethod": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The public IP address allocation method."
+                          },
+                          "publicIPAddressVersion": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The public IP address version."
+                          },
+                          "ipConfiguration": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Properties of the IP configuration."
+                                },
+                                "name": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The IP configuration associated with the public IP address."
+                          },
+                          "dnsSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "domainNameLabel": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The domain name label. The concatenation of the domain name label and the regionalized DNS zone make up the fully qualified domain name associated with the public IP address. If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system."
+                                },
+                                "domainNameLabelScope": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The domain name label scope. If a domain name label and a domain name label scope are specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system with a hashed value includes in FQDN."
+                                },
+                                "fqdn": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The Fully Qualified Domain Name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone."
+                                },
+                                "reverseFqdn": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The reverse FQDN. A user-visible, fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN."
+                                }
+                              }
+                            },
+                            "description": "The FQDN of the DNS record associated with the public IP address."
+                          },
+                          "ddosSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "protectionMode": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The DDoS protection mode of the public IP"
+                                },
+                                "ddosProtectionPlan": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The DDoS protection plan associated with the public IP. Can only be set if ProtectionMode is Enabled"
+                                }
+                              }
+                            },
+                            "description": "The DDoS protection custom policy associated with the public IP address."
+                          },
+                          "ipTags": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The list of tags associated with the public IP address."
+                          },
+                          "ipAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The IP address associated with the public IP address resource."
+                          },
+                          "publicIPPrefix": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The Public IP Prefix this Public IP Address should be allocated from."
+                          },
+                          "idleTimeoutInMinutes": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The idle timeout of the public IP address."
+                          },
+                          "resourceGuid": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The resource GUID property of the public IP address resource."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the public IP address resource."
+                          },
+                          "servicePublicIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "extendedLocation": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The extended location of the public ip address."
+                                },
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The public IP address SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Public IP address properties."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The service public IP address of the public IP address resource."
+                          },
+                          "natGateway": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The nat gateway SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Nat Gateway properties."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the zone in which Nat Gateway should be deployed."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The NatGateway for the Public IP address."
+                          },
+                          "migrationPhase": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Migration phase of Public IP Address."
+                          },
+                          "linkedPublicIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "extendedLocation": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The extended location of the public ip address."
+                                },
+                                "sku": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The public IP address SKU."
+                                },
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Public IP address properties."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "zones": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource name."
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "location": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource location."
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                }
+                              }
+                            },
+                            "description": "The linked public IP address of the public IP address resource."
+                          },
+                          "deleteOption": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Specify what happens to the public IP address when the VM using it is deleted"
+                          }
+                        }
+                      },
+                      "description": "Public IP address properties."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "zones": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource location."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Resource tags."
+                    }
+                  }
+                },
+                "description": "The linked public IP address of the public IP address resource."
+              },
+              "deleteOption": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Delete"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Detach"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Specify what happens to the public IP address when the VM using it is deleted"
+              }
+            }
+          },
+          "description": "Public IP address properties."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

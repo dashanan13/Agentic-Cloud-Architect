@@ -1,0 +1,444 @@
+{
+  "resourceName": "IoT Edge",
+  "bicepType": "Microsoft.Devices/IotHubs@2023-06-30",
+  "terraformType": "azurerm_iothub",
+  "category": "iot",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.devices/iothubs",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "endpoint": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "authentication_type": "string",
+                "batch_frequency_in_seconds": "number",
+                "connection_string": "string",
+                "container_name": "string",
+                "encoding": "string",
+                "endpoint_uri": "string",
+                "entity_path": "string",
+                "file_name_format": "string",
+                "identity_id": "string",
+                "max_chunk_size_in_bytes": "number",
+                "name": "string",
+                "resource_group_name": "string",
+                "subscription_id": "string",
+                "type": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "enrichment": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "endpoint_names": [
+                  "list",
+                  "string"
+                ],
+                "key": "string",
+                "value": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "event_hub_events_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "event_hub_events_namespace": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "event_hub_events_path": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "event_hub_operations_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "event_hub_operations_path": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "event_hub_partition_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "event_hub_retention_in_days": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "hostname": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "local_authentication_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "min_tls_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "route": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "condition": "string",
+                "enabled": "bool",
+                "endpoint_names": [
+                  "list",
+                  "string"
+                ],
+                "name": "string",
+                "source": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "shared_access_policy": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "key_name": "string",
+                "permissions": "string",
+                "primary_key": "string",
+                "secondary_key": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "type": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "cloud_to_device": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "default_ttl": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_delivery_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "feedback": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "lock_duration": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "max_delivery_count": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "time_to_live": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "fallback_route": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "condition": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "endpoint_names": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "source": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "file_upload": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "authentication_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "connection_string": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "container_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "default_ttl": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "identity_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "lock_duration": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_delivery_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "notifications": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "sas_ttl": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "network_rule_set": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "apply_to_builtin_eventhub_endpoint": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "default_action": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "ip_rule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "action": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ip_mask": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "sku": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "capacity": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

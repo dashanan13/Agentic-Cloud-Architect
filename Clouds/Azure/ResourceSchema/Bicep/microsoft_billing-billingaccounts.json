@@ -1,0 +1,978 @@
+{
+  "resourceName": "Azure Consumption Commitment",
+  "bicepType": "Microsoft.Billing/billingAccounts@2024-04-01",
+  "terraformType": "",
+  "category": "new icons",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.billing/billingaccounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Billing/billingAccounts@2024-04-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^([0-9]+|([Pp][Cc][Nn]\\.[A-Za-z0-9]+)|[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}(:[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}_[0-9]{4}(-[0-9]{2}){2})?)$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Billing/billingAccounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-04-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "New"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PendingBilling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ConfirmedBilling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Created"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the resource during a long-running operation."
+              },
+              "accountStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Other"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Active"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UnderReview"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Extended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "New"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Terminated"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Transferred"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The current status of the billing account."
+              },
+              "accountType": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Other"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enterprise"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Individual"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Partner"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Reseller"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ClassicPartner"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Internal"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Tenant"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Business"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of customer."
+              },
+              "accountSubType": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Other"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Individual"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Professional"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enterprise"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The tier of the account."
+              },
+              "accountStatusReasonCode": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Other"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UnusualActivity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManuallyTerminated"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Transferred"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TerminateProcessing"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Reason for the specified billing account status."
+              },
+              "agreementType": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Other"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MicrosoftCustomerAgreement"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EnterpriseAgreement"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MicrosoftOnlineServicesProgram"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MicrosoftPartnerAgreement"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of agreement."
+              },
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The billing account name."
+              },
+              "enrollmentDetails": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "startDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The start date of the enrollment."
+                    },
+                    "endDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The end date of the enrollment."
+                    },
+                    "currency": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The billing currency for the enrollment."
+                    },
+                    "channel": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The channel type of the enrollment."
+                    },
+                    "language": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The language for the enrollment."
+                    },
+                    "countryCode": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The country code of the enrollment."
+                    },
+                    "billingCycle": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The billing cycle for the enrollment."
+                    },
+                    "extendedTermOption": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Other"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Opted-In"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Opted-Out"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The billing account extension opted by the company."
+                    },
+                    "supportLevel": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Other"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Pro-Direct"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Developer"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The support level offer associated with an enrollment."
+                    },
+                    "supportCoverage": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The support coverage period for the enrollment."
+                    },
+                    "cloud": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The cloud of the enrollment."
+                    },
+                    "poNumber": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The purchase order number of the enrollment."
+                    },
+                    "markupStatus": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Other"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Preview"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Published"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Locked"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Markup status of enrollment, applicable only for indirect enrollments."
+                    },
+                    "indirectRelationshipInfo": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "billingAccountName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The billing account name of the partner or the customer for an indirect motion."
+                          },
+                          "billingProfileName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The billing profile name of the partner or the customer for an indirect motion."
+                          },
+                          "displayName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The display name of the partner or customer for an indirect motion."
+                          }
+                        }
+                      },
+                      "description": "The properties of an enrollment which are applicable only for indirect enrollments."
+                    },
+                    "invoiceRecipient": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The contact who receives invoices of the enrollment."
+                    }
+                  }
+                },
+                "description": "The properties of an enrollment."
+              },
+              "hasReadAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether user has read access to the billing account."
+              },
+              "hasNoBillingProfiles": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether or not the billing account has any billing profiles."
+              },
+              "notificationEmailAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Notification email address for legacy account. Available for agreement type Microsoft Online Services Program."
+              },
+              "primaryBillingTenantId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant that was used to set up the billing account. By default, only users from this tenant can get role assignments on the billing account and all purchases are provisioned in this tenant."
+              },
+              "soldTo": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressLine1": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 1
+                      },
+                      "description": "Address line 1."
+                    },
+                    "addressLine2": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Address line 2."
+                    },
+                    "addressLine3": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Address line 3."
+                    },
+                    "city": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Address city."
+                    },
+                    "companyName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Company name. Optional for MCA Individual (Pay-as-you-go)."
+                    },
+                    "country": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 1
+                      },
+                      "description": "Country code uses ISO 3166-1 Alpha-2 format."
+                    },
+                    "district": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Address district."
+                    },
+                    "email": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Email address."
+                    },
+                    "firstName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "First name. Optional for MCA Enterprise."
+                    },
+                    "lastName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last name. Optional for MCA Enterprise."
+                    },
+                    "middleName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Middle name."
+                    },
+                    "phoneNumber": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number."
+                    },
+                    "postalCode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Postal code."
+                    },
+                    "region": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Address region."
+                    },
+                    "isValidAddress": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates if the address is incomplete."
+                    }
+                  }
+                },
+                "description": "The address of the individual or organization that is responsible for the billing account."
+              },
+              "registrationNumber": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The unique identification number of the organization linked with the billing account."
+                    },
+                    "required": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Identifies if the registration number is required for the billing account."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The types of registration number allowed based on the country of the billing account."
+                    }
+                  }
+                },
+                "description": "Describes the registration number of the organization linked with the billing account."
+              },
+              "billingRelationshipTypes": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "UnionType",
+                    "elements": [
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "Other"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "Direct"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "IndirectCustomer"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "IndirectPartner"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "CSPPartner"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "CSPCustomer"
+                      },
+                      {
+                        "$type": "StringType"
+                      }
+                    ]
+                  }
+                },
+                "description": "Identifies the billing relationships represented by a billing account. The billing relationship may be between Microsoft, the customer, and/or a third-party."
+              },
+              "qualifications": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Qualifications for pricing on a billing account. Values may be Commercial, Education, Charity or Government."
+              },
+              "taxIds": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The id of the tax identifier."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The type of the tax identifier."
+                      },
+                      "scope": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The scope of the tax identifier."
+                      },
+                      "country": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The country of the tax identifier."
+                      },
+                      "status": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The status of the tax identifier."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of tax identifiers for the billing account."
+              }
+            }
+          },
+          "description": "A billing account."
+        },
+        "tags": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Dictionary of metadata associated with the resource. It may not be populated for all resource types. Maximum key/value length supported of 256 characters. Keys/value should not empty value nor null. Keys can not contain < > % & \\ ? /"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

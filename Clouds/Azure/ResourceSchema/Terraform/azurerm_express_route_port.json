@@ -1,0 +1,269 @@
+{
+  "resourceName": "ExpressRoute Direct",
+  "bicepType": "Microsoft.Network/expressRoutePorts@2024-03-01",
+  "terraformType": "azurerm_express_route_port",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/expressrouteports",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "bandwidth_in_gbps": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        },
+        "billing_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "encapsulation": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "ethertype": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "guid": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "mtu": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "peering_location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "link1": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "admin_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "connector_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "interface_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "macsec_cak_keyvault_secret_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "macsec_cipher": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "macsec_ckn_keyvault_secret_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "macsec_sci_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "patch_panel_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "rack_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "router_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "link2": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "admin_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "connector_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "interface_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "macsec_cak_keyvault_secret_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "macsec_cipher": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "macsec_ckn_keyvault_secret_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "macsec_sci_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "patch_panel_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "rack_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "router_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

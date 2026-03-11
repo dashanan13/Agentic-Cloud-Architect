@@ -1,0 +1,770 @@
+{
+  "resourceName": "Backup Vault",
+  "bicepType": "Microsoft.DataProtection/backupVaults@2024-04-01",
+  "terraformType": "azurerm_data_protection_backup_vault",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.dataprotection/backupvaults",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DataProtection/backupVaults@2024-04-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DataProtection/backupVaults"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-04-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "monitoringSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "azureMonitorAlertSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "alertsForAllJobFailures": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "description": "Settings for Azure Monitor based alerts"
+                    }
+                  }
+                },
+                "description": "Monitoring Settings"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Provisioning state of the BackupVault resource"
+              },
+              "resourceMoveState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PrepareFailed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CommitFailed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PrepareTimedout"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CommitTimedout"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CriticalFailure"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PartialSuccess"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MoveSucceeded"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Resource move state for backup vault"
+              },
+              "resourceMoveDetails": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "operationId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "CorrelationId of latest ResourceMove operation attempted"
+                    },
+                    "startTimeUtc": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Start time in UTC of latest ResourceMove operation attempted. ISO 8601 format."
+                    },
+                    "completionTimeUtc": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Completion time in UTC of latest ResourceMove operation attempted. ISO 8601 format."
+                    },
+                    "sourceResourcePath": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ARM resource path of source resource"
+                    },
+                    "targetResourcePath": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ARM resource path of target resource used in latest ResourceMove operation"
+                    }
+                  }
+                },
+                "description": "Resource move details for backup vault"
+              },
+              "securitySettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "softDeleteSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "State of soft delete"
+                          },
+                          "retentionDurationInDays": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Soft delete retention duration"
+                          }
+                        }
+                      },
+                      "description": "Soft delete related settings"
+                    },
+                    "immutabilitySettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Immutability state"
+                          }
+                        }
+                      },
+                      "description": "Immutability Settings at vault level"
+                    },
+                    "encryptionSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Encryption state of the Backup Vault."
+                          },
+                          "keyVaultProperties": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "keyUri": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The key uri of the Customer Managed Key"
+                                }
+                              }
+                            },
+                            "description": "The properties of the Key Vault which hosts CMK"
+                          },
+                          "kekIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "identityType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The identity type. 'SystemAssigned' and 'UserAssigned' are mutually exclusive. 'SystemAssigned' will use implicitly created managed identity."
+                                },
+                                "identityId": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The managed identity to be used which has access permissions to the Key Vault. Provide a value here in case identity types: 'UserAssigned' only."
+                                }
+                              }
+                            },
+                            "description": "The details of the managed identity used for CMK"
+                          },
+                          "infrastructureEncryption": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Enabling/Disabling the Double Encryption state"
+                          }
+                        }
+                      },
+                      "description": "Customer Managed Key details of the resource."
+                    }
+                  }
+                },
+                "description": "Security Settings"
+              },
+              "storageSettings": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "datastoreType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Gets or sets the type of the datastore."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Gets or sets the type."
+                      }
+                    }
+                  }
+                },
+                "description": "Storage Settings"
+              },
+              "isVaultProtectedByResourceGuard": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Is vault protected by resource guard"
+              },
+              "featureSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "crossSubscriptionRestoreSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "CrossSubscriptionRestore state"
+                          }
+                        }
+                      },
+                      "description": "CrossSubscriptionRestore Settings"
+                    },
+                    "crossRegionRestoreSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "CrossRegionRestore state"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Feature Settings"
+              },
+              "secureScore": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Minimum"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Adequate"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Maximum"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSupported"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Secure Score of Backup Vault"
+              },
+              "bcdrSecurityLevel": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Poor"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Fair"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Good"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Excellent"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSupported"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Security Level of Backup Vault"
+              },
+              "resourceGuardOperationRequests": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "ResourceGuardOperationRequests on which LAC check will be performed"
+              },
+              "replicatedRegions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of replicated regions for Backup Vault"
+              }
+            }
+          },
+          "description": "BackupVaultResource properties"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The object ID of the service principal object for the managed identity that is used to grant role-based access to an Azure resource."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A Globally Unique Identifier (GUID) that represents the Azure AD tenant where the resource is now a member."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identityType which can be either SystemAssigned, UserAssigned, 'SystemAssigned,UserAssigned' or None"
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "Gets or sets the user assigned identities."
+              }
+            }
+          },
+          "description": "Input Managed Identity Details"
+        },
+        "eTag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Optional ETag."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        }
+      }
+    }
+  }
+}

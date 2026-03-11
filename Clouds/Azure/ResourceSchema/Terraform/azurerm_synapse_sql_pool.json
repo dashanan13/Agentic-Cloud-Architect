@@ -1,0 +1,124 @@
+{
+  "resourceName": "SQL Data Warehouses",
+  "bicepType": "Microsoft.Sql/servers/databases@2023-05-01-preview",
+  "terraformType": "azurerm_synapse_sql_pool",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sql/servers/databases",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "collation": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "create_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "data_encrypted": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "geo_backup_policy_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "recovery_database_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "storage_account_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "synapse_workspace_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "restore": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "point_in_time": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "source_database_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

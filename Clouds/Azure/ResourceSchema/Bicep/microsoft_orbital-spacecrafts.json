@@ -1,0 +1,314 @@
+{
+  "resourceName": "Azure Orbital",
+  "bicepType": "Microsoft.Orbital/spacecrafts@2022-11-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.orbital/spacecrafts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Orbital/spacecrafts@2022-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Orbital/spacecrafts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "deleting"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The current state of the resource's creation, deletion, or modification."
+              },
+              "noradId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "NORAD ID of the spacecraft."
+              },
+              "titleLine": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Title line of the two-line element set (TLE)."
+              },
+              "tleLine1": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Line 1 of the two-line element set (TLE)."
+              },
+              "tleLine2": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Line 2 of the two-line element set (TLE)."
+              },
+              "links": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Link name."
+                      },
+                      "centerFrequencyMHz": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "Center Frequency in MHz."
+                      },
+                      "bandwidthMHz": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "Bandwidth in MHz."
+                      },
+                      "direction": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Direction (Uplink or Downlink)."
+                      },
+                      "polarization": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Polarization. e.g. (RHCP, LHCP)."
+                      },
+                      "authorizations": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Authorized Ground Stations"
+                      }
+                    }
+                  }
+                },
+                "description": "Immutable list of Spacecraft links."
+              }
+            }
+          },
+          "description": "Spacecraft Properties"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

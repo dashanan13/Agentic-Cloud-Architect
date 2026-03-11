@@ -1,0 +1,322 @@
+{
+  "resourceName": "Offers",
+  "bicepType": "Microsoft.Subscription/aliases@2021-10-01",
+  "terraformType": "",
+  "category": "azure stack",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.subscription/aliases",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Subscription/aliases@2021-10-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Subscription/aliases"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2021-10-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The friendly name of the subscription."
+              },
+              "workload": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Production"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DevTest"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The workload type of the subscription. It can be either Production or DevTest."
+              },
+              "billingScope": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Billing scope of the subscription.\nFor CustomerLed and FieldLed - /billingAccounts/{billingAccountName}/billingProfiles/{billingProfileName}/invoiceSections/{invoiceSectionName}\nFor PartnerLed - /billingAccounts/{billingAccountName}/customers/{customerName}\nFor Legacy EA - /billingAccounts/{billingAccountName}/enrollmentAccounts/{enrollmentAccountName}"
+              },
+              "subscriptionId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This parameter can be used to create alias for existing subscription Id"
+              },
+              "resellerId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Reseller Id"
+              },
+              "additionalProperties": {
+                "flags": 4,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "managementGroupId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Management group Id for the subscription."
+                    },
+                    "subscriptionTenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Tenant Id of the subscription"
+                    },
+                    "subscriptionOwnerId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Owner Id of the subscription"
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Tags for the subscription"
+                    }
+                  }
+                },
+                "description": "Put alias request additional properties."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the resource."
+              },
+              "acceptOwnershipUrl": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Url to accept ownership of the subscription."
+              },
+              "acceptOwnershipState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Completed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The accept ownership state of the resource."
+              },
+              "subscriptionOwnerId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Owner Id of the subscription"
+              },
+              "managementGroupId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Management Group Id."
+              },
+              "createdTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Created Time"
+              },
+              "tags": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Tags for the subscription"
+              }
+            }
+          },
+          "description": "Put alias request properties."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        }
+      }
+    }
+  }
+}

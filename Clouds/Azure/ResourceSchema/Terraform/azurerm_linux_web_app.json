@@ -1,0 +1,1938 @@
+{
+  "resourceName": "App Services",
+  "bicepType": "Microsoft.Web/sites@2023-12-01",
+  "terraformType": "azurerm_linux_web_app",
+  "category": "app services",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/sites",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "app_settings": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "client_affinity_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "client_certificate_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "client_certificate_exclusion_paths": {
+          "type": "string",
+          "description": "Paths to exclude when using client certificates, separated by ;",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "client_certificate_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "custom_domain_verification_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "default_hostname": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "ftp_publish_basic_authentication_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "hosting_environment_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "https_only": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "key_vault_reference_identity_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "kind": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "outbound_ip_address_list": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "outbound_ip_addresses": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "possible_outbound_ip_address_list": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "possible_outbound_ip_addresses": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "service_plan_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "site_credential": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "name": "string",
+                "password": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "virtual_network_backup_restore_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "virtual_network_subnet_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "vnet_image_pull_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "webdeploy_publish_basic_authentication_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "zip_deploy_file": {
+          "type": "string",
+          "description": "The local path and filename of the Zip packaged application to deploy to this Linux Web App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        }
+      },
+      "block_types": {
+        "auth_settings": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "additional_login_parameters": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description": "Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "allowed_external_redirect_urls": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description": "Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "default_provider": {
+                "type": "string",
+                "description": "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "enabled": {
+                "type": "bool",
+                "description": "Should the Authentication / Authorization feature be enabled?",
+                "description_kind": "plain",
+                "required": true
+              },
+              "issuer": {
+                "type": "string",
+                "description": "The OpenID Connect Issuer URI that represents the entity which issues access tokens.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "runtime_version": {
+                "type": "string",
+                "description": "The RuntimeVersion of the Authentication / Authorization feature in use.",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "token_refresh_extension_hours": {
+                "type": "number",
+                "description": "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "token_store_enabled": {
+                "type": "bool",
+                "description": "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "unauthenticated_client_action": {
+                "type": "string",
+                "description": "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "block_types": {
+              "active_directory": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_audiences": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "description": "The ID of the Client to use to authenticate with Azure Active Directory.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret": {
+                      "type": "string",
+                      "description": "The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "facebook": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "app_id": {
+                      "type": "string",
+                      "description": "The App ID of the Facebook app used for login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "app_secret": {
+                      "type": "string",
+                      "description": "The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "app_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "oauth_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "github": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "The ID of the GitHub app used for login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret": {
+                      "type": "string",
+                      "description": "The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "oauth_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "google": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "The OpenID Connect Client ID for the Google web application.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret": {
+                      "type": "string",
+                      "description": "The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "oauth_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "microsoft": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "The OAuth 2.0 client ID that was created for the app used for authentication.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret": {
+                      "type": "string",
+                      "description": "The OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret_setting_name`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "oauth_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "The list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. If not specified, `wl.basic` is used as the default scope.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "twitter": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "consumer_key": {
+                      "type": "string",
+                      "description": "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "consumer_secret": {
+                      "type": "string",
+                      "description": "The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "consumer_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "auth_settings_v2": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "auth_enabled": {
+                "type": "bool",
+                "description": "Should the AuthV2 Settings be enabled. Defaults to `false`",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "config_file_path": {
+                "type": "string",
+                "description": "The path to the App Auth settings. **Note:** Relative Paths are evaluated from the Site Root directory.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "default_provider": {
+                "type": "string",
+                "description": "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "excluded_paths": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description": "The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "forward_proxy_convention": {
+                "type": "string",
+                "description": "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "forward_proxy_custom_host_header_name": {
+                "type": "string",
+                "description": "The name of the header containing the host of the request.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "forward_proxy_custom_scheme_header_name": {
+                "type": "string",
+                "description": "The name of the header containing the scheme of the request.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "http_route_api_prefix": {
+                "type": "string",
+                "description": "The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "require_authentication": {
+                "type": "bool",
+                "description": "Should the authentication flow be used for all requests.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "require_https": {
+                "type": "bool",
+                "description": "Should HTTPS be required on connections? Defaults to true.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "runtime_version": {
+                "type": "string",
+                "description": "The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "unauthenticated_action": {
+                "type": "string",
+                "description": "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "active_directory_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_applications": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "The list of allowed Applications for the Default Authorisation Policy.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "allowed_audiences": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "allowed_groups": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "The list of allowed Group Names for the Default Authorisation Policy.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "allowed_identities": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "The list of allowed Identities for the Default Authorisation Policy.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "description": "The ID of the Client to use to authenticate with Azure Active Directory.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret_certificate_thumbprint": {
+                      "type": "string",
+                      "description": "The thumbprint of the certificate used for signing purposes.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The App Setting name that contains the client secret of the Client.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "jwt_allowed_client_applications": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "A list of Allowed Client Applications in the JWT Claim.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "jwt_allowed_groups": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "A list of Allowed Groups in the JWT Claim.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "login_parameters": {
+                      "type": [
+                        "map",
+                        "string"
+                      ],
+                      "description": "A map of key-value pairs to send to the Authorisation Endpoint when a user logs in.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "tenant_auth_endpoint": {
+                      "type": "string",
+                      "description": "The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "www_authentication_disabled": {
+                      "type": "bool",
+                      "description": "Should the www-authenticate provider should be omitted from the request? Defaults to `false`",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "apple_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "The OpenID Connect Client ID for the Apple web application.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `client_secret` value used for Apple Login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "login_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "azure_static_web_app_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "The ID of the Client to use to authenticate with Azure Static Web App Authentication.",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "custom_oidc_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "authorisation_endpoint": {
+                      "type": "string",
+                      "description": "The endpoint to make the Authorisation Request.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "certification_uri": {
+                      "type": "string",
+                      "description": "The endpoint that provides the keys necessary to validate the token.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "client_credential_method": {
+                      "type": "string",
+                      "description": "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "description": "The ID of the Client to use to authenticate with this Custom OIDC.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The App Setting name that contains the secret for this Custom OIDC Client.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "issuer_endpoint": {
+                      "type": "string",
+                      "description": "The endpoint that issued the Token.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the Custom OIDC Authentication Provider.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name_claim_type": {
+                      "type": "string",
+                      "description": "The name of the claim that contains the users name.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "openid_configuration_endpoint": {
+                      "type": "string",
+                      "description": "The endpoint that contains all the configuration endpoints for this Custom OIDC provider.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "The list of the scopes that should be requested while authenticating.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "token_endpoint": {
+                      "type": "string",
+                      "description": "The endpoint used to request a Token.",
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "facebook_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "app_id": {
+                      "type": "string",
+                      "description": "The App ID of the Facebook app used for login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "app_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `app_secret` value used for Facebook Login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "graph_api_version": {
+                      "type": "string",
+                      "description": "The version of the Facebook API to be used while logging in.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "login_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of scopes to be requested as part of Facebook Login authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "github_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "The ID of the GitHub app used for login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `client_secret` value used for GitHub Login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "login_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "google_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_audiences": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "description": "The OpenID Connect Client ID for the Google web application.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the `client_secret` value used for Google Login.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "login_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of Login scopes that will be requested as part of Google Sign-In authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "login": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_external_redirect_urls": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "cookie_expiration_convention": {
+                      "type": "string",
+                      "description": "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "cookie_expiration_time": {
+                      "type": "string",
+                      "description": "The time after the request is made when the session cookie should expire. Defaults to `08:00:00`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "logout_endpoint": {
+                      "type": "string",
+                      "description": "The endpoint to which logout requests should be made.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "nonce_expiration_time": {
+                      "type": "string",
+                      "description": "The time after the request is made when the nonce should expire. Defaults to `00:05:00`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "preserve_url_fragments_for_logins": {
+                      "type": "bool",
+                      "description": "Should the fragments from the request be preserved after the login request is made. Defaults to `false`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "token_refresh_extension_time": {
+                      "type": "number",
+                      "description": "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "token_store_enabled": {
+                      "type": "bool",
+                      "description": "Should the Token Store configuration Enabled. Defaults to `false`",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "token_store_path": {
+                      "type": "string",
+                      "description": "The directory path in the App Filesystem in which the tokens will be stored.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "token_store_sas_setting_name": {
+                      "type": "string",
+                      "description": "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "validate_nonce": {
+                      "type": "bool",
+                      "description": "Should the nonce be validated while completing the login flow. Defaults to `true`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1,
+                "max_items": 1
+              },
+              "microsoft_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_audiences": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "description": "The OAuth 2.0 client ID that was created for the app used for authentication.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "client_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "login_scopes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "The list of Login scopes that will be requested as part of Microsoft Account authentication.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "twitter_v2": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "consumer_key": {
+                      "type": "string",
+                      "description": "The OAuth 1.0a consumer key of the Twitter application used for sign-in.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "consumer_secret_setting_name": {
+                      "type": "string",
+                      "description": "The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "backup": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description": "Should this backup job be enabled?",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description": "The name which should be used for this Backup.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_account_url": {
+                "type": "string",
+                "description": "The SAS URL to the container.",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "block_types": {
+              "schedule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "frequency_interval": {
+                      "type": "number",
+                      "description": "How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "frequency_unit": {
+                      "type": "string",
+                      "description": "The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "keep_at_least_one_backup": {
+                      "type": "bool",
+                      "description": "Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "last_execution_time": {
+                      "type": "string",
+                      "description": "The time the backup was last attempted.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "retention_period_days": {
+                      "type": "number",
+                      "description": "After how many days backups should be deleted.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "start_time": {
+                      "type": "string",
+                      "description": "When the schedule should start working in RFC-3339 format.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1,
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "connection_string": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "name": {
+                "type": "string",
+                "description": "The name which should be used for this Connection.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "value": {
+                "type": "string",
+                "description": "The connection string value.",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "logs": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "detailed_error_messages": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "failed_request_tracing": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "application_logs": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "file_system_level": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "azure_blob_storage": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "level": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "retention_in_days": {
+                            "type": "number",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "sas_url": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "http_logs": {
+                "nesting_mode": "list",
+                "block": {
+                  "block_types": {
+                    "azure_blob_storage": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "retention_in_days": {
+                            "type": "number",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "sas_url": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true,
+                            "sensitive": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    },
+                    "file_system": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "retention_in_days": {
+                            "type": "number",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "retention_in_mb": {
+                            "type": "number",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "site_config": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "always_on": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "api_definition_url": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "api_management_api_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "app_command_line": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "container_registry_managed_identity_client_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "container_registry_use_managed_identity": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "default_documents": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "detailed_error_logging_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "ftps_state": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "health_check_eviction_time_in_min": {
+                "type": "number",
+                "description": "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "health_check_path": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "http2_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "ip_restriction_default_action": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "linux_fx_version": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "load_balancing_mode": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "local_mysql_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "managed_pipeline_mode": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "minimum_tls_version": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "remote_debugging_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "remote_debugging_version": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "scm_ip_restriction_default_action": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "scm_minimum_tls_version": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "scm_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "scm_use_main_ip_restriction": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "use_32_bit_worker": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "vnet_route_all_enabled": {
+                "type": "bool",
+                "description": "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "websockets_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "worker_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "block_types": {
+              "application_stack": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "docker_image_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "docker_registry_password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "docker_registry_url": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "docker_registry_username": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "dotnet_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "go_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "java_server": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "java_server_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "java_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "node_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "php_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "python_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ruby_version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "auto_heal_setting": {
+                "nesting_mode": "list",
+                "block": {
+                  "block_types": {
+                    "action": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "action_type": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "minimum_process_execution_time": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true,
+                            "computed": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    },
+                    "trigger": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "block_types": {
+                          "requests": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "count": {
+                                  "type": "number",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "interval": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            },
+                            "max_items": 1
+                          },
+                          "slow_request": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "count": {
+                                  "type": "number",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "interval": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "time_taken": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            },
+                            "max_items": 1
+                          },
+                          "slow_request_with_path": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "count": {
+                                  "type": "number",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "interval": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "path": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "optional": true
+                                },
+                                "time_taken": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          },
+                          "status_code": {
+                            "nesting_mode": "set",
+                            "block": {
+                              "attributes": {
+                                "count": {
+                                  "type": "number",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "interval": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "path": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "optional": true
+                                },
+                                "status_code_range": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "sub_status": {
+                                  "type": "number",
+                                  "description_kind": "plain",
+                                  "optional": true
+                                },
+                                "win32_status_code": {
+                                  "type": "number",
+                                  "description_kind": "plain",
+                                  "optional": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "cors": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allowed_origins": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description": "Specifies a list of origins that should be allowed to make cross-origin calls.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "support_credentials": {
+                      "type": "bool",
+                      "description": "Are credentials allowed in CORS requests? Defaults to `false`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "ip_restriction": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "action": {
+                      "type": "string",
+                      "description": "The action to take. Possible values are `Allow` or `Deny`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the IP restriction rule.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "headers": {
+                      "type": [
+                        "list",
+                        [
+                          "object",
+                          {
+                            "x_azure_fdid": [
+                              "list",
+                              "string"
+                            ],
+                            "x_fd_health_probe": [
+                              "list",
+                              "string"
+                            ],
+                            "x_forwarded_for": [
+                              "list",
+                              "string"
+                            ],
+                            "x_forwarded_host": [
+                              "list",
+                              "string"
+                            ]
+                          }
+                        ]
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ip_address": {
+                      "type": "string",
+                      "description": "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32` or `fe80::/64` or `13.107.6.152/31,13.107.128.0/22`",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name which should be used for this `ip_restriction`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "priority": {
+                      "type": "number",
+                      "description": "The priority value of this `ip_restriction`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "service_tag": {
+                      "type": "string",
+                      "description": "The Service Tag used for this IP Restriction.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "virtual_network_subnet_id": {
+                      "type": "string",
+                      "description": "The Virtual Network Subnet ID used for this IP Restriction.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "scm_ip_restriction": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "action": {
+                      "type": "string",
+                      "description": "The action to take. Possible values are `Allow` or `Deny`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the IP restriction rule.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "headers": {
+                      "type": [
+                        "list",
+                        [
+                          "object",
+                          {
+                            "x_azure_fdid": [
+                              "list",
+                              "string"
+                            ],
+                            "x_fd_health_probe": [
+                              "list",
+                              "string"
+                            ],
+                            "x_forwarded_for": [
+                              "list",
+                              "string"
+                            ],
+                            "x_forwarded_host": [
+                              "list",
+                              "string"
+                            ]
+                          }
+                        ]
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ip_address": {
+                      "type": "string",
+                      "description": "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32` or `fe80::/64` or `13.107.6.152/31,13.107.128.0/22`",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name which should be used for this `ip_restriction`.",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "priority": {
+                      "type": "number",
+                      "description": "The priority value of this `ip_restriction`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "service_tag": {
+                      "type": "string",
+                      "description": "The Service Tag used for this IP Restriction.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "virtual_network_subnet_id": {
+                      "type": "string",
+                      "description": "The Virtual Network Subnet ID used for this IP Restriction.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "sticky_settings": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "app_setting_names": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "connection_string_names": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "storage_account": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "access_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "account_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "mount_path": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "share_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

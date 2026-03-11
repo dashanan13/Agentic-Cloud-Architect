@@ -1,0 +1,66 @@
+{
+  "resourceName": "Tag",
+  "bicepType": "Microsoft.Resources/tags@2024-03-01",
+  "terraformType": "azurerm_resource_group",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.resources/tags",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Resources/tags@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "default"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Resources/tags"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "tags": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Dictionary of <string>"
+              }
+            }
+          },
+          "description": "The set of tags."
+        }
+      }
+    }
+  }
+}

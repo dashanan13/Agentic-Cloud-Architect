@@ -1,0 +1,317 @@
+{
+  "resourceName": "Managed Database",
+  "bicepType": "Microsoft.Sql/managedInstances/databases@2023-05-01-preview",
+  "terraformType": "azurerm_mssql_managed_database",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sql/managedinstances/databases",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Sql/managedInstances/databases@2023-05-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Sql/managedInstances/databases"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-05-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "collation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Collation of the managed database."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Online"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Offline"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Shutdown"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Inaccessible"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Restoring"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopped"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Starting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DbMoving"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DbCopying"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Status of the database."
+              },
+              "creationDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Creation date of the database."
+              },
+              "earliestRestorePoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Earliest restore point in time for point in time restore."
+              },
+              "restorePointInTime": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Conditional. If createMode is PointInTimeRestore, this value is required. Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database."
+              },
+              "defaultSecondaryLocation": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Geo paired region."
+              },
+              "catalogCollation": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DATABASE_DEFAULT"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL_Latin1_General_CP1_CI_AS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Collation of the metadata catalog."
+              },
+              "createMode": {
+                "flags": 4,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Default"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RestoreExternalBackup"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PointInTimeRestore"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Recovery"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RestoreLongTermRetentionBackup"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Managed database create mode. PointInTimeRestore: Create a database by restoring a point in time backup of an existing database. SourceDatabaseName, SourceManagedInstanceName and PointInTime must be specified. RestoreExternalBackup: Create a database by restoring from external backup files. Collation, StorageContainerUri and StorageContainerSasToken must be specified. Recovery: Creates a database by restoring a geo-replicated backup. RecoverableDatabaseId must be specified as the recoverable database resource ID to restore. RestoreLongTermRetentionBackup: Create a database by restoring from a long term retention backup (longTermRetentionBackupResourceId required)."
+              },
+              "storageContainerUri": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Conditional. If createMode is RestoreExternalBackup, this value is required. Specifies the uri of the storage container where backups for this restore are stored."
+              },
+              "sourceDatabaseId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource identifier of the source database associated with create operation of this database."
+              },
+              "crossSubscriptionSourceDatabaseId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource identifier of the cross-subscription source database associated with create operation of this database."
+              },
+              "restorableDroppedDatabaseId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The restorable dropped database resource id to restore when creating this database."
+              },
+              "crossSubscriptionRestorableDroppedDatabaseId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The restorable cross-subscription dropped database resource id to restore when creating this database."
+              },
+              "storageContainerIdentity": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Conditional. If createMode is RestoreExternalBackup, this value is used. Specifies the identity used for storage container authentication. Can be 'SharedAccessSignature' or 'ManagedIdentity'; if not specified 'SharedAccessSignature' is assumed."
+              },
+              "storageContainerSasToken": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Conditional. If createMode is RestoreExternalBackup and storageContainerIdentity is not ManagedIdentity, this value is required. Specifies the storage container sas token."
+              },
+              "failoverGroupId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Instance Failover Group resource identifier that this managed database belongs to."
+              },
+              "recoverableDatabaseId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource identifier of the recoverable database associated with create operation of this database."
+              },
+              "longTermRetentionBackupResourceId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the Long Term Retention backup to be used for restore of this managed database."
+              },
+              "autoCompleteRestore": {
+                "flags": 4,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether to auto complete restore of this managed database."
+              },
+              "lastBackupName": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Last backup file name for restore of this managed database."
+              },
+              "crossSubscriptionTargetManagedInstanceId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Target managed instance id used in cross-subscription restore."
+              },
+              "isLedgerOn": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether or not this database is a ledger database, which means all tables in the database are ledger tables. Note: the value of this property cannot be changed after the database has been created."
+              }
+            }
+          },
+          "description": "Resource properties."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

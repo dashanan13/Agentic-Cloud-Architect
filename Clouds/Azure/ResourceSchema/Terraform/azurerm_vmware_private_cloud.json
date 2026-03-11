@@ -1,0 +1,185 @@
+{
+  "resourceName": "Azure VMware Solution",
+  "bicepType": "Microsoft.AVS/privateClouds@2023-09-01",
+  "terraformType": "azurerm_vmware_private_cloud",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.avs/privateclouds",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "circuit": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "express_route_id": "string",
+                "express_route_private_peering_id": "string",
+                "primary_subnet_cidr": "string",
+                "secondary_subnet_cidr": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "hcx_cloud_manager_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "internet_connection_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "management_subnet_cidr": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "network_subnet_cidr": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "nsxt_certificate_thumbprint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "nsxt_manager_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "nsxt_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "provisioning_subnet_cidr": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "vcenter_certificate_thumbprint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "vcenter_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "vcsa_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "vmotion_subnet_cidr": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "management_cluster": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "hosts": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "computed": true
+              },
+              "id": {
+                "type": "number",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "size": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

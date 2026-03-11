@@ -1,0 +1,478 @@
+{
+  "resourceName": "App Compliance Automation",
+  "bicepType": "Microsoft.AppComplianceAutomation/reports@2024-06-27",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.appcomplianceautomation/reports",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AppComplianceAutomation/reports@2024-06-27",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[-a-zA-Z0-9_]{1,50}$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AppComplianceAutomation/reports"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-06-27"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "triggerTime": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Report collection trigger time."
+              },
+              "timeZone": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Report collection trigger time's time zone, the available list can be obtained by executing \"Get-TimeZone -ListAvailable\" in PowerShell.\nAn example of valid timezone id is \"Pacific Standard Time\"."
+              },
+              "resources": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "resourceId": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Id - e.g. \"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm1\"."
+                      },
+                      "resourceType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource type. e.g. \"Microsoft.Compute/virtualMachines\""
+                      },
+                      "resourceKind": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource kind."
+                      },
+                      "resourceOrigin": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Resource Origin."
+                      },
+                      "accountId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Account Id. For example - the AWS account id."
+                      }
+                    }
+                  }
+                },
+                "description": "List of resource data."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Active"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Reviewing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Report status."
+              },
+              "errors": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of report error codes."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Report's tenant id."
+              },
+              "offerGuid": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A list of comma-separated offerGuids indicates a series of offerGuids that map to the report. For example, \"00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002\" and \"00000000-0000-0000-0000-000000000003\"."
+              },
+              "nextTriggerTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Report next collection trigger time."
+              },
+              "lastTriggerTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Report last collection trigger time."
+              },
+              "subscriptions": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of subscription Ids."
+              },
+              "complianceStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "m365": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "passedCount": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The count of all passed control."
+                          },
+                          "failedCount": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The count of all failed control."
+                          },
+                          "manualCount": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The count of all manual control."
+                          },
+                          "notApplicableCount": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The count of all not applicable control."
+                          },
+                          "pendingCount": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The count of all pending for approval control."
+                          }
+                        }
+                      },
+                      "description": "The Microsoft 365 certification name."
+                    }
+                  }
+                },
+                "description": "Report compliance status."
+              },
+              "storageInfo": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "subscriptionId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The subscription id which 'bring your own storage' account belongs to"
+                    },
+                    "resourceGroup": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resourceGroup which 'bring your own storage' account belongs to"
+                    },
+                    "accountName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "'bring your own storage' account name"
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The region of 'bring your own storage' account"
+                    }
+                  }
+                },
+                "description": "The information of 'bring your own storage' binding to the report"
+              },
+              "certRecords": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "offerGuid": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 1
+                        },
+                        "description": "The offerGuid which mapping to the reports."
+                      },
+                      "certificationStatus": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Indicates the status of certification process."
+                      },
+                      "ingestionStatus": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Indicates the status of compliance process."
+                      },
+                      "controls": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The control records list to be synchronized."
+                      }
+                    }
+                  }
+                },
+                "description": "List of synchronized certification records."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Fixing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Verifying"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Azure lifecycle management"
+              }
+            }
+          },
+          "description": "Report property."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

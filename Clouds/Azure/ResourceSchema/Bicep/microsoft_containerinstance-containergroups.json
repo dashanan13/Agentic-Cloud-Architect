@@ -1,0 +1,985 @@
+{
+  "resourceName": "Container Instances",
+  "bicepType": "Microsoft.ContainerInstance/containerGroups@2023-05-01",
+  "terraformType": "azurerm_container_group",
+  "category": "containers",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.containerinstance/containergroups",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.ContainerInstance/containerGroups@2023-05-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.ContainerInstance/containerGroups"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-05-01"
+          },
+          "description": "The resource api version"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The resource tags."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The zones for the container group."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal id of the container group identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant id associated with the container group. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the container group. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the container group."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with the container group."
+              }
+            }
+          },
+          "description": "The identity of the container group, if configured."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state of the container group. This only appears in the response."
+              },
+              "containers": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The user-provided name of the container instance."
+                      },
+                      "properties": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "image": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the image used to create the container instance."
+                            },
+                            "command": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The commands to execute within the container instance in exec form."
+                            },
+                            "ports": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The exposed ports on the container instance."
+                            },
+                            "environmentVariables": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The environment variables to set in the container instance."
+                            },
+                            "instanceView": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The instance view of the container instance. Only valid in response."
+                            },
+                            "resources": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource requirements of the container instance."
+                            },
+                            "volumeMounts": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The volume mounts available to the container instance."
+                            },
+                            "livenessProbe": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The liveness probe."
+                            },
+                            "readinessProbe": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The readiness probe."
+                            },
+                            "securityContext": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The container security properties."
+                            }
+                          }
+                        },
+                        "description": "The properties of the container instance."
+                      }
+                    }
+                  }
+                },
+                "description": "The containers within the container group."
+              },
+              "imageRegistryCredentials": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "server": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Docker image registry server without a protocol such as \"http\" and \"https\"."
+                      },
+                      "username": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The username for the private registry."
+                      },
+                      "password": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "sensitive": true
+                        },
+                        "description": "The password for the private registry."
+                      },
+                      "identity": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The identity for the private registry."
+                      },
+                      "identityUrl": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The identity URL for the private registry."
+                      }
+                    }
+                  }
+                },
+                "description": "The image registry credentials by which the container group is created from."
+              },
+              "restartPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Always"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "OnFailure"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Never"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Restart policy for all containers within the container group. \n- `Always` Always restart\n- `OnFailure` Restart on failure\n- `Never` Never restart"
+              },
+              "ipAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ports": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "protocol": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The protocol associated with the port."
+                            },
+                            "port": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The port number."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of ports exposed on the container group."
+                    },
+                    "type": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Public"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Private"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies if the IP is exposed to the public internet or private VNET."
+                    },
+                    "ip": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The IP exposed to the public internet."
+                    },
+                    "dnsNameLabel": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The Dns name label for the IP."
+                    },
+                    "autoGeneratedDomainNameLabelScope": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unsecure"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TenantReuse"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SubscriptionReuse"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ResourceGroupReuse"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Noreuse"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The value representing the security enum. The 'Unsecure' value is the default value if not selected and means the object's domain name label is not secured against subdomain takeover. The 'TenantReuse' value is the default value if selected and means the object's domain name label can be reused within the same tenant. The 'SubscriptionReuse' value means the object's domain name label can be reused within the same subscription. The 'ResourceGroupReuse' value means the object's domain name label can be reused within the same resource group. The 'NoReuse' value means the object's domain name label cannot be reused within the same resource group, subscription, or tenant."
+                    },
+                    "fqdn": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The FQDN for the IP."
+                    }
+                  }
+                },
+                "description": "The IP address type of the container group."
+              },
+              "osType": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Windows"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Linux"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The operating system type required by the containers in the container group."
+              },
+              "volumes": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the volume."
+                      },
+                      "azureFile": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "shareName": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the Azure File share to be mounted as a volume."
+                            },
+                            "readOnly": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The flag indicating whether the Azure File shared mounted as a volume is read-only."
+                            },
+                            "storageAccountName": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the storage account that contains the Azure File share."
+                            },
+                            "storageAccountKey": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The storage account access key used to access the Azure File share."
+                            }
+                          }
+                        },
+                        "description": "The Azure File volume."
+                      },
+                      "emptyDir": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "AnyType"
+                        },
+                        "description": "The empty directory volume."
+                      },
+                      "secret": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The secret volume."
+                      },
+                      "gitRepo": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "directory": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Target directory name. Must not contain or start with '..'.  If '.' is supplied, the volume directory will be the git repository.  Otherwise, if specified, the volume will contain the git repository in the subdirectory with the given name."
+                            },
+                            "repository": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Repository URL"
+                            },
+                            "revision": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Commit hash for the specified revision."
+                            }
+                          }
+                        },
+                        "description": "The git repo volume."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of volumes that can be mounted by containers in this container group."
+              },
+              "instanceView": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "events": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "count": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The count of the event."
+                            },
+                            "firstTimestamp": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The date-time of the earliest logged event."
+                            },
+                            "lastTimestamp": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The date-time of the latest logged event."
+                            },
+                            "name": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The event name."
+                            },
+                            "message": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The event message."
+                            },
+                            "type": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The event type."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The events of this container group."
+                    },
+                    "state": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The state of the container group. Only valid in response."
+                    }
+                  }
+                },
+                "description": "The instance view of the container group. Only valid in response."
+              },
+              "diagnostics": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "logAnalytics": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "workspaceId": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The workspace id for log analytics"
+                          },
+                          "workspaceKey": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType",
+                              "sensitive": true
+                            },
+                            "description": "The workspace key for log analytics"
+                          },
+                          "logType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The log type to be used."
+                          },
+                          "metadata": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "additionalProperties": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Metadata for log analytics."
+                          },
+                          "workspaceResourceId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType",
+                              "sensitive": true
+                            },
+                            "description": "The workspace resource id for log analytics"
+                          }
+                        }
+                      },
+                      "description": "Container group log analytics information."
+                    }
+                  }
+                },
+                "description": "The diagnostic information for a container group."
+              },
+              "subnetIds": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID of virtual network and subnet."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Friendly name for the subnet."
+                      }
+                    }
+                  }
+                },
+                "description": "The subnet resource IDs for a container group."
+              },
+              "dnsConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "nameServers": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The DNS servers for the container group."
+                    },
+                    "searchDomains": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The DNS search domains for hostname lookup in the container group."
+                    },
+                    "options": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The DNS options for the container group."
+                    }
+                  }
+                },
+                "description": "The DNS config information for a container group."
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Dedicated"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Confidential"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The SKU for a container group."
+              },
+              "encryptionProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "vaultBaseUrl": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The keyvault base url."
+                    },
+                    "keyName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The encryption key name."
+                    },
+                    "keyVersion": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The encryption key version."
+                    },
+                    "identity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The keyvault managed identity."
+                    }
+                  }
+                },
+                "description": "The encryption properties for a container group."
+              },
+              "initContainers": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name for the init container."
+                      },
+                      "properties": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "image": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The image of the init container."
+                            },
+                            "command": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The command to execute within the init container in exec form."
+                            },
+                            "environmentVariables": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The environment variables to set in the init container."
+                            },
+                            "instanceView": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The instance view of the init container. Only valid in response."
+                            },
+                            "volumeMounts": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The volume mounts available to the init container."
+                            },
+                            "securityContext": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The container security properties."
+                            }
+                          }
+                        },
+                        "description": "The properties for the init container."
+                      }
+                    }
+                  }
+                },
+                "description": "The init containers for a container group."
+              },
+              "extensions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Name of the extension."
+                      },
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "extensionType": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of extension to be added."
+                            },
+                            "version": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Version of the extension being used."
+                            },
+                            "settings": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Settings for the extension."
+                            },
+                            "protectedSettings": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Protected settings for the extension."
+                            }
+                          }
+                        },
+                        "description": "Extension specific properties"
+                      }
+                    }
+                  }
+                },
+                "description": "extensions used by virtual kubelet"
+              },
+              "confidentialComputeProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ccePolicy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The base64 encoded confidential compute enforcement policy"
+                    }
+                  }
+                },
+                "description": "The properties for confidential container group"
+              },
+              "priority": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Regular"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Spot"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The priority of the container group."
+              }
+            }
+          },
+          "description": "The container group properties"
+        }
+      }
+    }
+  }
+}

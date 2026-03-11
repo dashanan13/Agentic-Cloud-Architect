@@ -1,0 +1,503 @@
+{
+  "resourceName": "Azure SQL",
+  "bicepType": "Microsoft.Sql/servers@2023-05-01-preview",
+  "terraformType": "azurerm_mssql_server",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sql/servers",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Sql/servers@2023-05-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Sql/servers"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-05-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The Azure Active Directory principal id."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The Azure Active Directory client id."
+                      }
+                    }
+                  }
+                },
+                "description": "The resource ids of the user assigned identities to use"
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The Azure Active Directory principal id."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The Azure Active Directory tenant id."
+              }
+            }
+          },
+          "description": "The Azure Active Directory identity of the server."
+        },
+        "kind": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of sql server. This is metadata used for the Azure portal experience."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "administratorLogin": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Administrator username for the server. Once created it cannot be changed."
+              },
+              "administratorLoginPassword": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "The administrator login password (required for server creation)."
+              },
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The version of the server."
+              },
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The state of the server."
+              },
+              "fullyQualifiedDomainName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The fully qualified domain name of the server."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      },
+                      "properties": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Private endpoint which the connection belongs to."
+                            },
+                            "groupIds": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Group IDs."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Connection state of the private endpoint connection."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "State of the private endpoint connection."
+                            }
+                          }
+                        },
+                        "description": "Private endpoint connection properties"
+                      }
+                    }
+                  }
+                },
+                "description": "List of private endpoint connections on a server"
+              },
+              "minimalTlsVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "1.0"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "1.1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "1.2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "1.3"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Minimal TLS version. Allowed values: 'None', 1.0', '1.1', '1.2', '1.3'"
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SecuredByPerimeter"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether or not public endpoint access is allowed for this server.  Value is optional but if passed in, must be 'Enabled' or 'Disabled' or 'SecuredByPerimeter'"
+              },
+              "workspaceFeature": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disconnected"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether or not existing server has a workspace created and if it allows connection from workspace"
+              },
+              "primaryUserAssignedIdentityId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource id of a user assigned identity to be used by default."
+              },
+              "federatedClientId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The Client id used for cross tenant CMK scenario"
+              },
+              "keyId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A CMK URI of the key to use for encryption."
+              },
+              "administrators": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "administratorType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ActiveDirectory"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Type of the sever administrator."
+                    },
+                    "principalType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "User"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Group"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Application"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Principal Type of the sever administrator."
+                    },
+                    "login": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Login name of the server administrator."
+                    },
+                    "sid": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "SID (object ID) of the server administrator."
+                    },
+                    "tenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "Tenant ID of the administrator."
+                    },
+                    "azureADOnlyAuthentication": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Azure Active Directory only Authentication enabled."
+                    }
+                  }
+                },
+                "description": "The Azure Active Directory administrator of the server. This can only be used at server create time. If used for server update, it will be ignored or it will result in an error. For updates individual APIs will need to be used."
+              },
+              "restrictOutboundNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether or not to restrict outbound network access for this server.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'"
+              },
+              "isIPv6Enabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether or not to enable IPv6 support for this server.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'"
+              },
+              "externalGovernanceStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Status of external governance."
+              }
+            }
+          },
+          "description": "Resource properties."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

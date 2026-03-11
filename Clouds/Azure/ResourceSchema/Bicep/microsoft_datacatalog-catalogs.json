@@ -1,0 +1,172 @@
+{
+  "resourceName": "Azure Data Catalog",
+  "bicepType": "Microsoft.DataCatalog/catalogs@2016-03-30",
+  "terraformType": "",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.datacatalog/catalogs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DataCatalog/catalogs@2016-03-30",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DataCatalog/catalogs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2016-03-30"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Azure data catalog SKU."
+              },
+              "units": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Azure data catalog units."
+              },
+              "admins": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "upn": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "UPN of the user."
+                      },
+                      "objectId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Object Id for the user"
+                      }
+                    }
+                  }
+                },
+                "description": "Azure data catalog admin list."
+              },
+              "users": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "upn": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "UPN of the user."
+                      },
+                      "objectId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Object Id for the user"
+                      }
+                    }
+                  }
+                },
+                "description": "Azure data catalog user list."
+              },
+              "successfullyProvisioned": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Azure data catalog provision status."
+              },
+              "enableAutomaticUnitAdjustment": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Automatic unit adjustment enabled or not."
+              }
+            }
+          },
+          "description": "Azure Data Catalog properties."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource etag"
+        }
+      }
+    }
+  }
+}

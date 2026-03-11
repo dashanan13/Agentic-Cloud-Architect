@@ -1,0 +1,598 @@
+{
+  "resourceName": "Azure Synapse Analytics",
+  "bicepType": "Microsoft.Synapse/workspaces@2021-06-01",
+  "terraformType": "azurerm_synapse_workspace",
+  "category": "analytics",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.synapse/workspaces",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Synapse/workspaces@2021-06-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Synapse/workspaces"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2021-06-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "defaultDataLakeStorage": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "accountUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Account URL"
+                    },
+                    "filesystem": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Filesystem name"
+                    },
+                    "resourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ARM resource Id of this storage account"
+                    },
+                    "createManagedPrivateEndpoint": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Create managed private endpoint to this storage account or not"
+                    }
+                  }
+                },
+                "description": "Workspace default data lake storage account details"
+              },
+              "sqlAdministratorLoginPassword": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL administrator login password"
+              },
+              "managedResourceGroupName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Workspace managed resource group. The resource group name uniquely identifies the resource group within the user subscriptionId. The resource group name must be no longer than 90 characters long, and must be alphanumeric characters (Char.IsLetterOrDigit()) and '-', '_', '(', ')' and'.'. Note that the name cannot end with '.'"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Resource provisioning state"
+              },
+              "sqlAdministratorLogin": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Login for workspace SQL active directory administrator"
+              },
+              "virtualNetworkProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "computeSubnetId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Subnet ID used for computes in workspace"
+                    }
+                  }
+                },
+                "description": "Virtual Network profile"
+              },
+              "connectivityEndpoints": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Connectivity endpoints"
+              },
+              "managedVirtualNetwork": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Setting this to 'default' will ensure that all compute for this workspace is in a virtual network managed on behalf of the user."
+              },
+              "privateEndpointConnections": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private endpoint which the connection belongs to."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Connection state of the private endpoint connection."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Provisioning state of the private endpoint connection."
+                            }
+                          }
+                        },
+                        "description": "Private endpoint connection properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "Private endpoint connections to the workspace"
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "doubleEncryptionEnabled": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Double Encryption enabled"
+                    },
+                    "cmk": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "status": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The customer managed key status on the workspace"
+                          },
+                          "key": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "name": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Workspace Key sub-resource name"
+                                },
+                                "keyVaultUrl": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Workspace Key sub-resource key vault url"
+                                }
+                              }
+                            },
+                            "description": "The key object of the workspace"
+                          },
+                          "kekIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "userAssignedIdentity": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "User assigned identity resource Id"
+                                },
+                                "useSystemAssignedIdentity": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Boolean specifying whether to use system assigned identity or not"
+                                }
+                              }
+                            },
+                            "description": "Key encryption key"
+                          }
+                        }
+                      },
+                      "description": "Customer Managed Key Details"
+                    }
+                  }
+                },
+                "description": "The encryption details of the workspace"
+              },
+              "workspaceUID": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The workspace unique identifier"
+              },
+              "extraProperties": {
+                "flags": 2,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "Workspace level configs and feature flags"
+              },
+              "managedVirtualNetworkSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "preventDataExfiltration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Prevent Data Exfiltration"
+                    },
+                    "linkedAccessCheckOnTargetResource": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Linked Access Check On Target Resource"
+                    },
+                    "allowedAadTenantIdsForLinking": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Allowed Aad Tenant Ids For Linking"
+                    }
+                  }
+                },
+                "description": "Managed Virtual Network Settings"
+              },
+              "workspaceRepositoryConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Type of workspace repositoryID configuration. Example WorkspaceVSTSConfiguration, WorkspaceGitHubConfiguration"
+                    },
+                    "hostName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "GitHub Enterprise host name. For example: `https://github.mydomain.com`"
+                    },
+                    "accountName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Account name"
+                    },
+                    "projectName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "VSTS project name"
+                    },
+                    "repositoryName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Repository name"
+                    },
+                    "collaborationBranch": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Collaboration branch"
+                    },
+                    "rootFolder": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Root folder to use in the repository"
+                    },
+                    "lastCommitId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The last commit ID"
+                    },
+                    "tenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "The VSTS tenant ID"
+                    }
+                  }
+                },
+                "description": "Git integration settings"
+              },
+              "purviewConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "purviewResourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Purview Resource ID"
+                    }
+                  }
+                },
+                "description": "Purview Configuration"
+              },
+              "adlaResourceId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The ADLA resource ID."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Enable or Disable public network access to workspace"
+              },
+              "cspWorkspaceAdminProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "initialWorkspaceAdminObjectId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "AAD object ID of initial workspace admin"
+                    }
+                  }
+                },
+                "description": "Initial workspace AAD admin properties for a CSP subscription"
+              },
+              "settings": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "AnyType"
+                  }
+                },
+                "description": "Workspace settings"
+              },
+              "azureADOnlyAuthentication": {
+                "flags": 4,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enable or Disable AzureADOnlyAuthentication on All Workspace subresource"
+              },
+              "trustedServiceBypassEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Is trustedServiceBypassEnabled for the workspace"
+              }
+            }
+          },
+          "description": "Workspace resource properties"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID of the workspace managed identity"
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the workspace managed identity"
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    }
+                  ]
+                },
+                "description": "The type of managed identity for the workspace"
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID."
+                      },
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID."
+                      }
+                    }
+                  }
+                },
+                "description": "The user assigned managed identities."
+              }
+            }
+          },
+          "description": "Identity of the workspace"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,727 @@
+{
+  "resourceName": "Firewalls",
+  "bicepType": "Microsoft.Network/azureFirewalls@2024-03-01",
+  "terraformType": "azurerm_firewall",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/azurefirewalls",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/azureFirewalls@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 56
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/azureFirewalls"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "applicationRuleCollections": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "priority": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Priority of the application rule collection resource."
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The action type of a rule collection."
+                            },
+                            "rules": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Collection of rules used by a application rule collection."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the application rule collection resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the azure firewall application rule collection."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within the Azure firewall. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "Collection of application rule collections used by Azure Firewall."
+              },
+              "natRuleCollections": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "priority": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Priority of the NAT rule collection resource."
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The action type of a NAT rule collection."
+                            },
+                            "rules": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Collection of rules used by a NAT rule collection."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the NAT rule collection resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the azure firewall NAT rule collection."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within the Azure firewall. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "Collection of NAT rule collections used by Azure Firewall."
+              },
+              "networkRuleCollections": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "priority": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Priority of the network rule collection resource."
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The action type of a rule collection."
+                            },
+                            "rules": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Collection of rules used by a network rule collection."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the network rule collection resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the azure firewall network rule collection."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within the Azure firewall. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "Collection of network rule collections used by Azure Firewall."
+              },
+              "ipConfigurations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateIPAddress": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The Firewall Internal Load Balancer IP to be used as the next hop in User Defined Routes."
+                            },
+                            "subnet": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reference to the subnet resource. This resource must be named 'AzureFirewallSubnet' or 'AzureFirewallManagementSubnet'."
+                            },
+                            "publicIPAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reference to the PublicIP resource. This field is a mandatory input if subnet is not null."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the Azure firewall IP configuration resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the azure firewall IP configuration."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Type of the resource."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "IP configuration of the Azure Firewall resource."
+              },
+              "managementIpConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "privateIPAddress": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The Firewall Internal Load Balancer IP to be used as the next hop in User Defined Routes."
+                          },
+                          "subnet": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "Reference to the subnet resource. This resource must be named 'AzureFirewallSubnet' or 'AzureFirewallManagementSubnet'."
+                          },
+                          "publicIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "Reference to the PublicIP resource. This field is a mandatory input if subnet is not null."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the Azure firewall IP configuration resource."
+                          }
+                        }
+                      },
+                      "description": "Properties of the azure firewall IP configuration."
+                    },
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the resource that is unique within a resource group. This name can be used to access the resource."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Type of the resource."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "IP configuration of the Azure Firewall used for management traffic."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the Azure firewall resource."
+              },
+              "threatIntelMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Alert"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deny"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Off"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The operation mode for Threat Intelligence."
+              },
+              "virtualHub": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The virtualHub to which the firewall belongs."
+              },
+              "firewallPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The firewallPolicy associated with this azure firewall."
+              },
+              "hubIPAddresses": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "publicIPs": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "addresses": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The list of Public IP addresses associated with azure firewall or IP addresses to be retained."
+                          },
+                          "count": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The number of Public IP addresses associated with azure firewall."
+                          }
+                        }
+                      },
+                      "description": "Public IP addresses associated with azure firewall."
+                    },
+                    "privateIPAddress": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Private IP Address associated with azure firewall."
+                    }
+                  }
+                },
+                "description": "IP addresses associated with AzureFirewall."
+              },
+              "ipGroups": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      },
+                      "changeNumber": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The iteration number."
+                      }
+                    }
+                  }
+                },
+                "description": "IpGroups associated with AzureFirewall."
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AZFW_VNet"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AZFW_Hub"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Name of an Azure Firewall SKU."
+                    },
+                    "tier": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Premium"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Tier of an Azure Firewall."
+                    }
+                  }
+                },
+                "description": "The Azure Firewall Resource SKU."
+              },
+              "additionalProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The additional properties used to further config this azure firewall."
+              },
+              "autoscaleConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "minCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 2
+                      },
+                      "description": "The minimum number of capacity units for this azure firewall. Use null to reset the value to the service default."
+                    },
+                    "maxCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 2
+                      },
+                      "description": "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default."
+                    }
+                  }
+                },
+                "description": "Properties to provide a custom autoscale configuration to this azure firewall."
+              }
+            }
+          },
+          "description": "Properties of the azure firewall."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "A list of availability zones denoting where the resource needs to come from."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

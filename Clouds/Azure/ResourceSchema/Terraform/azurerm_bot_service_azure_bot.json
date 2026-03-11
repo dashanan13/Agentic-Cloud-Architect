@@ -1,0 +1,165 @@
+{
+  "resourceName": "Bot Services",
+  "bicepType": "Microsoft.BotService/botServices@2023-09-15-preview",
+  "terraformType": "azurerm_bot_service_azure_bot",
+  "category": "ai + machine learning",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.botservice/botservices",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "cmk_key_vault_key_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "developer_app_insights_api_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "developer_app_insights_application_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "developer_app_insights_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "display_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "icon_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "local_authentication_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "luis_app_ids": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "luis_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "microsoft_app_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "microsoft_app_msi_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "microsoft_app_tenant_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "microsoft_app_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "streaming_endpoint_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

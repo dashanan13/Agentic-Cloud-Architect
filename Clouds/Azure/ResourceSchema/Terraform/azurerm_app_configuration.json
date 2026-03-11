@@ -1,0 +1,253 @@
+{
+  "resourceName": "App Configuration",
+  "bicepType": "Microsoft.AppConfiguration/configurationStores@2024-05-01",
+  "terraformType": "azurerm_app_configuration",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.appconfiguration/configurationstores",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "data_plane_proxy_authentication_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "data_plane_proxy_private_link_delegation_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "local_auth_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "primary_read_key": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "connection_string": "string",
+                "id": "string",
+                "secret": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "primary_write_key": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "connection_string": "string",
+                "id": "string",
+                "secret": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "public_network_access": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "purge_protection_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "secondary_read_key": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "connection_string": "string",
+                "id": "string",
+                "secret": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "secondary_write_key": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "connection_string": "string",
+                "id": "string",
+                "secret": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "soft_delete_retention_days": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "encryption": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_client_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "key_vault_key_identifier": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "replica": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "location": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

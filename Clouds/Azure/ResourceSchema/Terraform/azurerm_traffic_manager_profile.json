@@ -1,0 +1,182 @@
+{
+  "resourceName": "ATM Multistack",
+  "bicepType": "Microsoft.Network/trafficManagerProfiles@2022-04-01",
+  "terraformType": "azurerm_traffic_manager_profile",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/trafficmanagerprofiles",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "fqdn": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "max_return": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "profile_status": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "traffic_routing_method": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "traffic_view_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "dns_config": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "relative_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "ttl": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "monitor_config": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "expected_status_code_ranges": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "interval_in_seconds": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "path": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "port": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "protocol": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "timeout_in_seconds": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tolerated_number_of_failures": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "custom_header": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "value": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

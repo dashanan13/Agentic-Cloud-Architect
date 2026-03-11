@@ -1,0 +1,1217 @@
+{
+  "resourceName": "Network Interfaces",
+  "bicepType": "Microsoft.Network/networkInterfaces@2024-03-01",
+  "terraformType": "azurerm_network_interface",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/networkinterfaces",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/networkInterfaces@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/networkInterfaces"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeZone"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "The extended location of the network interface."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "virtualMachine": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The reference to a virtual machine."
+              },
+              "networkSecurityGroup": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "flushConnection": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "When enabled, flows created from Network Security Group connections will be re-evaluated when rules are updates. Initial enablement will trigger re-evaluation."
+                          },
+                          "securityRules": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A collection of security rules of the network security group."
+                          },
+                          "defaultSecurityRules": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The default security rules of network security group."
+                          },
+                          "networkInterfaces": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A collection of references to network interfaces."
+                          },
+                          "subnets": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A collection of references to subnets."
+                          },
+                          "flowLogs": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A collection of references to flow log resources."
+                          },
+                          "resourceGuid": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The resource GUID property of the network security group resource."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the network security group resource."
+                          }
+                        }
+                      },
+                      "description": "Properties of the network security group."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource location."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Resource tags."
+                    }
+                  }
+                },
+                "description": "The reference to the NetworkSecurityGroup resource."
+              },
+              "privateEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "extendedLocation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the extended location."
+                          },
+                          "type": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of the extended location."
+                          }
+                        }
+                      },
+                      "description": "The extended location of the load balancer."
+                    },
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "subnet": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Properties of the subnet."
+                                },
+                                "name": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                                },
+                                "etag": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A unique read-only string that changes whenever the resource is updated."
+                                },
+                                "type": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource type."
+                                },
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The ID of the subnet from which the private IP will be allocated."
+                          },
+                          "networkInterfaces": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of references to the network interfaces created for this private endpoint."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the private endpoint resource."
+                          },
+                          "privateLinkServiceConnections": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A grouping of information about the connection to the remote resource."
+                          },
+                          "manualPrivateLinkServiceConnections": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource."
+                          },
+                          "customDnsConfigs": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of custom dns configurations."
+                          },
+                          "applicationSecurityGroups": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Application security groups in which the private endpoint IP configuration is included."
+                          },
+                          "ipConfigurations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A list of IP configurations of the private endpoint. This will be used to map to the First Party Service's endpoints."
+                          },
+                          "customNetworkInterfaceName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The custom name of the network interface attached to the private endpoint."
+                          }
+                        }
+                      },
+                      "description": "Properties of the private endpoint."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource location."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Resource tags."
+                    }
+                  }
+                },
+                "description": "A reference to the private endpoint to which the network interface is linked."
+              },
+              "ipConfigurations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "gatewayLoadBalancer": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to gateway load balancer frontend IP."
+                            },
+                            "virtualNetworkTaps": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to Virtual Network Taps."
+                            },
+                            "applicationGatewayBackendAddressPools": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to ApplicationGatewayBackendAddressPool resource."
+                            },
+                            "loadBalancerBackendAddressPools": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to LoadBalancerBackendAddressPool resource."
+                            },
+                            "loadBalancerInboundNatRules": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A list of references of LoadBalancerInboundNatRules."
+                            },
+                            "privateIPAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Private IP address of the IP configuration. It can be a single IP address or a CIDR block in the format <address>/<prefix-length>."
+                            },
+                            "privateIPAddressPrefixLength": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private IP address prefix length. If specified and the allocation method is dynamic, the service will allocate a CIDR block instead of a single IP address."
+                            },
+                            "privateIPAllocationMethod": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private IP address allocation method."
+                            },
+                            "privateIPAddressVersion": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Whether the specific IP configuration is IPv4 or IPv6. Default is IPv4."
+                            },
+                            "subnet": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Subnet bound to the IP configuration."
+                            },
+                            "primary": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Whether this is a primary customer address on the network interface."
+                            },
+                            "publicIPAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Public IP address bound to the IP configuration."
+                            },
+                            "applicationSecurityGroups": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Application security groups in which the IP configuration is included."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the network interface IP configuration."
+                            },
+                            "privateLinkConnectionProperties": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "PrivateLinkConnection properties for the network interface."
+                            }
+                          }
+                        },
+                        "description": "Network interface IP configuration properties."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource type."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of IPConfigurations of the network interface."
+              },
+              "tapConfigurations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "virtualNetworkTap": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to the Virtual Network Tap resource."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the network interface tap configuration resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the Virtual Network Tap configuration."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Sub Resource type."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of TapConfigurations of the network interface."
+              },
+              "dnsSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "dnsServers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of DNS servers IP addresses. Use 'AzureProvidedDNS' to switch to azure provided DNS resolution. 'AzureProvidedDNS' value cannot be combined with other IPs, it must be the only value in dnsServers collection."
+                    },
+                    "appliedDnsServers": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set. This property is what is configured on each of those VMs."
+                    },
+                    "internalDnsNameLabel": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Relative DNS name for this NIC used for internal communications between VMs in the same virtual network."
+                    },
+                    "internalFqdn": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fully qualified DNS name supporting internal communications between VMs in the same virtual network."
+                    },
+                    "internalDomainNameSuffix": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Even if internalDnsNameLabel is not specified, a DNS entry is created for the primary NIC of the VM. This DNS name can be constructed by concatenating the VM name with the value of internalDomainNameSuffix."
+                    }
+                  }
+                },
+                "description": "The DNS settings in network interface."
+              },
+              "macAddress": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The MAC address of the network interface."
+              },
+              "primary": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether this is a primary network interface on a virtual machine."
+              },
+              "vnetEncryptionSupported": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether the virtual machine this nic is attached to supports encryption."
+              },
+              "enableAcceleratedNetworking": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If the network interface is configured for accelerated networking. Not applicable to VM sizes which require accelerated networking."
+              },
+              "disableTcpStateTracking": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether to disable tcp state tracking."
+              },
+              "enableIPForwarding": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether IP forwarding is enabled on this network interface."
+              },
+              "hostedWorkloads": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "A list of references to linked BareMetal resources."
+              },
+              "dscpConfiguration": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "A reference to the dscp configuration to which the network interface is linked."
+              },
+              "resourceGuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource GUID property of the network interface resource."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the network interface resource."
+              },
+              "workloadType": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "WorkloadType of the NetworkInterface for BareMetal resources"
+              },
+              "nicType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Elastic"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of Network Interface resource."
+              },
+              "privateLinkService": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "extendedLocation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the extended location."
+                          },
+                          "type": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of the extended location."
+                          }
+                        }
+                      },
+                      "description": "The extended location of the load balancer."
+                    },
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "loadBalancerFrontendIpConfigurations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of references to the load balancer IP configurations."
+                          },
+                          "ipConfigurations": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of private link service IP configurations."
+                          },
+                          "destinationIPAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The destination IP address of the private link service."
+                          },
+                          "networkInterfaces": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of references to the network interfaces created for this private link service."
+                          },
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The provisioning state of the private link service resource."
+                          },
+                          "privateEndpointConnections": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "An array of list about connections to the private endpoint."
+                          },
+                          "visibility": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "subscriptions": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The list of subscriptions."
+                                }
+                              }
+                            },
+                            "description": "The visibility list of the private link service."
+                          },
+                          "autoApproval": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "subscriptions": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The list of subscriptions."
+                                }
+                              }
+                            },
+                            "description": "The auto-approval list of the private link service."
+                          },
+                          "fqdns": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The list of Fqdn."
+                          },
+                          "alias": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The alias of the private link service."
+                          },
+                          "enableProxyProtocol": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Whether the private link service is enabled for proxy protocol or not."
+                          }
+                        }
+                      },
+                      "description": "Properties of the private link service."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "A unique read-only string that changes whenever the resource is updated."
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    },
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource location."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Resource tags."
+                    }
+                  }
+                },
+                "description": "Privatelinkservice of the network interface resource."
+              },
+              "migrationPhase": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Prepare"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Commit"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Abort"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Committed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Migration phase of Network Interface resource."
+              },
+              "auxiliaryMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MaxConnections"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Floating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AcceleratedConnections"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Auxiliary mode of Network Interface resource."
+              },
+              "auxiliarySku": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "A1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "A2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "A4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "A8"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Auxiliary sku of Network Interface resource."
+              }
+            }
+          },
+          "description": "Properties of the network interface."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

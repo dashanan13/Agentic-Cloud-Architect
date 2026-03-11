@@ -1,0 +1,131 @@
+{
+  "resourceName": "Confidential Ledgers",
+  "bicepType": "Microsoft.ConfidentialLedger/ledgers@2023-06-28-preview",
+  "terraformType": "azurerm_confidential_ledger",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.confidentialledger/ledgers",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "identity_service_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "ledger_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "ledger_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "azuread_based_service_principal": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "ledger_role_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1
+        },
+        "certificate_based_security_principal": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "ledger_role_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "pem_public_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

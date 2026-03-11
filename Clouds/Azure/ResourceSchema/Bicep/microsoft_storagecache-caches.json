@@ -1,0 +1,993 @@
+{
+  "resourceName": "Azure HCP Cache",
+  "bicepType": "Microsoft.StorageCache/caches@2023-11-01-preview",
+  "terraformType": "azurerm_hpc_cache",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storagecache/caches",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.StorageCache/caches@2023-11-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[-0-9a-zA-Z_]{1,80}$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.StorageCache/caches"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-11-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Region name string."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID for the system-assigned identity of the cache."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant ID associated with the cache."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the cache"
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal ID of the user-assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client ID of the user-assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "A dictionary where each key is a user assigned identity resource ID, and each key's value is an empty dictionary."
+              }
+            }
+          },
+          "description": "The identity of the cache, if configured."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "The system meta data relating to this resource."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "cacheSizeGB": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The size of this Cache, in GB."
+              },
+              "health": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "state": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unknown"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Healthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Degraded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Down"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Transitioning"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Stopping"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Stopped"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Upgrading"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Flushing"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "WaitingForKey"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StartFailed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "UpgradeFailed"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "List of cache health states. Down is when the cluster is not responding.  Degraded is when its functioning but has some alerts. Transitioning when it is creating or deleting. Unknown will be returned in old api versions when a new value is added in future versions. WaitingForKey is when the create is waiting for the system assigned identity to be given access to the encryption key in the encryption settings."
+                    },
+                    "statusDescription": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Describes explanation of state."
+                    },
+                    "conditions": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "timestamp": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The time when the condition was raised."
+                            },
+                            "message": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The issue requiring attention."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Outstanding conditions that need to be investigated and resolved."
+                    }
+                  }
+                },
+                "description": "Health of the cache."
+              },
+              "mountAddresses": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Array of IPv4 addresses that can be used by clients mounting this cache."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property"
+              },
+              "subnet": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Subnet used for the cache."
+              },
+              "upgradeStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "currentFirmwareVersion": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Version string of the firmware currently installed on this cache."
+                    },
+                    "firmwareUpdateStatus": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "available"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "unavailable"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "True if there is a firmware update ready to install on this cache. The firmware will automatically be installed after firmwareUpdateDeadline if not triggered earlier via the upgrade operation."
+                    },
+                    "firmwareUpdateDeadline": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Time at which the pending firmware update will automatically be installed on the cache."
+                    },
+                    "lastFirmwareUpdate": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Time of the last successful firmware update."
+                    },
+                    "pendingFirmwareVersion": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "When firmwareUpdateAvailable is true, this field holds the version string for the update."
+                    }
+                  }
+                },
+                "description": "Upgrade status of the cache."
+              },
+              "upgradeSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "upgradeScheduleEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "True if the user chooses to select an installation time between now and firmwareUpdateDeadline. Else the firmware will automatically be installed after firmwareUpdateDeadline if not triggered earlier via the upgrade operation."
+                    },
+                    "scheduledTime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "When upgradeScheduleEnabled is true, this field holds the user-chosen upgrade time. At the user-chosen time, the firmware update will automatically be installed on the cache."
+                    }
+                  }
+                },
+                "description": "Upgrade settings of the cache."
+              },
+              "networkSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "mtu": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 576,
+                        "maxValue": 1500
+                      },
+                      "description": "The IPv4 maximum transmission unit configured for the subnet."
+                    },
+                    "utilityAddresses": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Array of additional IP addresses used by this cache."
+                    },
+                    "dnsServers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "DNS servers for the cache to use.  It will be set from the network configuration if no value is provided."
+                    },
+                    "dnsSearchDomain": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "DNS search domain"
+                    },
+                    "ntpServer": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "NTP server IP Address or FQDN for the cache to use. The default is time.windows.com."
+                    }
+                  }
+                },
+                "description": "Specifies network settings of the cache."
+              },
+              "encryptionSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keyEncryptionKey": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyUrl": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URL referencing a key encryption key in key vault."
+                          },
+                          "sourceVault": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource Id."
+                                }
+                              }
+                            },
+                            "description": "Describes a resource Id to source key vault."
+                          }
+                        }
+                      },
+                      "description": "Specifies the location of the key encryption key in key vault."
+                    },
+                    "rotationToLatestKeyVersionEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Specifies whether the service will automatically rotate to the newest version of the key in the key vault."
+                    }
+                  }
+                },
+                "description": "Specifies encryption settings of the cache."
+              },
+              "securitySettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "accessPolicies": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Name identifying this policy. Access Policy names are not case sensitive."
+                            },
+                            "accessRules": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The set of rules describing client accesses allowed under this policy."
+                            }
+                          }
+                        }
+                      },
+                      "description": "NFS access policies defined for this cache."
+                    }
+                  }
+                },
+                "description": "Specifies security settings of the cache."
+              },
+              "directoryServicesSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "activeDirectory": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "primaryDnsIpAddress": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Primary DNS IP address used to resolve the Active Directory domain controller's fully qualified domain name."
+                          },
+                          "secondaryDnsIpAddress": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Secondary DNS IP address used to resolve the Active Directory domain controller's fully qualified domain name."
+                          },
+                          "domainName": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The fully qualified domain name of the Active Directory domain controller."
+                          },
+                          "domainNetBiosName": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The Active Directory domain's NetBIOS name."
+                          },
+                          "cacheNetBiosName": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType",
+                              "pattern": "^[-0-9a-zA-Z]{1,15}$"
+                            },
+                            "description": "The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server. Length must 1-15 characters from the class [-0-9a-zA-Z]."
+                          },
+                          "domainJoined": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "True if the HPC Cache is joined to the Active Directory domain."
+                          },
+                          "credentials": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "username": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Username of the Active Directory domain administrator. This value is stored encrypted and not returned on response."
+                                },
+                                "password": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Plain text password of the Active Directory domain administrator. This value is stored encrypted and not returned on response."
+                                }
+                              }
+                            },
+                            "description": "Active Directory admin credentials used to join the HPC Cache to a domain."
+                          }
+                        }
+                      },
+                      "description": "Specifies settings for joining the HPC Cache to an Active Directory domain."
+                    },
+                    "usernameDownload": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "extendedGroups": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Whether or not Extended Groups is enabled."
+                          },
+                          "usernameSource": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "This setting determines how the cache gets username and group names for clients."
+                          },
+                          "groupFileURI": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URI of the file containing group information (in /etc/group file format). This field must be populated when 'usernameSource' is set to 'File'."
+                          },
+                          "userFileURI": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URI of the file containing user information (in /etc/passwd file format). This field must be populated when 'usernameSource' is set to 'File'."
+                          },
+                          "ldapServer": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The fully qualified domain name or IP address of the LDAP server to use."
+                          },
+                          "ldapBaseDN": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The base distinguished name for the LDAP domain."
+                          },
+                          "encryptLdapConnection": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Whether or not the LDAP connection should be encrypted."
+                          },
+                          "requireValidCertificate": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Determines if the certificates must be validated by a certificate authority. When true, caCertificateURI must be provided."
+                          },
+                          "autoDownloadCertificate": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Determines if the certificate should be automatically downloaded. This applies to 'caCertificateURI' only if 'requireValidCertificate' is true."
+                          },
+                          "caCertificateURI": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URI of the CA certificate to validate the LDAP secure connection. This field must be populated when 'requireValidCertificate' is set to true."
+                          },
+                          "usernameDownloaded": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Indicates whether or not the HPC Cache has performed the username download successfully."
+                          },
+                          "credentials": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "bindDn": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The Bind Distinguished Name identity to be used in the secure LDAP connection. This value is stored encrypted and not returned on response."
+                                },
+                                "bindPassword": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The Bind password to be used in the secure LDAP connection. This value is stored encrypted and not returned on response."
+                                }
+                              }
+                            },
+                            "description": "When present, these are the credentials for the secure LDAP connection."
+                          }
+                        }
+                      },
+                      "description": "Specifies settings for Extended Groups. Extended Groups allows users to be members of more than 16 groups."
+                    }
+                  }
+                },
+                "description": "Specifies Directory Services settings of the cache."
+              },
+              "zones": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Availability zones for resources. This field should only contain a single element in the array."
+              },
+              "primingJobs": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "primingJobName": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^[-0-9a-zA-Z_]{1,80}$"
+                        },
+                        "description": "The priming job name."
+                      },
+                      "primingManifestUrl": {
+                        "flags": 5,
+                        "type": {
+                          "$type": "StringType",
+                          "sensitive": true
+                        },
+                        "description": "The URL for the priming manifest file to download. This file must be readable from the HPC Cache. When the file is in Azure blob storage the URL should include a Shared Access Signature (SAS) granting read permissions on the blob."
+                      },
+                      "primingJobId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^[-0-9a-zA-Z_]{1,80}$"
+                        },
+                        "description": "The unique identifier of the priming job."
+                      },
+                      "primingJobState": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The state of the priming operation."
+                      },
+                      "primingJobStatus": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The status code of the priming job."
+                      },
+                      "primingJobDetails": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The job details or error information if any."
+                      },
+                      "primingJobPercentComplete": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0,
+                          "maxValue": 100
+                        },
+                        "description": "The current progress of the priming job, as a percentage."
+                      }
+                    }
+                  }
+                },
+                "description": "Specifies the priming jobs defined in the cache."
+              },
+              "spaceAllocation": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^[-0-9a-zA-Z_]{1,80}$"
+                        },
+                        "description": "Name of the storage target."
+                      },
+                      "allocationPercentage": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 1,
+                          "maxValue": 100
+                        },
+                        "description": "The percentage of cache space allocated for this storage target"
+                      }
+                    }
+                  }
+                },
+                "description": "Specifies the space allocation percentage for each storage target in the cache."
+              }
+            }
+          },
+          "description": "Properties of the cache."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SKU name for this cache."
+              }
+            }
+          },
+          "description": "SKU for the cache."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "resourceName": "App Service Certificates",
+  "bicepType": "Microsoft.Web/certificates@2023-12-01",
+  "terraformType": "azurerm_app_service_certificate",
+  "category": "app services",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/certificates",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "app_service_plan_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "expiration_date": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "friendly_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "host_names": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "hosting_environment_profile_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "issue_date": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "issuer": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "key_vault_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "key_vault_secret_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "pfx_blob": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "subject_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "thumbprint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

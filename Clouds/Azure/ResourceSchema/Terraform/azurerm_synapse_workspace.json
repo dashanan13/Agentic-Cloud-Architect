@@ -1,0 +1,287 @@
+{
+  "resourceName": "Azure Synapse Analytics",
+  "bicepType": "Microsoft.Synapse/workspaces@2021-06-01",
+  "terraformType": "azurerm_synapse_workspace",
+  "category": "analytics",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.synapse/workspaces",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "azuread_authentication_only": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "compute_subnet_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "connectivity_endpoints": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "data_exfiltration_protection_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "linking_allowed_for_aad_tenant_ids": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "managed_resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "managed_virtual_network_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "purview_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sql_administrator_login": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sql_administrator_login_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "sql_identity_control_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_data_lake_gen2_filesystem_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "azure_devops_repo": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "account_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "branch_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "last_commit_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "project_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "repository_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "root_folder": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "customer_managed_key": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "key_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "key_versionless_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "user_assigned_identity_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "github_repo": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "account_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "branch_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "git_url": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "last_commit_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "repository_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "root_folder": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

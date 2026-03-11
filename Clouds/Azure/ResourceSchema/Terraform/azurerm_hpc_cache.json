@@ -1,0 +1,351 @@
+{
+  "resourceName": "Azure HCP Cache",
+  "bicepType": "Microsoft.StorageCache/caches@2023-11-01-preview",
+  "terraformType": "azurerm_hpc_cache",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storagecache/caches",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "automatically_rotate_key_to_latest_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "cache_size_in_gb": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "key_vault_key_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "mount_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "mtu": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "ntp_server": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "subnet_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "default_access_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "block_types": {
+              "access_rule": {
+                "nesting_mode": "set",
+                "block": {
+                  "attributes": {
+                    "access": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "anonymous_gid": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "anonymous_uid": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "filter": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "root_squash_enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "scope": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "submount_access_enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "suid_enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1,
+                "max_items": 3
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "directory_active_directory": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "cache_netbios_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "dns_primary_ip": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "dns_secondary_ip": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "domain_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "domain_netbios_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "username": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "directory_flat_file": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "group_file_uri": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "password_file_uri": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "directory_ldap": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "base_dn": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "certificate_validation_uri": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "download_certificate_automatically": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "encrypted": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "server": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "bind": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "dn": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true,
+                      "sensitive": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "dns": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "search_domain": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "servers": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain",
+      "deprecated": true
+    }
+  }
+}

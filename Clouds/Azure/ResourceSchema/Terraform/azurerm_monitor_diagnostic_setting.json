@@ -1,0 +1,186 @@
+{
+  "resourceName": "Diagnostics Settings",
+  "bicepType": "Microsoft.Insights/diagnosticSettings@2021-05-01-preview",
+  "terraformType": "azurerm_monitor_diagnostic_setting",
+  "category": "monitor",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.insights/diagnosticsettings",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "eventhub_authorization_rule_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "eventhub_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "log_analytics_destination_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "log_analytics_workspace_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "partner_solution_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "target_resource_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "enabled_log": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "category": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "category_group": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "retention_policy": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "days": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain",
+                  "deprecated": true
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "enabled_metric": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "category": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "metric": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "category": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "retention_policy": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "days": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain",
+                  "deprecated": true
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain",
+            "deprecated": true
+          }
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "resourceName": "Storage Queue",
+  "bicepType": "Microsoft.Storage/storageAccounts/queueServices/queues@2024-01-01",
+  "terraformType": "azurerm_storage_queue",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/queueservices/queues",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Storage/storageAccounts/queueServices/queues@2024-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 63,
+            "pattern": "^[a-z0-9]([a-z0-9]|(-(?!-))){1,61}[a-z0-9]$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Storage/storageAccounts/queueServices/queues"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "metadata": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "A name-value pair that represents queue metadata."
+              },
+              "approximateMessageCount": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Integer indicating an approximate number of messages in the queue. This number is not lower than the actual number of messages in the queue, but could be higher."
+              }
+            }
+          },
+          "description": "Queue resource properties."
+        }
+      }
+    }
+  }
+}

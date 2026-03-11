@@ -1,0 +1,211 @@
+{
+  "resourceName": "Maintenance Configuration",
+  "bicepType": "Microsoft.Maintenance/maintenanceConfigurations@2023-04-01",
+  "terraformType": "azurerm_maintenance_configuration",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.maintenance/maintenanceconfigurations",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "in_guest_user_patch_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "properties": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "scope": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "visibility": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "install_patches": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "reboot": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "linux": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "classifications_to_include": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "package_names_mask_to_exclude": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "package_names_mask_to_include": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "windows": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "classifications_to_include": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "kb_numbers_to_exclude": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "kb_numbers_to_include": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "window": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "duration": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "expiration_date_time": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "recur_every": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "start_date_time": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "time_zone": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

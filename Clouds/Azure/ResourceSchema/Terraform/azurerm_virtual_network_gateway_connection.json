@@ -1,0 +1,279 @@
+{
+  "resourceName": "Connections",
+  "bicepType": "Microsoft.Network/connections@2024-03-01",
+  "terraformType": "azurerm_virtual_network_gateway_connection",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/connections",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "authorization_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "bgp_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "connection_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "connection_protocol": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "dpd_timeout_seconds": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "egress_nat_rule_ids": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "enable_bgp": {
+          "type": "bool",
+          "description_kind": "plain",
+          "deprecated": true,
+          "optional": true,
+          "computed": true
+        },
+        "express_route_circuit_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "express_route_gateway_bypass": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "ingress_nat_rule_ids": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "local_azure_ip_address_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "local_network_gateway_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "peer_virtual_network_gateway_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "private_link_fast_path_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "routing_weight": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "shared_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true,
+          "sensitive": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "use_policy_based_traffic_selectors": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "virtual_network_gateway_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "custom_bgp_addresses": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "primary": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "secondary": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "ipsec_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "dh_group": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "ike_encryption": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "ike_integrity": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "ipsec_encryption": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "ipsec_integrity": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "pfs_group": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "sa_datasize": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "sa_lifetime": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "traffic_selector_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "local_address_cidrs": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "remote_address_cidrs": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

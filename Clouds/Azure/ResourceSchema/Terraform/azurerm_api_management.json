@@ -1,0 +1,1000 @@
+{
+  "resourceName": "API Management Services",
+  "bicepType": "Microsoft.ApiManagement/service@2024-05-01",
+  "terraformType": "azurerm_api_management",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.apimanagement/service",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "client_certificate_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "developer_portal_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "gateway_disabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "gateway_regional_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "gateway_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "management_api_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "min_api_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "notification_sender_email": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "portal_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "private_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "public_ip_address_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "public_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "publisher_email": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "publisher_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "scm_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "virtual_network_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "zones": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "additional_location": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "capacity": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "gateway_disabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "gateway_regional_url": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "location": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "private_ip_addresses": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "computed": true
+              },
+              "public_ip_address_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "public_ip_addresses": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "computed": true
+              },
+              "zones": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "virtual_network_configuration": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "subnet_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "certificate": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "certificate_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "encoded_certificate": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "expiry": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "store_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "subject": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "thumbprint": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 10
+        },
+        "delegation": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "subscriptions_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "url": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "user_registration_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "validation_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "hostname_configuration": {
+          "nesting_mode": "list",
+          "block": {
+            "block_types": {
+              "developer_portal": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "certificate": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_source": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "certificate_status": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "expiry": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "host_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "key_vault_certificate_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "key_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "deprecated": true,
+                      "optional": true,
+                      "computed": true
+                    },
+                    "negotiate_client_certificate": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ssl_keyvault_identity_client_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "subject": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "management": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "certificate": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_source": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "certificate_status": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "expiry": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "host_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "key_vault_certificate_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "key_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "deprecated": true,
+                      "optional": true,
+                      "computed": true
+                    },
+                    "negotiate_client_certificate": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ssl_keyvault_identity_client_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "subject": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "portal": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "certificate": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_source": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "certificate_status": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "expiry": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "host_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "key_vault_certificate_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "key_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "deprecated": true,
+                      "optional": true,
+                      "computed": true
+                    },
+                    "negotiate_client_certificate": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ssl_keyvault_identity_client_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "subject": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "proxy": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "certificate": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_source": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "certificate_status": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "default_ssl_binding": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "expiry": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "host_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "key_vault_certificate_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "key_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "deprecated": true,
+                      "optional": true,
+                      "computed": true
+                    },
+                    "negotiate_client_certificate": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ssl_keyvault_identity_client_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "subject": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "scm": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "certificate": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "certificate_source": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "certificate_status": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "expiry": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "host_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "key_vault_certificate_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "computed": true
+                    },
+                    "key_vault_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "deprecated": true,
+                      "optional": true,
+                      "computed": true
+                    },
+                    "negotiate_client_certificate": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ssl_keyvault_identity_client_id": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "subject": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "computed": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "protocols": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enable_http2": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "http2_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "security": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "backend_ssl30_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "backend_tls10_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "backend_tls11_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "enable_backend_ssl30": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "enable_backend_tls10": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "enable_backend_tls11": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "enable_frontend_ssl30": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "enable_frontend_tls10": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "enable_frontend_tls11": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "frontend_ssl30_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "frontend_tls10_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "frontend_tls11_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_rsa_with_aes256_gcm_sha384_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "triple_des_ciphers_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "sign_in": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "sign_up": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "terms_of_service": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "consent_required": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "text": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1,
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "tenant_access": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              },
+              "primary_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true,
+                "sensitive": true
+              },
+              "secondary_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true,
+                "sensitive": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "virtual_network_configuration": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "subnet_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

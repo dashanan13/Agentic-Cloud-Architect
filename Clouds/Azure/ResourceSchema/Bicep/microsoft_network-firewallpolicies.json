@@ -1,0 +1,682 @@
+{
+  "resourceName": "Azure Firewall Manager",
+  "bicepType": "Microsoft.Network/firewallPolicies@2024-03-01",
+  "terraformType": "azurerm_firewall_policy",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/firewallpolicies",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/firewallPolicies@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/firewallPolicies"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "size": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A read-only string that represents the size of the FirewallPolicyPropertiesFormat in MB. (ex 0.5MB)"
+              },
+              "ruleCollectionGroups": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of references to FirewallPolicyRuleCollectionGroups."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the firewall policy resource."
+              },
+              "basePolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The parent firewall policy from which rules are inherited."
+              },
+              "firewalls": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of references to Azure Firewalls that this Firewall Policy is associated with."
+              },
+              "childPolicies": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "List of references to Child Firewall Policies."
+              },
+              "threatIntelMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Alert"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deny"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Off"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The operation mode for Threat Intelligence."
+              },
+              "threatIntelWhitelist": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ipAddresses": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of IP addresses for the ThreatIntel Whitelist."
+                    },
+                    "fqdns": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of FQDNs for the ThreatIntel Whitelist."
+                    }
+                  }
+                },
+                "description": "ThreatIntel Whitelist for Firewall Policy."
+              },
+              "insights": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "isEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A flag to indicate if the insights are enabled on the policy."
+                    },
+                    "retentionDays": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Number of days the insights should be enabled on the policy."
+                    },
+                    "logAnalyticsResources": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "workspaces": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "List of workspaces for Firewall Policy Insights."
+                          },
+                          "defaultWorkspaceId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource ID."
+                                }
+                              }
+                            },
+                            "description": "The default workspace Id for Firewall Policy Insights."
+                          }
+                        }
+                      },
+                      "description": "Workspaces needed to configure the Firewall Policy Insights."
+                    }
+                  }
+                },
+                "description": "Insights on Firewall Policy."
+              },
+              "snat": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "privateRanges": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of private IP addresses/IP address ranges to not be SNAT."
+                    },
+                    "autoLearnPrivateRanges": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The operation mode for automatically learning private ranges to not be SNAT"
+                    }
+                  }
+                },
+                "description": "The private IP addresses/IP ranges to which traffic will not be SNAT."
+              },
+              "sql": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "allowSqlRedirect": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A flag to indicate if SQL Redirect traffic filtering is enabled. Turning on the flag requires no rule using port 11000-11999."
+                    }
+                  }
+                },
+                "description": "SQL Settings definition."
+              },
+              "dnsSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "servers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of Custom DNS Servers."
+                    },
+                    "enableProxy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable DNS Proxy on Firewalls attached to the Firewall Policy."
+                    },
+                    "requireProxyForNetworkRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "FQDNs in Network Rules are supported when set to true."
+                    }
+                  }
+                },
+                "description": "DNS Proxy Settings definition."
+              },
+              "explicitProxy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enableExplicitProxy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "When set to true, explicit proxy mode is enabled."
+                    },
+                    "httpPort": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 64000
+                      },
+                      "description": "Port number for explicit proxy http protocol, cannot be greater than 64000."
+                    },
+                    "httpsPort": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 64000
+                      },
+                      "description": "Port number for explicit proxy https protocol, cannot be greater than 64000."
+                    },
+                    "enablePacFile": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "When set to true, pac file port and url needs to be provided."
+                    },
+                    "pacFilePort": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 64000
+                      },
+                      "description": "Port number for firewall to serve PAC file."
+                    },
+                    "pacFile": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "SAS URL for PAC file."
+                    }
+                  }
+                },
+                "description": "Explicit Proxy Settings definition."
+              },
+              "intrusionDetection": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "mode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Off"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Alert"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deny"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Intrusion detection general state. When attached to a parent policy, the firewall's effective IDPS mode is the stricter mode of the two."
+                    },
+                    "profile": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Advanced"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Extended"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "IDPS profile name. When attached to a parent policy, the firewall's effective profile is the profile name of the parent policy."
+                    },
+                    "configuration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "signatureOverrides": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "List of specific signatures states."
+                          },
+                          "bypassTrafficSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "List of rules for traffic to bypass."
+                          },
+                          "privateRanges": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "IDPS Private IP address ranges are used to identify traffic direction (i.e. inbound, outbound, etc.). By default, only ranges defined by IANA RFC 1918 are considered private IP addresses. To modify default ranges, specify your Private IP address ranges with this property"
+                          }
+                        }
+                      },
+                      "description": "Intrusion detection configuration properties."
+                    }
+                  }
+                },
+                "description": "The configuration for Intrusion detection."
+              },
+              "transportSecurity": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "certificateAuthority": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyVaultSecretId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Secret Id of (base-64 encoded unencrypted pfx) 'Secret' or 'Certificate' object stored in KeyVault."
+                          },
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Name of the CA certificate."
+                          }
+                        }
+                      },
+                      "description": "The CA used for intermediate CA generation."
+                    }
+                  }
+                },
+                "description": "TLS Configuration definition."
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "tier": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Premium"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Tier of Firewall Policy."
+                    }
+                  }
+                },
+                "description": "The Firewall Policy SKU."
+              }
+            }
+          },
+          "description": "Properties of the firewall policy."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal id of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant id of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the resource. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the virtual machine."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+              }
+            }
+          },
+          "description": "The identity of the firewall policy."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

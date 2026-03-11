@@ -1,0 +1,275 @@
+{
+  "resourceName": "Availability Sets",
+  "bicepType": "Microsoft.Compute/availabilitySets@2024-07-01",
+  "terraformType": "azurerm_availability_set",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/availabilitysets",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Compute/availabilitySets@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Compute/availabilitySets"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "platformUpdateDomainCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Update Domain count."
+              },
+              "platformFaultDomainCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Fault Domain count."
+              },
+              "virtualMachines": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Id"
+                      }
+                    }
+                  }
+                },
+                "description": "A list of references to all virtual machines in the availability set."
+              },
+              "proximityPlacementGroup": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource Id"
+                    }
+                  }
+                },
+                "description": "Specifies information about the proximity placement group that the availability set should be assigned to. Minimum api-version: 2018-04-01."
+              },
+              "statuses": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "code": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The status code."
+                      },
+                      "level": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The level code."
+                      },
+                      "displayStatus": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The short localizable label for the status."
+                      },
+                      "message": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The detailed status message, including for alerts and error messages."
+                      },
+                      "time": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The time of the status."
+                      }
+                    }
+                  }
+                },
+                "description": "The resource status information."
+              },
+              "scheduledEventsPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "userInitiatedRedeploy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "automaticallyApprove": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Specifies Redeploy Scheduled Event related configurations."
+                          }
+                        }
+                      },
+                      "description": "The configuration parameters used while creating userInitiatedRedeploy scheduled event setting creation."
+                    },
+                    "userInitiatedReboot": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "automaticallyApprove": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Specifies Reboot Scheduled Event related configurations."
+                          }
+                        }
+                      },
+                      "description": "The configuration parameters used while creating userInitiatedReboot scheduled event setting creation."
+                    },
+                    "scheduledEventsAdditionalPublishingTargets": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "eventGridAndResourceGraph": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "enable": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies if event grid and resource graph is enabled for Scheduled event related configurations."
+                                }
+                              }
+                            },
+                            "description": "The configuration parameters used while creating eventGridAndResourceGraph Scheduled Event setting."
+                          }
+                        }
+                      },
+                      "description": "The configuration parameters used while publishing scheduledEventsAdditionalPublishingTargets."
+                    }
+                  }
+                },
+                "description": "Specifies Redeploy, Reboot and ScheduledEventsAdditionalPublishingTargets Scheduled Event related configurations for the availability set."
+              }
+            }
+          },
+          "description": "The instance view of a resource."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The sku name."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the tier of virtual machines in a scale set.<br /><br /> Possible Values:<br /><br /> **Standard**<br /><br /> **Basic**"
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Specifies the number of virtual machines in the scale set."
+              }
+            }
+          },
+          "description": "Sku of the availability set, only name is required to be set. See AvailabilitySetSkuTypes for possible set of values. Use 'Aligned' for virtual machines with managed disks and 'Classic' for virtual machines with unmanaged disks. Default value is 'Classic'."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

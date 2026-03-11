@@ -1,0 +1,1765 @@
+{
+  "resourceName": "Arc Machines",
+  "bicepType": "Microsoft.HybridCompute/machines@2024-07-31-preview",
+  "terraformType": "azurerm_arc_machine",
+  "category": "management + governance",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.hybridcompute/machines",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.HybridCompute/machines@2024-07-31-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 54,
+            "pattern": "^[a-zA-Z0-9-_\\.]{1,54}$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.HybridCompute/machines"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-31-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "locationData": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 256
+                      },
+                      "description": "A canonical name for the geographic or physical location."
+                    },
+                    "city": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The city or locality where the resource is located."
+                    },
+                    "district": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The district, state, or province where the resource is located."
+                    },
+                    "countryOrRegion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The country or region where the resource is located"
+                    }
+                  }
+                },
+                "description": "Metadata pertaining to the geographic location of the resource."
+              },
+              "agentConfiguration": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "proxyUrl": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the URL of the proxy to be used."
+                    },
+                    "incomingConnectionsPorts": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Specifies the list of ports that the agent will be able to listen on."
+                    },
+                    "extensionsAllowList": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "publisher": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Publisher of the extension."
+                            },
+                            "type": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of the extension."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Array of extensions that are allowed to be installed or updated."
+                    },
+                    "extensionsBlockList": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "publisher": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Publisher of the extension."
+                            },
+                            "type": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of the extension."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Array of extensions that are blocked (cannot be installed or updated)"
+                    },
+                    "proxyBypass": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of service names which should not use the specified proxy server."
+                    },
+                    "extensionsEnabled": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies whether the extension service is enabled or disabled."
+                    },
+                    "guestConfigurationEnabled": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specified whether the guest configuration service is enabled or disabled."
+                    },
+                    "configMode": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "full"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "monitor"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Name of configuration mode to use. Modes are pre-defined configurations of security controls, extension allowlists and guest configuration, maintained by Microsoft."
+                    }
+                  }
+                },
+                "description": "Configurable properties that the user can set locally via the azcmagent config command, or remotely via ARM."
+              },
+              "serviceStatuses": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "extensionService": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "status": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The current status of the service."
+                          },
+                          "startupType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The behavior of the service when the Arc-enabled machine starts up."
+                          }
+                        }
+                      },
+                      "description": "The state of the extension service on the Arc-enabled machine."
+                    },
+                    "guestConfigurationService": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "status": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The current status of the service."
+                          },
+                          "startupType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The behavior of the service when the Arc-enabled machine starts up."
+                          }
+                        }
+                      },
+                      "description": "The state of the guest configuration service on the Arc-enabled machine."
+                    }
+                  }
+                },
+                "description": "Statuses of dependent services that are reported back to ARM."
+              },
+              "hardwareProfile": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "totalPhysicalMemoryInBytes": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The total physical memory on the machine"
+                    },
+                    "numberOfCpuSockets": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The total number of CPU sockets available on the machine"
+                    },
+                    "processors": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the processor."
+                            },
+                            "numberOfCores": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The total number of physical cores on the processor."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The physical processors of the machine."
+                    }
+                  }
+                },
+                "description": "Information about the machine's hardware"
+              },
+              "storageProfile": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "disks": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "path": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The path of the disk."
+                            },
+                            "diskType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of the disk."
+                            },
+                            "generatedId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The generated ID of the disk."
+                            },
+                            "id": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The ID of the disk."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the disk."
+                            },
+                            "maxSizeInBytes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The size of the disk, in bytes"
+                            },
+                            "usedSpaceInBytes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The amount of space used on the disk, in bytes"
+                            }
+                          }
+                        }
+                      },
+                      "description": "The disks on the machine."
+                    }
+                  }
+                },
+                "description": "Information about the machine's storage"
+              },
+              "firmwareProfile": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "serialNumber": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The serial number of the firmware"
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The type of the firmware"
+                    }
+                  }
+                },
+                "description": "Information about the machine's firmware"
+              },
+              "cloudMetadata": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "provider": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the cloud provider (Azure/AWS/GCP...)."
+                    }
+                  }
+                },
+                "description": "The metadata of the cloud environment (Azure/GCP/AWS/OCI...)."
+              },
+              "agentUpgrade": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "desiredVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the version info w.r.t AgentUpgrade for the machine."
+                    },
+                    "correlationId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "The correlation ID associated with an agent upgrade operation."
+                    },
+                    "enableAutomaticUpgrade": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Specifies if the machine's agent should be upgraded"
+                    },
+                    "lastAttemptDesiredVersion": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the version of the last attempt"
+                    },
+                    "lastAttemptTimestamp": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Timestamp of last upgrade attempt"
+                    },
+                    "lastAttemptStatus": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Success"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Failed"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies the status of Agent Upgrade."
+                    },
+                    "lastAttemptMessage": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Failure message of last upgrade attempt if any."
+                    }
+                  }
+                },
+                "description": "The info of the machine w.r.t Agent Upgrade"
+              },
+              "osProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "computerName": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the host OS name of the hybrid machine."
+                    },
+                    "windowsConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "patchSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "assessmentMode": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the assessment mode."
+                                },
+                                "patchMode": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the patch mode."
+                                },
+                                "enableHotpatching": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Captures the hotpatch capability enrollment intent of the customers, which enables customers to patch their Windows machines without requiring a reboot."
+                                },
+                                "status": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Status of the hotpatch capability enrollment or disenrollment."
+                                }
+                              }
+                            },
+                            "description": "Specifies the patch settings."
+                          }
+                        }
+                      },
+                      "description": "Specifies the windows configuration for update management."
+                    },
+                    "linuxConfiguration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "patchSettings": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "assessmentMode": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the assessment mode."
+                                },
+                                "patchMode": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the patch mode."
+                                },
+                                "enableHotpatching": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Captures the hotpatch capability enrollment intent of the customers, which enables customers to patch their Windows machines without requiring a reboot."
+                                },
+                                "status": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Status of the hotpatch capability enrollment or disenrollment."
+                                }
+                              }
+                            },
+                            "description": "Specifies the patch settings."
+                          }
+                        }
+                      },
+                      "description": "Specifies the linux configuration for update management."
+                    }
+                  }
+                },
+                "description": "Specifies the operating system settings for the hybrid machine."
+              },
+              "licenseProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "licenseStatus": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unlicensed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Licensed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "OOBGrace"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "OOTGrace"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NonGenuineGrace"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Notification"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ExtendedGrace"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Indicates the license status of the OS."
+                    },
+                    "licenseChannel": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Indicates the license channel."
+                    },
+                    "softwareAssurance": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "softwareAssuranceCustomer": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Specifies if this machine is licensed as part of a Software Assurance agreement."
+                          }
+                        }
+                      }
+                    },
+                    "esuProfile": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "assignedLicense": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "properties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Hybrid Compute License properties"
+                                },
+                                "tags": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Resource tags."
+                                },
+                                "location": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The geo-location where the resource lives"
+                                },
+                                "id": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                                },
+                                "name": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The name of the resource"
+                                },
+                                "type": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                                },
+                                "systemData": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                                }
+                              }
+                            },
+                            "description": "The assigned license resource."
+                          },
+                          "licenseAssignmentState": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Describes the license assignment state (Assigned or NotAssigned)."
+                          },
+                          "serverType": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of the Esu servers."
+                          },
+                          "esuEligibility": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Indicates the eligibility state of Esu."
+                          },
+                          "esuKeyState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Indicates whether there is an ESU Key currently active for the machine."
+                          },
+                          "assignedLicenseImmutableId": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The guid id of the license."
+                          },
+                          "esuKeys": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The list of ESU keys."
+                          }
+                        }
+                      },
+                      "description": "Properties for the Machine ESU profile."
+                    },
+                    "productProfile": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "subscriptionStatus": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Indicates the subscription status of the product."
+                          },
+                          "productType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Indicates the product type of the license."
+                          },
+                          "enrollmentDate": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The timestamp in UTC when the user enrolls the feature."
+                          },
+                          "billingStartDate": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The timestamp in UTC when the billing starts."
+                          },
+                          "disenrollmentDate": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The timestamp in UTC when the user disenrolled the feature."
+                          },
+                          "billingEndDate": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The timestamp in UTC when the billing ends."
+                          },
+                          "error": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "code": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The error code."
+                                },
+                                "message": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The error message."
+                                },
+                                "target": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The error target."
+                                },
+                                "details": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The error details."
+                                },
+                                "additionalInfo": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The error additional info."
+                                }
+                              }
+                            },
+                            "description": "The errors that were encountered during the feature enrollment or disenrollment."
+                          },
+                          "productFeatures": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The list of product features."
+                          }
+                        }
+                      },
+                      "description": "Hybrid Compute Product Profile properties"
+                    }
+                  }
+                },
+                "description": "Specifies the License related properties for a machine."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state, which only appears in the response."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disconnected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Error"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The status of the hybrid machine agent."
+              },
+              "lastStatusChange": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The time of the last status change."
+              },
+              "errorDetails": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "code": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The error code."
+                      },
+                      "message": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The error message."
+                      },
+                      "target": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The error target."
+                      },
+                      "details": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The error details."
+                      },
+                      "additionalInfo": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The error additional info."
+                      }
+                    }
+                  }
+                },
+                "description": "Details about the error state."
+              },
+              "agentVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The hybrid machine agent full version."
+              },
+              "vmId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "Specifies the hybrid machine unique ID."
+              },
+              "displayName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the hybrid machine display name."
+              },
+              "machineFqdn": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the hybrid machine FQDN."
+              },
+              "clientPublicKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Public Key that the client provides to be used during initial resource onboarding"
+              },
+              "osName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Operating System running on the hybrid machine."
+              },
+              "osVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The version of Operating System running on the hybrid machine."
+              },
+              "osType": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The type of Operating System (windows/linux)."
+              },
+              "vmUuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "Specifies the Arc Machine's unique SMBIOS ID"
+              },
+              "extensions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The machine extension name."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Specifies the type of the extension; an example is \"CustomScriptExtension\"."
+                      },
+                      "typeHandlerVersion": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Specifies the version of the script handler."
+                      },
+                      "status": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "code": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The status code."
+                            },
+                            "level": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The level code."
+                            },
+                            "displayStatus": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The short localizable label for the status."
+                            },
+                            "message": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The detailed status message, including for alerts and error messages."
+                            },
+                            "time": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The time of the status."
+                            }
+                          }
+                        },
+                        "description": "Instance view status."
+                      }
+                    }
+                  }
+                },
+                "description": "Machine Extensions information (deprecated field)"
+              },
+              "osSku": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the Operating System product SKU."
+              },
+              "osEdition": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The edition of the Operating System."
+              },
+              "domainName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the Windows domain name."
+              },
+              "adFqdn": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the AD fully qualified display name."
+              },
+              "dnsFqdn": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the DNS fully qualified display name."
+              },
+              "privateLinkScopeResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource id of the private link scope this machine is assigned to, if any."
+              },
+              "parentClusterResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource id of the parent cluster (Azure HCI) this machine is assigned to, if any."
+              },
+              "mssqlDiscovered": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies whether any MS SQL instance is discovered on the machine."
+              },
+              "detectedProperties": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Detected properties from the machine."
+              },
+              "networkProfile": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "networkInterfaces": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "macAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Represents MAC address of the network interface."
+                            },
+                            "id": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Represents the ID of the network interface."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Represents the name of the network interface."
+                            },
+                            "ipAddresses": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of IP addresses in this interface."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of network interfaces."
+                    }
+                  }
+                },
+                "description": "Information about the network the machine is on."
+              }
+            }
+          },
+          "description": "Hybrid Compute Machine properties"
+        },
+        "resources": {
+          "flags": 2,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "ObjectType",
+              "properties": {
+                "properties": {
+                  "flags": 0,
+                  "type": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "forceUpdateTag": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "How the extension handler should be forced to update even if the extension configuration has not changed."
+                      },
+                      "publisher": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the extension handler publisher."
+                      },
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Specifies the type of the extension; an example is \"CustomScriptExtension\"."
+                      },
+                      "typeHandlerVersion": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Specifies the version of the script handler."
+                      },
+                      "enableAutomaticUpgrade": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available."
+                      },
+                      "autoUpgradeMinorVersion": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true."
+                      },
+                      "settings": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Json formatted public settings for the extension."
+                      },
+                      "protectedSettings": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The extension can contain either protectedSettings or protectedSettingsFromKeyVault or no protected settings at all."
+                      },
+                      "provisioningState": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The provisioning state, which only appears in the response."
+                      },
+                      "instanceView": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The machine extension name."
+                            },
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Specifies the type of the extension; an example is \"CustomScriptExtension\"."
+                            },
+                            "typeHandlerVersion": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Specifies the version of the script handler."
+                            },
+                            "status": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Instance view status."
+                            }
+                          }
+                        },
+                        "description": "The machine extension instance view."
+                      }
+                    }
+                  },
+                  "description": "Describes Machine Extension Properties."
+                },
+                "tags": {
+                  "flags": 0,
+                  "type": {
+                    "$type": "ObjectType",
+                    "additionalProperties": {
+                      "$type": "StringType"
+                    }
+                  },
+                  "description": "Resource tags."
+                },
+                "location": {
+                  "flags": 1,
+                  "type": {
+                    "$type": "StringType"
+                  },
+                  "description": "The geo-location where the resource lives"
+                },
+                "id": {
+                  "flags": 2,
+                  "type": {
+                    "$type": "StringType"
+                  },
+                  "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                },
+                "name": {
+                  "flags": 2,
+                  "type": {
+                    "$type": "StringType"
+                  },
+                  "description": "The name of the resource"
+                },
+                "type": {
+                  "flags": 2,
+                  "type": {
+                    "$type": "StringType"
+                  },
+                  "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                },
+                "systemData": {
+                  "flags": 2,
+                  "type": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "createdBy": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The identity that created the resource."
+                      },
+                      "createdByType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The type of identity that created the resource."
+                      },
+                      "createdAt": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The timestamp of resource creation (UTC)."
+                      },
+                      "lastModifiedBy": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The identity that last modified the resource."
+                      },
+                      "lastModifiedByType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The type of identity that last modified the resource."
+                      },
+                      "lastModifiedAt": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The timestamp of resource last modification (UTC)"
+                      }
+                    }
+                  },
+                  "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                }
+              }
+            }
+          },
+          "description": "The list of extensions affiliated to the machine"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID of resource identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant ID of resource."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringLiteralType",
+                  "value": "SystemAssigned"
+                },
+                "description": "The identity type."
+              }
+            }
+          },
+          "description": "Identity for the resource."
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "AVS"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "HCI"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "SCVMM"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "VMware"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "EPS"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "GCP"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "AWS"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "Indicates which kind of Arc machine placement on-premises, such as HCI, SCVMM or VMware etc."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

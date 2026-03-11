@@ -1,0 +1,476 @@
+{
+  "resourceName": "App Service Plans",
+  "bicepType": "Microsoft.Web/serverfarms@2023-12-01",
+  "terraformType": "azurerm_service_plan",
+  "category": "app services",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/serverfarms",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Web/serverfarms@2023-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Web/serverfarms"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "workerTierName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Target worker tier assigned to the App Service plan."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    }
+                  ]
+                },
+                "description": "App Service plan status."
+              },
+              "subscription": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "App Service plan subscription."
+              },
+              "hostingEnvironmentProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID of the App Service Environment."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the App Service Environment."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type of the App Service Environment."
+                    }
+                  }
+                },
+                "description": "Specification for the App Service Environment to use for the App Service plan."
+              },
+              "maximumNumberOfWorkers": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Maximum number of instances that can be assigned to this App Service plan."
+              },
+              "numberOfWorkers": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The number of instances that are assigned to this App Service plan."
+              },
+              "geoRegion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Geographical location for the App Service plan."
+              },
+              "perSiteScaling": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If <code>true</code>, apps assigned to this App Service plan can be scaled independently.\nIf <code>false</code>, apps assigned to this App Service plan will scale to all instances of the plan."
+              },
+              "elasticScaleEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "ServerFarm supports ElasticScale. Apps in this plan will scale as if the ServerFarm was ElasticPremium sku"
+              },
+              "maximumElasticWorkerCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan"
+              },
+              "numberOfSites": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Number of apps assigned to this App Service plan."
+              },
+              "isSpot": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If <code>true</code>, this App Service Plan owns spot instances."
+              },
+              "spotExpirationTime": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The time when the server farm expires. Valid only if it is a spot server farm."
+              },
+              "freeOfferExpirationTime": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The time when the server farm free offer expires."
+              },
+              "resourceGroup": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Resource group of the App Service plan."
+              },
+              "reserved": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If Linux app service plan <code>true</code>, <code>false</code> otherwise."
+              },
+              "isXenon": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Obsolete: If Hyper-V container app service plan <code>true</code>, <code>false</code> otherwise."
+              },
+              "hyperV": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If Hyper-V container app service plan <code>true</code>, <code>false</code> otherwise."
+              },
+              "targetWorkerCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Scaling worker count."
+              },
+              "targetWorkerSizeId": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Scaling worker size ID."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    }
+                  ]
+                },
+                "description": "Provisioning state of the App Service Plan."
+              },
+              "kubeEnvironmentProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID of the Kubernetes Environment."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the Kubernetes Environment."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type of the Kubernetes Environment."
+                    }
+                  }
+                },
+                "description": "Specification for the Kubernetes Environment to use for the App Service plan."
+              },
+              "zoneRedundant": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If <code>true</code>, this App Service Plan will perform availability zone balancing.\nIf <code>false</code>, this App Service Plan will not perform availability zone balancing."
+              }
+            }
+          },
+          "description": "AppServicePlan resource specific properties"
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the resource SKU."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Service tier of the resource SKU."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Size specifier of the resource SKU."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Family code of the resource SKU."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Current number of instances assigned to the resource."
+              },
+              "skuCapacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "minimum": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Minimum number of workers for this App Service plan SKU."
+                    },
+                    "maximum": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Maximum number of workers for this App Service plan SKU."
+                    },
+                    "elasticMaximum": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Maximum number of Elastic workers for this App Service plan SKU."
+                    },
+                    "default": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Default number of workers for this App Service plan SKU."
+                    },
+                    "scaleType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Available scale configurations for an App Service plan."
+                    }
+                  }
+                },
+                "description": "Min, max, and default scale values of the SKU."
+              },
+              "locations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Locations of the SKU."
+              },
+              "capabilities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Name of the SKU capability."
+                      },
+                      "value": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Value of the SKU capability."
+                      },
+                      "reason": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Reason of the SKU capability."
+                      }
+                    }
+                  }
+                },
+                "description": "Capabilities of the SKU, e.g., is traffic manager enabled?"
+              }
+            }
+          },
+          "description": "Description of a SKU for a scalable resource."
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of extended location."
+              },
+              "type": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Type of extended location."
+              }
+            }
+          },
+          "description": "Extended Location."
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

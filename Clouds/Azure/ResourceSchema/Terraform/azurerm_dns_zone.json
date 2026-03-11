@@ -1,0 +1,149 @@
+{
+  "resourceName": "DNS Multistack",
+  "bicepType": "Microsoft.Network/dnsZones@2023-07-01-preview",
+  "terraformType": "azurerm_dns_zone",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/dnszones",
+  "definition": {
+    "version": 2,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "max_number_of_record_sets": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name_servers": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "number_of_record_sets": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "soa_record": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "email": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "expire_time": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "fqdn": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "host_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "minimum_ttl": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "refresh_time": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "retry_time": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "serial_number": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tags": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "ttl": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

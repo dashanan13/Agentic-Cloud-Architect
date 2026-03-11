@@ -1,0 +1,376 @@
+{
+  "resourceName": "Logic Apps Custom Connector",
+  "bicepType": "Microsoft.Web/customApis@2016-06-01",
+  "terraformType": "",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/customapis",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Web/customApis@2016-06-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Web/customApis"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2016-06-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "connectionParameters": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "type": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Type of the parameter"
+                      },
+                      "oAuthSettings": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "identityProvider": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Identity provider"
+                            },
+                            "clientId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource provider client id"
+                            },
+                            "clientSecret": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Client Secret needed for OAuth"
+                            },
+                            "scopes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "OAuth scopes"
+                            },
+                            "redirectUrl": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Url"
+                            },
+                            "properties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Read only properties for this oauth setting."
+                            },
+                            "customParameters": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "OAuth parameters key is the name of parameter"
+                            }
+                          }
+                        },
+                        "description": "OAuth settings for the connection provider"
+                      }
+                    }
+                  }
+                },
+                "description": "Connection parameters"
+              },
+              "runtimeUrls": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Runtime URLs"
+              },
+              "capabilities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The custom API capabilities"
+              },
+              "swagger": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "The JSON representation of the swagger"
+              },
+              "brandColor": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Brand color"
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The custom API description"
+              },
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The display name"
+              },
+              "iconUri": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The icon URI"
+              },
+              "backendService": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "serviceUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The service URL"
+                    }
+                  }
+                },
+                "description": "The API backend service"
+              },
+              "apiDefinitions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "originalSwaggerUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The original swagger URL"
+                    },
+                    "modifiedSwaggerUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The modified swagger URL"
+                    }
+                  }
+                },
+                "description": "API Definitions"
+              },
+              "apiType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSpecified"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Rest"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Soap"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The API type"
+              },
+              "wsdlDefinition": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "url": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The WSDL URL"
+                    },
+                    "content": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The WSDL content"
+                    },
+                    "service": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "qualifiedName": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The service's qualified name"
+                          },
+                          "endpointQualifiedNames": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "List of the endpoints' qualified names"
+                          }
+                        }
+                      },
+                      "description": "The service with name and endpoint names"
+                    },
+                    "importMethod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NotSpecified"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SoapToRest"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SoapPassThrough"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The WSDL import method"
+                    }
+                  }
+                },
+                "description": "The WSDL definition"
+              }
+            }
+          },
+          "description": "Custom API properties"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource ETag"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

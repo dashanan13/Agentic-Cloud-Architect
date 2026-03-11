@@ -1,0 +1,166 @@
+{
+  "resourceName": "Entra Identity Custom Roles",
+  "bicepType": "Microsoft.Authorization/roleDefinitions@2022-04-01",
+  "terraformType": "azurerm_role_definition",
+  "category": "identity",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.authorization/roledefinitions",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Authorization/roleDefinitions@2022-04-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Authorization/roleDefinitions"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-04-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "roleName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The role name."
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The role definition description."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The role type."
+              },
+              "permissions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "actions": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Allowed actions."
+                      },
+                      "notActions": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Denied actions."
+                      },
+                      "dataActions": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Allowed Data actions."
+                      },
+                      "notDataActions": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Denied Data actions."
+                      }
+                    }
+                  }
+                },
+                "description": "Role definition permissions."
+              },
+              "assignableScopes": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Role definition assignable scopes."
+              },
+              "createdOn": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Time it was created"
+              },
+              "updatedOn": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Time it was updated"
+              },
+              "createdBy": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Id of the user who created the assignment"
+              },
+              "updatedBy": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Id of the user who updated the assignment"
+              }
+            }
+          },
+          "description": "Role definition properties."
+        }
+      }
+    }
+  }
+}

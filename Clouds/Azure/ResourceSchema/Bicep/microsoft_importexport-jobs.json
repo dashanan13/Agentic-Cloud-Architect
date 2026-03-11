@@ -1,0 +1,730 @@
+{
+  "resourceName": "Import Export Jobs",
+  "bicepType": "Microsoft.ImportExport/jobs@2021-01-01",
+  "terraformType": "",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.importexport/jobs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.ImportExport/jobs@2021-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.ImportExport/jobs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2021-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Specifies the supported Azure location where the job should be created"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "AnyType"
+          },
+          "description": "Specifies the tags that will be assigned to the job."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "storageAccountId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource identifier of the storage account where data will be imported to or exported from."
+              },
+              "jobType": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The type of job"
+              },
+              "returnAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "recipientName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the recipient who will receive the hard drives when they are returned."
+                    },
+                    "streetAddress1": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The first line of the street address to use when returning the drives."
+                    },
+                    "streetAddress2": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The second line of the street address to use when returning the drives."
+                    },
+                    "city": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The city name to use when returning the drives."
+                    },
+                    "stateOrProvince": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The state or province to use when returning the drives."
+                    },
+                    "postalCode": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The postal code to use when returning the drives."
+                    },
+                    "countryOrRegion": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The country or region to use when returning the drives."
+                    },
+                    "phone": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number of the recipient of the returned drives."
+                    },
+                    "email": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Email address of the recipient of the returned drives."
+                    }
+                  }
+                },
+                "description": "Specifies the return address information for the job."
+              },
+              "returnShipping": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "carrierName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The carrier's name."
+                    },
+                    "carrierAccountNumber": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The customer's account number with the carrier."
+                    }
+                  }
+                },
+                "description": "Specifies the return carrier and customer's account with the carrier."
+              },
+              "shippingInformation": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "recipientName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the recipient who will receive the hard drives when they are returned."
+                    },
+                    "streetAddress1": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The first line of the street address to use when returning the drives."
+                    },
+                    "streetAddress2": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The second line of the street address to use when returning the drives."
+                    },
+                    "city": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The city name to use when returning the drives."
+                    },
+                    "stateOrProvince": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The state or province to use when returning the drives."
+                    },
+                    "postalCode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The postal code to use when returning the drives."
+                    },
+                    "countryOrRegion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The country or region to use when returning the drives."
+                    },
+                    "phone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Phone number of the recipient of the returned drives."
+                    },
+                    "additionalInformation": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Additional shipping information for customer, specific to datacenter to which customer should send their disks."
+                    }
+                  }
+                },
+                "description": "Contains information about the Microsoft datacenter to which the drives should be shipped."
+              },
+              "deliveryPackage": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "carrierName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the carrier that is used to ship the import or export drives."
+                    },
+                    "trackingNumber": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The tracking number of the package."
+                    },
+                    "driveCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The number of drives included in the package."
+                    },
+                    "shipDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The date when the package is shipped."
+                    }
+                  }
+                },
+                "description": "Contains information about the package being shipped by the customer to the Microsoft data center."
+              },
+              "returnPackage": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "carrierName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the carrier that is used to ship the import or export drives."
+                    },
+                    "trackingNumber": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The tracking number of the package."
+                    },
+                    "driveCount": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The number of drives included in the package."
+                    },
+                    "shipDate": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The date when the package is shipped."
+                    }
+                  }
+                },
+                "description": "Contains information about the package being shipped from the Microsoft data center to the customer to return the drives. The format is the same as the deliveryPackage property above. This property is not included if the drives have not yet been returned."
+              },
+              "diagnosticsPath": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The virtual blob directory to which the copy logs and backups of drive manifest files (if enabled) will be stored."
+              },
+              "logLevel": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Default value is Error. Indicates whether error logging or verbose logging will be enabled."
+              },
+              "backupDriveManifest": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Default value is false. Indicates whether the manifest files on the drives should be copied to block blobs."
+              },
+              "state": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Current state of the job."
+              },
+              "cancelRequested": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether a request has been submitted to cancel the job."
+              },
+              "percentComplete": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Overall percentage completed for the job."
+              },
+              "incompleteBlobListUri": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A blob path that points to a block blob containing a list of blob names that were not exported due to insufficient drive space. If all blobs were exported successfully, then this element is not included in the response."
+              },
+              "driveList": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "driveId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The drive's hardware serial number, without spaces."
+                      },
+                      "bitLockerKey": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The BitLocker key used to encrypt the drive."
+                      },
+                      "manifestFile": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The relative path of the manifest file on the drive."
+                      },
+                      "manifestHash": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Base16-encoded MD5 hash of the manifest file on the drive."
+                      },
+                      "driveHeaderHash": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The drive header hash value."
+                      },
+                      "state": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The drive's current state."
+                      },
+                      "copyStatus": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Detailed status about the data transfer process. This field is not returned in the response until the drive is in the Transferring state."
+                      },
+                      "percentComplete": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "Percentage completed for the drive."
+                      },
+                      "verboseLogUri": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A URI that points to the blob containing the verbose log for the data transfer operation."
+                      },
+                      "errorLogUri": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A URI that points to the blob containing the error log for the data transfer operation."
+                      },
+                      "manifestUri": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A URI that points to the blob containing the drive manifest file."
+                      },
+                      "bytesSucceeded": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "Bytes successfully transferred for the drive."
+                      }
+                    }
+                  }
+                },
+                "description": "List of up to ten drives that comprise the job. The drive list is a required element for an import job; it is not specified for export jobs."
+              },
+              "export": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "blobList": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "blobPath": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A collection of blob-path strings."
+                          },
+                          "blobPathPrefix": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A collection of blob-prefix strings."
+                          }
+                        }
+                      },
+                      "description": "A list of the blobs to be exported."
+                    },
+                    "blobListBlobPath": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The relative URI to the block blob that contains the list of blob paths or blob path prefixes as defined above, beginning with the container name. If the blob is in root container, the URI must begin with $root."
+                    }
+                  }
+                },
+                "description": "A property containing information about the blobs to be exported for an export job. This property is included for export jobs only."
+              },
+              "provisioningState": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the provisioning state of the job."
+              },
+              "encryptionKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "kekType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "MicrosoftManaged"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CustomerManaged"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of kek encryption key"
+                    },
+                    "kekUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the url for kek encryption key."
+                    },
+                    "kekVaultResourceID": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the keyvault resource id for kek encryption key."
+                    }
+                  }
+                },
+                "description": "Contains information about the encryption key."
+              }
+            }
+          },
+          "description": "Specifies the job properties"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "SystemData of ImportExport Jobs."
+        },
+        "identity": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity"
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the principal id for the identity for the job."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the tenant id for the identity for the job."
+              }
+            }
+          },
+          "description": "Specifies the job identity details"
+        }
+      }
+    }
+  }
+}

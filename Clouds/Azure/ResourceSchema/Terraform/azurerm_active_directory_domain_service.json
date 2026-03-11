@@ -1,0 +1,279 @@
+{
+  "resourceName": "Entra Domain Services",
+  "bicepType": "Microsoft.AAD/domainServices@2022-12-01",
+  "terraformType": "azurerm_active_directory_domain_service",
+  "category": "identity",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.aad/domainservices",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "deployment_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "domain_configuration_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "domain_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "filtered_sync_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sync_owner": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tenant_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "version": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "initial_replica_set": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "domain_controller_ip_addresses": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "computed": true
+              },
+              "external_access_ip_address": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "location": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "service_status": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "subnet_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "notifications": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "additional_recipients": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "notify_dc_admins": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "notify_global_admins": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "secure_ldap": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "certificate_expiry": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "certificate_thumbprint": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              },
+              "external_access_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "pfx_certificate": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "pfx_certificate_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "public_certificate": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "security": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "kerberos_armoring_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "kerberos_rc4_encryption_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "ntlm_v1_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "sync_kerberos_passwords": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "sync_ntlm_passwords": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "sync_on_prem_passwords": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tls_v1_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,304 @@
+{
+  "resourceName": "Azure Database Migration Services",
+  "bicepType": "Microsoft.DataMigration/services@2023-07-15-preview",
+  "terraformType": "azurerm_database_migration_service",
+  "category": "migration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.datamigration/services",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DataMigration/services@2023-07-15-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DataMigration/services"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-07-15-preview"
+          },
+          "description": "The resource api version"
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "HTTP strong entity tag value. Ignored if submitted"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource kind. Only 'vm' (the default) is supported."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deploying"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopped"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Starting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "FailedToStart"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "FailedToStop"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The resource's provisioning state"
+              },
+              "publicKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The public key of the service, used to encrypt secrets sent to the service"
+              },
+              "virtualSubnetId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The ID of the Microsoft.Network/virtualNetworks/subnets resource to which the service should be joined"
+              },
+              "virtualNicId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The ID of the Microsoft.Network/networkInterfaces resource which the service have"
+              },
+              "autoStopDelay": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The time delay before the service is auto-stopped when idle."
+              },
+              "deleteResourcesOnStop": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether service resources should be deleted when stopped. (Turned on by default)"
+              }
+            }
+          },
+          "description": "Custom service properties"
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique name of the SKU, such as 'P3'"
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tier of the SKU, such as 'Basic', 'General Purpose', or 'Business Critical'"
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The SKU family, used when the service has multiple performance classes within a tier, such as 'A', 'D', etc. for virtual machines"
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The size of the SKU, used when the name alone does not denote a service size or when a SKU has multiple performance classes within a family, e.g. 'A1' for virtual machines"
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The capacity of the SKU, if it supports scaling"
+              }
+            }
+          },
+          "description": "Service SKU"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          }
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Dictionary of <string>"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                }
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                }
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                }
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

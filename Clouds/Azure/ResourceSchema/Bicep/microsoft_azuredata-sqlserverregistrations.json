@@ -1,0 +1,186 @@
+{
+  "resourceName": "SQL Server Registries",
+  "bicepType": "Microsoft.AzureData/sqlServerRegistrations@2019-07-24-preview",
+  "terraformType": "",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.azuredata/sqlserverregistrations",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AzureData/sqlServerRegistrations@2019-07-24-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AzureData/sqlServerRegistrations"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2019-07-24-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "subscriptionId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Subscription Id"
+              },
+              "resourceGroup": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Resource Group Name"
+              },
+              "propertyBag": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Optional Properties as JSON string"
+              }
+            }
+          },
+          "description": "Resource properties."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "An identifier for the identity that created the resource"
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "user"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "managedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource"
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)"
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "An identifier for the identity that last modified the resource"
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "user"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "managedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource"
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Read only system data"
+        }
+      }
+    }
+  }
+}

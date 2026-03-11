@@ -1,0 +1,200 @@
+{
+  "resourceName": "Lab Accounts",
+  "bicepType": "Microsoft.LabServices/labaccounts@2018-10-15",
+  "terraformType": "azurerm_lab_service_lab",
+  "category": "devops",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.labservices/labaccounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.LabServices/labaccounts@2018-10-15",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.LabServices/labaccounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2018-10-15"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "sizeConfiguration": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "environmentSizes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The size category"
+                            },
+                            "vmSizes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Represents a set of compute sizes that can serve this given size type"
+                            },
+                            "maxPrice": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The pay-as-you-go dollar price per hour this size will cost. It does not include discounts and may not reflect the actual price the size will cost. This is the maximum price of all prices within this tier."
+                            },
+                            "minNumberOfCores": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The number of cores a VM of this size has. This is the minimum number of cores within this tier."
+                            },
+                            "minMemory": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The amount of memory available (in GB). This is the minimum amount of memory within this tier."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Represents a list of size categories supported by this Lab Account (Small, Medium, Large)"
+                    }
+                  }
+                },
+                "description": "Represents the size configuration under the lab account"
+              },
+              "enabledRegionSelection": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Represents if region selection is enabled"
+              },
+              "provisioningState": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning status of the resource."
+              },
+              "uniqueIdentifier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique immutable identifier of a resource (Guid)."
+              },
+              "latestOperationResult": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "status": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The current status of the operation."
+                    },
+                    "errorCode": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Error code on failure."
+                    },
+                    "errorMessage": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The error message."
+                    },
+                    "requestUri": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Request URI of the operation."
+                    },
+                    "httpMethod": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The HttpMethod - PUT/POST/DELETE for the operation."
+                    },
+                    "operationUrl": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The URL to use to check long-running operation status"
+                    }
+                  }
+                },
+                "description": "The details of the latest operation. ex: status, error"
+              }
+            }
+          },
+          "description": "The properties of the resource."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The tags of the resource."
+        }
+      }
+    }
+  }
+}

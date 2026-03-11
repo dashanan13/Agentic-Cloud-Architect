@@ -1,0 +1,476 @@
+{
+  "resourceName": "Azure SQL VM",
+  "bicepType": "Microsoft.SqlVirtualMachine/sqlVirtualMachines@2023-10-01",
+  "terraformType": "azurerm_mssql_virtual_machine",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sqlvirtualmachine/sqlvirtualmachines",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "r_services_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sql_connectivity_port": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sql_connectivity_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sql_connectivity_update_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "sql_connectivity_update_username": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "sql_license_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sql_virtual_machine_group_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "virtual_machine_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "assessment": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "run_immediately": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "schedule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "day_of_week": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "monthly_occurrence": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "start_time": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "weekly_interval": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "auto_backup": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "encryption_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "deprecated": true,
+                "optional": true,
+                "computed": true
+              },
+              "encryption_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "retention_period_in_days": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_account_access_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_blob_endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "system_databases_backup_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "manual_schedule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "days_of_week": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "full_backup_frequency": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "full_backup_start_hour": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "full_backup_window_in_hours": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "log_backup_frequency_in_minutes": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "auto_patching": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "day_of_week": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "maintenance_window_duration_in_minutes": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "maintenance_window_starting_hour": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "key_vault_credential": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "key_vault_url": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "service_principal_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "service_principal_secret": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "sql_instance": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "adhoc_workloads_optimization_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "collation": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "instant_file_initialization_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "lock_pages_in_memory_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_dop": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_server_memory_mb": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "min_server_memory_mb": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "storage_configuration": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "disk_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_workload_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "system_db_on_data_disk_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "data_settings": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "default_file_path": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "luns": {
+                      "type": [
+                        "list",
+                        "number"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "log_settings": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "default_file_path": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "luns": {
+                      "type": [
+                        "list",
+                        "number"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "temp_db_settings": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "data_file_count": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "data_file_growth_in_mb": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "data_file_size_mb": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "default_file_path": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "log_file_growth_mb": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "log_file_size_mb": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "luns": {
+                      "type": [
+                        "list",
+                        "number"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "wsfc_domain_credential": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "cluster_bootstrap_account_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "cluster_operator_account_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "sql_service_account_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

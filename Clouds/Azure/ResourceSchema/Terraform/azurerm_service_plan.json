@@ -1,0 +1,126 @@
+{
+  "resourceName": "App Service Plans",
+  "bicepType": "Microsoft.Web/serverfarms@2023-12-01",
+  "terraformType": "azurerm_service_plan",
+  "category": "app services",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/serverfarms",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "app_service_environment_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "kind": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "maximum_elastic_worker_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "os_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "per_site_scaling_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "premium_plan_auto_scale_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "reserved": {
+          "type": "bool",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "worker_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "zone_balancing_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

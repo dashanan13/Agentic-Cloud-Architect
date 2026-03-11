@@ -1,0 +1,555 @@
+{
+  "resourceName": "App Service Environments",
+  "bicepType": "Microsoft.Web/hostingEnvironments@2023-12-01",
+  "terraformType": "azurerm_app_service_environment_v3",
+  "category": "app services",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/hostingenvironments",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Web/hostingEnvironments@2023-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Web/hostingEnvironments"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "InProgress"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    }
+                  ]
+                },
+                "description": "Provisioning state of the App Service Environment."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Preparing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Scaling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    }
+                  ]
+                },
+                "description": "Current status of the App Service Environment."
+              },
+              "virtualNetwork": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource id of the Virtual Network."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the Virtual Network (read-only)."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type of the Virtual Network (read-only)."
+                    },
+                    "subnet": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Subnet within the Virtual Network."
+                    }
+                  }
+                },
+                "description": "Description of the Virtual Network."
+              },
+              "internalLoadBalancingMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Web"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Publishing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Web, Publishing"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment."
+              },
+              "multiSize": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Front-end VM size, e.g. \"Medium\", \"Large\"."
+              },
+              "multiRoleCount": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Number of front-end instances."
+              },
+              "ipsslAddressCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Number of IP SSL addresses reserved for the App Service Environment."
+              },
+              "dnsSuffix": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "DNS suffix of the App Service Environment."
+              },
+              "maximumNumberOfMachines": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Maximum number of VMs in the App Service Environment."
+              },
+              "frontEndScaleFactor": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Scale factor for front-ends."
+              },
+              "suspended": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if the App Service Environment is suspended; otherwise, <code>false</code>. The environment can be suspended, e.g. when the management endpoint is no longer available\n (most likely because NSG blocked the incoming traffic)."
+              },
+              "clusterSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Pair name."
+                      },
+                      "value": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Pair value."
+                      }
+                    }
+                  }
+                },
+                "description": "Custom settings for changing the behavior of the App Service Environment."
+              },
+              "userWhitelistedIpRanges": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "User added ip ranges to whitelist on ASE db"
+              },
+              "hasLinuxWorkers": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag that displays whether an ASE has linux workers or not"
+              },
+              "upgradePreference": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Early"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Late"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Manual"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Upgrade Preference"
+              },
+              "dedicatedHostCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Dedicated Host Count"
+              },
+              "zoneRedundant": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether or not this App Service Environment is zone-redundant."
+              },
+              "customDnsSuffixConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "provisioningState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            }
+                          },
+                          "provisioningDetails": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            }
+                          },
+                          "dnsSuffix": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The default custom domain suffix to use for all sites deployed on the ASE."
+                          },
+                          "certificateUrl": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URL referencing the Azure Key Vault certificate secret that should be used as the default SSL/TLS certificate for sites with the custom domain suffix."
+                          },
+                          "keyVaultReferenceIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The user-assigned identity to use for resolving the key vault certificate reference. If not specified, the system-assigned ASE identity will be used if available."
+                          }
+                        }
+                      },
+                      "description": "CustomDnsSuffixConfiguration resource specific properties"
+                    },
+                    "id": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource Id."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource Name."
+                    },
+                    "kind": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Kind of resource."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    }
+                  }
+                },
+                "description": "Full view of the custom domain suffix configuration for ASEv3."
+              },
+              "networkingConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "windowsOutboundIpAddresses": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          },
+                          "linuxOutboundIpAddresses": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          },
+                          "externalInboundIpAddresses": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          },
+                          "internalInboundIpAddresses": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          },
+                          "allowNewPrivateEndpointConnections": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Property to enable and disable new private endpoint connection creation on ASE"
+                          },
+                          "ftpEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Property to enable and disable FTP on ASEV3"
+                          },
+                          "remoteDebugEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Property to enable and disable Remote Debug on ASEV3"
+                          },
+                          "inboundIpAddressOverride": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Customer provided Inbound IP Address. Only able to be set on Ase create."
+                          }
+                        }
+                      },
+                      "description": "AseV3NetworkingConfiguration resource specific properties"
+                    },
+                    "id": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource Id."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource Name."
+                    },
+                    "kind": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Kind of resource."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type."
+                    }
+                  }
+                },
+                "description": "Full view of networking configuration for an ASE."
+              },
+              "upgradeAvailability": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether an upgrade is available for this App Service Environment."
+              }
+            }
+          },
+          "description": "Core resource properties"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

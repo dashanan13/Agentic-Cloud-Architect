@@ -1,0 +1,197 @@
+{
+  "resourceName": "Stream Analytics Jobs",
+  "bicepType": "Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview",
+  "terraformType": "azurerm_stream_analytics_job",
+  "category": "analytics",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.streamanalytics/streamingjobs",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "compatibility_level": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "content_storage_policy": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "data_locale": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "events_late_arrival_max_delay_in_seconds": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "events_out_of_order_max_delay_in_seconds": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "events_out_of_order_policy": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "job_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "output_error_policy": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "stream_analytics_cluster_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "streaming_units": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "transformation_query": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "job_storage_account": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "account_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "account_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "authentication_mode": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

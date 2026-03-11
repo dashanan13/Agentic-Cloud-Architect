@@ -1,0 +1,330 @@
+{
+  "resourceName": "Azure Database PostgreSQL Server",
+  "bicepType": "Microsoft.DBforPostgreSQL/flexibleServers@2024-03-01-preview",
+  "terraformType": "azurerm_postgresql_flexible_server",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.dbforpostgresql/flexibleservers",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "administrator_login": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "administrator_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "administrator_password_wo": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "write_only": true
+        },
+        "administrator_password_wo_version": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "auto_grow_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "backup_retention_days": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "create_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "delegated_subnet_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "fqdn": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "geo_redundant_backup_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "point_in_time_restore_time_in_utc": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "private_dns_zone_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "replication_role": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "source_server_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_mb": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "storage_tier": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "zone": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "authentication": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "active_directory_auth_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "password_auth_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "cluster": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "default_database_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "size": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "customer_managed_key": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "geo_backup_key_vault_key_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "geo_backup_user_assigned_identity_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "key_vault_key_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "primary_user_assigned_identity_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "high_availability": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "mode": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "standby_availability_zone": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "maintenance_window": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "day_of_week": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "start_hour": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "start_minute": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

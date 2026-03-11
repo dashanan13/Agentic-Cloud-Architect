@@ -1,0 +1,199 @@
+{
+  "resourceName": "Azure NetApp Files",
+  "bicepType": "Microsoft.NetApp/netAppAccounts@2024-07-01",
+  "terraformType": "azurerm_netapp_account",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.netapp/netappaccounts",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "active_directory": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "aes_encryption_enabled": {
+                "type": "bool",
+                "description": "If enabled, AES encryption will be enabled for SMB communication.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "dns_servers": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "domain": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "kerberos_ad_name": {
+                "type": "string",
+                "description": "Name of the active directory machine. This optional parameter is used only while creating kerberos volume.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "kerberos_kdc_ip": {
+                "type": "string",
+                "description": "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating kerberos volume.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "ldap_over_tls_enabled": {
+                "type": "bool",
+                "description": "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "ldap_signing_enabled": {
+                "type": "bool",
+                "description": "Specifies whether or not the LDAP traffic needs to be signed.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "local_nfs_users_with_ldap_allowed": {
+                "type": "bool",
+                "description": "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "organizational_unit": {
+                "type": "string",
+                "description": "The Organizational Unit (OU) within the Windows Active Directory where machines will be created. If blank, defaults to 'CN=Computers'",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "password": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "server_root_ca_certificate": {
+                "type": "string",
+                "description": "When LDAP over SSL/TLS is enabled, the LDAP client is required to have base64 encoded Active Directory Certificate Service's self-signed root CA certificate, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "site_name": {
+                "type": "string",
+                "description": "The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to 'Default-First-Site-Name'",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "smb_server_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "username": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

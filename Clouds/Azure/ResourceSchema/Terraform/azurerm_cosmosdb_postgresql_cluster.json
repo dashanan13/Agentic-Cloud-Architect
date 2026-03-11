@@ -1,0 +1,213 @@
+{
+  "resourceName": "Azure Database PostgreSQL Server Group",
+  "bicepType": "Microsoft.DBforPostgreSQL/serverGroupsv2@2022-11-08",
+  "terraformType": "azurerm_cosmosdb_postgresql_cluster",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.dbforpostgresql/servergroupsv2",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "administrator_login_password": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "citus_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "coordinator_public_ip_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "coordinator_server_edition": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "coordinator_storage_quota_in_mb": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "coordinator_vcore_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "earliest_restore_time": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "ha_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "node_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        },
+        "node_public_ip_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "node_server_edition": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "node_storage_quota_in_mb": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "node_vcores": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "point_in_time_in_utc": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "preferred_primary_zone": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "servers": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "fqdn": "string",
+                "name": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "shards_on_coordinator_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "source_location": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "source_resource_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sql_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "maintenance_window": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "day_of_week": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "start_hour": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "start_minute": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

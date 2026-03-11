@@ -1,0 +1,79 @@
+{
+  "resourceName": "SSH Keys",
+  "bicepType": "Microsoft.Compute/sshPublicKeys@2024-07-01",
+  "terraformType": "azurerm_ssh_public_key",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/sshpublickeys",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Compute/sshPublicKeys@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Compute/sshPublicKeys"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "publicKey": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SSH public key used to authenticate to a virtual machine through ssh. If this property is not initially provided when the resource is created, the publicKey property will be populated when generateKeyPair is called. If the public key is provided upon resource creation, the provided public key needs to be at least 2048-bit and in ssh-rsa format."
+              }
+            }
+          },
+          "description": "Properties of the SSH public key."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

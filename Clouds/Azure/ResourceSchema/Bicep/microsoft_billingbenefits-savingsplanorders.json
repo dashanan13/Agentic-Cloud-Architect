@@ -1,0 +1,432 @@
+{
+  "resourceName": "Savings Plans",
+  "bicepType": "Microsoft.BillingBenefits/savingsPlanOrders@2022-11-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.billingbenefits/savingsplanorders",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.BillingBenefits/savingsPlanOrders@2022-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.BillingBenefits/savingsPlanOrders"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the SKU to be applied"
+              }
+            }
+          },
+          "description": "Savings plan SKU"
+        },
+        "properties": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Display name"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PendingBilling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ConfirmedBilling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Created"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Provisioning state"
+              },
+              "billingScopeId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Subscription that will be charged for purchasing the benefit"
+              },
+              "billingProfileId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Fully-qualified identifier of the billing profile where the savings plan is applied. Present only for Field-led or Customer-led customers."
+              },
+              "customerId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Fully-qualified identifier of the customer where the savings plan is applied. Present only for Partner-led customers."
+              },
+              "billingAccountId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Fully-qualified identifier of the billing account where the savings plan is applied. Present only for Enterprise Agreement customers."
+              },
+              "term": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P1Y"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P3Y"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P5Y"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Represent benefit term in ISO 8601 format."
+              },
+              "billingPlan": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P1M"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Represents the billing plan in ISO 8601 format. Required only for monthly billing plans."
+              },
+              "expiryDateTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Expiry date time"
+              },
+              "benefitStartTime": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the DateTime when the savings plan benefit started."
+              },
+              "planInformation": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "pricingCurrencyTotal": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "currencyCode": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The ISO 4217 3-letter currency code for the currency used by this purchase record."
+                          },
+                          "amount": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            }
+                          }
+                        }
+                      },
+                      "description": "Amount of money to be paid for the Order. Tax is not included."
+                    },
+                    "startDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Date when the billing plan has started."
+                    },
+                    "nextPaymentDueDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "For recurring billing plans, indicates the date when next payment will be processed. Null when total is paid off."
+                    },
+                    "transactions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "dueDate": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Date when the payment needs to be done."
+                            },
+                            "paymentDate": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Date when the transaction is completed. Is null when it is scheduled."
+                            },
+                            "pricingCurrencyTotal": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Amount in pricing currency. Tax not included."
+                            },
+                            "billingCurrencyTotal": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Amount charged in Billing currency. Tax not included. Is null for future payments"
+                            },
+                            "status": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Describes whether the payment is completed, failed, cancelled or scheduled in the future."
+                            },
+                            "extendedStatusInfo": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "billingAccount": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Billing account"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Information describing the type of billing plan for this savings plan."
+              },
+              "savingsPlans": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                }
+              },
+              "extendedStatusInfo": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "statusCode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Status code providing additional information."
+                    },
+                    "message": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The message giving detailed information about the status code."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Savings plan order properties"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

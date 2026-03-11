@@ -1,0 +1,568 @@
+{
+  "resourceName": "Event Grid Subscriptions",
+  "bicepType": "Microsoft.EventGrid/eventSubscriptions@2022-06-15",
+  "terraformType": "azurerm_eventgrid_event_subscription",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.eventgrid/eventsubscriptions",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.EventGrid/eventSubscriptions@2022-06-15",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.EventGrid/eventSubscriptions"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-06-15"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "topic": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the topic of the event subscription."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AwaitingManualAction"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Provisioning state of the event subscription."
+              },
+              "destination": {
+                "flags": 0,
+                "type": {
+                  "$type": "DiscriminatedObjectType",
+                  "name": "EventSubscriptionDestination",
+                  "discriminator": "endpointType",
+                  "baseProperties": {},
+                  "elements": {
+                    "AzureFunction": {
+                      "$ref": "#/121"
+                    },
+                    "EventHub": {
+                      "$ref": "#/133"
+                    },
+                    "HybridConnection": {
+                      "$ref": "#/137"
+                    },
+                    "ServiceBusQueue": {
+                      "$ref": "#/141"
+                    },
+                    "ServiceBusTopic": {
+                      "$ref": "#/145"
+                    },
+                    "StorageQueue": {
+                      "$ref": "#/149"
+                    },
+                    "WebHook": {
+                      "$ref": "#/152"
+                    }
+                  }
+                },
+                "description": "Information about the destination where events have to be delivered for the event subscription.\r\nUses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering."
+              },
+              "deliveryWithResourceIdentity": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "identity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "type": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove any identity."
+                          },
+                          "userAssignedIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The user identity associated with the resource."
+                          }
+                        }
+                      },
+                      "description": "The identity to use when delivering events."
+                    },
+                    "destination": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "DiscriminatedObjectType",
+                        "name": "EventSubscriptionDestination",
+                        "discriminator": "endpointType",
+                        "baseProperties": {},
+                        "elements": {
+                          "AzureFunction": {
+                            "$ref": "#/121"
+                          },
+                          "EventHub": {
+                            "$ref": "#/133"
+                          },
+                          "HybridConnection": {
+                            "$ref": "#/137"
+                          },
+                          "ServiceBusQueue": {
+                            "$ref": "#/141"
+                          },
+                          "ServiceBusTopic": {
+                            "$ref": "#/145"
+                          },
+                          "StorageQueue": {
+                            "$ref": "#/149"
+                          },
+                          "WebHook": {
+                            "$ref": "#/152"
+                          }
+                        }
+                      },
+                      "description": "Information about the destination where events have to be delivered for the event subscription.\r\nUses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering."
+                    }
+                  }
+                },
+                "description": "Information about the destination where events have to be delivered for the event subscription.\r\nUses the managed identity setup on the parent resource (namely, topic or domain) to acquire the authentication tokens being used during delivery / dead-lettering."
+              },
+              "filter": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "subjectBeginsWith": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "An optional string to filter events for an event subscription based on a resource path prefix.\r\nThe format of this depends on the publisher of the events.\r\nWildcard characters are not supported in this path."
+                    },
+                    "subjectEndsWith": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "An optional string to filter events for an event subscription based on a resource path suffix.\r\nWildcard characters are not supported in this path."
+                    },
+                    "includedEventTypes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "A list of applicable event types that need to be part of the event subscription. If it is desired to subscribe to all default event types, set the IncludedEventTypes to null."
+                    },
+                    "isSubjectCaseSensitive": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Specifies if the SubjectBeginsWith and SubjectEndsWith properties of the filter\r\nshould be compared in a case sensitive manner."
+                    },
+                    "enableAdvancedFilteringOnArrays": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Allows advanced filters to be evaluated against an array of values instead of expecting a singular value."
+                    },
+                    "advancedFilters": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "DiscriminatedObjectType",
+                          "name": "AdvancedFilter",
+                          "discriminator": "operatorType",
+                          "baseProperties": {
+                            "key": {
+                              "type": {
+                                "$ref": "#/0"
+                              },
+                              "flags": 0,
+                              "description": "The field/property in the event based on which you want to filter."
+                            }
+                          },
+                          "elements": {
+                            "BoolEquals": {
+                              "$ref": "#/165"
+                            },
+                            "IsNotNull": {
+                              "$ref": "#/167"
+                            },
+                            "IsNullOrUndefined": {
+                              "$ref": "#/169"
+                            },
+                            "NumberGreaterThan": {
+                              "$ref": "#/171"
+                            },
+                            "NumberGreaterThanOrEquals": {
+                              "$ref": "#/173"
+                            },
+                            "NumberIn": {
+                              "$ref": "#/175"
+                            },
+                            "NumberInRange": {
+                              "$ref": "#/178"
+                            },
+                            "NumberLessThan": {
+                              "$ref": "#/182"
+                            },
+                            "NumberLessThanOrEquals": {
+                              "$ref": "#/184"
+                            },
+                            "NumberNotIn": {
+                              "$ref": "#/186"
+                            },
+                            "NumberNotInRange": {
+                              "$ref": "#/189"
+                            },
+                            "StringBeginsWith": {
+                              "$ref": "#/193"
+                            },
+                            "StringContains": {
+                              "$ref": "#/196"
+                            },
+                            "StringEndsWith": {
+                              "$ref": "#/199"
+                            },
+                            "StringIn": {
+                              "$ref": "#/202"
+                            },
+                            "StringNotBeginsWith": {
+                              "$ref": "#/205"
+                            },
+                            "StringNotContains": {
+                              "$ref": "#/208"
+                            },
+                            "StringNotEndsWith": {
+                              "$ref": "#/211"
+                            },
+                            "StringNotIn": {
+                              "$ref": "#/214"
+                            }
+                          }
+                        }
+                      },
+                      "description": "An array of advanced filters that are used for filtering event subscriptions."
+                    }
+                  }
+                },
+                "description": "Information about the filter for the event subscription."
+              },
+              "labels": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of user defined labels."
+              },
+              "expirationTimeUtc": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Expiration time of the event subscription."
+              },
+              "eventDeliverySchema": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EventGridSchema"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CustomInputSchema"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CloudEventSchemaV1_0"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The event delivery schema for the event subscription."
+              },
+              "retryPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "maxDeliveryAttempts": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Maximum number of delivery retry attempts for events."
+                    },
+                    "eventTimeToLiveInMinutes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Time To Live (in minutes) for events."
+                    }
+                  }
+                },
+                "description": "The retry policy for events. This can be used to configure maximum number of delivery attempts and time to live for events."
+              },
+              "deadLetterDestination": {
+                "flags": 0,
+                "type": {
+                  "$type": "DiscriminatedObjectType",
+                  "name": "DeadLetterDestination",
+                  "discriminator": "endpointType",
+                  "baseProperties": {},
+                  "elements": {
+                    "StorageBlob": {
+                      "$ref": "#/225"
+                    }
+                  }
+                },
+                "description": "The dead letter destination of the event subscription. Any event that cannot be delivered to its' destination is sent to the dead letter destination.\r\nUses Azure Event Grid's identity to acquire the authentication tokens being used during delivery / dead-lettering."
+              },
+              "deadLetterWithResourceIdentity": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "identity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "type": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove any identity."
+                          },
+                          "userAssignedIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The user identity associated with the resource."
+                          }
+                        }
+                      },
+                      "description": "The identity to use when dead-lettering events."
+                    },
+                    "deadLetterDestination": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "DiscriminatedObjectType",
+                        "name": "DeadLetterDestination",
+                        "discriminator": "endpointType",
+                        "baseProperties": {},
+                        "elements": {
+                          "StorageBlob": {
+                            "$ref": "#/225"
+                          }
+                        }
+                      },
+                      "description": "Information about the destination where events have to be delivered for the event subscription.\r\nUses the managed identity setup on the parent resource (namely, topic or domain) to acquire the authentication tokens being used during delivery / dead-lettering."
+                    }
+                  }
+                },
+                "description": "The dead letter destination of the event subscription. Any event that cannot be delivered to its' destination is sent to the dead letter destination.\r\nUses the managed identity setup on the parent resource (namely, topic or domain) to acquire the authentication tokens being used during delivery / dead-lettering."
+              }
+            }
+          },
+          "description": "Properties of the event subscription."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "The system metadata relating to Event Subscription resource."
+        }
+      }
+    }
+  }
+}

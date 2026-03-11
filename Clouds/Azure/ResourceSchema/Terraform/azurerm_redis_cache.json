@@ -1,0 +1,352 @@
+{
+  "resourceName": "Cache",
+  "bicepType": "Microsoft.Cache/redis@2024-03-01",
+  "terraformType": "azurerm_redis_cache",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.cache/redis",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "access_keys_authentication_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "capacity": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        },
+        "family": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "hostname": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "minimum_tls_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "non_ssl_port_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "port": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "primary_access_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "primary_connection_string": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "private_static_ip_address": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "redis_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "replicas_per_master": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "replicas_per_primary": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "secondary_access_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "secondary_connection_string": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "shard_count": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "ssl_port": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "subnet_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tenant_settings": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "zones": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "patch_schedule": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "day_of_week": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "maintenance_window": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "start_hour_utc": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "redis_configuration": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "active_directory_authentication_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "aof_backup_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "aof_storage_connection_string_0": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "aof_storage_connection_string_1": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "authentication_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "data_persistence_authentication_method": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "maxclients": {
+                "type": "number",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "maxfragmentationmemory_reserved": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "maxmemory_delta": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "maxmemory_policy": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "maxmemory_reserved": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "notify_keyspace_events": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "rdb_backup_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "rdb_backup_frequency": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "rdb_backup_max_snapshot_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "rdb_storage_connection_string": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "storage_account_subscription_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

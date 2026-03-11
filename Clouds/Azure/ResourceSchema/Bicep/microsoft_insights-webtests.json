@@ -1,0 +1,342 @@
+{
+  "resourceName": "Web Test",
+  "bicepType": "Microsoft.Insights/webtests@2022-06-15",
+  "terraformType": "azurerm_application_insights_web_test",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.insights/webtests",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Insights/webtests@2022-06-15",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Insights/webtests"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-06-15"
+          },
+          "description": "The resource api version"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "ping"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "multistep"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "standard"
+              }
+            ]
+          },
+          "description": "The kind of WebTest that this web test watches. Choices are ping, multistep and standard."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "SyntheticMonitorId": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Unique ID of this WebTest. This is typically the same value as the Name field."
+              },
+              "Name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "User defined name if this WebTest."
+              },
+              "Description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "User defined description for this WebTest."
+              },
+              "Enabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Is the test actively being monitored."
+              },
+              "Frequency": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Interval in seconds between test runs for this WebTest. Default value is 300."
+              },
+              "Timeout": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Seconds until this WebTest will timeout and fail. Default value is 30."
+              },
+              "Kind": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "multistep"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "standard"
+                    }
+                  ]
+                },
+                "description": "The kind of web test this is, valid choices are ping, multistep and standard."
+              },
+              "RetryEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Allow for retries should this WebTest fail."
+              },
+              "Locations": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "Id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Location ID for the WebTest to run from."
+                      }
+                    }
+                  }
+                },
+                "description": "A list of where to physically run the tests from to give global coverage for accessibility of your application."
+              },
+              "Configuration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "WebTest": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The XML specification of a WebTest to run against an application."
+                    }
+                  }
+                },
+                "description": "An XML configuration specification for a WebTest."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Current state of this component, whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed."
+              },
+              "Request": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "RequestUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Url location to test."
+                    },
+                    "Headers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "key": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the header."
+                            },
+                            "value": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The value of the header."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of headers and their values to add to the WebTest call."
+                    },
+                    "HttpVerb": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Http verb to use for this web test."
+                    },
+                    "RequestBody": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Base64 encoded string body to send with this web test."
+                    },
+                    "ParseDependentRequests": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Parse Dependent request for this WebTest."
+                    },
+                    "FollowRedirects": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Follow redirects for this web test."
+                    }
+                  }
+                },
+                "description": "The collection of request properties"
+              },
+              "ValidationRules": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ContentValidation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "ContentMatch": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Content to look for in the return of the WebTest.  Must not be null or empty."
+                          },
+                          "IgnoreCase": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "When set, this value makes the ContentMatch validation case insensitive."
+                          },
+                          "PassIfTextFound": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "When true, validation will pass if there is a match for the ContentMatch string.  If false, validation will fail if there is a match"
+                          }
+                        }
+                      },
+                      "description": "The collection of content validation properties"
+                    },
+                    "SSLCheck": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Checks to see if the SSL cert is still valid."
+                    },
+                    "SSLCertRemainingLifetimeCheck": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "A number of days to check still remain before the the existing SSL cert expires.  Value must be positive and the SSLCheck must be set to true."
+                    },
+                    "ExpectedHttpStatusCode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Validate that the WebTest returns the http status code provided."
+                    },
+                    "IgnoreHttpStatusCode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "When set, validation will ignore the status code."
+                    }
+                  }
+                },
+                "description": "The collection of validation rule properties"
+              }
+            }
+          },
+          "description": "Metadata describing a web test for an Azure resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

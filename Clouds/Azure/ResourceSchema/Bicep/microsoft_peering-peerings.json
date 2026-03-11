@@ -1,0 +1,437 @@
+{
+  "resourceName": "Peerings",
+  "bicepType": "Microsoft.Peering/peerings@2022-10-01",
+  "terraformType": "azurerm_express_route_circuit_peering",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.peering/peerings",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Peering/peerings@2022-10-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Peering/peerings"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-10-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the peering SKU."
+              },
+              "tier": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The tier of the peering SKU."
+              },
+              "family": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Direct"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Exchange"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The family of the peering SKU."
+              },
+              "size": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Metered"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unlimited"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The size of the peering SKU."
+              }
+            }
+          },
+          "description": "The SKU that defines the tier and kind of the peering."
+        },
+        "kind": {
+          "flags": 1,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "Direct"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "Exchange"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "The kind of the peering."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "direct": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "connections": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "bandwidthInMbps": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The bandwidth of the connection."
+                            },
+                            "provisionedBandwidthInMbps": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The bandwidth that is actually provisioned."
+                            },
+                            "sessionAddressProvider": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The field indicating if Microsoft provides session ip addresses."
+                            },
+                            "useForPeeringService": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The flag that indicates whether or not the connection is used for peering service."
+                            },
+                            "microsoftTrackingId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The ID used within Microsoft's peering provisioning system to track the connection"
+                            },
+                            "peeringDBFacilityId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The PeeringDB.com ID of the facility at which the connection has to be set up."
+                            },
+                            "connectionState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The state of the connection."
+                            },
+                            "bgpSession": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The BGP session associated with the connection."
+                            },
+                            "connectionIdentifier": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The unique identifier (GUID) for the connection."
+                            },
+                            "errorMessage": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error message related to the connection state, if any."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The set of connections that constitute a direct peering."
+                    },
+                    "useForPeeringService": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "The flag that indicates whether or not the peering is used for peering service."
+                    },
+                    "peerAsn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The identifier of the referenced resource."
+                          }
+                        }
+                      },
+                      "description": "The reference of the peer ASN."
+                    },
+                    "directPeeringType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Edge"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Transit"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Cdn"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Internal"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Ix"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "IxRs"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Voice"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "EdgeZoneForOperators"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of direct peering."
+                    }
+                  }
+                },
+                "description": "The properties that define a direct peering."
+              },
+              "exchange": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "connections": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "peeringDBFacilityId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The PeeringDB.com ID of the facility at which the connection has to be set up."
+                            },
+                            "connectionState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The state of the connection."
+                            },
+                            "bgpSession": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The BGP session associated with the connection."
+                            },
+                            "connectionIdentifier": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The unique identifier (GUID) for the connection."
+                            },
+                            "errorMessage": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error message related to the connection state, if any."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The set of connections that constitute an exchange peering."
+                    },
+                    "peerAsn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The identifier of the referenced resource."
+                          }
+                        }
+                      },
+                      "description": "The reference of the peer ASN."
+                    }
+                  }
+                },
+                "description": "The properties that define an exchange peering."
+              },
+              "peeringLocation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The location of the peering."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the resource."
+              }
+            }
+          },
+          "description": "The properties that define a peering."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The resource tags."
+        }
+      }
+    }
+  }
+}

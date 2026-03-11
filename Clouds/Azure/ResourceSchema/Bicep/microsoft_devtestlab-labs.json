@@ -1,0 +1,450 @@
+{
+  "resourceName": "DevTest Labs",
+  "bicepType": "Microsoft.DevTestLab/labs@2018-09-15",
+  "terraformType": "azurerm_dev_test_lab",
+  "category": "devops",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.devtestlab/labs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DevTestLab/labs@2018-09-15",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DevTestLab/labs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2018-09-15"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "defaultStorageAccount": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The lab's default storage account."
+              },
+              "defaultPremiumStorageAccount": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The lab's default premium storage account."
+              },
+              "artifactsStorageAccount": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The lab's artifact storage account."
+              },
+              "premiumDataDiskStorageAccount": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The lab's premium data disk storage account."
+              },
+              "vaultName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The lab's Key vault."
+              },
+              "labStorageType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardSSD"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of storage used by the lab. It can be either Premium or Standard. Default is Premium."
+              },
+              "mandatoryArtifactsResourceIdsLinux": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The ordered list of artifact resource IDs that should be applied on all Linux VM creations by default, prior to the artifacts specified by the user."
+              },
+              "mandatoryArtifactsResourceIdsWindows": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The ordered list of artifact resource IDs that should be applied on all Windows VM creations by default, prior to the artifacts specified by the user."
+              },
+              "createdDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The creation date of the lab."
+              },
+              "premiumDataDisks": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The setting to enable usage of premium data disks.\nWhen its value is 'Enabled', creation of standard or premium data disks is allowed.\nWhen its value is 'Disabled', only creation of standard data disks is allowed."
+              },
+              "environmentPermission": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Reader"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Contributor"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The access rights to be granted to the user when provisioning an environment"
+              },
+              "announcement": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "title": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The plain text title for the lab announcement"
+                    },
+                    "markdown": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The markdown text (if any) that this lab displays in the UI. If left empty/null, nothing will be shown."
+                    },
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Is the lab announcement active/enabled at this time?"
+                    },
+                    "expirationDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The time at which the announcement expires (null for never)"
+                    },
+                    "expired": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Has this announcement expired?"
+                    },
+                    "provisioningState": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The provisioning status of the resource."
+                    },
+                    "uniqueIdentifier": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The unique immutable identifier of a resource (Guid)."
+                    }
+                  }
+                },
+                "description": "The properties of any lab announcement associated with this lab"
+              },
+              "support": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Is the lab support banner active/enabled at this time?"
+                    },
+                    "markdown": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The markdown text (if any) that this lab displays in the UI. If left empty/null, nothing will be shown."
+                    }
+                  }
+                },
+                "description": "The properties of any lab support message associated with this lab"
+              },
+              "vmCreationResourceGroup": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource group in which all new lab virtual machines will be created. To let DevTest Labs manage resource group creation, set this value to null."
+              },
+              "publicIpId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The public IP address for the lab's load balancer."
+              },
+              "loadBalancerId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The load balancer used to for lab VMs that use shared IP address."
+              },
+              "networkSecurityGroupId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Network Security Group attached to the lab VMs Network interfaces to restrict open ports."
+              },
+              "extendedProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Extended properties of the lab used for experimental features"
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning status of the resource."
+              },
+              "uniqueIdentifier": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique immutable identifier of a resource (Guid)."
+              }
+            }
+          },
+          "description": "The properties of the resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

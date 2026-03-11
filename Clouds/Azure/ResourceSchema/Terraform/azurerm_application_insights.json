@@ -1,0 +1,147 @@
+{
+  "resourceName": "Application Insights",
+  "bicepType": "Microsoft.Insights/components@2020-02-02",
+  "terraformType": "azurerm_application_insights",
+  "category": "monitor",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.insights/components",
+  "definition": {
+    "version": 2,
+    "block": {
+      "attributes": {
+        "app_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "application_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "connection_string": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "daily_data_cap_in_gb": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "daily_data_cap_notifications_disabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "disable_ip_masking": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "force_customer_storage_for_profiler": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "instrumentation_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "internet_ingestion_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "internet_query_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "local_authentication_disabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "retention_in_days": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sampling_percentage": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workspace_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

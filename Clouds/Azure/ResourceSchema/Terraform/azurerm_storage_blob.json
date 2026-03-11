@@ -1,0 +1,136 @@
+{
+  "resourceName": "Blob Block",
+  "bicepType": "Microsoft.Storage/storageAccounts/blobServices@2024-01-01",
+  "terraformType": "azurerm_storage_blob",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/blobservices",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "access_tier": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "cache_control": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "content_md5": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "content_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "encryption_scope": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "metadata": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "parallelism": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "size": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "source": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "source_content": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "source_uri": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_account_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "storage_container_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

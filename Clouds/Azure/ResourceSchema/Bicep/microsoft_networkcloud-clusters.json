@@ -1,0 +1,1231 @@
+{
+  "resourceName": "Azure Operator Nexus",
+  "bicepType": "Microsoft.NetworkCloud/clusters@2024-07-01",
+  "terraformType": "",
+  "category": "hybrid + multicloud",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.networkcloud/clusters",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.NetworkCloud/clusters@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^([a-zA-Z0-9][a-zA-Z0-9-_]{0,28}[a-zA-Z0-9])$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.NetworkCloud/clusters"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "extendedLocation": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource ID of the extended location on which the resource will be created."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The extended location type, for example, CustomLocation."
+              }
+            }
+          },
+          "description": "The extended location of the cluster manager associated with the cluster."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity (where both SystemAssigned and UserAssigned types are allowed)."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The set of user assigned identities associated with the resource. The userAssignedIdentities dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}. The dictionary values can be empty objects ({}) in requests."
+              }
+            }
+          },
+          "description": "The identity for the resource."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "aggregatorOrSingleRackDefinition": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "availabilityZone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "pattern": "^[a-zA-Z0-9]{1,10}$"
+                      },
+                      "description": "The zone name used for this rack when created. Availability zones are used for workload placement."
+                    },
+                    "bareMetalMachineConfigurationData": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "bmcConnectionString": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The connection string for the baseboard management controller including IP address and protocol."
+                            },
+                            "bmcCredentials": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The credentials of the baseboard management controller on this bare metal machine."
+                            },
+                            "bmcMacAddress": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The MAC address of the BMC for this machine."
+                            },
+                            "bootMacAddress": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The MAC address associated with the PXE NIC card."
+                            },
+                            "machineDetails": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The free-form additional information about the machine, e.g. an asset tag."
+                            },
+                            "machineName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The user-provided name for the bare metal machine created from this specification.\nIf not provided, the machine name will be generated programmatically."
+                            },
+                            "rackSlot": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The slot the physical machine is in the rack based on the BOM configuration."
+                            },
+                            "serialNumber": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The serial number of the machine. Hardware suppliers may use an alternate value. For example, service tag."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The unordered list of bare metal machine configuration."
+                    },
+                    "networkRackId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the network rack that matches this rack definition."
+                    },
+                    "rackLocation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 256
+                      },
+                      "description": "The free-form description of the rack's location."
+                    },
+                    "rackSerialNumber": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "description": "The unique identifier for the rack within Network Cloud cluster. An alternate unique alphanumeric value other than a serial number may be provided if desired."
+                    },
+                    "rackSkuId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the sku for the rack being added."
+                    },
+                    "storageApplianceConfigurationData": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "adminCredentials": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The credentials of the administrative interface on this storage appliance."
+                            },
+                            "rackSlot": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The slot that storage appliance is in the rack based on the BOM configuration."
+                            },
+                            "serialNumber": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The serial number of the appliance."
+                            },
+                            "storageApplianceName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The user-provided name for the storage appliance that will be created from this specification."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of storage appliance configuration data for this rack."
+                    }
+                  }
+                },
+                "description": "The rack definition that is intended to reflect only a single rack in a single rack cluster, or an aggregator rack in a multi-rack cluster."
+              },
+              "analyticsWorkspaceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource ID of the Log Analytics Workspace that will be used for storing relevant logs."
+              },
+              "availableUpgradeVersions": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "controlImpact": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The indicator of whether the control plane will be impacted during the upgrade."
+                      },
+                      "expectedDuration": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The expected duration needed for this upgrade."
+                      },
+                      "impactDescription": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The impact description including the specific details and release notes."
+                      },
+                      "supportExpiryDate": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The last date the version of the platform is supported."
+                      },
+                      "targetClusterVersion": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The target version this cluster will be upgraded to."
+                      },
+                      "workloadImpact": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The indicator of whether the workload will be impacted during the upgrade."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of cluster runtime version upgrades available for this cluster."
+              },
+              "clusterCapacity": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "availableApplianceStorageGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The remaining appliance-based storage in GB available for workload use. Measured in gibibytes."
+                    },
+                    "availableCoreCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The remaining number of cores that are available in this cluster for workload use."
+                    },
+                    "availableHostStorageGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The remaining machine or host-based storage in GB available for workload use. Measured in gibibytes."
+                    },
+                    "availableMemoryGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The remaining memory in GB that are available in this cluster for workload use. Measured in gibibytes."
+                    },
+                    "totalApplianceStorageGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The total appliance-based storage in GB supported by this cluster for workload use. Measured in gibibytes."
+                    },
+                    "totalCoreCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The total number of cores that are supported by this cluster for workload use."
+                    },
+                    "totalHostStorageGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The total machine or host-based storage in GB supported by this cluster for workload use. Measured in gibibytes."
+                    },
+                    "totalMemoryGB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The total memory supported by this cluster for workload use. Measured in gibibytes."
+                    }
+                  }
+                },
+                "description": "The capacity supported by this cluster."
+              },
+              "clusterConnectionStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disconnected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Timeout"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Undefined"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The latest heartbeat status between the cluster manager and the cluster."
+              },
+              "clusterExtendedLocation": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the extended location on which the resource will be created."
+                    },
+                    "type": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The extended location type, for example, CustomLocation."
+                    }
+                  }
+                },
+                "description": "The extended location (custom location) that represents the cluster's control plane location. This extended location is used to route the requests of child objects of the cluster that are handled by the platform operator."
+              },
+              "clusterLocation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "maxLength": 256
+                },
+                "description": "The customer-provided location information to identify where the cluster resides."
+              },
+              "clusterManagerConnectionStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unreachable"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The latest connectivity status between cluster manager and the cluster."
+              },
+              "clusterManagerId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource ID of the cluster manager that manages this cluster. This is set by the Cluster Manager when the cluster is created."
+              },
+              "clusterServicePrincipal": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "applicationId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The application ID, also known as client ID, of the service principal."
+                    },
+                    "password": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType",
+                        "sensitive": true
+                      },
+                      "description": "The password of the service principal."
+                    },
+                    "principalId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The principal ID, also known as the object ID, of the service principal."
+                    },
+                    "tenantId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The tenant ID, also known as the directory ID, of the tenant in which the service principal is created."
+                    }
+                  }
+                },
+                "description": "The service principal to be used by the cluster during Arc Appliance installation."
+              },
+              "clusterType": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SingleRack"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MultiRack"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of rack configuration for the cluster."
+              },
+              "clusterVersion": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The current runtime version of the cluster."
+              },
+              "commandOutputSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "associatedIdentity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "identityType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The type of managed identity that is being selected."
+                          },
+                          "userAssignedIdentityResourceId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The user assigned managed identity resource ID to use. Mutually exclusive with a system assigned identity type."
+                          }
+                        }
+                      },
+                      "description": "The selection of the managed identity to use with this storage account container. The identity type must be either system assigned or user assigned."
+                    },
+                    "containerUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The URL of the storage account container that is to be used by the specified identities."
+                    }
+                  }
+                },
+                "description": "The settings for commands run in this cluster, such as bare metal machine run read only commands and data extracts."
+              },
+              "computeDeploymentThreshold": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "grouping": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PerCluster"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PerRack"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Selection of how the type evaluation is applied to the cluster calculation."
+                    },
+                    "type": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CountSuccess"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PercentSuccess"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Selection of how the threshold should be evaluated."
+                    },
+                    "value": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "The numeric threshold value."
+                    }
+                  }
+                },
+                "description": "The validation threshold indicating the allowable failures of compute machines during environment validation and deployment."
+              },
+              "computeRackDefinitions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "availabilityZone": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^[a-zA-Z0-9]{1,10}$"
+                        },
+                        "description": "The zone name used for this rack when created. Availability zones are used for workload placement."
+                      },
+                      "bareMetalMachineConfigurationData": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The unordered list of bare metal machine configuration."
+                      },
+                      "networkRackId": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The resource ID of the network rack that matches this rack definition."
+                      },
+                      "rackLocation": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "maxLength": 256
+                        },
+                        "description": "The free-form description of the rack's location."
+                      },
+                      "rackSerialNumber": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "description": "The unique identifier for the rack within Network Cloud cluster. An alternate unique alphanumeric value other than a serial number may be provided if desired."
+                      },
+                      "rackSkuId": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The resource ID of the sku for the rack being added."
+                      },
+                      "storageApplianceConfigurationData": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The list of storage appliance configuration data for this rack."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of rack definitions for the compute racks in a multi-rack\ncluster, or an empty list in a single-rack cluster."
+              },
+              "detailedStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PendingDeployment"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deploying"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Running"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpdatePaused"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Degraded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disconnected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The current detailed status of the cluster."
+              },
+              "detailedStatusMessage": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The descriptive message about the detailed status."
+              },
+              "hybridAksExtendedLocation": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the extended location on which the resource will be created."
+                    },
+                    "type": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The extended location type, for example, CustomLocation."
+                    }
+                  }
+                },
+                "description": "Field Deprecated. This field will not be populated in an upcoming version. The extended location (custom location) that represents the Hybrid AKS control plane location. This extended location is used when creating provisioned clusters (Hybrid AKS clusters)."
+              },
+              "managedResourceGroupConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "location": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The location of the managed resource group. If not specified, the location of the parent resource is chosen."
+                    },
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 75
+                      },
+                      "description": "The name for the managed resource group. If not specified, the unique name is automatically generated."
+                    }
+                  }
+                },
+                "description": "The configuration of the managed resource group associated with the resource."
+              },
+              "manualActionCount": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The count of Manual Action Taken (MAT) events that have not been validated."
+              },
+              "networkFabricId": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource ID of the Network Fabric associated with the cluster."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Validating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the cluster."
+              },
+              "runtimeProtectionConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enforcementLevel": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Audit"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "OnDemand"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Passive"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "RealTime"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The mode of operation for runtime protection."
+                    }
+                  }
+                },
+                "description": "The settings for cluster runtime protection."
+              },
+              "secretArchive": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keyVaultId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the key vault to archive the secrets of the cluster."
+                    },
+                    "useKeyVault": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "True"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "False"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The indicator if the specified key vault should be used to archive the secrets of the cluster."
+                    }
+                  }
+                },
+                "description": "The configuration for use of a key vault to store secrets for later retrieval by the operator."
+              },
+              "supportExpiryDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The support end date of the runtime version of the cluster."
+              },
+              "updateStrategy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "maxUnavailable": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1
+                      },
+                      "description": "The maximum number of worker nodes that can be offline within the increment of update, e.g., rack-by-rack.\nLimited by the maximum number of machines in the increment. Defaults to the whole increment size."
+                    },
+                    "strategyType": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Rack"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PauseAfterRack"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The mode of operation for runtime protection."
+                    },
+                    "thresholdType": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CountSuccess"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PercentSuccess"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Selection of how the threshold should be evaluated."
+                    },
+                    "thresholdValue": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "The numeric threshold value."
+                    },
+                    "waitTimeMinutes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 60
+                      },
+                      "description": "The time to wait between the increments of update defined by the strategy."
+                    }
+                  }
+                },
+                "description": "The strategy for updating the cluster."
+              },
+              "workloadResourceIds": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The list of workload resource IDs that are hosted within this cluster."
+              }
+            }
+          },
+          "description": "The list of the resource properties."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

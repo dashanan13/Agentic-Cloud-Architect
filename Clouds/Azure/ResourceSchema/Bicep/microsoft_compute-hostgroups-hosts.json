@@ -1,0 +1,267 @@
+{
+  "resourceName": "Hosts",
+  "bicepType": "Microsoft.Compute/hostGroups/hosts@2024-07-01",
+  "terraformType": "azurerm_dedicated_host",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.compute/hostgroups/hosts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Compute/hostGroups/hosts@2024-07-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Compute/hostGroups/hosts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "platformFaultDomain": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType",
+                  "minValue": 0
+                },
+                "description": "Fault domain of the dedicated host within a dedicated host group."
+              },
+              "autoReplaceOnFailure": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Specifies whether the dedicated host should be replaced automatically in case of a failure. The value is defaulted to 'true' when not provided."
+              },
+              "hostId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A unique id generated and assigned to the dedicated host by the platform. Does not change throughout the lifetime of the host."
+              },
+              "virtualMachines": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Id"
+                      }
+                    }
+                  }
+                },
+                "description": "A list of references to all virtual machines in the Dedicated Host."
+              },
+              "licenseType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Windows_Server_Hybrid"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Windows_Server_Perpetual"
+                    }
+                  ]
+                },
+                "description": "Specifies the software license type that will be applied to the VMs deployed on the dedicated host. Possible values are: **None,** **Windows_Server_Hybrid,** **Windows_Server_Perpetual.** The default value is: **None.**"
+              },
+              "provisioningTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The date when the host was first provisioned."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state, which only appears in the response."
+              },
+              "instanceView": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "assetId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the unique id of the dedicated physical machine on which the dedicated host resides."
+                    },
+                    "availableCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "allocatableVMs": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "The unutilized capacity of the dedicated host represented in terms of each VM size that is allowed to be deployed to the dedicated host."
+                          }
+                        }
+                      },
+                      "description": "Unutilized capacity of the dedicated host."
+                    },
+                    "statuses": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "code": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The status code."
+                            },
+                            "level": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The level code."
+                            },
+                            "displayStatus": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The short localizable label for the status."
+                            },
+                            "message": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The detailed status message, including for alerts and error messages."
+                            },
+                            "time": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The time of the status."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The resource status information."
+                    }
+                  }
+                },
+                "description": "The dedicated host instance view."
+              },
+              "timeCreated": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the time at which the Dedicated Host resource was created. Minimum api-version: 2021-11-01."
+              }
+            }
+          },
+          "description": "Properties of the dedicated host."
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The sku name."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the tier of virtual machines in a scale set.<br /><br /> Possible Values:<br /><br /> **Standard**<br /><br /> **Basic**"
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Specifies the number of virtual machines in the scale set."
+              }
+            }
+          },
+          "description": "SKU of the dedicated host for Hardware Generation and VM family. Only name is required to be set. List Microsoft.Compute SKUs for a list of possible values."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

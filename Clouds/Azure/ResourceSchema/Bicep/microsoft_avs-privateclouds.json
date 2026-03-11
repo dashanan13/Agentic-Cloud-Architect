@@ -1,0 +1,906 @@
+{
+  "resourceName": "Azure VMware Solution",
+  "bicepType": "Microsoft.AVS/privateClouds@2023-09-01",
+  "terraformType": "azurerm_vmware_private_cloud",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.avs/privateclouds",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AVS/privateClouds@2023-09-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[-\\w\\._]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AVS/privateClouds"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-09-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "managementCluster": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "clusterSize": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The cluster size"
+                    },
+                    "provisioningState": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Succeeded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Failed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Canceled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Cancelled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deleting"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Updating"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The state of the cluster provisioning"
+                    },
+                    "clusterId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The identity"
+                    },
+                    "hosts": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The hosts"
+                    },
+                    "vsanDatastoreName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the vsan datastore associated with the cluster"
+                    }
+                  }
+                },
+                "description": "The default cluster used for management"
+              },
+              "internet": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Connectivity to internet is enabled or disabled"
+              },
+              "identitySources": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the identity source"
+                      },
+                      "alias": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The domain's NetBIOS name"
+                      },
+                      "domain": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The domain's DNS name"
+                      },
+                      "baseUserDN": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The base distinguished name for users"
+                      },
+                      "baseGroupDN": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The base distinguished name for groups"
+                      },
+                      "primaryServer": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Primary server URL"
+                      },
+                      "secondaryServer": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Secondary server URL"
+                      },
+                      "ssl": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Protect LDAP communication using SSL certificate (LDAPS)"
+                      },
+                      "username": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The ID of an Active Directory user with a minimum of read-only access to Base\nDN for users and group"
+                      },
+                      "password": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "sensitive": true
+                        },
+                        "description": "The password of the Active Directory user with a minimum of read-only access to\nBase DN for users and groups."
+                      }
+                    }
+                  }
+                },
+                "description": "vCenter Single Sign On Identity Sources"
+              },
+              "availability": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "strategy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SingleZone"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "DualZone"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The availability strategy for the private cloud"
+                    },
+                    "zone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The primary availability zone for the private cloud"
+                    },
+                    "secondaryZone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The secondary availability zone for the private cloud"
+                    }
+                  }
+                },
+                "description": "Properties describing how the cloud is distributed across availability zones"
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "status": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Status of customer managed encryption key"
+                    },
+                    "keyVaultProperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the key."
+                          },
+                          "keyVersion": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The version of the key."
+                          },
+                          "autoDetectedKeyVersion": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The auto-detected version of the key if versionType is auto-detected."
+                          },
+                          "keyVaultUrl": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URL of the vault."
+                          },
+                          "keyState": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The state of key provided"
+                          },
+                          "versionType": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Property of the key if user provided or auto detected"
+                          }
+                        }
+                      },
+                      "description": "The key vault where the encryption key is stored"
+                    }
+                  }
+                },
+                "description": "Customer managed key encryption, can be enabled or disabled"
+              },
+              "extendedNetworkBlocks": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Array of additional networks noncontiguous with networkBlock. Networks must be\nunique and non-overlapping across VNet in your subscription, on-premise, and\nthis privateCloud networkBlock attribute. Make sure the CIDR format conforms to\n(A.B.C.D/X)."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Building"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state"
+              },
+              "circuit": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "primarySubnet": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "CIDR of primary subnet"
+                    },
+                    "secondarySubnet": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "CIDR of secondary subnet"
+                    },
+                    "expressRouteID": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Identifier of the ExpressRoute Circuit (Microsoft Colo only)"
+                    },
+                    "expressRoutePrivatePeeringID": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ExpressRoute Circuit private peering identifier"
+                    }
+                  }
+                },
+                "description": "An ExpressRoute Circuit"
+              },
+              "endpoints": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "nsxtManager": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Endpoint FQDN for the NSX-T Data Center manager"
+                    },
+                    "vcsa": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Endpoint FQDN for Virtual Center Server Appliance"
+                    },
+                    "hcxCloudManager": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Endpoint FQDN for the HCX Cloud Manager"
+                    },
+                    "nsxtManagerIp": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Endpoint IP for the NSX-T Data Center manager"
+                    },
+                    "vcenterIp": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Endpoint IP for Virtual Center Server Appliance"
+                    },
+                    "hcxCloudManagerIp": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Endpoint IP for the HCX Cloud Manager"
+                    }
+                  }
+                },
+                "description": "The endpoints"
+              },
+              "networkBlock": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The block of addresses should be unique across VNet in your subscription as\nwell as on-premise. Make sure the CIDR format is conformed to (A.B.C.D/X) where\nA,B,C,D are between 0 and 255, and X is between 0 and 22"
+              },
+              "managementNetwork": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Network used to access vCenter Server and NSX-T Manager"
+              },
+              "provisioningNetwork": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Used for virtual machine cold migration, cloning, and snapshot migration"
+              },
+              "vmotionNetwork": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Used for live migration of virtual machines"
+              },
+              "vcenterPassword": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "Optionally, set the vCenter admin password when the private cloud is created"
+              },
+              "nsxtPassword": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "Optionally, set the NSX-T Manager password when the private cloud is created"
+              },
+              "vcenterCertificateThumbprint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Thumbprint of the vCenter Server SSL certificate"
+              },
+              "nsxtCertificateThumbprint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Thumbprint of the NSX-T Manager SSL certificate"
+              },
+              "externalCloudLinks": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Array of cloud link IDs from other clouds that connect to this one"
+              },
+              "secondaryCircuit": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "primarySubnet": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "CIDR of primary subnet"
+                    },
+                    "secondarySubnet": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "CIDR of secondary subnet"
+                    },
+                    "expressRouteID": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Identifier of the ExpressRoute Circuit (Microsoft Colo only)"
+                    },
+                    "expressRoutePrivatePeeringID": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ExpressRoute Circuit private peering identifier"
+                    }
+                  }
+                },
+                "description": "A secondary expressRoute circuit from a separate AZ. Only present in a\nstretched private cloud"
+              },
+              "nsxPublicIpQuotaRaised": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Flag to indicate whether the private cloud has the quota for provisioned NSX\nPublic IP count raised from 64 to 1024"
+              },
+              "virtualNetworkId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure resource ID of the virtual network"
+              },
+              "dnsZoneType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Public"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Private"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of DNS zone to use."
+              }
+            }
+          },
+          "description": "The resource-specific properties for this resource."
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the SKU. E.g. P3. It is typically a letter+number code"
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    }
+                  ]
+                },
+                "description": "This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted."
+              }
+            }
+          },
+          "description": "The SKU (Stock Keeping Unit) assigned to this resource."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity (either system assigned, or none)."
+              }
+            }
+          },
+          "description": "The managed service identities assigned to this resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

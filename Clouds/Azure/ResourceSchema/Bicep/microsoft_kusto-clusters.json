@@ -1,0 +1,1195 @@
+{
+  "resourceName": "Azure Data Explorer Clusters",
+  "bicepType": "Microsoft.Kusto/clusters@2023-08-15",
+  "terraformType": "azurerm_kusto_cluster",
+  "category": "analytics",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.kusto/clusters",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Kusto/clusters@2023-08-15",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^.*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Kusto/clusters"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-08-15"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Dev(No SLA)_Standard_D11_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Dev(No SLA)_Standard_E2a_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D11_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D12_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D13_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D14_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D32d_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D16d_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_D32d_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_DS13_v2+1TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_DS13_v2+2TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_DS14_v2+3TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_DS14_v2+4TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L4s"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L8s"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L16s"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L8s_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L16s_v2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L8s_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L16s_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L32s_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L8as_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L16as_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_L32as_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E64i_v3"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E80ids_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E2a_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E4a_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8a_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16a_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8as_v4+1TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8as_v4+2TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16as_v4+3TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16as_v4+4TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8as_v5+1TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8as_v5+2TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16as_v5+3TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16as_v5+4TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E2ads_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E4ads_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8ads_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16ads_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_EC8as_v5+1TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_EC8as_v5+2TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_EC16as_v5+3TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_EC16as_v5+4TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_EC8ads_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_EC16ads_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8s_v4+1TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8s_v4+2TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16s_v4+3TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16s_v4+4TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8s_v5+1TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8s_v5+2TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16s_v5+3TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16s_v5+4TB_PS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E2d_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E4d_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8d_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16d_v4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E2d_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E4d_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E8d_v5"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_E16d_v5"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SKU name."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The number of instances of the cluster."
+              },
+              "tier": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SKU tier."
+              }
+            }
+          },
+          "description": "The SKU of the cluster."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The availability zones of the cluster."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID of resource identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant ID of resource."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove all identities."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with the Kusto cluster. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+              }
+            }
+          },
+          "description": "The identity of the cluster, if configured."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unavailable"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Running"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopped"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Starting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Migrated"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The state of the resource."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Running"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Moving"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioned state of the resource."
+              },
+              "uri": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The cluster URI."
+              },
+              "dataIngestionUri": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The cluster data ingestion URI."
+              },
+              "stateReason": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The reason for the cluster's current state."
+              },
+              "trustedExternalTenants": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "value": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "GUID representing an external tenant."
+                      }
+                    }
+                  }
+                },
+                "description": "The cluster's external tenants."
+              },
+              "optimizedAutoscale": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "version": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The version of the template defined, for instance 1."
+                    },
+                    "isEnabled": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean value that indicate if the optimized autoscale feature is enabled or not."
+                    },
+                    "minimum": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Minimum allowed instances count."
+                    },
+                    "maximum": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Maximum allowed instances count."
+                    }
+                  }
+                },
+                "description": "Optimized auto scale definition."
+              },
+              "enableDiskEncryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "A boolean value that indicates if the cluster's disks are encrypted."
+              },
+              "enableStreamingIngest": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "A boolean value that indicates if the streaming ingest is enabled."
+              },
+              "virtualNetworkConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "subnetId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The subnet resource id."
+                    },
+                    "enginePublicIpId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Engine service's public IP address resource id."
+                    },
+                    "dataManagementPublicIpId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Data management's service public IP address resource id."
+                    },
+                    "state": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "When enabled, the cluster is deployed into the configured subnet, when disabled it will be removed from the subnet."
+                    }
+                  }
+                },
+                "description": "Virtual network definition."
+              },
+              "keyVaultProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keyName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the key vault key."
+                    },
+                    "keyVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The version of the key vault key."
+                    },
+                    "keyVaultUri": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The Uri of the key vault."
+                    },
+                    "userIdentity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The user assigned identity (ARM resource id) that has access to the key."
+                    }
+                  }
+                },
+                "description": "KeyVault properties for the cluster encryption."
+              },
+              "enablePurge": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "A boolean value that indicates if the purge operations are enabled."
+              },
+              "languageExtensions": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "value": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "languageExtensionName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The language extension name."
+                            },
+                            "languageExtensionImageName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The language extension image name."
+                            },
+                            "languageExtensionCustomImageName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The language extension custom image name."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of language extensions."
+                    }
+                  }
+                },
+                "description": "List of the cluster's language extensions."
+              },
+              "enableDoubleEncryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "A boolean value that indicates if double encryption is enabled."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Public network access to the cluster is enabled by default. When disabled, only private endpoint connection to the cluster is allowed"
+              },
+              "allowedIpRangeList": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "The list of ips in the format of CIDR allowed to connect to the cluster."
+              },
+              "engineType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "V2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "V3"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The engine type"
+              },
+              "acceptedAudiences": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "value": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "GUID or valid URL representing an accepted audience."
+                      }
+                    }
+                  }
+                },
+                "description": "The cluster's accepted audiences."
+              },
+              "enableAutoStop": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "A boolean value that indicates if the cluster could be automatically stopped (due to lack of data or no activity for many days)."
+              },
+              "restrictOutboundNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether or not to restrict outbound network access.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'"
+              },
+              "allowedFqdnList": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster."
+              },
+              "publicIPType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "IPv4"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DualStack"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Indicates what public IP type to create - IPv4 (default), or DualStack (both IPv4 and IPv6)"
+              },
+              "virtualClusterGraduationProperties": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType",
+                  "sensitive": true
+                },
+                "description": "Virtual Cluster graduation properties"
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Private endpoint which the connection belongs to."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Connection State of the Private Endpoint Connection."
+                            },
+                            "groupId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Group id of the private endpoint."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Provisioning state of the private endpoint."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Metadata pertaining to creation and last modification of the resource."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "A list of private endpoint connections."
+              },
+              "migrationCluster": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the cluster."
+                    },
+                    "uri": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The public URL of the cluster."
+                    },
+                    "dataIngestionUri": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The public data ingestion URL of the cluster."
+                    },
+                    "role": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Source"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Destination"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The role of the cluster in the migration process."
+                    }
+                  }
+                },
+                "description": "Properties of the peer cluster involved in a migration to/from this cluster."
+              }
+            }
+          },
+          "description": "The cluster properties."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        }
+      }
+    }
+  }
+}

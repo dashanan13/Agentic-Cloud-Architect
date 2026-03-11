@@ -1,0 +1,691 @@
+{
+  "resourceName": "Central Service Instance For SAP",
+  "bicepType": "Microsoft.Workloads/sapVirtualInstances/centralInstances@2024-09-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.workloads/sapvirtualinstances/centralinstances",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Workloads/sapVirtualInstances/centralInstances@2024-09-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^.*"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Workloads/sapVirtualInstances/centralInstances"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-09-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "instanceNo": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The central services instance number."
+              },
+              "subnet": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The central services instance subnet."
+              },
+              "messageServerProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "msPort": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "message server port."
+                    },
+                    "internalMsPort": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "message server internal MS port."
+                    },
+                    "httpPort": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "message server HTTP Port."
+                    },
+                    "httpsPort": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "message server HTTPS Port."
+                    },
+                    "hostname": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "message server SAP Hostname."
+                    },
+                    "ipAddress": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "message server IP Address."
+                    },
+                    "health": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unknown"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Healthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unhealthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Degraded"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Defines the health of SAP Instances."
+                    }
+                  }
+                },
+                "description": "Defines the SAP message server properties."
+              },
+              "enqueueServerProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "hostname": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Enqueue Server SAP Hostname."
+                    },
+                    "ipAddress": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Enqueue Server SAP IP Address."
+                    },
+                    "port": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Enqueue Server Port."
+                    },
+                    "health": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unknown"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Healthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unhealthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Degraded"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Defines the health of SAP Instances."
+                    }
+                  }
+                },
+                "description": "Defines the SAP Enqueue Server properties."
+              },
+              "gatewayServerProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "port": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Gateway Port."
+                    },
+                    "health": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unknown"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Healthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unhealthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Degraded"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Defines the health of SAP Instances."
+                    }
+                  }
+                },
+                "description": "Defines the SAP Gateway Server properties."
+              },
+              "enqueueReplicationServerProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "ersVersion": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "EnqueueReplicator1"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "EnqueueReplicator2"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Defines the type of Enqueue Replication Server."
+                    },
+                    "instanceNo": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ERS Instance Number."
+                    },
+                    "hostname": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ERS SAP Hostname."
+                    },
+                    "kernelVersion": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ERS SAP Kernel Version."
+                    },
+                    "kernelPatch": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ERS SAP Kernel Patch level."
+                    },
+                    "ipAddress": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ERS SAP IP Address."
+                    },
+                    "health": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unknown"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Healthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unhealthy"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Degraded"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Defines the health of SAP Instances."
+                    }
+                  }
+                },
+                "description": "Defines the SAP Enqueue Replication Server (ERS) properties."
+              },
+              "kernelVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The central services instance Kernel Version."
+              },
+              "kernelPatch": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The central services instance Kernel Patch level."
+              },
+              "loadBalancerDetails": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fully qualified resource ID for the load balancer."
+                    }
+                  }
+                },
+                "description": "The Load Balancer details such as LoadBalancer ID attached to ASCS Virtual Machines"
+              },
+              "vmDetails": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Defines the type of central server VM."
+                      },
+                      "virtualMachineId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The virtual machine id."
+                      },
+                      "storageDetails": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Storage details of all the Storage Accounts attached to the ASCS Virtual Machine. For e.g. NFS on AFS Shared Storage."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of virtual machines corresponding to the Central Services instance."
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Starting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Running"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Stopping"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Offline"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PartiallyRunning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unavailable"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SoftShutdown"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Defines the SAP Instance status."
+              },
+              "health": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Healthy"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unhealthy"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Degraded"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Defines the health of SAP Instances."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Defines the provisioning states."
+              },
+              "errors": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "code": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Service specific error code which serves as the substatus for the HTTP error code."
+                          },
+                          "message": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Description of the error."
+                          },
+                          "details": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Internal error details."
+                          }
+                        }
+                      },
+                      "description": "The Virtual Instance for SAP error body."
+                    }
+                  }
+                },
+                "description": "Defines the errors related to SAP Central Services Instance resource."
+              }
+            }
+          },
+          "description": "The resource-specific properties for this resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

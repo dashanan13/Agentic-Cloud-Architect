@@ -1,0 +1,436 @@
+{
+  "resourceName": "Analysis Services",
+  "bicepType": "Microsoft.AnalysisServices/servers@2017-08-01",
+  "terraformType": "azurerm_analysis_services_server",
+  "category": "analytics",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.analysisservices/servers",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AnalysisServices/servers@2017-08-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AnalysisServices/servers"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2017-08-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Paused"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pausing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Resuming"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Preparing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Scaling"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The current state of Analysis Services resource. The state is to indicate more states outside of resource provisioning."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Paused"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspended"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Suspending"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Pausing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Resuming"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Preparing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Scaling"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The current deployment state of Analysis Services resource. The provisioningState is to indicate states for resource provisioning."
+              },
+              "serverFullName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The full name of the Analysis Services resource."
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the SKU level."
+                    },
+                    "tier": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Development"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The name of the Azure pricing tier to which the SKU applies."
+                    },
+                    "capacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1,
+                        "maxValue": 8
+                      },
+                      "description": "The number of instances in the read only query pool."
+                    }
+                  }
+                },
+                "description": "The SKU of the Analysis Services resource."
+              },
+              "asAdministrators": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "members": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "An array of administrator user identities."
+                    }
+                  }
+                },
+                "description": "A collection of AS server administrators"
+              },
+              "backupBlobContainerUri": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The SAS container URI to the backup container."
+              },
+              "gatewayDetails": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "gatewayResourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gateway resource to be associated with the server."
+                    },
+                    "gatewayObjectId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gateway object id from in the DMTS cluster for the gateway resource."
+                    },
+                    "dmtsClusterUri": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Uri of the DMTS cluster."
+                    }
+                  }
+                },
+                "description": "The gateway details configured for the AS server."
+              },
+              "ipV4FirewallSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "firewallRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "firewallRuleName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The rule name."
+                            },
+                            "rangeStart": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The start range of IPv4."
+                            },
+                            "rangeEnd": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The end range of IPv4."
+                            }
+                          }
+                        }
+                      },
+                      "description": "An array of firewall rules."
+                    },
+                    "enablePowerBIService": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "The indicator of enabling PBI service."
+                    }
+                  }
+                },
+                "description": "The firewall settings for the AS server."
+              },
+              "querypoolConnectionMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "All"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ReadOnly"
+                    }
+                  ]
+                },
+                "description": "How the read-write server's participation in the query pool is controlled.<br/>It can have the following values: <ul><li>readOnly - indicates that the read-write server is intended not to participate in query operations</li><li>all - indicates that the read-write server can participate in query operations</li></ul>Specifying readOnly when capacity is 1 results in error."
+              },
+              "managedMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The managed mode of the server (0 = not managed, 1 = managed)."
+              },
+              "serverMonitorMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The server monitor mode for AS server"
+              }
+            }
+          },
+          "description": "Properties of the provision operation request."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Location of the Analysis Services resource."
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the SKU level."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Development"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The name of the Azure pricing tier to which the SKU applies."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType",
+                  "minValue": 1,
+                  "maxValue": 8
+                },
+                "description": "The number of instances in the read only query pool."
+              }
+            }
+          },
+          "description": "The SKU of the Analysis Services resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Key-value pairs of additional resource provisioning properties."
+        }
+      }
+    }
+  }
+}

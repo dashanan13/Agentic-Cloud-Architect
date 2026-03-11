@@ -1,0 +1,104 @@
+{
+  "resourceName": "DevTest Labs",
+  "bicepType": "Microsoft.DevTestLab/labs@2018-09-15",
+  "terraformType": "azurerm_dev_test_lab",
+  "category": "devops",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.devtestlab/labs",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "artifacts_storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "default_premium_storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "default_storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "key_vault_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "premium_data_disk_storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "unique_identifier": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "resourceName": "Keys",
+  "bicepType": "Microsoft.KeyVault/vaults/keys@2024-04-01-preview",
+  "terraformType": "azurerm_key_vault_key",
+  "category": "menu",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.keyvault/vaults/keys",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "curve": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "e": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "expiration_date": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "key_opts": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "required": true
+        },
+        "key_size": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "key_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "key_vault_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "n": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "not_before_date": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "public_key_openssh": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "public_key_pem": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_versionless_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "version": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "versionless_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "x": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "y": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "rotation_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "expire_after": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "notify_before_expiry": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "automatic": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "time_after_creation": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "time_before_expiry": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,302 @@
+{
+  "resourceName": "API Connections",
+  "bicepType": "Microsoft.Web/connections@2016-06-01",
+  "terraformType": "azurerm_api_connection",
+  "category": "integration",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/connections",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Web/connections@2016-06-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Web/connections"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2016-06-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Display name"
+              },
+              "statuses": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "status": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The gateway status"
+                      },
+                      "target": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Target of the error"
+                      },
+                      "error": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "properties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "id": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource id"
+                            },
+                            "name": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource name"
+                            },
+                            "type": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource type"
+                            },
+                            "location": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource location"
+                            },
+                            "etag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource ETag"
+                            },
+                            "tags": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource tags"
+                            }
+                          }
+                        },
+                        "description": "Connection error"
+                      }
+                    }
+                  }
+                },
+                "description": "Status of the connection"
+              },
+              "parameterValues": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Dictionary of parameter values"
+              },
+              "customParameterValues": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Dictionary of custom parameter values"
+              },
+              "nonSecretParameterValues": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Dictionary of nonsecret parameter values"
+              },
+              "createdTime": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Timestamp of the connection creation"
+              },
+              "changedTime": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Timestamp of last connection change"
+              },
+              "api": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "swagger": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "AnyType"
+                      },
+                      "description": "The JSON representation of the swagger"
+                    },
+                    "brandColor": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Brand color"
+                    },
+                    "description": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The custom API description"
+                    },
+                    "displayName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The display name"
+                    },
+                    "iconUri": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The icon URI"
+                    },
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The name of the API"
+                    },
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource reference id"
+                    },
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource reference type"
+                    }
+                  }
+                }
+              },
+              "testLinks": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "requestUri": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Test link request URI"
+                      },
+                      "method": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "HTTP Method"
+                      }
+                    }
+                  }
+                },
+                "description": "Links to test the API connection"
+              }
+            }
+          }
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource ETag"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

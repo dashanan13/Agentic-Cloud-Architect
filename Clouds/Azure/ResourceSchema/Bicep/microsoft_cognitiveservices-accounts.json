@@ -1,0 +1,1208 @@
+{
+  "resourceName": "Anomaly Detector",
+  "bicepType": "Microsoft.CognitiveServices/accounts@2023-05-01",
+  "terraformType": "azurerm_cognitive_account",
+  "category": "ai + machine learning",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.cognitiveservices/accounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.CognitiveServices/accounts@2023-05-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 2,
+            "maxLength": 64,
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.CognitiveServices/accounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-05-01"
+          },
+          "description": "The resource api version"
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The Kind of the resource."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the SKU. Ex - P3. It is typically a letter+number code"
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enterprise"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted."
+              }
+            }
+          },
+          "description": "The resource model definition representing SKU"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    }
+                  ]
+                },
+                "description": "The identity type."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant ID of resource."
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID of resource identity."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Azure Active Directory principal ID associated with this Identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Client App Id associated with this identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user assigned identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}"
+              }
+            }
+          },
+          "description": "Identity for the resource."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Moving"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ResolvingDNS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Gets the status of the cognitive services account at the time the operation was called."
+              },
+              "endpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Endpoint of the created account."
+              },
+              "internalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The internal identifier (deprecated, do not use this property)."
+              },
+              "capabilities": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the SkuCapability."
+                      },
+                      "value": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The value of the SkuCapability."
+                      }
+                    }
+                  }
+                },
+                "description": "Gets the capabilities of the cognitive services account. Each item indicates the capability of a specific feature. The values are read-only and for reference only."
+              },
+              "isMigrated": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If the resource is migrated from an existing key."
+              },
+              "migrationToken": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Resource migration token."
+              },
+              "skuChangeInfo": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "countOfDowngrades": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Gets the count of downgrades."
+                    },
+                    "countOfUpgradesAfterDowngrades": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Gets the count of upgrades after downgrades."
+                    },
+                    "lastChangeDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the last change date."
+                    }
+                  }
+                },
+                "description": "Sku change info of account."
+              },
+              "customSubDomainName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Optional subdomain name used for token-based authentication."
+              },
+              "networkAcls": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "defaultAction": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Allow"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deny"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The default action when no rule from ipRules and from virtualNetworkRules match. This is only used after the bypass property has been evaluated."
+                    },
+                    "ipRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "value": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78)."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of IP address rules."
+                    },
+                    "virtualNetworkRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "id": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Full resource id of a vnet subnet, such as '/subscriptions/subid/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/subnet1'."
+                            },
+                            "state": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Gets the state of virtual network rule."
+                            },
+                            "ignoreMissingVnetServiceEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Ignore missing vnet service endpoint or not."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of virtual network rules."
+                    }
+                  }
+                },
+                "description": "A collection of rules governing the accessibility from specific network locations."
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keyVaultProperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Name of the Key from KeyVault"
+                          },
+                          "keyVersion": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Version of the Key from KeyVault"
+                          },
+                          "keyVaultUri": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Uri of KeyVault"
+                          },
+                          "identityClientId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            }
+                          }
+                        }
+                      },
+                      "description": "Properties of KeyVault"
+                    },
+                    "keySource": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.CognitiveServices"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.KeyVault"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Enumerates the possible value of keySource for Encryption"
+                    }
+                  }
+                },
+                "description": "The encryption properties for this resource."
+              },
+              "userOwnedStorage": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "resourceId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Full resource id of a Microsoft.Storage resource."
+                      },
+                      "identityClientId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "The storage accounts for this resource."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource of private end point."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            },
+                            "groupIds": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private link resource group ids."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Metadata pertaining to creation and last modification of the resource."
+                      },
+                      "location": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The location of the private endpoint connection"
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource Etag."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "The private endpoint connection associated with the Cognitive Services account."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Whether or not public endpoint access is allowed for this account."
+              },
+              "apiProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "qnaRuntimeEndpoint": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "(QnAMaker Only) The runtime endpoint of QnAMaker."
+                    },
+                    "qnaAzureSearchEndpointKey": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "(QnAMaker Only) The Azure Search endpoint key of QnAMaker."
+                    },
+                    "qnaAzureSearchEndpointId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "(QnAMaker Only) The Azure Search endpoint id of QnAMaker."
+                    },
+                    "statisticsEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "(Bing Search Only) The flag to enable statistics of Bing Search."
+                    },
+                    "eventHubConnectionString": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 1000,
+                        "pattern": "^( *)Endpoint=sb://(.*);( *)SharedAccessKeyName=(.*);( *)SharedAccessKey=(.*)$"
+                      },
+                      "description": "(Personalization Only) The flag to enable statistics of Bing Search."
+                    },
+                    "storageAccountConnectionString": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 1000,
+                        "pattern": "^(( *)DefaultEndpointsProtocol=(http|https)( *);( *))?AccountName=(.*)AccountKey=(.*)EndpointSuffix=(.*)$"
+                      },
+                      "description": "(Personalization Only) The storage account connection string."
+                    },
+                    "aadClientId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 500
+                      },
+                      "description": "(Metrics Advisor Only) The Azure AD Client Id (Application Id)."
+                    },
+                    "aadTenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 500
+                      },
+                      "description": "(Metrics Advisor Only) The Azure AD Tenant Id."
+                    },
+                    "superUser": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 500
+                      },
+                      "description": "(Metrics Advisor Only) The super user of Metrics Advisor."
+                    },
+                    "websiteName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "maxLength": 500
+                      },
+                      "description": "(Metrics Advisor Only) The website name of Metrics Advisor."
+                    }
+                  },
+                  "additionalProperties": {
+                    "$type": "AnyType"
+                  }
+                },
+                "description": "The api properties for special APIs."
+              },
+              "dateCreated": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the date of cognitive services account creation."
+              },
+              "callRateLimit": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "count": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The count value of Call Rate Limit."
+                    },
+                    "renewalPeriod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The renewal period in seconds of Call Rate Limit."
+                    },
+                    "rules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "key": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "renewalPeriod": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "count": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "minCount": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "dynamicThrottlingEnabled": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "matchPatterns": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "The call rate limit Cognitive Services account."
+              },
+              "dynamicThrottlingEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "The flag to enable dynamic throttling."
+              },
+              "quotaLimit": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "count": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      }
+                    },
+                    "renewalPeriod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      }
+                    },
+                    "rules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "key": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "renewalPeriod": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "count": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "minCount": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "dynamicThrottlingEnabled": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "matchPatterns": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "restrictOutboundNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                }
+              },
+              "allowedFqdnList": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                }
+              },
+              "disableLocalAuth": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                }
+              },
+              "endpoints": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Dictionary of <string>"
+              },
+              "restore": {
+                "flags": 4,
+                "type": {
+                  "$type": "BooleanType"
+                }
+              },
+              "deletionDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The deletion date, only available for deleted account."
+              },
+              "scheduledPurgeDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The scheduled purge date, only available for deleted account."
+              },
+              "locations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "routingMethod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Priority"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Weighted"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Performance"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Multiregion routing methods."
+                    },
+                    "regions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Name of the region."
+                            },
+                            "value": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A value for priority or weighted routing methods."
+                            },
+                            "customsubdomain": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Maps the region to the regional custom subdomain."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "The multiregion settings of Cognitive Services account."
+              },
+              "commitmentPlanAssociations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "commitmentPlanId": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Azure resource id of the commitment plan."
+                      },
+                      "commitmentPlanLocation": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The location of of the commitment plan."
+                      }
+                    }
+                  }
+                },
+                "description": "The commitment plan associations of Cognitive Services account."
+              },
+              "abusePenalty": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "action": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Throttle"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Block"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The action of AbusePenalty."
+                    },
+                    "rateLimitPercentage": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The percentage of rate limit."
+                    },
+                    "expiration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The datetime of expiration of the AbusePenalty."
+                    }
+                  }
+                },
+                "description": "The abuse penalty."
+              }
+            }
+          },
+          "description": "Properties of Cognitive Services account."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Etag."
+        }
+      }
+    }
+  }
+}

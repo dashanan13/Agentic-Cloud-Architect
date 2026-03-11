@@ -1,0 +1,301 @@
+{
+  "resourceName": "Azure Databricks",
+  "bicepType": "Microsoft.Databricks/workspaces@2024-05-01",
+  "terraformType": "azurerm_databricks_workspace",
+  "category": "analytics",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.databricks/workspaces",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "access_connector_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "customer_managed_key_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "default_storage_firewall_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "disk_encryption_set_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "infrastructure_encryption_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "load_balancer_backend_address_pool_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "managed_disk_cmk_key_vault_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "managed_disk_cmk_key_vault_key_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "managed_disk_cmk_rotation_to_latest_version_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "managed_disk_identity": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "principal_id": "string",
+                "tenant_id": "string",
+                "type": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "managed_resource_group_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "managed_resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "managed_services_cmk_key_vault_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "managed_services_cmk_key_vault_key_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "network_security_group_rules_required": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "public_network_access_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "storage_account_identity": {
+          "type": [
+            "list",
+            [
+              "object",
+              {
+                "principal_id": "string",
+                "tenant_id": "string",
+                "type": "string"
+              }
+            ]
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workspace_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "workspace_url": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "custom_parameters": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "machine_learning_workspace_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "nat_gateway_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "no_public_ip": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "private_subnet_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "private_subnet_network_security_group_association_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "public_ip_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "public_subnet_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "public_subnet_network_security_group_association_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "storage_account_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "storage_account_sku_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "virtual_network_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "vnet_address_prefix": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "enhanced_security_compliance": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "automatic_cluster_update_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "compliance_security_profile_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "compliance_security_profile_standards": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "enhanced_security_monitoring_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

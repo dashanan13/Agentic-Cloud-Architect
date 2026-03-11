@@ -1,0 +1,95 @@
+{
+  "resourceName": "Resource Management Private Link",
+  "bicepType": "Microsoft.Authorization/privateLinkAssociations@2020-05-01",
+  "terraformType": "",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.authorization/privatelinkassociations",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Authorization/privateLinkAssociations@2020-05-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Authorization/privateLinkAssociations"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2020-05-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "privateLink": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The rmpl Resource ID."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                }
+              },
+              "tenantID": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The TenantID."
+              },
+              "scope": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The scope of the private link association."
+              }
+            }
+          },
+          "description": "The properties of the PrivateLinkAssociation."
+        }
+      }
+    }
+  }
+}

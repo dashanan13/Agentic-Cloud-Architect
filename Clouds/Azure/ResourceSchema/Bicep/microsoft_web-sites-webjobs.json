@@ -1,0 +1,124 @@
+{
+  "resourceName": "Web Jobs",
+  "bicepType": "Microsoft.Web/sites/webjobs@2023-12-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/sites/webjobs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Web/sites/webjobs@2023-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Web/sites/webjobs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "run_command": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Run command."
+              },
+              "url": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Job URL."
+              },
+              "extra_info_url": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Extra Info URL."
+              },
+              "web_job_type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Continuous"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Triggered"
+                    }
+                  ]
+                },
+                "description": "Job type."
+              },
+              "error": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Error information."
+              },
+              "using_sdk": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Using SDK?"
+              },
+              "settings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "AnyType"
+                  }
+                },
+                "description": "Job settings."
+              }
+            }
+          },
+          "description": "WebJob resource specific properties"
+        },
+        "kind": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of resource."
+        }
+      }
+    }
+  }
+}

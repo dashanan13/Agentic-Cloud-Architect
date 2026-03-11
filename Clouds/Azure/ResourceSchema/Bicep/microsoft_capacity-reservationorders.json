@@ -1,0 +1,1061 @@
+{
+  "resourceName": "Capacity",
+  "bicepType": "Microsoft.Capacity/reservationOrders@2022-11-01",
+  "terraformType": "azurerm_capacity_reservation",
+  "category": "azure stack",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.capacity/reservationorders",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Capacity/reservationOrders@2022-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Capacity/reservationOrders"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 4,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                }
+              }
+            }
+          },
+          "description": "The name of sku"
+        },
+        "location": {
+          "flags": 4,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The Azure region where the reserved resource lives."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "reservedResourceType": {
+                "flags": 4,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "VirtualMachines"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SqlDatabases"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SuseLinux"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CosmosDb"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RedHat"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SqlDataWarehouse"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "VMwareCloudSimple"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RedHatOsa"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Databricks"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AppService"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedDisk"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BlockBlob"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RedisCache"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AzureDataExplorer"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MySql"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MariaDb"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PostgreSql"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DedicatedHost"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SapHana"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SqlAzureHybridBenefit"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AVS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataFactory"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NetAppStorage"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AzureFiles"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SqlEdge"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "VirtualMachineSoftware"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the resource that is being reserved. In addition to below types we have also added the following: OpenAIPTU, MDC, Sentinel."
+              },
+              "billingScopeId": {
+                "flags": 4,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Subscription that will be charged for purchasing reservation or savings plan"
+              },
+              "term": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P1Y"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P3Y"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P5Y"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Represent the term of reservation."
+              },
+              "billingPlan": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Upfront"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Monthly"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Represent the billing plans."
+              },
+              "quantity": {
+                "flags": 4,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Quantity of the skus that are part of the reservation."
+              },
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Friendly name of the reservation"
+              },
+              "appliedScopeType": {
+                "flags": 4,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Single"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Shared"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagementGroup"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of the Applied Scope."
+              },
+              "appliedScopes": {
+                "flags": 4,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "List of the subscriptions that the benefit will be applied. Do not specify if AppliedScopeType is Shared. This property will be deprecated and replaced by appliedScopeProperties instead for Single AppliedScopeType."
+              },
+              "appliedScopeProperties": {
+                "flags": 4,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "tenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Tenant ID where the savings plan should apply benefit."
+                    },
+                    "managementGroupId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fully-qualified identifier of the management group where the benefit must be applied."
+                    },
+                    "subscriptionId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fully-qualified identifier of the subscription."
+                    },
+                    "resourceGroupId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Fully-qualified identifier of the resource group."
+                    },
+                    "displayName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Display name"
+                    }
+                  }
+                },
+                "description": "Properties specific to applied scope type. Not required if not applicable. Required and need to provide tenantId and managementGroupId if AppliedScopeType is ManagementGroup"
+              },
+              "renew": {
+                "flags": 4,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Setting this to true will automatically purchase a new reservation on the expiration date time."
+              },
+              "reservedResourceProperties": {
+                "flags": 4,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "instanceFlexibility": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "On"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Off"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Turning this on will apply the reservation discount to other VMs in the same VM size group. Only specify for VirtualMachines reserved resource type."
+                    }
+                  }
+                },
+                "description": "Properties specific to each reserved resource type. Not required if not applicable."
+              },
+              "reviewDateTime": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the date-time when the Azure hybrid benefit needs to be reviewed."
+              },
+              "requestDateTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the DateTime when the reservation was initially requested for purchase."
+              },
+              "createdDateTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the DateTime when the reservation was created."
+              },
+              "expiryDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the date when the reservation will expire."
+              },
+              "expiryDateTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the date-time when the reservation will expire."
+              },
+              "benefitStartTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is the DateTime when the reservation benefit started."
+              },
+              "originalQuantity": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Total Quantity of the skus purchased in the reservation."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PendingResourceHold"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ConfirmedResourceHold"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PendingBilling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ConfirmedBilling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Created"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BillingFailed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Split"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Merged"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Current state of the reservation."
+              },
+              "planInformation": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "pricingCurrencyTotal": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "currencyCode": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The ISO 4217 3-letter currency code for the currency used by this purchase record."
+                          },
+                          "amount": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            }
+                          }
+                        }
+                      },
+                      "description": "Amount of money to be paid for the Order. Tax is not included."
+                    },
+                    "startDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Date when the billing plan has started."
+                    },
+                    "nextPaymentDueDate": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "For recurring billing plans, indicates the date when next payment will be processed. Null when total is paid off."
+                    },
+                    "transactions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "dueDate": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Date when the payment needs to be done."
+                            },
+                            "paymentDate": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Date when the transaction is completed. Is null when it is scheduled."
+                            },
+                            "pricingCurrencyTotal": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Amount in pricing currency. Tax not included."
+                            },
+                            "billingCurrencyTotal": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Amount charged in Billing currency. Tax not included. Is null for future payments"
+                            },
+                            "billingAccount": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Shows the Account that is charged for this payment."
+                            },
+                            "status": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Describes whether the payment is completed, failed, cancelled or scheduled in the future."
+                            },
+                            "extendedStatusInfo": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Information describing the type of billing plan for this reservation."
+              },
+              "reservations": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "location": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Azure region where the reserved resource lives."
+                      },
+                      "etag": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        }
+                      },
+                      "sku": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              }
+                            }
+                          }
+                        },
+                        "description": "The sku information associated to this reservation"
+                      },
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "reservedResourceType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of the resource that is being reserved."
+                            },
+                            "instanceFlexibility": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Allows reservation discount to be applied across skus within the same auto fit group. Not all skus support instance size flexibility."
+                            },
+                            "displayName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Friendly name for user to easily identify the reservation"
+                            },
+                            "appliedScopes": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of applied scopes"
+                            },
+                            "appliedScopeType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The applied scope type"
+                            },
+                            "archived": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Indicates if the reservation is archived"
+                            },
+                            "capabilities": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Capabilities of the reservation"
+                            },
+                            "quantity": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Quantity of the skus that are part of the reservation."
+                            },
+                            "provisioningState": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Current state of the reservation."
+                            },
+                            "effectiveDateTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "DateTime of the reservation starting when this version is effective from."
+                            },
+                            "benefitStartTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This is the DateTime when the reservation benefit started."
+                            },
+                            "lastUpdatedDateTime": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "DateTime of the last time the reservation was updated."
+                            },
+                            "expiryDate": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This is the date when the reservation will expire."
+                            },
+                            "expiryDateTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This is the date-time when the reservation will expire."
+                            },
+                            "reviewDateTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This is the date-time when the Azure Hybrid Benefit needs to be reviewed."
+                            },
+                            "skuDescription": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Description of the sku in english."
+                            },
+                            "extendedStatusInfo": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The message giving detailed information about the status code."
+                            },
+                            "billingPlan": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The billing plan options available for this sku."
+                            },
+                            "displayProvisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the reservation for display, e.g. Succeeded"
+                            },
+                            "provisioningSubState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning sub-state of the reservation, e.g. Succeeded"
+                            },
+                            "purchaseDate": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This is the date when the reservation was purchased."
+                            },
+                            "purchaseDateTime": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This is the date-time when the reservation was purchased."
+                            },
+                            "splitProperties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties of reservation split"
+                            },
+                            "mergeProperties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties of reservation merge"
+                            },
+                            "swapProperties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties of reservation swap"
+                            },
+                            "appliedScopeProperties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties specific to applied scope type. Not required if not applicable. Required and need to provide tenantId and managementGroupId if AppliedScopeType is ManagementGroup"
+                            },
+                            "billingScopeId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Subscription that will be charged for purchasing reservation or savings plan"
+                            },
+                            "renew": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Setting this to true will automatically purchase a new reservation on the expiration date time."
+                            },
+                            "renewSource": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reservation Id of the reservation from which this reservation is renewed. Format of the resource Id is /providers/Microsoft.Capacity/reservationOrders/{reservationOrderId}/reservations/{reservationId}."
+                            },
+                            "renewDestination": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reservation Id of the reservation which is purchased because of renew. Format of the resource Id is /providers/Microsoft.Capacity/reservationOrders/{reservationOrderId}/reservations/{reservationId}."
+                            },
+                            "renewProperties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The renew properties for a reservation."
+                            },
+                            "term": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Represent the term of reservation."
+                            },
+                            "userFriendlyAppliedScopeType": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The applied scope type of the reservation for display, e.g. Shared"
+                            },
+                            "userFriendlyRenewState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The renew state of the reservation for display, e.g. On"
+                            },
+                            "utilization": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reservation utilization"
+                            }
+                          }
+                        },
+                        "description": "The properties associated to this reservation"
+                      },
+                      "kind": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringLiteralType",
+                          "value": "Microsoft.Compute"
+                        },
+                        "description": "Resource Provider type to be reserved."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. E.g. \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}\""
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      },
+                      "systemData": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "createdBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that created the resource."
+                            },
+                            "createdByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that created the resource."
+                            },
+                            "createdAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource creation (UTC)."
+                            },
+                            "lastModifiedBy": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The identity that last modified the resource."
+                            },
+                            "lastModifiedByType": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of identity that last modified the resource."
+                            },
+                            "lastModifiedAt": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of resource last modification (UTC)"
+                            }
+                          }
+                        },
+                        "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Properties of reservation purchase request"
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "IntegerType"
+          }
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        }
+      }
+    }
+  }
+}

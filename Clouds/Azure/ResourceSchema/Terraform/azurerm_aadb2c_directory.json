@@ -1,0 +1,114 @@
+{
+  "resourceName": "Azure AD B2C",
+  "bicepType": "Microsoft.AzureActiveDirectory/b2cDirectories@2023-05-17-preview",
+  "terraformType": "azurerm_aadb2c_directory",
+  "category": "identity",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.azureactivedirectory/b2cdirectories",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "billing_type": {
+          "type": "string",
+          "description": "The type of billing for the B2C tenant. Possible values include: `MAU` or `Auths`.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "country_code": {
+          "type": "string",
+          "description": "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "data_residency_location": {
+          "type": "string",
+          "description": "Location in which the B2C tenant is hosted and data resides. See https://aka.ms/B2CDataResidency for more information.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "display_name": {
+          "type": "string",
+          "description": "The initial display name of the B2C tenant.",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "domain_name": {
+          "type": "string",
+          "description": "Domain name of the B2C tenant, including onmicrosoft.com suffix.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "effective_start_date": {
+          "type": "string",
+          "description": "The date from which the billing type took effect. May not be populated until after the first billing cycle.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku_name": {
+          "type": "string",
+          "description": "Billing SKU for the B2C tenant. See https://aka.ms/b2cBilling for more information.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tenant_id": {
+          "type": "string",
+          "description": "The Tenant ID for the B2C tenant.",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

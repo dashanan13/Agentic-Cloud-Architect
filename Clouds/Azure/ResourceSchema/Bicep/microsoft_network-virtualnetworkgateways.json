@@ -1,0 +1,1298 @@
+{
+  "resourceName": "Virtual Network Gateways",
+  "bicepType": "Microsoft.Network/virtualNetworkGateways@2024-03-01",
+  "terraformType": "azurerm_virtual_network_gateway",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/virtualnetworkgateways",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/virtualNetworkGateways@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/virtualNetworkGateways"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "autoScaleConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "bounds": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Minimum scale Units for Autoscale configuration"
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Maximum Scale Units for Autoscale configuration"
+                          }
+                        }
+                      },
+                      "description": "The bounds of the autoscale configuration"
+                    }
+                  }
+                },
+                "description": "Autoscale configuration for virutal network gateway"
+              },
+              "ipConfigurations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateIPAllocationMethod": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private IP address allocation method."
+                            },
+                            "subnet": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to the subnet resource."
+                            },
+                            "publicIPAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The reference to the public IP resource."
+                            },
+                            "privateIPAddress": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Private IP Address for this gateway."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the virtual network gateway IP configuration resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of the virtual network gateway ip configuration."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "IP configurations for virtual network gateway."
+              },
+              "gatewayType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Vpn"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ExpressRoute"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "LocalGateway"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of this virtual network gateway."
+              },
+              "vpnType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PolicyBased"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RouteBased"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of this virtual network gateway."
+              },
+              "vpnGatewayGeneration": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Generation1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Generation2"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The generation for this VirtualNetworkGateway. Must be None if gatewayType is not VPN."
+              },
+              "enableBgp": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether BGP is enabled for this virtual network gateway or not."
+              },
+              "enablePrivateIpAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether private IP needs to be enabled on this gateway for connections or not."
+              },
+              "activeActive": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "ActiveActive flag."
+              },
+              "disableIPSecReplayProtection": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "disableIPSecReplayProtection flag."
+              },
+              "gatewayDefaultSite": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The reference to the LocalNetworkGateway resource which represents local network site having default routes. Assign Null value in case of removing existing default site setting."
+              },
+              "sku": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "HighPerformance"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "UltraPerformance"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw1"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw2"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw3"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw4"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw5"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw1AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw2AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw3AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw4AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw5AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGw1AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGw2AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGw3AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGwScale"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Gateway SKU name."
+                    },
+                    "tier": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Basic"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "HighPerformance"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "UltraPerformance"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw1"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw2"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw3"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw4"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw5"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw1AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw2AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw3AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw4AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VpnGw5AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGw1AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGw2AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGw3AZ"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ErGwScale"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Gateway SKU tier."
+                    },
+                    "capacity": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The capacity."
+                    }
+                  }
+                },
+                "description": "The reference to the VirtualNetworkGatewaySku resource which represents the SKU selected for Virtual network gateway."
+              },
+              "vpnClientConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "vpnClientAddressPool": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "addressPrefixes": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "A list of address blocks reserved for this virtual network in CIDR notation."
+                          }
+                        }
+                      },
+                      "description": "The reference to the address space resource which represents Address space for P2S VpnClient."
+                    },
+                    "vpnClientRootCertificates": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "properties": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties of the vpn client root certificate."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                            },
+                            "etag": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A unique read-only string that changes whenever the resource is updated."
+                            },
+                            "id": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource ID."
+                            }
+                          }
+                        }
+                      },
+                      "description": "VpnClientRootCertificate for virtual network gateway."
+                    },
+                    "vpnClientRevokedCertificates": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "properties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties of the vpn client revoked certificate."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                            },
+                            "etag": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A unique read-only string that changes whenever the resource is updated."
+                            },
+                            "id": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource ID."
+                            }
+                          }
+                        }
+                      },
+                      "description": "VpnClientRevokedCertificate for Virtual network gateway."
+                    },
+                    "vpnClientProtocols": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "VpnClientProtocols for Virtual network gateway."
+                    },
+                    "vpnAuthenticationTypes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "VPN authentication types for the virtual network gateway.."
+                    },
+                    "vpnClientIpsecPolicies": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "saLifeTimeSeconds": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IPSec Security Association (also called Quick Mode or Phase 2 SA) lifetime in seconds for a site to site VPN tunnel."
+                            },
+                            "saDataSizeKilobytes": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IPSec Security Association (also called Quick Mode or Phase 2 SA) payload size in KB for a site to site VPN tunnel."
+                            },
+                            "ipsecEncryption": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IPSec encryption algorithm (IKE phase 1)."
+                            },
+                            "ipsecIntegrity": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IPSec integrity algorithm (IKE phase 1)."
+                            },
+                            "ikeEncryption": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IKE encryption algorithm (IKE phase 2)."
+                            },
+                            "ikeIntegrity": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IKE integrity algorithm (IKE phase 2)."
+                            },
+                            "dhGroup": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The DH Group used in IKE Phase 1 for initial SA."
+                            },
+                            "pfsGroup": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The Pfs Group used in IKE Phase 2 for new child SA."
+                            }
+                          }
+                        }
+                      },
+                      "description": "VpnClientIpsecPolicies for virtual network gateway P2S client."
+                    },
+                    "radiusServerAddress": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The radius server address property of the VirtualNetworkGateway resource for vpn client connection."
+                    },
+                    "radiusServerSecret": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The radius secret property of the VirtualNetworkGateway resource for vpn client connection."
+                    },
+                    "radiusServers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "radiusServerAddress": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The address of this radius server."
+                            },
+                            "radiusServerScore": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The initial score assigned to this radius server."
+                            },
+                            "radiusServerSecret": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The secret used for this radius server."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The radiusServers property for multiple radius server configuration."
+                    },
+                    "aadTenant": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The AADTenant property of the VirtualNetworkGateway resource for vpn client connection used for AAD authentication."
+                    },
+                    "aadAudience": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The AADAudience property of the VirtualNetworkGateway resource for vpn client connection used for AAD authentication."
+                    },
+                    "aadIssuer": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The AADIssuer property of the VirtualNetworkGateway resource for vpn client connection used for AAD authentication."
+                    },
+                    "vngClientConnectionConfigurations": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "properties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Properties of the vpn client root certificate."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                            },
+                            "etag": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A unique read-only string that changes whenever the resource is updated."
+                            },
+                            "id": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource ID."
+                            }
+                          }
+                        }
+                      },
+                      "description": "per ip address pool connection policy for virtual network gateway P2S client."
+                    }
+                  }
+                },
+                "description": "The reference to the VpnClientConfiguration resource which represents the P2S VpnClient configurations."
+              },
+              "virtualNetworkGatewayPolicyGroups": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "isDefault": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Shows if this is a Default VirtualNetworkGatewayPolicyGroup or not."
+                            },
+                            "priority": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Priority for VirtualNetworkGatewayPolicyGroup."
+                            },
+                            "policyMembers": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Multiple PolicyMembers for VirtualNetworkGatewayPolicyGroup."
+                            },
+                            "vngClientConnectionConfigurations": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "List of references to vngClientConnectionConfigurations."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the VirtualNetworkGatewayPolicyGroup resource."
+                            }
+                          }
+                        },
+                        "description": "Properties of tVirtualNetworkGatewayPolicyGroup."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "The reference to the VirtualNetworkGatewayPolicyGroup resource which represents the available VirtualNetworkGatewayPolicyGroup for the gateway."
+              },
+              "bgpSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "asn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 4294967295
+                      },
+                      "description": "The BGP speaker's ASN."
+                    },
+                    "bgpPeeringAddress": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The BGP peering address and BGP identifier of this BGP speaker."
+                    },
+                    "peerWeight": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The weight added to routes learned from this BGP speaker."
+                    },
+                    "bgpPeeringAddresses": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "ipconfigurationId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The ID of IP configuration which belongs to gateway."
+                            },
+                            "defaultBgpIpAddresses": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of default BGP peering addresses which belong to IP configuration."
+                            },
+                            "customBgpIpAddresses": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of custom BGP peering addresses which belong to IP configuration."
+                            },
+                            "tunnelIpAddresses": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of tunnel public IP addresses which belong to IP configuration."
+                            }
+                          }
+                        }
+                      },
+                      "description": "BGP peering address with IP configuration ID for virtual network gateway."
+                    }
+                  }
+                },
+                "description": "Virtual network gateway's BGP speaker settings."
+              },
+              "customRoutes": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressPrefixes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "A list of address blocks reserved for this virtual network in CIDR notation."
+                    }
+                  }
+                },
+                "description": "The reference to the address space resource which represents the custom routes address space specified by the customer for virtual network gateway and VpnClient."
+              },
+              "resourceGuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource GUID property of the virtual network gateway resource."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the virtual network gateway resource."
+              },
+              "enableDnsForwarding": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether dns forwarding is enabled or not."
+              },
+              "inboundDnsForwardingEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The IP address allocated by the gateway to which dns requests can be sent."
+              },
+              "vNetExtendedLocationResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Customer vnet resource id. VirtualNetworkGateway of type local gateway is associated with the customer vnet."
+              },
+              "natRules": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the NAT Rule resource."
+                            },
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of NAT rule for VPN NAT."
+                            },
+                            "mode": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The Source NAT direction of a VPN NAT."
+                            },
+                            "internalMappings": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private IP address internal mapping for NAT."
+                            },
+                            "externalMappings": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The private IP address external mapping for NAT."
+                            },
+                            "ipConfigurationId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The IP Configuration ID this NAT rule applies to."
+                            }
+                          }
+                        },
+                        "description": "Properties of the Virtual Network Gateway NAT rule."
+                      },
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+                      },
+                      "etag": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "A unique read-only string that changes whenever the resource is updated."
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource type."
+                      },
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "NatRules for virtual network gateway."
+              },
+              "enableBgpRouteTranslationForNat": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "EnableBgpRouteTranslationForNat flag."
+              },
+              "allowVirtualWanTraffic": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Configures this gateway to accept traffic from remote Virtual WAN networks."
+              },
+              "allowRemoteVnetTraffic": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Configure this gateway to accept traffic from other Azure Virtual Networks. This configuration does not support connectivity to Azure Virtual WAN."
+              },
+              "adminState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Property to indicate if the Express Route Gateway serves traffic when there are multiple Express Route Gateways in the vnet"
+              },
+              "resiliencyModel": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SingleHomed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MultiHomed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Property to indicate if the Express Route Gateway has resiliency model of MultiHomed or SingleHomed"
+              }
+            }
+          },
+          "description": "Properties of the virtual network gateway."
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeZone"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "The extended location of type local virtual network gateway."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal id of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant id of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the resource. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the virtual machine."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user identities associated with resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'."
+              }
+            }
+          },
+          "description": "The identity of the virtual network gateway, if configured."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

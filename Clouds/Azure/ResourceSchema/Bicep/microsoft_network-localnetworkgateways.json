@@ -1,0 +1,220 @@
+{
+  "resourceName": "Local Network Gateways",
+  "bicepType": "Microsoft.Network/localNetworkGateways@2024-03-01",
+  "terraformType": "azurerm_local_network_gateway",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/localnetworkgateways",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/localNetworkGateways@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/localNetworkGateways"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "localNetworkAddressSpace": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "addressPrefixes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "A list of address blocks reserved for this virtual network in CIDR notation."
+                    }
+                  }
+                },
+                "description": "Local network site address space."
+              },
+              "gatewayIpAddress": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "IP address of local network gateway."
+              },
+              "fqdn": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "FQDN of local network gateway."
+              },
+              "bgpSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "asn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 4294967295
+                      },
+                      "description": "The BGP speaker's ASN."
+                    },
+                    "bgpPeeringAddress": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The BGP peering address and BGP identifier of this BGP speaker."
+                    },
+                    "peerWeight": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The weight added to routes learned from this BGP speaker."
+                    },
+                    "bgpPeeringAddresses": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "ipconfigurationId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The ID of IP configuration which belongs to gateway."
+                            },
+                            "defaultBgpIpAddresses": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of default BGP peering addresses which belong to IP configuration."
+                            },
+                            "customBgpIpAddresses": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of custom BGP peering addresses which belong to IP configuration."
+                            },
+                            "tunnelIpAddresses": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The list of tunnel public IP addresses which belong to IP configuration."
+                            }
+                          }
+                        }
+                      },
+                      "description": "BGP peering address with IP configuration ID for virtual network gateway."
+                    }
+                  }
+                },
+                "description": "Local network gateway's BGP speaker settings."
+              },
+              "resourceGuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource GUID property of the local network gateway resource."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the local network gateway resource."
+              }
+            }
+          },
+          "description": "Properties of the local network gateway."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

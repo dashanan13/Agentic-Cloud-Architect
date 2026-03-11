@@ -1,0 +1,154 @@
+{
+  "resourceName": "Notification Hubs",
+  "bicepType": "Microsoft.NotificationHubs/namespaces/notificationHubs@2023-09-01",
+  "terraformType": "azurerm_notification_hub",
+  "category": "mobile",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.notificationhubs/namespaces/notificationhubs",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "namespace_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "apns_credential": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "application_mode": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "bundle_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "key_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "team_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "token": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "browser_credential": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "subject": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "vapid_private_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              },
+              "vapid_public_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "gcm_credential": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "api_key": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

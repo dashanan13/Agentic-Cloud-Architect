@@ -1,0 +1,116 @@
+{
+  "resourceName": "Local Network Gateways",
+  "bicepType": "Microsoft.Network/localNetworkGateways@2024-03-01",
+  "terraformType": "azurerm_local_network_gateway",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/localnetworkgateways",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "address_space": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "gateway_address": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "gateway_fqdn": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "bgp_settings": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "asn": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "bgp_peering_address": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "peer_weight": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

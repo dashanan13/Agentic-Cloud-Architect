@@ -1,0 +1,492 @@
+{
+  "resourceName": "Arc SQL Server",
+  "bicepType": "Microsoft.AzureArcData/sqlServerInstances@2023-01-15-preview",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.azurearcdata/sqlserverinstances",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AzureArcData/sqlServerInstances@2023-01-15-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AzureArcData/sqlServerInstances"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-01-15-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL Server 2012"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL Server 2014"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL Server 2016"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL Server 2017"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL Server 2019"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SQL Server 2022"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL Server version."
+              },
+              "edition": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Evaluation"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enterprise"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Web"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Developer"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Express"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Business Intelligence"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL Server edition."
+              },
+              "containerResourceId": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ARM Resource id of the container resource (Azure Arc for Servers)."
+              },
+              "createTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The time when the resource was created."
+              },
+              "vCore": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The number of logical processors used by the SQL Server instance."
+              },
+              "cores": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The number of total cores of the Operating System Environment (OSE) hosting the SQL Server instance."
+              },
+              "status": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disconnected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Registered"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The cloud connectivity status."
+              },
+              "patchLevel": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL Server update level."
+              },
+              "collation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL Server collation."
+              },
+              "currentVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL Server current version."
+              },
+              "instanceName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL Server instance name."
+              },
+              "tcpDynamicPorts": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Dynamic TCP ports used by SQL Server."
+              },
+              "tcpStaticPorts": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Static TCP ports used by SQL Server."
+              },
+              "productId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL Server product ID."
+              },
+              "licenseType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Undefined"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Free"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "HADR"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ServerCAL"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "LicenseOnly"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PAYG"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Paid"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL Server license type."
+              },
+              "azureDefenderStatusLastUpdated": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Timestamp of last Azure Defender status update."
+              },
+              "azureDefenderStatus": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Protected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unprotected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unknown"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Status of Azure Defender."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The provisioning state of the Arc-enabled SQL Server resource."
+              },
+              "hostType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Azure Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Azure VMWare Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Azure Kubernetes Service"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AWS VMWare Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AWS Kubernetes Service"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GCP VMWare Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GCP Kubernetes Service"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Container"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Physical Server"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AWS Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GCP Virtual Machine"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Other"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of host for Azure Arc SQL Server"
+              }
+            }
+          },
+          "description": "null"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

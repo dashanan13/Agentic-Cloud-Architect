@@ -1,0 +1,100 @@
+{
+  "resourceName": "Log Analytics Query Pack",
+  "bicepType": "Microsoft.OperationalInsights/queryPacks@2019-09-01-preview",
+  "terraformType": "azurerm_log_analytics_query_pack",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.operationalinsights/querypacks",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.OperationalInsights/queryPacks@2019-09-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.OperationalInsights/queryPacks"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2019-09-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "queryPackId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The unique ID of your application. This field cannot be changed."
+              },
+              "timeCreated": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Creation Date for the Log Analytics QueryPack, in ISO 8601 format."
+              },
+              "timeModified": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Last modified date of the Log Analytics QueryPack, in ISO 8601 format."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Current state of this QueryPack: whether or not is has been provisioned within the resource group it is defined. Users cannot change this value but are able to read from it. Values will include Succeeded, Deploying, Canceled, and Failed."
+              }
+            }
+          },
+          "description": "Properties that define a Log Analytics QueryPack resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags"
+        }
+      }
+    }
+  }
+}

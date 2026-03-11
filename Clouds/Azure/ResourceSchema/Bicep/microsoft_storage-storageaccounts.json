@@ -1,0 +1,1996 @@
+{
+  "resourceName": "Azurite",
+  "bicepType": "Microsoft.Storage/storageAccounts@2024-01-01",
+  "terraformType": "azurerm_storage_account",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Storage/storageAccounts@2024-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 24,
+            "pattern": "^[a-z0-9]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Storage/storageAccounts"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_GRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_RAGRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_ZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium_ZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_GZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_RAGZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_GRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_ZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_GZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PremiumV2_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PremiumV2_ZRS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The SKU name. Required for account creation; optional for update. Note that in older versions, SKU name was called accountType."
+              },
+              "tier": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    }
+                  ]
+                },
+                "description": "The SKU tier. This is based on the SKU name."
+              }
+            }
+          },
+          "description": "Required. Gets or sets the SKU name."
+        },
+        "kind": {
+          "flags": 1,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "Storage"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "StorageV2"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "BlobStorage"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "FileStorage"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "BlockBlobStorage"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "Required. Indicates the type of storage account."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Required. Gets or sets the location of the resource. This will be one of the supported and registered Azure Geo Regions (e.g. West US, East US, Southeast Asia, etc.). The geo region of a resource cannot be changed once it is created, but if an identical geo region is specified on update, the request will succeed."
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeZone"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "Optional. Set the extended location of the resource. If not set, the storage account will be created in Azure main region. Otherwise it will be created in the specified extended location"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Gets or sets a list of key value pairs that describe the resource. These tags can be used for viewing and grouping this resource (across resource groups). A maximum of 15 tags can be provided for a resource. Each tag must have a key with a length no greater than 128 characters and a value with a length no greater than 256 characters."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal ID of resource identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant ID of resource."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The identity type."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal ID of the identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client ID of the identity."
+                      }
+                    }
+                  }
+                },
+                "description": "Gets or sets a list of key value pairs that describe the set of User Assigned identities that will be used with this storage account. The key is the ARM resource identifier of the identity. Only 1 User Assigned identity is permitted here."
+              }
+            }
+          },
+          "description": "The identity of the resource."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "allowedCopyScope": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PrivateLink"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AAD"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SecuredByPerimeter"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Allow, disallow, or let Network Security Perimeter configuration to evaluate public network access to Storage Account. Value is optional but if passed in, must be 'Enabled', 'Disabled' or 'SecuredByPerimeter'."
+              },
+              "sasPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "sasExpirationPeriod": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The SAS expiration period, DD.HH:MM:SS."
+                    },
+                    "expirationAction": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Log"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Block"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The SAS Expiration Action defines the action to be performed when sasPolicy.sasExpirationPeriod is violated. The 'Log' action can be used for audit purposes and the 'Block' action can be used to block and deny the usage of SAS tokens that do not adhere to the sas policy expiration period."
+                    }
+                  }
+                },
+                "description": "SasPolicy assigned to the storage account."
+              },
+              "keyPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "keyExpirationPeriodInDays": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The key expiration period in days."
+                    }
+                  }
+                },
+                "description": "KeyPolicy assigned to the storage account."
+              },
+              "customDomain": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets or sets the custom domain name assigned to the storage account. Name is the CNAME source."
+                    },
+                    "useSubDomainName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates whether indirect CName validation is enabled. Default value is false. This should only be set on updates."
+                    }
+                  }
+                },
+                "description": "User domain assigned to the storage account. Name is the CNAME source. Only one custom domain is supported per storage account at this time. To clear the existing custom domain, use an empty string for the custom domain name property."
+              },
+              "encryption": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "services": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "blob": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "enabled": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A boolean indicating whether or not the service encrypts the data as it is stored. Encryption at rest is enabled by default today and cannot be disabled."
+                                },
+                                "lastEnabledTime": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets a rough estimate of the date/time when the encryption was last enabled by the user. Data is encrypted at rest by default today and cannot be disabled."
+                                },
+                                "keyType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Encryption key type to be used for the encryption service. 'Account' key type implies that an account-scoped encryption key will be used. 'Service' key type implies that a default service key is used."
+                                }
+                              }
+                            },
+                            "description": "The encryption function of the blob storage service."
+                          },
+                          "file": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "enabled": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A boolean indicating whether or not the service encrypts the data as it is stored. Encryption at rest is enabled by default today and cannot be disabled."
+                                },
+                                "lastEnabledTime": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets a rough estimate of the date/time when the encryption was last enabled by the user. Data is encrypted at rest by default today and cannot be disabled."
+                                },
+                                "keyType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Encryption key type to be used for the encryption service. 'Account' key type implies that an account-scoped encryption key will be used. 'Service' key type implies that a default service key is used."
+                                }
+                              }
+                            },
+                            "description": "The encryption function of the file storage service."
+                          },
+                          "table": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "enabled": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A boolean indicating whether or not the service encrypts the data as it is stored. Encryption at rest is enabled by default today and cannot be disabled."
+                                },
+                                "lastEnabledTime": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets a rough estimate of the date/time when the encryption was last enabled by the user. Data is encrypted at rest by default today and cannot be disabled."
+                                },
+                                "keyType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Encryption key type to be used for the encryption service. 'Account' key type implies that an account-scoped encryption key will be used. 'Service' key type implies that a default service key is used."
+                                }
+                              }
+                            },
+                            "description": "The encryption function of the table storage service."
+                          },
+                          "queue": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "enabled": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A boolean indicating whether or not the service encrypts the data as it is stored. Encryption at rest is enabled by default today and cannot be disabled."
+                                },
+                                "lastEnabledTime": {
+                                  "flags": 2,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets a rough estimate of the date/time when the encryption was last enabled by the user. Data is encrypted at rest by default today and cannot be disabled."
+                                },
+                                "keyType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Encryption key type to be used for the encryption service. 'Account' key type implies that an account-scoped encryption key will be used. 'Service' key type implies that a default service key is used."
+                                }
+                              }
+                            },
+                            "description": "The encryption function of the queue storage service."
+                          }
+                        }
+                      },
+                      "description": "List of services which support encryption."
+                    },
+                    "keySource": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.Storage"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Microsoft.Keyvault"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The encryption keySource (provider). Possible values (case-insensitive):  Microsoft.Storage, Microsoft.Keyvault"
+                    },
+                    "requireInfrastructureEncryption": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean indicating whether or not the service applies a secondary layer of encryption with platform managed keys for data at rest."
+                    },
+                    "keyvaultproperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "keyname": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of KeyVault key."
+                          },
+                          "keyversion": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The version of KeyVault key."
+                          },
+                          "keyvaulturi": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The Uri of KeyVault."
+                          },
+                          "currentVersionedKeyIdentifier": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The object identifier of the current versioned Key Vault Key in use."
+                          },
+                          "lastKeyRotationTimestamp": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Timestamp of last rotation of the Key Vault Key."
+                          },
+                          "currentVersionedKeyExpirationTimestamp": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "This is a read only property that represents the expiration time of the current version of the customer managed key used for encryption."
+                          }
+                        }
+                      },
+                      "description": "Properties provided by key vault."
+                    },
+                    "identity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "userAssignedIdentity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource identifier of the UserAssigned identity to be associated with server-side encryption on the storage account."
+                          },
+                          "federatedIdentityClientId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "ClientId of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account."
+                          }
+                        }
+                      },
+                      "description": "The identity to be used with service-side encryption at rest."
+                    }
+                  }
+                },
+                "description": "Encryption settings to be used for server-side encryption for the storage account."
+              },
+              "networkAcls": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "bypass": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Logging"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Metrics"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AzureServices"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Possible values are any combination of Logging|Metrics|AzureServices (For example, \"Logging, Metrics\"), or None to bypass none of those traffics."
+                    },
+                    "resourceAccessRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "tenantId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Tenant Id"
+                            },
+                            "resourceId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource Id"
+                            }
+                          }
+                        }
+                      },
+                      "description": "Sets the resource access rules"
+                    },
+                    "virtualNetworkRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "id": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource ID of a subnet, for example: /subscriptions/{subscriptionId}/resourceGroups/{groupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}."
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The action of virtual network rule."
+                            },
+                            "state": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Gets the state of virtual network rule."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Sets the virtual network rules"
+                    },
+                    "ipRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "value": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Specifies the IP or IP range in CIDR format. Only IPV4 address is allowed."
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The action of IP ACL rule."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Sets the IP ACL rules"
+                    },
+                    "defaultAction": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Allow"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deny"
+                          }
+                        ]
+                      },
+                      "description": "Specifies the default action of allow or deny when no other rules match."
+                    }
+                  }
+                },
+                "description": "Network rule set"
+              },
+              "accessTier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Hot"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cool"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cold"
+                    }
+                  ]
+                },
+                "description": "Required for storage accounts where kind = BlobStorage. The access tier is used for billing. The 'Premium' access tier is the default value for premium block blobs storage account type and it cannot be changed for the premium block blobs storage account type."
+              },
+              "azureFilesIdentityBasedAuthentication": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "directoryServiceOptions": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AADDS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AD"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AADKERB"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Indicates the directory service used. Note that this enum may be extended in the future."
+                    },
+                    "activeDirectoryProperties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "domainName": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the primary domain that the AD DNS server is authoritative for."
+                          },
+                          "netBiosDomainName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the NetBIOS domain name."
+                          },
+                          "forestName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the Active Directory forest to get."
+                          },
+                          "domainGuid": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the domain GUID."
+                          },
+                          "domainSid": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the security identifier (SID)."
+                          },
+                          "azureStorageSid": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the security identifier (SID) for Azure Storage."
+                          },
+                          "samAccountName": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the Active Directory SAMAccountName for Azure Storage."
+                          },
+                          "accountType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Specifies the Active Directory account type for Azure Storage."
+                          }
+                        }
+                      },
+                      "description": "Required if directoryServiceOptions are AD, optional if they are AADKERB."
+                    },
+                    "defaultSharePermission": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StorageFileDataSmbShareReader"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StorageFileDataSmbShareContributor"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StorageFileDataSmbShareElevatedContributor"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Default share permission for users using Kerberos authentication if RBAC role is not assigned."
+                    }
+                  }
+                },
+                "description": "Provides the identity based authentication settings for Azure Files."
+              },
+              "supportsHttpsTrafficOnly": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Allows https traffic only to storage service if sets to true. The default value is true since API version 2019-04-01."
+              },
+              "isSftpEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enables Secure File Transfer Protocol, if set to true"
+              },
+              "isLocalUserEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enables local users feature, if set to true"
+              },
+              "enableExtendedGroups": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enables extended group support with local users feature, if set to true"
+              },
+              "isHnsEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Account HierarchicalNamespace enabled if sets to true."
+              },
+              "largeFileSharesState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled."
+              },
+              "routingPreference": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "routingChoice": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "MicrosoftRouting"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "InternetRouting"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Routing Choice defines the kind of network routing opted by the user."
+                    },
+                    "publishMicrosoftEndpoints": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean flag which indicates whether microsoft routing storage endpoints are to be published"
+                    },
+                    "publishInternetEndpoints": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean flag which indicates whether internet routing storage endpoints are to be published"
+                    }
+                  }
+                },
+                "description": "Maintains information about the network routing choice opted by the user for data transfer"
+              },
+              "allowBlobPublicAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Allow or disallow public access to all blobs or containers in the storage account. The default interpretation is false for this property."
+              },
+              "minimumTlsVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TLS1_0"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TLS1_1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TLS1_2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TLS1_3"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Set the minimum TLS version to be permitted on requests to storage. The default interpretation is TLS 1.0 for this property."
+              },
+              "allowSharedKeyAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is null, which is equivalent to true."
+              },
+              "isNfsV3Enabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "NFS 3.0 protocol support enabled if set to true."
+              },
+              "allowCrossTenantReplication": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Allow or disallow cross AAD tenant object replication. Set this property to true for new or existing accounts only if object replication policies will involve storage accounts in different AAD tenants. The default interpretation is false for new accounts to follow best security practices by default."
+              },
+              "defaultToOAuthAuthentication": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "A boolean flag which indicates whether the default authentication is OAuth or not. The default interpretation is false for this property."
+              },
+              "immutableStorageWithVersioning": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean flag which enables account-level immutability. All the containers under such an account have object-level immutability enabled by default."
+                    },
+                    "immutabilityPolicy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "immutabilityPeriodSinceCreationInDays": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 1,
+                              "maxValue": 146000
+                            },
+                            "description": "The immutability period for the blobs in the container since the policy creation, in days."
+                          },
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The ImmutabilityPolicy state defines the mode of the policy. Disabled state disables the policy, Unlocked state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, Locked state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted."
+                          },
+                          "allowProtectedAppendWrites": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "This property can only be changed for disabled and unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted."
+                          }
+                        }
+                      },
+                      "description": "Specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy."
+                    }
+                  }
+                },
+                "description": "The property is immutable and can only be set to true at the account creation time. When set to true, it enables object level immutability for all the new containers in the account by default."
+              },
+              "dnsEndpointType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AzureDnsZone"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Allows you to specify the type of endpoint. Set this to AzureDNSZone to create a large number of accounts in a single subscription, which creates accounts in an Azure DNS Zone and the endpoint URL will have an alphanumeric DNS Zone identifier."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ResolvingDNS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ValidateSubscriptionQuotaBegin"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ValidateSubscriptionQuotaEnd"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    }
+                  ]
+                },
+                "description": "Gets the status of the storage account at the time the operation was called."
+              },
+              "primaryEndpoints": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "blob": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the blob endpoint."
+                    },
+                    "queue": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the queue endpoint."
+                    },
+                    "table": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the table endpoint."
+                    },
+                    "file": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the file endpoint."
+                    },
+                    "web": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the web endpoint."
+                    },
+                    "dfs": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the dfs endpoint."
+                    },
+                    "microsoftEndpoints": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "blob": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the blob endpoint."
+                          },
+                          "queue": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the queue endpoint."
+                          },
+                          "table": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the table endpoint."
+                          },
+                          "file": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the file endpoint."
+                          },
+                          "web": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the web endpoint."
+                          },
+                          "dfs": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the dfs endpoint."
+                          }
+                        }
+                      },
+                      "description": "Gets the microsoft routing storage endpoints."
+                    },
+                    "internetEndpoints": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "blob": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the blob endpoint."
+                          },
+                          "file": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the file endpoint."
+                          },
+                          "web": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the web endpoint."
+                          },
+                          "dfs": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the dfs endpoint."
+                          }
+                        }
+                      },
+                      "description": "Gets the internet routing storage endpoints"
+                    }
+                  }
+                },
+                "description": "Gets the URLs that are used to perform a retrieval of a public blob, queue, or table object. Note that Standard_ZRS and Premium_LRS accounts only return the blob endpoint."
+              },
+              "primaryLocation": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the location of the primary data center for the storage account."
+              },
+              "statusOfPrimary": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "available"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "unavailable"
+                    }
+                  ]
+                },
+                "description": "Gets the status indicating whether the primary location of the storage account is available or unavailable."
+              },
+              "lastGeoFailoverTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the timestamp of the most recent instance of a failover to the secondary location. Only the most recent timestamp is retained. This element is not returned if there has never been a failover instance. Only available if the accountType is Standard_GRS or Standard_RAGRS."
+              },
+              "secondaryLocation": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the location of the geo-replicated secondary for the storage account. Only available if the accountType is Standard_GRS or Standard_RAGRS."
+              },
+              "statusOfSecondary": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "available"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "unavailable"
+                    }
+                  ]
+                },
+                "description": "Gets the status indicating whether the secondary location of the storage account is available or unavailable. Only available if the SKU name is Standard_GRS or Standard_RAGRS."
+              },
+              "creationTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Gets the creation date and time of the storage account in UTC."
+              },
+              "keyCreationTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "key1": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      }
+                    },
+                    "key2": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      }
+                    }
+                  }
+                },
+                "description": "Storage account keys creation time."
+              },
+              "secondaryEndpoints": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "blob": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the blob endpoint."
+                    },
+                    "queue": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the queue endpoint."
+                    },
+                    "table": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the table endpoint."
+                    },
+                    "file": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the file endpoint."
+                    },
+                    "web": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the web endpoint."
+                    },
+                    "dfs": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets the dfs endpoint."
+                    },
+                    "microsoftEndpoints": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "blob": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the blob endpoint."
+                          },
+                          "queue": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the queue endpoint."
+                          },
+                          "table": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the table endpoint."
+                          },
+                          "file": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the file endpoint."
+                          },
+                          "web": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the web endpoint."
+                          },
+                          "dfs": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the dfs endpoint."
+                          }
+                        }
+                      },
+                      "description": "Gets the microsoft routing storage endpoints."
+                    },
+                    "internetEndpoints": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "blob": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the blob endpoint."
+                          },
+                          "file": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the file endpoint."
+                          },
+                          "web": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the web endpoint."
+                          },
+                          "dfs": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Gets the dfs endpoint."
+                          }
+                        }
+                      },
+                      "description": "Gets the internet routing storage endpoints"
+                    }
+                  }
+                },
+                "description": "Gets the URLs that are used to perform a retrieval of a public blob, queue, or table object from the secondary location of the storage account. Only available if the SKU name is Standard_RAGRS."
+              },
+              "geoReplicationStats": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "status": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Live"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Bootstrap"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Unavailable"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The status of the secondary location. Possible values are: - Live: Indicates that the secondary location is active and operational. - Bootstrap: Indicates initial synchronization from the primary location to the secondary location is in progress.This typically occurs when replication is first enabled. - Unavailable: Indicates that the secondary location is temporarily unavailable."
+                    },
+                    "lastSyncTime": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "All primary writes preceding this UTC date/time value are guaranteed to be available for read operations. Primary writes following this point in time may or may not be available for reads. Element may be default value if value of LastSyncTime is not available, this can happen if secondary is offline or we are in bootstrap."
+                    },
+                    "canFailover": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean flag which indicates whether or not account failover is supported for the account."
+                    },
+                    "canPlannedFailover": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "A boolean flag which indicates whether or not planned account failover is supported for the account."
+                    },
+                    "postFailoverRedundancy": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_LRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_ZRS"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The redundancy type of the account after an account failover is performed."
+                    },
+                    "postPlannedFailoverRedundancy": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_GRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_GZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_RAGRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_RAGZRS"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The redundancy type of the account after a planned account failover is performed."
+                    }
+                  }
+                },
+                "description": "Geo Replication Stats"
+              },
+              "failoverInProgress": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If the failover is in progress, the value will be true, otherwise, it will be null."
+              },
+              "privateEndpointConnections": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "properties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "privateEndpoint": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The resource of private end point."
+                            },
+                            "privateLinkServiceConnectionState": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "A collection of information about the state of the connection between service consumer and provider."
+                            },
+                            "provisioningState": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The provisioning state of the private endpoint connection resource."
+                            }
+                          }
+                        },
+                        "description": "Resource properties."
+                      },
+                      "id": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}"
+                      },
+                      "name": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the resource"
+                      },
+                      "type": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or \"Microsoft.Storage/storageAccounts\""
+                      }
+                    }
+                  }
+                },
+                "description": "List of private endpoint connection associated with the specified storage account"
+              },
+              "blobRestoreStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "status": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "InProgress"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Complete"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Failed"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The status of blob restore progress. Possible values are: - InProgress: Indicates that blob restore is ongoing. - Complete: Indicates that blob restore has been completed successfully. - Failed: Indicates that blob restore is failed."
+                    },
+                    "failureReason": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Failure reason when blob restore is failed."
+                    },
+                    "restoreId": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Id for tracking blob restore request."
+                    },
+                    "parameters": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "timeToRestore": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Restore blob to the specified time."
+                          },
+                          "blobRanges": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Blob ranges to restore."
+                          }
+                        }
+                      },
+                      "description": "Blob restore request parameters."
+                    }
+                  }
+                },
+                "description": "Blob restore status"
+              },
+              "storageAccountSkuConversionStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "skuConversionStatus": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "InProgress"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Succeeded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Failed"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "This property indicates the current sku conversion status."
+                    },
+                    "targetSkuName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_LRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_GRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_RAGRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_ZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Premium_LRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Premium_ZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_GZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Standard_RAGZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StandardV2_LRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StandardV2_GRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StandardV2_ZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "StandardV2_GZRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PremiumV2_LRS"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PremiumV2_ZRS"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "This property represents the target sku name to which the account sku is being converted asynchronously."
+                    },
+                    "startTime": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "This property represents the sku conversion start time."
+                    },
+                    "endTime": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "This property represents the sku conversion end time."
+                    }
+                  }
+                },
+                "description": "This property is readOnly and is set by server during asynchronous storage account sku conversion operations."
+              },
+              "isSkuConversionBlocked": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "This property will be set to true or false on an event of ongoing migration. Default value is null."
+              },
+              "accountMigrationInProgress": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If customer initiated account migration is in progress, the value will be true else it will be null."
+              }
+            }
+          },
+          "description": "The parameters used to create the storage account."
+        }
+      }
+    }
+  }
+}

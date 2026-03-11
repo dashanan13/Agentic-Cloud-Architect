@@ -1,0 +1,294 @@
+{
+  "resourceName": "SQL Elastic Pools",
+  "bicepType": "Microsoft.Sql/servers/elasticPools@2023-05-01-preview",
+  "terraformType": "azurerm_mssql_elasticpool",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sql/servers/elasticpools",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Sql/servers/elasticPools@2023-05-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Sql/servers/elasticPools"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-05-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the SKU, typically, a letter + Number code, e.g. P3."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tier or edition of the particular SKU, e.g. Basic, Premium."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Size of the particular SKU"
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Capacity of the particular SKU."
+              }
+            }
+          },
+          "description": "The elastic pool SKU.\r\n\r\nThe list of SKUs may vary by region and support offer. To determine the SKUs (including the SKU name, tier/edition, family, and capacity) that are available to your subscription in an Azure region, use the `Capabilities_ListByLocation` REST API or the following command:\r\n\r\n```azurecli\r\naz sql elastic-pool list-editions -l <location> -o table\r\n````"
+        },
+        "kind": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of elastic pool. This is metadata used for the Azure portal experience."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The state of the elastic pool."
+              },
+              "creationDate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The creation date of the elastic pool (ISO8601 format)."
+              },
+              "maxSizeBytes": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The storage limit for the database elastic pool in bytes."
+              },
+              "minCapacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Minimal capacity that serverless pool will not shrink below, if not paused"
+              },
+              "perDatabaseSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "minCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The minimum capacity all databases are guaranteed."
+                    },
+                    "maxCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The maximum capacity any one database can consume."
+                    },
+                    "autoPauseDelay": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Auto Pause Delay for per database within pool"
+                    }
+                  }
+                },
+                "description": "The per database settings for the elastic pool."
+              },
+              "zoneRedundant": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether or not this elastic pool is zone redundant, which means the replicas of this elastic pool will be spread across multiple availability zones."
+              },
+              "licenseType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "LicenseIncluded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BasePrice"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The license type to apply for this elastic pool."
+              },
+              "maintenanceConfigurationId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Maintenance configuration id assigned to the elastic pool. This configuration defines the period when the maintenance updates will will occur."
+              },
+              "highAvailabilityReplicaCount": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The number of secondary replicas associated with the elastic pool that are used to provide high availability. Applicable only to Hyperscale elastic pools."
+              },
+              "autoPauseDelay": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Time in minutes after which elastic pool is automatically paused. A value of -1 means that automatic pause is disabled"
+              },
+              "preferredEnclaveType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Default"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "VBS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of enclave requested on the elastic pool."
+              },
+              "availabilityZone": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NoPreference"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "2"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "3"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Specifies the availability zone the pool's primary replica is pinned to."
+              }
+            }
+          },
+          "description": "Resource properties."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

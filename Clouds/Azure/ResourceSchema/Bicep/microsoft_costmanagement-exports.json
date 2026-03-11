@@ -1,0 +1,470 @@
+{
+  "resourceName": "Cost Export",
+  "bicepType": "Microsoft.CostManagement/exports@2023-11-01",
+  "terraformType": "azurerm_cost_management_export_resource_group",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.costmanagement/exports",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.CostManagement/exports@2023-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.CostManagement/exports"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity (either system assigned, or none)."
+              }
+            }
+          },
+          "description": "The managed identity associated with Export"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the Export's managed identity. Only required when utilizing managed identity."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "schedule": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "status": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Active"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Inactive"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The status of the export's schedule. If 'Inactive', the export's schedule is paused."
+                    },
+                    "recurrence": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Daily"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Weekly"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Monthly"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Annually"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The schedule recurrence."
+                    },
+                    "recurrencePeriod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "from": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The start date of recurrence."
+                          },
+                          "to": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The end date of recurrence."
+                          }
+                        }
+                      },
+                      "description": "Has start and end date of the recurrence. The start date must be in future. If present, the end date must be greater than start date."
+                    }
+                  }
+                },
+                "description": "Has schedule information for the export."
+              },
+              "format": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Csv"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The format of the export being delivered. Currently only 'Csv' is supported."
+              },
+              "deliveryInfo": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "destination": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "resourceId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The resource id of the storage account where exports will be delivered. This is not required if a sasToken and storageAccount are specified."
+                          },
+                          "container": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the container where exports will be uploaded. If the container does not exist it will be created."
+                          },
+                          "rootFolderPath": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the directory where exports will be uploaded."
+                          },
+                          "sasToken": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType",
+                              "sensitive": true
+                            },
+                            "description": "A SAS token for the storage account. For a restricted set of Azure customers this together with storageAccount can be specified instead of resourceId. Note: the value returned by the API for this property will always be obfuscated. Returning this same obfuscated value will not result in the SAS token being updated. To update this value a new SAS token must be specified."
+                          },
+                          "storageAccount": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The storage account where exports will be uploaded. For a restricted set of Azure customers this together with sasToken can be specified instead of resourceId."
+                          }
+                        }
+                      },
+                      "description": "Has destination for the export being delivered."
+                    }
+                  }
+                },
+                "description": "Has delivery information for the export."
+              },
+              "definition": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "type": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Usage"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ActualCost"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AmortizedCost"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of the export. Note that 'Usage' is equivalent to 'ActualCost' and is applicable to exports that do not yet provide data for charges or amortization for service reservations."
+                    },
+                    "timeframe": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "MonthToDate"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "BillingMonthToDate"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TheLastMonth"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TheLastBillingMonth"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "WeekToDate"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Custom"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The time frame for pulling data for the export. If custom, then a specific time period must be provided."
+                    },
+                    "timePeriod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "from": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The start date for export data."
+                          },
+                          "to": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The end date for export data."
+                          }
+                        }
+                      },
+                      "description": "Has time period for pulling data for the export."
+                    },
+                    "dataSet": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "granularity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The granularity of rows in the export. Currently only 'Daily' is supported."
+                          },
+                          "configuration": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "columns": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Array of column names to be included in the export. If not provided then the export will include all available columns. The available columns can vary by customer channel (see examples)."
+                                }
+                              }
+                            },
+                            "description": "The export dataset configuration."
+                          }
+                        }
+                      },
+                      "description": "The definition for data in the export."
+                    }
+                  }
+                },
+                "description": "Has the definition for the export."
+              },
+              "runHistory": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "value": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "properties": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The properties of the export run."
+                            },
+                            "id": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource Id."
+                            },
+                            "name": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource name."
+                            },
+                            "type": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Resource type."
+                            },
+                            "eTag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "eTag of the resource. To handle concurrent update scenario, this field will be used to determine whether the user is updating the latest version or not."
+                            }
+                          }
+                        }
+                      },
+                      "description": "A list of export runs."
+                    }
+                  }
+                },
+                "description": "If requested, has the most recent run history for the export."
+              },
+              "partitionData": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If set to true, exported data will be partitioned by size and placed in a blob directory together with a manifest file. Note: this option is currently available only for Microsoft Customer Agreement commerce scopes."
+              },
+              "nextRunTimeEstimate": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "If the export has an active schedule, provides an estimate of the next run time."
+              }
+            }
+          },
+          "description": "The properties of the export."
+        },
+        "eTag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "eTag of the resource. To handle concurrent update scenario, this field will be used to determine whether the user is updating the latest version or not."
+        }
+      }
+    }
+  }
+}

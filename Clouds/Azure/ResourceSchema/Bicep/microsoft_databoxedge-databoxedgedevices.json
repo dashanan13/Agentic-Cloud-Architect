@@ -1,0 +1,853 @@
+{
+  "resourceName": "Azure Databox Gateway",
+  "bicepType": "Microsoft.DataBoxEdge/dataBoxEdgeDevices@2023-12-01",
+  "terraformType": "azurerm_databox_edge_device",
+  "category": "storage",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.databoxedge/databoxedgedevices",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DataBoxEdge/dataBoxEdgeDevices@2023-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DataBoxEdge/dataBoxEdgeDevices"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "systemData": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "createdBy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The identity that created the resource."
+                    },
+                    "createdByType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "User"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Application"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ManagedIdentity"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Key"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of identity that created the resource."
+                    },
+                    "createdAt": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The timestamp of resource creation (UTC)."
+                    },
+                    "lastModifiedBy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The identity that last modified the resource."
+                    },
+                    "lastModifiedByType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "User"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Application"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ManagedIdentity"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Key"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The type of identity that last modified the resource."
+                    },
+                    "lastModifiedAt": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The timestamp of resource last modification (UTC)"
+                    }
+                  }
+                },
+                "description": "DataBoxEdge Device Properties"
+              },
+              "dataBoxEdgeDeviceStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ReadyToSetup"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Online"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Offline"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NeedsAttention"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disconnected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PartiallyDisconnected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Maintenance"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The status of the Data Box Edge/Gateway device."
+              },
+              "serialNumber": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Serial Number of Data Box Edge/Gateway device."
+              },
+              "description": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Description of the Data Box Edge/Gateway device."
+              },
+              "modelDescription": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The description of the Data Box Edge/Gateway device model."
+              },
+              "deviceType": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataBoxEdgeDevice"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the Data Box Edge/Gateway device."
+              },
+              "friendlyName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Data Box Edge/Gateway device name."
+              },
+              "culture": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Data Box Edge/Gateway device culture."
+              },
+              "deviceModel": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Data Box Edge/Gateway device model."
+              },
+              "deviceSoftwareVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Data Box Edge/Gateway device software version."
+              },
+              "deviceLocalCapacity": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The Data Box Edge/Gateway device local capacity in MB."
+              },
+              "timeZone": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Data Box Edge/Gateway device timezone."
+              },
+              "deviceHcsVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The device software version number of the device (eg: 1.2.18105.6)."
+              },
+              "configuredRoleTypes": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "UnionType",
+                    "elements": [
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "IOT"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "ASA"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "Functions"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "Cognitive"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "MEC"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "CloudEdgeManagement"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "Kubernetes"
+                      },
+                      {
+                        "$type": "StringType"
+                      }
+                    ]
+                  }
+                },
+                "description": "Type of compute roles configured."
+              },
+              "nodeCount": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The number of nodes in the cluster."
+              },
+              "resourceMoveDetails": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "operationInProgress": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ResourceMoveInProgress"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ResourceMoveFailed"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Denotes whether move operation is in progress"
+                    },
+                    "operationInProgressLockTimeoutInUTC": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Denotes the timeout of the operation to finish"
+                    }
+                  }
+                },
+                "description": "The details of the move operation on this resource."
+              },
+              "edgeProfile": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "subscription": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "registrationId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Edge Subscription Registration ID"
+                          },
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "ARM ID of the subscription"
+                          },
+                          "state": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            }
+                          },
+                          "registrationDate": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            }
+                          },
+                          "subscriptionId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            }
+                          },
+                          "properties": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "tenantId": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  }
+                                },
+                                "locationPlacementId": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  }
+                                },
+                                "quotaId": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  }
+                                },
+                                "serializedDetails": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  }
+                                },
+                                "registeredFeatures": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "description": "Edge Profile Subscription"
+                    }
+                  }
+                },
+                "description": "The details of Edge Profile for this resource"
+              },
+              "dataResidency": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "GeoZoneReplication"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ZoneReplication"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "DataResidencyType enum"
+                    }
+                  }
+                },
+                "description": "The details of data-residency related properties for this resource"
+              },
+              "kubernetesWorkloadProfile": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Kubernetes Workload Profile"
+              }
+            }
+          },
+          "description": "The properties of the Data Box Edge/Gateway device."
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Gateway"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Edge"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TEA_1Node"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TEA_1Node_UPS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TEA_1Node_Heater"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TEA_1Node_UPS_Heater"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TEA_4Node_Heater"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TEA_4Node_UPS_Heater"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TMA"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TCA_Small"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GPU"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "TCA_Large"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeP_Base"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeP_High"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgePR_Base"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgePR_Base_UPS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EP2_64_1VPU_W"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EP2_128_1T4_Mx1_W"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EP2_256_2T4_W"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeMR_Mini"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RCA_Small"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RCA_Large"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Management"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EP2_64_Mx1_W"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EP2_128_GPU1_Mx1_W"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EP2_256_GPU2_Mx1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeMR_TCP"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SKU name."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The SKU tier. This is based on the SKU name."
+              }
+            }
+          },
+          "description": "The SKU type."
+        },
+        "etag": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The etag for the devices."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Identity type"
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Service Principal Id backing the Msi"
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Home Tenant Id"
+              }
+            }
+          },
+          "description": "Msi identity of the resource"
+        },
+        "kind": {
+          "flags": 2,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "AzureDataBoxGateway"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "AzureStackEdge"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "AzureStackHub"
+              },
+              {
+                "$type": "StringLiteralType",
+                "value": "AzureModularDataCentre"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "The kind of the device."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

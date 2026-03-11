@@ -1,0 +1,82 @@
+{
+  "resourceName": "SSIS Lift And Shift IR",
+  "bicepType": "Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01",
+  "terraformType": "azurerm_data_factory_integration_runtime_azure_ssis",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.datafactory/factories/integrationruntimes",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 63,
+            "pattern": "^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DataFactory/factories/integrationRuntimes"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2018-06-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "DiscriminatedObjectType",
+            "name": "IntegrationRuntime",
+            "discriminator": "type",
+            "baseProperties": {
+              "description": {
+                "type": {
+                  "$ref": "#/2"
+                },
+                "flags": 0,
+                "description": "Integration runtime description."
+              }
+            },
+            "elements": {
+              "Managed": {
+                "$ref": "#/42"
+              },
+              "SelfHosted": {
+                "$ref": "#/133"
+              }
+            }
+          },
+          "description": "Integration runtime properties."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Etag identifies change in the resource."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,427 @@
+{
+  "resourceName": "SSIS Lift And Shift IR",
+  "bicepType": "Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01",
+  "terraformType": "azurerm_data_factory_integration_runtime_azure_ssis",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.datafactory/factories/integrationruntimes",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "credential_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "data_factory_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "edition": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "license_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "max_parallel_executions_per_node": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "node_size": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "number_of_nodes": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "catalog_info": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "administrator_login": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "administrator_password": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              },
+              "dual_standby_pair_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "elastic_pool_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "pricing_tier": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "server_endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "copy_compute_scale": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "data_integration_unit": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "time_to_live": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "custom_setup_script": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "blob_container_uri": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "sas_token": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "express_custom_setup": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "environment": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "powershell_version": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "command_key": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "password": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "target_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "user_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "key_vault_password": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "linked_service_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "parameters": {
+                            "type": [
+                              "map",
+                              "string"
+                            ],
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "secret_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "secret_version": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "component": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "license": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true,
+                      "sensitive": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "key_vault_license": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "linked_service_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "parameters": {
+                            "type": [
+                              "map",
+                              "string"
+                            ],
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "secret_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "secret_version": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "express_vnet_integration": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "subnet_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "package_store": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "linked_service_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "pipeline_external_compute_scale": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "number_of_external_nodes": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "number_of_pipeline_nodes": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "time_to_live": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "proxy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "path": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "self_hosted_integration_runtime_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "staging_storage_linked_service_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "vnet_integration": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "public_ips": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "subnet_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "subnet_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "vnet_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

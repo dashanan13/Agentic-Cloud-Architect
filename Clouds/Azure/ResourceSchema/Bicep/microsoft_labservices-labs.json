@@ -1,0 +1,795 @@
+{
+  "resourceName": "Lab Services",
+  "bicepType": "Microsoft.LabServices/labs@2022-08-01",
+  "terraformType": "azurerm_lab_service_lab",
+  "category": "devops",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.labservices/labs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.LabServices/labs@2022-08-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.LabServices/labs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-08-01"
+          },
+          "description": "The resource api version"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the lab."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Locked"
+                    }
+                  ]
+                },
+                "description": "Current provisioning state of the lab."
+              },
+              "networkProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "subnetId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 3,
+                        "maxLength": 2000
+                      },
+                      "description": "The external subnet resource id"
+                    },
+                    "loadBalancerId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 3,
+                        "maxLength": 2000
+                      },
+                      "description": "The external load balancer resource id"
+                    },
+                    "publicIpId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 3,
+                        "maxLength": 2000
+                      },
+                      "description": "The external public IP resource id"
+                    }
+                  }
+                },
+                "description": "The network profile for the lab, typically applied via a lab plan. This profile cannot be modified once a lab has been created."
+              },
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Draft"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Publishing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Scaling"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Syncing"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Published"
+                    }
+                  ]
+                },
+                "description": "The lab state."
+              },
+              "autoShutdownProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "shutdownOnDisconnect": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          }
+                        ]
+                      },
+                      "description": "Whether shutdown on disconnect is enabled"
+                    },
+                    "shutdownWhenNotConnected": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          }
+                        ]
+                      },
+                      "description": "Whether a VM will get shutdown when it hasn't been connected to after a period of time."
+                    },
+                    "shutdownOnIdle": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "UserAbsence"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LowUsage"
+                          }
+                        ]
+                      },
+                      "description": "Whether a VM will get shutdown when it has idled for a period of time."
+                    },
+                    "disconnectDelay": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time a VM will stay running after a user disconnects if this behavior is enabled."
+                    },
+                    "noConnectDelay": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time a VM will stay running before it is shutdown if no connection is made and this behavior is enabled."
+                    },
+                    "idleDelay": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time a VM will idle before it is shutdown if this behavior is enabled."
+                    }
+                  }
+                },
+                "description": "The resource auto shutdown configuration for the lab. This controls whether actions are taken on resources that are sitting idle."
+              },
+              "connectionProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "webSshAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Public"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Private"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          }
+                        ]
+                      },
+                      "description": "The enabled access level for Web Access over SSH."
+                    },
+                    "webRdpAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Public"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Private"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          }
+                        ]
+                      },
+                      "description": "The enabled access level for Web Access over RDP."
+                    },
+                    "clientSshAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Public"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Private"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          }
+                        ]
+                      },
+                      "description": "The enabled access level for Client Access over SSH."
+                    },
+                    "clientRdpAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Public"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Private"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          }
+                        ]
+                      },
+                      "description": "The enabled access level for Client Access over RDP."
+                    }
+                  }
+                },
+                "description": "The connection profile for the lab. This controls settings such as web access to lab resources or whether RDP or SSH ports are open."
+              },
+              "virtualMachineProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "createOption": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Image"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TemplateVM"
+                          }
+                        ]
+                      },
+                      "description": "Indicates what lab virtual machines are created from."
+                    },
+                    "imageReference": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType",
+                              "minLength": 3,
+                              "maxLength": 2000
+                            },
+                            "description": "Image resource ID"
+                          },
+                          "offer": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The image offer if applicable."
+                          },
+                          "publisher": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The image publisher"
+                          },
+                          "sku": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The image SKU"
+                          },
+                          "version": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The image version specified on creation."
+                          },
+                          "exactVersion": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The actual version of the image after use."
+                          }
+                        }
+                      },
+                      "description": "The image configuration for lab virtual machines."
+                    },
+                    "osType": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Windows"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Linux"
+                          }
+                        ]
+                      },
+                      "description": "The OS type of the image"
+                    },
+                    "sku": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the SKU. Ex - P3. It is typically a letter+number code"
+                          },
+                          "tier": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT."
+                          },
+                          "size": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code."
+                          },
+                          "family": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+                          },
+                          "capacity": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted."
+                          }
+                        }
+                      },
+                      "description": "The SKU for the lab. Defines the type of virtual machines used in the lab."
+                    },
+                    "additionalCapabilities": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "installGpuDrivers": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Flag to pre-install dedicated GPU drivers."
+                          }
+                        }
+                      },
+                      "description": "Additional VM capabilities."
+                    },
+                    "usageQuota": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The initial quota alloted to each lab user. Must be a time span between 0 and 9999 hours."
+                    },
+                    "useSharedPassword": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          }
+                        ]
+                      },
+                      "description": "Enabling this option will use the same password for all user VMs."
+                    },
+                    "adminUser": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "username": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The username to use when signing in to lab VMs."
+                          },
+                          "password": {
+                            "flags": 4,
+                            "type": {
+                              "$type": "StringType",
+                              "sensitive": true
+                            },
+                            "description": "The password for the user. This is required for the TemplateVM createOption."
+                          }
+                        }
+                      },
+                      "description": "Credentials for the admin user on the VM."
+                    },
+                    "nonAdminUser": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "username": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The username to use when signing in to lab VMs."
+                          },
+                          "password": {
+                            "flags": 4,
+                            "type": {
+                              "$type": "StringType",
+                              "sensitive": true
+                            },
+                            "description": "The password for the user. This is required for the TemplateVM createOption."
+                          }
+                        }
+                      },
+                      "description": "Credentials for the non-admin user on the VM, if one exists."
+                    }
+                  }
+                },
+                "description": "The profile used for creating lab virtual machines."
+              },
+              "securityProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "registrationCode": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The registration code for the lab."
+                    },
+                    "openAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          }
+                        ]
+                      },
+                      "description": "Whether any user or only specified users can register to a lab."
+                    }
+                  }
+                },
+                "description": "The lab security profile."
+              },
+              "rosterProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "activeDirectoryGroupId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The AAD group ID which this lab roster is populated from. Having this set enables AAD sync mode."
+                    },
+                    "ltiContextId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The unique context identifier for the lab in the lms."
+                    },
+                    "lmsInstance": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The base URI identifying the lms instance."
+                    },
+                    "ltiClientId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The unique id of the azure lab services tool in the lms."
+                    },
+                    "ltiRosterEndpoint": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The uri of the names and roles service endpoint on the lms for the class attached to this lab."
+                    }
+                  }
+                },
+                "description": "The lab user list management profile."
+              },
+              "labPlanId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 3,
+                  "maxLength": 2000
+                },
+                "description": "The ID of the lab plan. Used during resource creation to provide defaults and acts as a permission container when creating a lab via labs.azure.com. Setting a labPlanId on an existing lab provides organization.."
+              },
+              "title": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "description": "The title of the lab."
+              },
+              "description": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The description of the lab."
+              }
+            }
+          },
+          "description": "Lab resource properties"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        }
+      }
+    }
+  }
+}

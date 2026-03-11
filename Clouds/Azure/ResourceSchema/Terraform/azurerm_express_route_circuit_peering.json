@@ -1,0 +1,224 @@
+{
+  "resourceName": "Peerings",
+  "bicepType": "Microsoft.Peering/peerings@2022-10-01",
+  "terraformType": "azurerm_express_route_circuit_peering",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.peering/peerings",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "azure_asn": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "express_route_circuit_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "gateway_manager_etag": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "ipv4_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "peer_asn": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "peering_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "primary_azure_port": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "primary_peer_address_prefix": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "route_filter_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "secondary_azure_port": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "secondary_peer_address_prefix": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "shared_key": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "vlan_id": {
+          "type": "number",
+          "description_kind": "plain",
+          "required": true
+        }
+      },
+      "block_types": {
+        "ipv6": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "primary_peer_address_prefix": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "route_filter_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "secondary_peer_address_prefix": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "microsoft_peering": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "advertised_communities": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "advertised_public_prefixes": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "customer_asn": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "routing_registry_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "microsoft_peering_config": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "advertised_communities": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "advertised_public_prefixes": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "customer_asn": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "routing_registry_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

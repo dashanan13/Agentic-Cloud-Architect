@@ -1,0 +1,96 @@
+{
+  "resourceName": "Subscriptions",
+  "bicepType": "Microsoft.Subscription/aliases@2021-10-01",
+  "terraformType": "azurerm_subscription",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.subscription/aliases",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "alias": {
+          "type": "string",
+          "description": "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "billing_scope_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "subscription_id": {
+          "type": "string",
+          "description": "The GUID of the Subscription.",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "subscription_name": {
+          "type": "string",
+          "description": "The Display Name for the Subscription.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tenant_id": {
+          "type": "string",
+          "description": "The Tenant ID to which the subscription belongs",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "workload": {
+          "type": "string",
+          "description": "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

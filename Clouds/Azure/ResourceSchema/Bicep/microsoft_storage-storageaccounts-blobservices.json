@@ -1,0 +1,404 @@
+{
+  "resourceName": "Blob Block",
+  "bicepType": "Microsoft.Storage/storageAccounts/blobServices@2024-01-01",
+  "terraformType": "azurerm_storage_blob",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/blobservices",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Storage/storageAccounts/blobServices@2024-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "default"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Storage/storageAccounts/blobServices"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "cors": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "corsRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "allowedOrigins": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Required if CorsRule element is present. A list of origin domains that will be allowed via CORS, or \"*\" to allow all domains"
+                            },
+                            "allowedMethods": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Required if CorsRule element is present. A list of HTTP methods that are allowed to be executed by the origin."
+                            },
+                            "maxAgeInSeconds": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Required if CorsRule element is present. The number of seconds that the client/browser should cache a preflight response."
+                            },
+                            "exposedHeaders": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Required if CorsRule element is present. A list of response headers to expose to CORS clients."
+                            },
+                            "allowedHeaders": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Required if CorsRule element is present. A list of headers allowed to be part of the cross-origin request."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The List of CORS rules. You can include up to five CorsRule elements in the request."
+                    }
+                  }
+                },
+                "description": "Specifies CORS rules for the Blob service. You can include up to five CorsRule elements in the request. If no CorsRule elements are included in the request body, all CORS rules will be deleted, and CORS will be disabled for the Blob service."
+              },
+              "defaultServiceVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "DefaultServiceVersion indicates the default version to use for requests to the Blob service if an incoming request\u2019s version is not specified. Possible values include version 2008-10-27 and all more recent versions."
+              },
+              "deleteRetentionPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates whether DeleteRetentionPolicy is enabled."
+                    },
+                    "days": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1,
+                        "maxValue": 365
+                      },
+                      "description": "Indicates the number of days that the deleted item should be retained. The minimum specified value can be 1 and the maximum value can be 365."
+                    },
+                    "allowPermanentDelete": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "This property when set to true allows deletion of the soft deleted blob versions and snapshots. This property cannot be used blob restore policy. This property only applies to blob service and does not apply to containers or file share."
+                    }
+                  }
+                },
+                "description": "The blob service properties for blob soft delete."
+              },
+              "isVersioningEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Versioning is enabled if set to true."
+              },
+              "automaticSnapshotPolicyEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Deprecated in favor of isVersioningEnabled property."
+              },
+              "changeFeed": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates whether change feed event logging is enabled for the Blob service."
+                    },
+                    "retentionInDays": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1,
+                        "maxValue": 146000
+                      },
+                      "description": "Indicates the duration of changeFeed retention in days. Minimum value is 1 day and maximum value is 146000 days (400 years). A null value indicates an infinite retention of the change feed."
+                    }
+                  }
+                },
+                "description": "The blob service properties for change feed events."
+              },
+              "restorePolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Blob restore is enabled if set to true."
+                    },
+                    "days": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1,
+                        "maxValue": 365
+                      },
+                      "description": "how long this blob can be restored. It should be great than zero and less than DeleteRetentionPolicy.days."
+                    },
+                    "lastEnabledTime": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Deprecated in favor of minRestoreTime property."
+                    },
+                    "minRestoreTime": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Returns the minimum date and time that the restore can be started."
+                    }
+                  }
+                },
+                "description": "The blob service properties for blob restore policy."
+              },
+              "containerDeleteRetentionPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates whether DeleteRetentionPolicy is enabled."
+                    },
+                    "days": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 1,
+                        "maxValue": 365
+                      },
+                      "description": "Indicates the number of days that the deleted item should be retained. The minimum specified value can be 1 and the maximum value can be 365."
+                    },
+                    "allowPermanentDelete": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "This property when set to true allows deletion of the soft deleted blob versions and snapshots. This property cannot be used blob restore policy. This property only applies to blob service and does not apply to containers or file share."
+                    }
+                  }
+                },
+                "description": "The blob service properties for container soft delete."
+              },
+              "lastAccessTimeTrackingPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enable": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "When set to true last access time based tracking is enabled."
+                    },
+                    "name": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AccessTimeTracking"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Name of the policy. The valid value is AccessTimeTracking. This field is currently read only"
+                    },
+                    "trackingGranularityInDays": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The field specifies blob object tracking granularity in days, typically how often the blob object should be tracked.This field is currently read only with value as 1"
+                    },
+                    "blobType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "An array of predefined supported blob types. Only blockBlob is the supported value. This field is currently read only"
+                    }
+                  }
+                },
+                "description": "The blob service property to configure last access time based tracking policy."
+              }
+            }
+          },
+          "description": "The properties of a storage account\u2019s Blob service."
+        },
+        "sku": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_GRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_RAGRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_ZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium_ZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_GZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard_RAGZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_GRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_ZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "StandardV2_GZRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PremiumV2_LRS"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PremiumV2_ZRS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The SKU name. Required for account creation; optional for update. Note that in older versions, SKU name was called accountType."
+              },
+              "tier": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Premium"
+                    }
+                  ]
+                },
+                "description": "The SKU tier. This is based on the SKU name."
+              }
+            }
+          },
+          "description": "Sku name and tier."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "resourceName": "AzureAttestation",
+  "bicepType": "Microsoft.Attestation/attestationProviders@2021-06-01-preview",
+  "terraformType": "azurerm_attestation_provider",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.attestation/attestationproviders",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "attestation_uri": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "open_enclave_policy_base64": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "policy_signing_certificate_data": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sev_snp_policy_base64": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "sgx_enclave_policy_base64": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tpm_policy_base64": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "trust_model": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

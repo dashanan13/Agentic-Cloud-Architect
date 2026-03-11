@@ -1,0 +1,128 @@
+{
+  "resourceName": "Azure Quotas",
+  "bicepType": "Microsoft.Quota/quotas@2023-02-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.quota/quotas",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Quota/quotas@2023-02-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Quota/quotas"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-02-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "limit": {
+                "flags": 0,
+                "type": {
+                  "$type": "DiscriminatedObjectType",
+                  "name": "LimitJsonObject",
+                  "discriminator": "limitObjectType",
+                  "baseProperties": {},
+                  "elements": {
+                    "LimitValue": {
+                      "$ref": "#/6"
+                    }
+                  }
+                },
+                "description": "Resource quota limit properties."
+              },
+              "unit": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The quota units, such as Count and Bytes. When requesting quota, use the **unit** value returned in the GET response in the request body of your PUT operation."
+              },
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "value": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource name."
+                    },
+                    "localizedValue": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource display name."
+                    }
+                  }
+                },
+                "description": "Resource name provided by the resource provider. Use this property name when requesting quota."
+              },
+              "resourceType": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the resource type. Optional field."
+              },
+              "quotaPeriod": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The time period over which the quota usage values are summarized. For example:\r\n*P1D (per one day)\n*PT1M (per one minute)\n*PT1S (per one second).\r\nThis parameter is optional because, for some resources like compute, the period is irrelevant."
+              },
+              "isQuotaApplicable": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "States if quota can be requested for this resource."
+              },
+              "properties": {
+                "flags": 0,
+                "type": {
+                  "$type": "AnyType"
+                },
+                "description": "Additional properties for the specific resource provider."
+              }
+            }
+          },
+          "description": "Quota properties for the specified resource, based on the API called, Quotas or Usages."
+        }
+      }
+    }
+  }
+}

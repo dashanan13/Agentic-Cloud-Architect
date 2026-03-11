@@ -1,0 +1,1459 @@
+{
+  "resourceName": "Compute Fleet",
+  "bicepType": "Microsoft.AzureFleet/fleets@2024-11-01",
+  "terraformType": "",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.azurefleet/fleets",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.AzureFleet/fleets@2024-11-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[^_\\W][\\w\\-._]{0,79}(?<![-.])$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.AzureFleet/fleets"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-11-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Migrating"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The status of the last operation."
+              },
+              "spotPriorityProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "capacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Total capacity to achieve. It is currently in terms of number of VMs."
+                    },
+                    "minCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Minimum capacity to achieve which cannot be updated. If we will not be able to \"guarantee\" minimum capacity, we will reject the request in the sync path itself."
+                    },
+                    "maxPricePerVM": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Price per hour of each Spot VM will never exceed this."
+                    },
+                    "evictionPolicy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Delete"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deallocate"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Eviction Policy to follow when evicting Spot VMs."
+                    },
+                    "allocationStrategy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PriceCapacityOptimized"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LowestPrice"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CapacityOptimized"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Allocation strategy to follow when determining the VM sizes distribution for Spot VMs."
+                    },
+                    "maintain": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Flag to enable/disable continuous goal seeking for the desired capacity and restoration of evicted Spot VMs.\nIf maintain is enabled, AzureFleetRP will use all VM sizes in vmSizesProfile to create new VMs (if VMs are evicted deleted)\nor update existing VMs with new VM sizes (if VMs are evicted deallocated or failed to allocate due to capacity constraint) in order to achieve the desired capacity.\nMaintain is enabled by default."
+                    }
+                  }
+                },
+                "description": "Configuration Options for Spot instances in Compute Fleet."
+              },
+              "regularPriorityProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "capacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Total capacity to achieve. It is currently in terms of number of VMs."
+                    },
+                    "minCapacity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Minimum capacity to achieve which cannot be updated. If we will not be able to \"guarantee\" minimum capacity, we will reject the request in the sync path itself."
+                    },
+                    "allocationStrategy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LowestPrice"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Prioritized"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Allocation strategy to follow when determining the VM sizes distribution for Regular VMs."
+                    }
+                  }
+                },
+                "description": "Configuration Options for Regular instances in Compute Fleet."
+              },
+              "vmSizesProfile": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Sku name (e.g. 'Standard_DS1_v2')"
+                      },
+                      "rank": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0,
+                          "maxValue": 65535
+                        },
+                        "description": "The rank of the VM size. This is used with 'RegularPriorityAllocationStrategy.Prioritized'\nThe lower the number, the higher the priority. Starting with 0."
+                      }
+                    }
+                  }
+                },
+                "description": "List of VM sizes supported for Compute Fleet"
+              },
+              "vmAttributes": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "vCpuCount": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Min VMSize from CRS, Min = 0 (uint.MinValue) if not specified."
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Max VMSize from CRS, Max = 4294967295 (uint.MaxValue) if not specified."
+                          }
+                        }
+                      },
+                      "description": "The range of vCpuCount specified from Min to Max. Must be specified if VMAttributes are specified, either Min or Max is required if specified."
+                    },
+                    "memoryInGiB": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Minimum value. default 0. Double.MinValue()"
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Maximum value. Double.MaxValue(1.7976931348623157E+308)"
+                          }
+                        }
+                      },
+                      "description": "The range of memory specified from Min to Max. Must be specified if VMAttributes are specified, either Min or Max is required if specified."
+                    },
+                    "memoryInGiBPerVCpu": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Minimum value. default 0. Double.MinValue()"
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Maximum value. Double.MaxValue(1.7976931348623157E+308)"
+                          }
+                        }
+                      },
+                      "description": "The range of memory in GiB per vCPU specified from min to max. Optional parameter. Either Min or Max is required if specified."
+                    },
+                    "localStorageSupport": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Excluded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Included"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Required"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies whether the VMSize supporting local storage should be used to build Fleet or not.\nIncluded - Default if not specified as most Azure VMs support local storage."
+                    },
+                    "localStorageInGiB": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Minimum value. default 0. Double.MinValue()"
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Maximum value. Double.MaxValue(1.7976931348623157E+308)"
+                          }
+                        }
+                      },
+                      "description": "LocalStorageSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf localStorageSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "localStorageDiskTypes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "The local storage disk types specified as a list. LocalStorageSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf localStorageSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "dataDiskCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Min VMSize from CRS, Min = 0 (uint.MinValue) if not specified."
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Max VMSize from CRS, Max = 4294967295 (uint.MaxValue) if not specified."
+                          }
+                        }
+                      },
+                      "description": "The range of data disk count specified from Min to Max. Optional parameter. Either Min or Max is required if specified."
+                    },
+                    "networkInterfaceCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Min VMSize from CRS, Min = 0 (uint.MinValue) if not specified."
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Max VMSize from CRS, Max = 4294967295 (uint.MaxValue) if not specified."
+                          }
+                        }
+                      },
+                      "description": "The range of network interface count specified from Min to Max. Optional parameter. Either Min or Max is required if specified."
+                    },
+                    "networkBandwidthInMbps": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Minimum value. default 0. Double.MinValue()"
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Maximum value. Double.MaxValue(1.7976931348623157E+308)"
+                          }
+                        }
+                      },
+                      "description": "The range of network bandwidth in Mbps specified from Min to Max. Optional parameter. Either Min or Max is required if specified."
+                    },
+                    "rdmaSupport": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Excluded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Included"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Required"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies whether the VMSize supporting RDMA (Remote Direct Memory Access) should be used to build Fleet or not."
+                    },
+                    "rdmaNetworkInterfaceCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Min VMSize from CRS, Min = 0 (uint.MinValue) if not specified."
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Max VMSize from CRS, Max = 4294967295 (uint.MaxValue) if not specified."
+                          }
+                        }
+                      },
+                      "description": "The range of RDMA (Remote Direct Memory Access) network interface count specified from Min to Max. Optional parameter. Either Min or Max is required if specified.\nrdmaSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf rdmaSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "acceleratorSupport": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Excluded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Included"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Required"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies whether the VMSize supporting accelerator should be used to build Fleet or not.\nacceleratorSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf acceleratorSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "acceleratorManufacturers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "The accelerator manufacturers specified as a list. \nacceleratorSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf acceleratorSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "acceleratorTypes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "The accelerator types specified as a list. acceleratorSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf acceleratorSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "acceleratorCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "min": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Min VMSize from CRS, Min = 0 (uint.MinValue) if not specified."
+                          },
+                          "max": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0
+                            },
+                            "description": "Max VMSize from CRS, Max = 4294967295 (uint.MaxValue) if not specified."
+                          }
+                        }
+                      },
+                      "description": "The range of accelerator count specified from min to max. Optional parameter. Either Min or Max is required if specified.\nacceleratorSupport should be set to \"Included\" or \"Required\" to use this VMAttribute. \nIf acceleratorSupport is \"Excluded\", this VMAttribute can not be used."
+                    },
+                    "vmCategories": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "The VM category specified as a list. Optional parameter."
+                    },
+                    "architectureTypes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "The VM architecture types specified as a list. Optional parameter."
+                    },
+                    "cpuManufacturers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "The VM CPU manufacturers specified as a list. Optional parameter."
+                    },
+                    "burstableSupport": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Excluded"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Included"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Required"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Specifies whether the VMSize supporting burstable capability should be used to build Fleet or not."
+                    },
+                    "excludedVMSizes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Specifies which VMSizes should be excluded while building Fleet. Optional parameter."
+                    }
+                  }
+                },
+                "description": "Attribute based Fleet."
+              },
+              "additionalLocationsProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "locationProfiles": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "location": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The ARM location name of the additional region. If LocationProfile is specified, then location is required."
+                            },
+                            "virtualMachineProfileOverride": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "An override for computeProfile.baseVirtualMachineProfile specific to this region. \nThis override is merged with the base virtual machine profile to define the final virtual machine profile for the resources deployed in this location."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of location profiles."
+                    }
+                  }
+                },
+                "description": "Represents the configuration for additional locations where Fleet resources may be deployed."
+              },
+              "computeProfile": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "baseVirtualMachineProfile": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "osProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "computerNamePrefix": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the computer name prefix for all of the virtual machines in the scale\nset. Computer name prefixes must be 1 to 15 characters long."
+                                },
+                                "adminUsername": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the name of the administrator account. <br><br> **Windows-only\nrestriction:** Cannot end in \".\" <br><br> **Disallowed values:**\n\"administrator\", \"admin\", \"user\", \"user1\", \"test\", \"user2\", \"test1\", \"user3\",\n\"admin1\", \"1\", \"123\", \"a\", \"actuser\", \"adm\", \"admin2\", \"aspnet\", \"backup\",\n\"console\", \"david\", \"guest\", \"john\", \"owner\", \"root\", \"server\", \"sql\",\n\"support\", \"support_388945a0\", \"sys\", \"test2\", \"test3\", \"user4\", \"user5\".\n<br><br> **Minimum-length (Linux):** 1  character <br><br> **Max-length\n(Linux):** 64 characters <br><br> **Max-length (Windows):** 20 characters"
+                                },
+                                "adminPassword": {
+                                  "flags": 4,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the password of the administrator account. <br><br> **Minimum-length\n(Windows):** 8 characters <br><br> **Minimum-length (Linux):** 6 characters\n<br><br> **Max-length (Windows):** 123 characters <br><br> **Max-length\n(Linux):** 72 characters <br><br> **Complexity requirements:** 3 out of 4\nconditions below need to be fulfilled <br> Has lower characters <br>Has upper\ncharacters <br> Has a digit <br> Has a special character (Regex match [\\W_])\n<br><br> **Disallowed values:** \"abc@123\", \"P@$$w0rd\", \"P@ssw0rd\",\n\"P@ssword123\", \"Pa$$word\", \"pass@word1\", \"Password!\", \"Password1\",\n\"Password22\", \"iloveyou!\" <br><br> For resetting the password, see [How to\nreset the Remote Desktop service or its login password in a Windows\nVM](https://learn.microsoft.com/troubleshoot/azure/virtual-machines/reset-rdp)\n<br><br> For resetting root password, see [Manage users, SSH, and check or\nrepair disks on Azure Linux VMs using the VMAccess\nExtension](https://learn.microsoft.com/troubleshoot/azure/virtual-machines/troubleshoot-ssh-connection)"
+                                },
+                                "customData": {
+                                  "flags": 4,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies a base-64 encoded string of custom data. The base-64 encoded string\nis decoded to a binary array that is saved as a file on the Virtual Machine.\nThe maximum length of the binary array is 65535 bytes. For using cloud-init for\nyour VM, see [Using cloud-init to customize a Linux VM during\ncreation](https://learn.microsoft.com/azure/virtual-machines/linux/using-cloud-init)"
+                                },
+                                "windowsConfiguration": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies Windows operating system settings on the virtual machine."
+                                },
+                                "linuxConfiguration": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the Linux operating system settings on the virtual machine. For a\nlist of supported Linux distributions, see [Linux on Azure-Endorsed\nDistributions](https://learn.microsoft.com/azure/virtual-machines/linux/endorsed-distros)."
+                                },
+                                "secrets": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies set of certificates that should be installed onto the virtual\nmachines in the scale set. To install certificates on a virtual machine it is\nrecommended to use the [Azure Key Vault virtual machine extension for\nLinux](https://learn.microsoft.com/azure/virtual-machines/extensions/key-vault-linux)\nor the [Azure Key Vault virtual machine extension for\nWindows](https://learn.microsoft.com/azure/virtual-machines/extensions/key-vault-windows)."
+                                },
+                                "allowExtensionOperations": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies whether extension operations should be allowed on the virtual machine\nscale set. This may only be set to False when no extensions are present on the\nvirtual machine scale set."
+                                },
+                                "requireGuestProvisionSignal": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Optional property which must either be set to True or omitted."
+                                }
+                              }
+                            },
+                            "description": "Specifies the operating system settings for the virtual machines in the scale\nset."
+                          },
+                          "storageProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "imageReference": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies information about the image to use. You can specify information about\nplatform images, marketplace images, or virtual machine images. This element is\nrequired when you want to use a platform image, marketplace image, or virtual\nmachine image, but is not used in other creation operations."
+                                },
+                                "osDisk": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies information about the operating system disk used by the virtual\nmachines in the scale set. For more information about disks, see [About disks\nand VHDs for Azure virtual\nmachines](https://learn.microsoft.com/azure/virtual-machines/managed-disks-overview)."
+                                },
+                                "dataDisks": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the parameters that are used to add data disks to the virtual\nmachines in the scale set. For more information about disks, see [About disks\nand VHDs for Azure virtual\nmachines](https://learn.microsoft.com/azure/virtual-machines/managed-disks-overview)."
+                                },
+                                "diskControllerType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the disk controller type configured for the virtual machines in the scale set. Minimum api-version: 2022-08-01"
+                                }
+                              }
+                            },
+                            "description": "Specifies the storage settings for the virtual machine disks."
+                          },
+                          "networkProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "healthProbe": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A reference to a load balancer probe used to determine the health of an\ninstance in the virtual machine scale set. The reference will be in the form:\n'/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/loadBalancers/{loadBalancerName}/probes/{probeName}'."
+                                },
+                                "networkInterfaceConfigurations": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The list of network configurations."
+                                },
+                                "networkApiVersion": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "specifies the Microsoft.Network API version used when creating networking\nresources in the Network Interface Configurations for Virtual Machine Scale Set\nwith orchestration mode 'Flexible'"
+                                }
+                              }
+                            },
+                            "description": "Specifies properties of the network interfaces of the virtual machines in the\nscale set."
+                          },
+                          "securityProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "uefiSettings": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the security settings like secure boot and vTPM used while creating\nthe virtual machine. Minimum api-version: 2020-12-01."
+                                },
+                                "encryptionAtHost": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "This property can be used by user in the request to enable or disable the Host\nEncryption for the virtual machine or virtual machine scale set. This will\nenable the encryption for all the disks including Resource/Temp disk at host\nitself. The default behavior is: The Encryption at host will be disabled unless\nthis property is set to true for the resource."
+                                },
+                                "securityType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the SecurityType of the virtual machine. It has to be set to any\nspecified value to enable UefiSettings. The default behavior is: UefiSettings\nwill not be enabled unless this property is set."
+                                },
+                                "encryptionIdentity": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the Managed Identity used by ADE to get access token for keyvault\noperations."
+                                },
+                                "proxyAgentSettings": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies ProxyAgent settings while creating the virtual machine. Minimum\napi-version: 2023-09-01."
+                                }
+                              }
+                            },
+                            "description": "Specifies the Security related profile settings for the virtual machines in the\nscale set."
+                          },
+                          "diagnosticsProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "bootDiagnostics": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Boot Diagnostics is a debugging feature which allows you to view Console Output\nand Screenshot to diagnose VM status. **NOTE**: If storageUri is being\nspecified then ensure that the storage account is in the same region and\nsubscription as the VM. You can easily view the output of your console log.\nAzure also enables you to see a screenshot of the VM from the hypervisor."
+                                }
+                              }
+                            },
+                            "description": "Specifies the boot diagnostic settings state."
+                          },
+                          "extensionProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "extensions": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The virtual machine scale set child extension resources."
+                                },
+                                "extensionsTimeBudget": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the time alloted for all extensions to start. The time duration\nshould be between 15 minutes and 120 minutes (inclusive) and should be\nspecified in ISO 8601 format. The default value is 90 minutes (PT1H30M).\nMinimum api-version: 2020-06-01."
+                                }
+                              }
+                            },
+                            "description": "Specifies a collection of settings for extensions installed on virtual machines\nin the scale set."
+                          },
+                          "licenseType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies that the image or disk that is being used was licensed on-premises.\n<br><br> Possible values for Windows Server operating system are: <br><br>\nWindows_Client <br><br> Windows_Server <br><br> Possible values for Linux\nServer operating system are: <br><br> RHEL_BYOS (for RHEL) <br><br> SLES_BYOS\n(for SUSE) <br><br> For more information, see [Azure Hybrid Use Benefit for\nWindows\nServer](https://learn.microsoft.com/azure/virtual-machines/windows/hybrid-use-benefit-licensing)\n<br><br> [Azure Hybrid Use Benefit for Linux\nServer](https://learn.microsoft.com/azure/virtual-machines/linux/azure-hybrid-benefit-linux)\n<br><br> Minimum api-version: 2015-06-15"
+                          },
+                          "scheduledEventsProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "terminateNotificationProfile": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies Terminate Scheduled Event related configurations."
+                                },
+                                "osImageNotificationProfile": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies OS Image Scheduled Event related configurations."
+                                }
+                              }
+                            },
+                            "description": "Specifies Scheduled Event related configurations."
+                          },
+                          "userData": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "UserData for the virtual machines in the scale set, which must be base-64\nencoded. Customer should not pass any secrets in here. Minimum api-version:\n2021-03-01."
+                          },
+                          "capacityReservation": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "capacityReservationGroup": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the capacity reservation group resource id that should be used for\nallocating the virtual machine or scaleset vm instances provided enough\ncapacity has been reserved. Please refer to https://aka.ms/CapacityReservation\nfor more details."
+                                }
+                              }
+                            },
+                            "description": "Specifies the capacity reservation related details of a scale set. Minimum\napi-version: 2021-04-01."
+                          },
+                          "applicationProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "galleryApplications": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the gallery applications that should be made available to the VM/VMSS"
+                                }
+                              }
+                            },
+                            "description": "Specifies the gallery applications that should be made available to the VM/VMSS"
+                          },
+                          "hardwareProfile": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "vmSizeProperties": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Specifies the properties for customizing the size of the virtual machine.\nMinimum api-version: 2021-11-01. Please follow the instructions in [VM\nCustomization](https://aka.ms/vmcustomization) for more details."
+                                }
+                              }
+                            },
+                            "description": "Specifies the hardware profile related details of a scale set. Minimum\napi-version: 2021-11-01."
+                          },
+                          "serviceArtifactReference": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The service artifact reference id in the form of\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Compute/galleries/{galleryName}/serviceArtifacts/{serviceArtifactName}/vmArtifactsProfiles/{vmArtifactsProfilesName}"
+                                }
+                              }
+                            },
+                            "description": "Specifies the service artifact reference id used to set same image version for\nall virtual machines in the scale set when using 'latest' image version.\nMinimum api-version: 2022-11-01"
+                          },
+                          "securityPostureReference": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "id": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The security posture reference id in the form of\n/CommunityGalleries/{communityGalleryName}/securityPostures/{securityPostureName}/versions/{major.minor.patch}|{major.*}|latest"
+                                },
+                                "excludeExtensions": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "List of virtual machine extension names to exclude when applying the security\nposture."
+                                },
+                                "isOverridable": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Whether the security posture can be overridden by the user."
+                                }
+                              }
+                            },
+                            "description": "Specifies the security posture to be used for all virtual machines in the scale\nset. Minimum api-version: 2023-03-01"
+                          },
+                          "timeCreated": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Specifies the time in which this VM profile for the Virtual Machine Scale Set\nwas created. Minimum API version for this property is 2023-09-01. This value\nwill be added to VMSS Flex VM tags when creating/updating the VMSS VM Profile\nwith minimum api-version 2023-09-01. Examples: \"2024-07-01T00:00:01.1234567+00:00\""
+                          }
+                        }
+                      },
+                      "description": "Base Virtual Machine Profile Properties to be specified according to \"specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/{computeApiVersion}/virtualMachineScaleSet.json#/definitions/VirtualMachineScaleSetVMProfile\""
+                    },
+                    "computeApiVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Specifies the Microsoft.Compute API version to use when creating underlying Virtual Machine scale sets and Virtual Machines.\nThe default value will be the latest supported computeApiVersion by Compute Fleet."
+                    },
+                    "platformFaultDomainCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Specifies the number of fault domains to use when creating the underlying VMSS.\nA fault domain is a logical group of hardware within an Azure datacenter.\nVMs in the same fault domain share a common power source and network switch.\nIf not specified, defaults to 1, which represents \"Max Spreading\" (using as many fault domains as possible).\nThis property cannot be updated."
+                    },
+                    "additionalVirtualMachineCapabilities": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "ultraSSDEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "The flag that enables or disables a capability to have one or more managed data disks with UltraSSD_LRS storage account type on the VM or VMSS.\nManaged disks with storage account type UltraSSD_LRS can be added to a virtual machine or virtual machine scale set only if this property is enabled."
+                          },
+                          "hibernationEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "The flag that enables or disables hibernation capability on the VM."
+                          }
+                        }
+                      },
+                      "description": "Specifies VMSS and VM API entity models support two additional capabilities as of today: ultraSSDEnabled and hibernationEnabled.\nultraSSDEnabled: Enables UltraSSD_LRS storage account type on the VMSS VMs.\nhibernationEnabled: Enables the hibernation capability on the VMSS VMs.\nDefault value is null if not specified. This property cannot be updated once set."
+                    }
+                  }
+                },
+                "description": "Compute Profile to use for running user's workloads."
+              },
+              "timeCreated": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the time at which the Compute Fleet is created."
+              },
+              "uniqueId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies the ID which uniquely identifies a Compute Fleet."
+              }
+            }
+          },
+          "description": "The resource-specific properties for this resource."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Zones in which the Compute Fleet is available"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity (where both SystemAssigned and UserAssigned types are allowed)."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The principal ID of the assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                        },
+                        "description": "The client ID of the assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "The set of user assigned identities associated with the resource. The userAssignedIdentities dictionary keys will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}. The dictionary values can be empty objects ({}) in requests."
+              }
+            }
+          },
+          "description": "The managed service identities assigned to this resource."
+        },
+        "plan": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A user defined name of the 3rd Party Artifact that is being procured."
+              },
+              "publisher": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The publisher of the 3rd Party Artifact that is being bought. E.g. NewRelic"
+              },
+              "product": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The 3rd Party artifact that is being procured. E.g. NewRelic. Product maps to the OfferID specified for the artifact at the time of Data Market onboarding."
+              },
+              "promotionCode": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A publisher provided promotion code as provisioned in Data Market for the said product/artifact."
+              },
+              "version": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The version of the desired product/artifact."
+              }
+            }
+          },
+          "description": "Details of the resource plan."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

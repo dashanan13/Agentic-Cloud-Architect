@@ -1,0 +1,127 @@
+{
+  "resourceName": "Web Test",
+  "bicepType": "Microsoft.Insights/webtests@2022-06-15",
+  "terraformType": "azurerm_application_insights_web_test",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.insights/webtests",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "application_insights_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "configuration": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "frequency": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "geo_locations": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "kind": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "retry_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "synthetic_monitor_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "timeout": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

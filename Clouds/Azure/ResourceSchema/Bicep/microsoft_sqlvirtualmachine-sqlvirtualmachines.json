@@ -1,0 +1,1386 @@
+{
+  "resourceName": "Azure SQL VM",
+  "bicepType": "Microsoft.SqlVirtualMachine/sqlVirtualMachines@2023-10-01",
+  "terraformType": "azurerm_mssql_virtual_machine",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.sqlvirtualmachine/sqlvirtualmachines",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.SqlVirtualMachine/sqlVirtualMachines@2023-10-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^((?!_)[^\\\\/\"'\\[\\]:|<>+=;,?*@&]{1,64}(?<![.-]))$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.SqlVirtualMachine/sqlVirtualMachines"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-10-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "virtualMachineResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ARM Resource id of underlying virtual machine created from SQL marketplace image."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Provisioning state to track the async operation status."
+              },
+              "sqlImageOffer": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "SQL image offer. Examples include SQL2016-WS2016, SQL2017-WS2016."
+              },
+              "sqlServerLicenseType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PAYG"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AHUB"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DR"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL Server license type."
+              },
+              "sqlManagement": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Full"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "LightWeight"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NoAgent"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL Server Management type. NOTE: This parameter is not used anymore. API will automatically detect the Sql Management, refrain from using it."
+              },
+              "leastPrivilegeMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSet"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL IaaS Agent least privilege mode."
+              },
+              "sqlImageSku": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Developer"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Express"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Standard"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enterprise"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Web"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "SQL Server edition type."
+              },
+              "sqlVirtualMachineGroupResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of."
+              },
+              "wsfcDomainCredentials": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "clusterBootstrapAccountPassword": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Cluster bootstrap account password."
+                    },
+                    "clusterOperatorAccountPassword": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Cluster operator account password."
+                    },
+                    "sqlServiceAccountPassword": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "SQL service account password."
+                    }
+                  }
+                },
+                "description": "Domain credentials for setting up Windows Server Failover Cluster for SQL availability group."
+              },
+              "wsfcStaticIp": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Domain credentials for setting up Windows Server Failover Cluster for SQL availability group."
+              },
+              "autoPatchingSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enable": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable or disable autopatching on SQL virtual machine."
+                    },
+                    "dayOfWeek": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Everyday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Monday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Tuesday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Wednesday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Thursday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Friday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Saturday"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Sunday"
+                          }
+                        ]
+                      },
+                      "description": "Day of week to apply the patch on."
+                    },
+                    "maintenanceWindowStartingHour": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Hour of the day when patching is initiated. Local VM time."
+                    },
+                    "maintenanceWindowDuration": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Duration of patching."
+                    },
+                    "additionalVmPatch": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NotSet"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "MicrosoftUpdate"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Additional Patch to be enable or enabled on the SQL Virtual Machine."
+                    }
+                  }
+                },
+                "description": "Auto patching settings for applying critical security updates to SQL virtual machine."
+              },
+              "autoBackupSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enable": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable or disable autobackup on SQL virtual machine."
+                    },
+                    "enableEncryption": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable or disable encryption for backup on SQL virtual machine."
+                    },
+                    "retentionPeriod": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Retention period of backup: 1-90 days."
+                    },
+                    "storageAccountUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Storage account url where backup will be taken to."
+                    },
+                    "storageContainerName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Storage container name where backup will be taken to."
+                    },
+                    "storageAccessKey": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Storage account key where backup will be taken to."
+                    },
+                    "password": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Password for encryption on backup."
+                    },
+                    "backupSystemDbs": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Include or exclude system databases from auto backup."
+                    },
+                    "backupScheduleType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Manual"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Automated"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Backup schedule type."
+                    },
+                    "fullBackupFrequency": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Daily"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Weekly"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Frequency of full backups. In both cases, full backups begin during the next scheduled time window."
+                    },
+                    "daysOfWeek": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        }
+                      },
+                      "description": "Days of the week for the backups when FullBackupFrequency is set to Weekly."
+                    },
+                    "fullBackupStartTime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Start time of a given day during which full backups can take place. 0-23 hours."
+                    },
+                    "fullBackupWindowHours": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Duration of the time window of a given day during which full backups can take place. 1-23 hours."
+                    },
+                    "logBackupFrequency": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Frequency of log backups. 5-60 minutes."
+                    }
+                  }
+                },
+                "description": "Auto backup settings for SQL Server."
+              },
+              "keyVaultCredentialSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enable": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable or disable key vault credential setting."
+                    },
+                    "credentialName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Credential name."
+                    },
+                    "azureKeyVaultUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Azure Key Vault url."
+                    },
+                    "servicePrincipalName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Service principal name to access key vault."
+                    },
+                    "servicePrincipalSecret": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Service principal name secret to access key vault."
+                    }
+                  }
+                },
+                "description": "Key vault credential settings."
+              },
+              "serverConfigurationsManagementSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "sqlConnectivityUpdateSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "connectivityType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "SQL Server connectivity option."
+                          },
+                          "port": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server port."
+                          },
+                          "sqlAuthUpdateUserName": {
+                            "flags": 4,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server sysadmin login to create."
+                          },
+                          "sqlAuthUpdatePassword": {
+                            "flags": 4,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server sysadmin login password."
+                          }
+                        }
+                      },
+                      "description": "SQL connectivity type settings."
+                    },
+                    "sqlWorkloadTypeUpdateSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "sqlWorkloadType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "SQL Server workload type."
+                          }
+                        }
+                      },
+                      "description": "SQL workload type settings."
+                    },
+                    "sqlStorageUpdateSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "diskCount": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Virtual machine disk count."
+                          },
+                          "startingDeviceId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Device id of the first disk to be updated."
+                          },
+                          "diskConfigurationType": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Disk configuration to apply to SQL Server."
+                          }
+                        }
+                      },
+                      "description": "SQL storage update settings."
+                    },
+                    "additionalFeaturesServerConfigurations": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "isRServicesEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Enable or disable R services (SQL 2016 onwards)."
+                          }
+                        }
+                      },
+                      "description": "Additional SQL feature settings."
+                    },
+                    "sqlInstanceSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "collation": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server Collation."
+                          },
+                          "maxDop": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server MAXDOP."
+                          },
+                          "isOptimizeForAdHocWorkloadsEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "SQL Server Optimize for Adhoc workloads."
+                          },
+                          "minServerMemoryMB": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server minimum memory."
+                          },
+                          "maxServerMemoryMB": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server maximum memory."
+                          },
+                          "isLpimEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "SQL Server LPIM."
+                          },
+                          "isIfiEnabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "SQL Server IFI."
+                          }
+                        }
+                      },
+                      "description": "SQL Instance settings."
+                    },
+                    "azureAdAuthenticationSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "clientId": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The client Id of the Managed Identity to query Microsoft Graph API. An empty string must be used for the system assigned Managed Identity"
+                          }
+                        }
+                      },
+                      "description": "Azure AD authentication Settings."
+                    }
+                  }
+                },
+                "description": "SQL Server configuration management settings."
+              },
+              "storageConfigurationSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "sqlDataSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "luns": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Logical Unit Numbers for the disks."
+                          },
+                          "defaultFilePath": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server default file path"
+                          },
+                          "useStoragePool": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Use storage pool to build a drive if true or not provided"
+                          }
+                        }
+                      },
+                      "description": "SQL Server Data Storage Settings."
+                    },
+                    "sqlLogSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "luns": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Logical Unit Numbers for the disks."
+                          },
+                          "defaultFilePath": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server default file path"
+                          },
+                          "useStoragePool": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Use storage pool to build a drive if true or not provided"
+                          }
+                        }
+                      },
+                      "description": "SQL Server Log Storage Settings."
+                    },
+                    "sqlTempDbSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "dataFileSize": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server tempdb data file size"
+                          },
+                          "dataGrowth": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server tempdb data file autoGrowth size"
+                          },
+                          "logFileSize": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server tempdb log file size"
+                          },
+                          "logGrowth": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server tempdb log file autoGrowth size"
+                          },
+                          "dataFileCount": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "SQL Server tempdb data file count"
+                          },
+                          "persistFolder": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "SQL Server tempdb persist folder choice"
+                          },
+                          "persistFolderPath": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server tempdb persist folder location"
+                          },
+                          "luns": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Logical Unit Numbers for the disks."
+                          },
+                          "defaultFilePath": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "SQL Server default file path"
+                          },
+                          "useStoragePool": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Use storage pool to build a drive if true or not provided"
+                          }
+                        }
+                      },
+                      "description": "SQL Server TempDb Storage Settings."
+                    },
+                    "sqlSystemDbOnDataDisk": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "SQL Server SystemDb Storage on DataPool if true."
+                    },
+                    "diskConfigurationType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "NEW"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "EXTEND"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ADD"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Disk configuration to apply to SQL Server."
+                    },
+                    "storageWorkloadType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "GENERAL"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "OLTP"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "DW"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Storage workload type."
+                    },
+                    "enableStorageConfigBlade": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable SQL IaaS Agent storage configuration blade in Azure Portal."
+                    }
+                  }
+                },
+                "description": "Storage Configuration Settings."
+              },
+              "troubleshootingStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "rootCause": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Root cause of the issue"
+                    },
+                    "lastTriggerTimeUtc": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Last troubleshooting trigger time in UTC timezone"
+                    },
+                    "startTimeUtc": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Start time in UTC timezone."
+                    },
+                    "endTimeUtc": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "End time in UTC timezone."
+                    },
+                    "troubleshootingScenario": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "UnhealthyReplica"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "SQL VM troubleshooting scenario."
+                    },
+                    "properties": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "unhealthyReplicaInfo": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "availabilityGroupName": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "The name of the availability group"
+                                }
+                              }
+                            },
+                            "description": "The unhealthy replica information"
+                          }
+                        }
+                      },
+                      "description": "Troubleshooting properties"
+                    }
+                  }
+                },
+                "description": "Troubleshooting status"
+              },
+              "assessmentSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enable": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enable or disable SQL best practices Assessment feature on SQL virtual machine."
+                    },
+                    "runImmediately": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Run SQL best practices Assessment immediately on SQL virtual machine."
+                    },
+                    "schedule": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "enable": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Enable or disable assessment schedule on SQL virtual machine."
+                          },
+                          "weeklyInterval": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Number of weeks to schedule between 2 assessment runs. Takes value from 1-6"
+                          },
+                          "monthlyOccurrence": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Occurrence of the DayOfWeek day within a month to schedule assessment. Takes values: 1,2,3,4 and -1. Use -1 for last DayOfWeek day of the month"
+                          },
+                          "dayOfWeek": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Day of the week to run assessment."
+                          },
+                          "startTime": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Time of the day in HH:mm format. Eg. 17:30"
+                          }
+                        }
+                      },
+                      "description": "Schedule for SQL best practices Assessment."
+                    }
+                  }
+                },
+                "description": "SQL best practices Assessment Settings."
+              },
+              "enableAutomaticUpgrade": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enable automatic upgrade of Sql IaaS extension Agent."
+              },
+              "additionalVmPatch": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "WU"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "WUMU"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "WSUS"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Additional VM Patching solution enabled on the Virtual Machine"
+              },
+              "virtualMachineIdentitySettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "type": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "SystemAssigned"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "UserAssigned"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Identity type of the virtual machine. Specify None to opt-out of Managed Identities."
+                    },
+                    "resourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ARM Resource Id of the identity. Only required when UserAssigned identity is selected."
+                    }
+                  }
+                },
+                "description": "Virtual Machine Identity details used for Sql IaaS extension configurations."
+              },
+              "osType": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Windows"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Linux"
+                    }
+                  ]
+                },
+                "description": "Operating System of the current SQL Virtual Machine."
+              }
+            }
+          },
+          "description": "Resource properties."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The Azure Active Directory principal id."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned,UserAssigned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "The Azure Active Directory tenant id."
+              }
+            }
+          },
+          "description": "DO NOT USE. This value will be deprecated. Azure Active Directory identity of the server."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

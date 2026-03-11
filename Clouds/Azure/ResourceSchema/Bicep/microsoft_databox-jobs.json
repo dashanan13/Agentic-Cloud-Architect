@@ -1,0 +1,728 @@
+{
+  "resourceName": "Data Box",
+  "bicepType": "Microsoft.DataBox/jobs@2022-12-01",
+  "terraformType": "azurerm_databox_job",
+  "category": "migrate",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.databox/jobs",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DataBox/jobs@2022-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 24,
+            "pattern": "^[-\\w\\.]+$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DataBox/jobs"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "transferType": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ImportToAzure"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ExportFromAzure"
+                    }
+                  ]
+                },
+                "description": "Type of the data transfer."
+              },
+              "isCancellable": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Describes whether the job is cancellable or not."
+              },
+              "isDeletable": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Describes whether the job is deletable or not."
+              },
+              "isShippingAddressEditable": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Describes whether the shipping address is editable or not."
+              },
+              "reverseShippingDetailsUpdate": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSupported"
+                    }
+                  ]
+                },
+                "description": "The Editable status for Reverse Shipping Address and Contact Info"
+              },
+              "reverseTransportPreferenceUpdate": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotSupported"
+                    }
+                  ]
+                },
+                "description": "The Editable status for Reverse Transport preferences"
+              },
+              "isPrepareToShipEnabled": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Is Prepare To Ship Enabled on this job"
+              },
+              "status": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DeviceOrdered"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DevicePrepared"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Dispatched"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Delivered"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PickedUp"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AtAzureDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataCopy"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Completed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CompletedWithErrors"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Cancelled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed_IssueReportedAtCustomer"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed_IssueDetectedAtAzureDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Aborted"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CompletedWithWarnings"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ReadyToDispatchFromAzureDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ReadyToReceiveAtAzureDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Created"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ShippedToAzureDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AwaitingShipmentDetails"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "PreparingToShipFromAzureDC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ShippedToCustomer"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Name of the stage which is in progress."
+              },
+              "startTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Time at which the job was started in UTC ISO 8601 format."
+              },
+              "error": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "additionalInfo": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "info": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Additional information of the type of error."
+                            },
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of error (e.g. CustomerIntervention, PolicyViolation, SecurityViolation)."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Gets or sets additional error info."
+                    },
+                    "code": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Error code."
+                    },
+                    "details": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "additionalInfo": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Gets or sets additional error info."
+                            },
+                            "code": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Error code."
+                            },
+                            "details": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Gets or sets details for the error."
+                            },
+                            "message": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The error message parsed from the body of the http error response."
+                            },
+                            "target": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Gets or sets the target of the error."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Gets or sets details for the error."
+                    },
+                    "message": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The error message parsed from the body of the http error response."
+                    },
+                    "target": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Gets or sets the target of the error."
+                    }
+                  }
+                },
+                "description": "Top level error for the job."
+              },
+              "details": {
+                "flags": 0,
+                "type": {
+                  "$type": "DiscriminatedObjectType",
+                  "name": "JobDetails",
+                  "discriminator": "jobDetailsType",
+                  "baseProperties": {
+                    "jobStages": {
+                      "type": {
+                        "$ref": "#/83"
+                      },
+                      "flags": 2,
+                      "description": "List of stages that run in the job."
+                    },
+                    "contactDetails": {
+                      "type": {
+                        "$ref": "#/84"
+                      },
+                      "flags": 1,
+                      "description": "Contact details for notification and shipping."
+                    },
+                    "shippingAddress": {
+                      "type": {
+                        "$ref": "#/97"
+                      },
+                      "flags": 0,
+                      "description": "Shipping address of the customer."
+                    },
+                    "deliveryPackage": {
+                      "type": {
+                        "$ref": "#/102"
+                      },
+                      "flags": 2,
+                      "description": "Delivery package shipping details."
+                    },
+                    "returnPackage": {
+                      "type": {
+                        "$ref": "#/102"
+                      },
+                      "flags": 2,
+                      "description": "Return package shipping details."
+                    },
+                    "dataImportDetails": {
+                      "type": {
+                        "$ref": "#/113"
+                      },
+                      "flags": 0,
+                      "description": "Details of the data to be imported into azure."
+                    },
+                    "dataExportDetails": {
+                      "type": {
+                        "$ref": "#/145"
+                      },
+                      "flags": 0,
+                      "description": "Details of the data to be exported from azure."
+                    },
+                    "preferences": {
+                      "type": {
+                        "$ref": "#/146"
+                      },
+                      "flags": 0,
+                      "description": "Preferences for the order."
+                    },
+                    "reverseShippingDetails": {
+                      "type": {
+                        "$ref": "#/161"
+                      },
+                      "flags": 0,
+                      "description": "Optional Reverse Shipping details for order."
+                    },
+                    "copyLogDetails": {
+                      "type": {
+                        "$ref": "#/175"
+                      },
+                      "flags": 2,
+                      "description": "List of copy log details."
+                    },
+                    "reverseShipmentLabelSasKey": {
+                      "type": {
+                        "$ref": "#/2"
+                      },
+                      "flags": 2,
+                      "description": "Shared access key to download the return shipment label"
+                    },
+                    "chainOfCustodySasKey": {
+                      "type": {
+                        "$ref": "#/2"
+                      },
+                      "flags": 2,
+                      "description": "Shared access key to download the chain of custody logs"
+                    },
+                    "deviceErasureDetails": {
+                      "type": {
+                        "$ref": "#/176"
+                      },
+                      "flags": 2,
+                      "description": "Holds device data erasure details"
+                    },
+                    "keyEncryptionKey": {
+                      "type": {
+                        "$ref": "#/191"
+                      },
+                      "flags": 0,
+                      "description": "Details about which key encryption type is being used."
+                    },
+                    "expectedDataSizeInTeraBytes": {
+                      "type": {
+                        "$ref": "#/197"
+                      },
+                      "flags": 0,
+                      "description": "The expected size of the data, which needs to be transferred in this job, in terabytes."
+                    },
+                    "actions": {
+                      "type": {
+                        "$ref": "#/204"
+                      },
+                      "flags": 2,
+                      "description": "Available actions on the job."
+                    },
+                    "lastMitigationActionOnJob": {
+                      "type": {
+                        "$ref": "#/205"
+                      },
+                      "flags": 2,
+                      "description": "Last mitigation action performed on the job."
+                    },
+                    "datacenterAddress": {
+                      "type": {
+                        "$ref": "#/212"
+                      },
+                      "flags": 2,
+                      "description": "Datacenter address to ship to, for the given sku and storage location."
+                    },
+                    "dataCenterCode": {
+                      "type": {
+                        "$ref": "#/277"
+                      },
+                      "flags": 2,
+                      "description": "DataCenter code."
+                    }
+                  },
+                  "elements": {
+                    "DataBox": {
+                      "$ref": "#/278"
+                    },
+                    "DataBoxCustomerDisk": {
+                      "$ref": "#/295"
+                    },
+                    "DataBoxDisk": {
+                      "$ref": "#/337"
+                    },
+                    "DataBoxHeavy": {
+                      "$ref": "#/410"
+                    }
+                  }
+                },
+                "description": "Details of a job run. This field will only be sent for expand details filter."
+              },
+              "cancellationReason": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Reason for cancellation."
+              },
+              "deliveryType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NonScheduled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Scheduled"
+                    }
+                  ]
+                },
+                "description": "Delivery type of Job."
+              },
+              "deliveryInfo": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "scheduledDateTime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Scheduled date time."
+                    }
+                  }
+                },
+                "description": "Delivery Info of Job."
+              },
+              "isCancellableWithoutFee": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Flag to indicate cancellation of scheduled job."
+              }
+            }
+          },
+          "description": "Properties of a job."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A string identifier for the identity that created the resource"
+              },
+              "createdByType": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The type of identity that created the resource: user, application, managedIdentity"
+              },
+              "createdAt": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)"
+              },
+              "lastModifiedBy": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A string identifier for the identity that last modified the resource"
+              },
+              "lastModifiedByType": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The type of identity that last modified the resource: user, application, managedIdentity"
+              },
+              "lastModifiedAt": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the resource. This will be one of the supported and registered Azure Regions (e.g. West US, East US, Southeast Asia, etc.). The region of a resource cannot be changed once it is created, but if an identical region is specified on update the request will succeed."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The list of key value pairs that describe the resource. These tags can be used in viewing and grouping this resource (across resource groups)."
+        },
+        "sku": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataBox"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataBoxDisk"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataBoxHeavy"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DataBoxCustomerDisk"
+                    }
+                  ]
+                },
+                "description": "The sku name."
+              },
+              "displayName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The display name of the sku."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The sku family."
+              }
+            }
+          },
+          "description": "The sku type."
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Identity type"
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Service Principal Id backing the Msi"
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Home Tenant Id"
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The principal id of user assigned identity."
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The client id of user assigned identity."
+                      }
+                    }
+                  }
+                },
+                "description": "User Assigned Identities"
+              }
+            }
+          },
+          "description": "Msi identity of the resource"
+        }
+      }
+    }
+  }
+}

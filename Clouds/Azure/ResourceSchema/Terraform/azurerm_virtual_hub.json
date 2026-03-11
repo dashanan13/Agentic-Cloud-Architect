@@ -1,0 +1,143 @@
+{
+  "resourceName": "Virtual Router",
+  "bicepType": "Microsoft.Network/virtualRouters@2024-03-01",
+  "terraformType": "azurerm_virtual_hub",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/virtualrouters",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "address_prefix": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "branch_to_branch_traffic_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "default_route_table_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "hub_routing_preference": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "sku": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "virtual_router_asn": {
+          "type": "number",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "virtual_router_auto_scale_min_capacity": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "virtual_router_ips": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "virtual_wan_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "route": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "address_prefixes": {
+                "type": [
+                  "list",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "required": true
+              },
+              "next_hop_ip_address": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

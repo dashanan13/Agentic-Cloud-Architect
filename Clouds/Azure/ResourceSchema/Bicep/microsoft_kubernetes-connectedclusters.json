@@ -1,0 +1,700 @@
+{
+  "resourceName": "Arc Kubernetes",
+  "bicepType": "Microsoft.Kubernetes/connectedClusters@2024-07-15-preview",
+  "terraformType": "azurerm_arc_kubernetes_cluster",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.kubernetes/connectedclusters",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Kubernetes/connectedClusters@2024-07-15-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Kubernetes/connectedClusters"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-07-15-preview"
+          },
+          "description": "The resource api version"
+        },
+        "identity": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The principal id of connected cluster identity. This property will only be provided for a system assigned identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The tenant id associated with the connected cluster. This property will only be provided for a system assigned identity."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    }
+                  ]
+                },
+                "description": "The type of identity used for the connected cluster. The type 'SystemAssigned, includes a system created identity. The type 'None' means no identity is assigned to the connected cluster."
+              }
+            }
+          },
+          "description": "The identity of the connected cluster."
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "UnionType",
+            "elements": [
+              {
+                "$type": "StringLiteralType",
+                "value": "ProvisionedCluster"
+              },
+              {
+                "$type": "StringType"
+              }
+            ]
+          },
+          "description": "The kind of connected cluster."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "agentPublicKeyCertificate": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Base64 encoded public certificate used by the agent to do the initial handshake to the backend services in Azure."
+              },
+              "kubernetesVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Kubernetes version of the connected cluster resource"
+              },
+              "totalNodeCount": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Number of nodes present in the connected cluster resource"
+              },
+              "totalCoreCount": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Number of CPU cores present in the connected cluster resource"
+              },
+              "agentVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Version of the agent running on the connected cluster resource"
+              },
+              "provisioningState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Accepted"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Provisioning state of the connected cluster resource."
+              },
+              "distribution": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Kubernetes distribution running on this connected cluster."
+              },
+              "distributionVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Kubernetes distribution version on this connected cluster."
+              },
+              "infrastructure": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The infrastructure on which the Kubernetes cluster represented by this connected cluster is running on."
+              },
+              "offering": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Connected cluster offering"
+              },
+              "managedIdentityCertificateExpirationTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Expiration time of the managed identity certificate"
+              },
+              "lastConnectivityTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Time representing the last instance when heart beat was received from the cluster"
+              },
+              "connectivityStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connecting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Connected"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Offline"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Represents the connectivity status of the connected cluster."
+              },
+              "privateLinkState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Enabled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Disabled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Property which describes the state of private link on a connected cluster resource."
+              },
+              "privateLinkScopeResourceId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "This is populated only if privateLinkState is enabled. The resource id of the private link scope this connected cluster is assigned to, if any."
+              },
+              "azureHybridBenefit": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "True"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "False"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NotApplicable"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Indicates whether Azure Hybrid Benefit is opted in"
+              },
+              "aadProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enableAzureRBAC": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Whether to enable Azure RBAC for Kubernetes authorization."
+                    },
+                    "adminGroupObjectIDs": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The list of AAD group object IDs that will have admin role of the cluster."
+                    },
+                    "tenantID": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The AAD tenant ID to use for authentication. If not specified, will use the tenant of the deployment subscription."
+                    }
+                  }
+                },
+                "description": "AAD profile for the connected cluster."
+              },
+              "arcAgentProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "desiredAgentVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Version of the Arc agents to be installed on the cluster resource"
+                    },
+                    "agentAutoUpgrade": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Enabled"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Indicates whether the Arc agents on the be upgraded automatically to the latest version. Defaults to Enabled."
+                    },
+                    "systemComponents": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of the system extension"
+                            },
+                            "userSpecifiedVersion": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Version of the system extension to be installed on the cluster resource."
+                            },
+                            "majorVersion": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Major Version of the system extension that is currently installed on the cluster resource."
+                            },
+                            "currentVersion": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Version of the system extension that is currently installed on the cluster resource."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of system extensions that are installed on the cluster resource."
+                    },
+                    "agentErrors": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "message": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Agent error message."
+                            },
+                            "severity": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Severity of the error message."
+                            },
+                            "component": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Agent component where error message occured."
+                            },
+                            "time": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The timestamp of error occured (UTC)."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of arc agentry and system components errors on the cluster resource."
+                    },
+                    "agentState": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Represents the current state of the Arc agentry and its dependent components."
+                    }
+                  }
+                },
+                "description": "Arc agentry configuration for the provisioned cluster."
+              },
+              "securityProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "workloadIdentity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "enabled": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Whether to enable or disable the workload identity Webhook"
+                          }
+                        }
+                      },
+                      "description": "The workload identity feature webhook."
+                    }
+                  }
+                },
+                "description": "Security profile for the connected cluster."
+              },
+              "oidcIssuerProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Whether to enable oidc issuer for workload identity integration."
+                    },
+                    "issuerUrl": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The issuer url for hybrid clusters connected to Arc used for the workload identity feature."
+                    },
+                    "selfHostedIssuerUrl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The issuer url for public cloud clusters - AKS, EKS, GKE - used for the workload identity feature."
+                    }
+                  }
+                },
+                "description": "Open ID Connect (OIDC) Issuer Profile for the connected cluster."
+              },
+              "gateway": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates whether the gateway for arc router connectivity is enabled."
+                    },
+                    "resourceId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The resource ID of the gateway used for the Arc router feature."
+                    }
+                  }
+                },
+                "description": "Details of the gateway used by the Arc router for connectivity."
+              },
+              "arcAgentryConfigurations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "feature": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Specifies the name of the feature for the configuration setting."
+                      },
+                      "settings": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The configuration settings for the feature that do not contain any sensitive or secret information."
+                      },
+                      "protectedSettings": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The configuration settings for the feature that contain any sensitive or secret information."
+                      }
+                    }
+                  }
+                },
+                "description": "Configuration settings for customizing the behavior of the connected cluster."
+              },
+              "miscellaneousProperties": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "More properties related to the Connected Cluster"
+              }
+            }
+          },
+          "description": "Describes the connected cluster resource properties."
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource modification (UTC)."
+              }
+            }
+          },
+          "description": "Metadata pertaining to creation and last modification of the resource"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        }
+      }
+    }
+  }
+}

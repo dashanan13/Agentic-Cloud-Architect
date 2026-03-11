@@ -1,0 +1,623 @@
+{
+  "resourceName": "Azure Monitor Pipeline",
+  "bicepType": "Microsoft.Monitor/pipelineGroups@2024-10-01-preview",
+  "terraformType": "",
+  "category": "hybrid + multicloud",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.monitor/pipelinegroups",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Monitor/pipelineGroups@2024-10-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^(?!-)[a-zA-Z0-9-]{3,32}[^-]$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Monitor/pipelineGroups"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-10-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "replicas": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Defines the amount of replicas of the pipeline group instance."
+              },
+              "receivers": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "type": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The type of receiver."
+                      },
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^(?!-)[a-zA-Z0-9-]{3,32}[^-]$"
+                        },
+                        "description": "The name of receiver."
+                      },
+                      "syslog": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "endpoint": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Syslog receiver endpoint definition. Example: 0.0.0.0:<port>."
+                            },
+                            "protocol": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Protocol to parse syslog messages. Default rfc3164"
+                            }
+                          }
+                        },
+                        "description": "Syslog configurations. This field is mandatory for syslog type receivers."
+                      },
+                      "otlp": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "endpoint": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "OTLP GRPC endpoint definition. Example: 0.0.0.0:<port>."
+                            }
+                          }
+                        },
+                        "description": "OTLP receiver configurations. This field is mandatory for OTLP and pipelineGroup receivers."
+                      },
+                      "udp": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "endpoint": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "TCP endpoint definition. Example: 0.0.0.0:<port>."
+                            },
+                            "encoding": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The encoding of the stream being received."
+                            },
+                            "readQueueLength": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Max read queue length."
+                            },
+                            "jsonArrayMapper": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Json array mapper - allows this udp receiver to parse a value from a given source field as a json array, match a key to each parsed value and output the key-value map to a given output field."
+                            }
+                          }
+                        },
+                        "description": "UDP receiver configurations. This field is mandatory for UDP receivers."
+                      }
+                    }
+                  }
+                },
+                "description": "The receivers specified for a pipeline group instance."
+              },
+              "processors": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "type": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The type of processor."
+                      },
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^(?!-)[a-zA-Z0-9-]{3,32}[^-]$"
+                        },
+                        "description": "The name of processor."
+                      },
+                      "batch": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "batchSize": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Size of the batch."
+                            },
+                            "timeout": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Timeout in milliseconds."
+                            }
+                          }
+                        },
+                        "description": "Batch processor configurations."
+                      }
+                    }
+                  }
+                },
+                "description": "The processors specified for a pipeline group instance."
+              },
+              "exporters": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "type": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The type of exporter."
+                      },
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^(?!-)[a-zA-Z0-9-]{3,32}[^-]$"
+                        },
+                        "description": "The name of exporter."
+                      },
+                      "azureMonitorWorkspaceLogs": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "api": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "API configurations for Azure Monitor workspace exporter."
+                            },
+                            "concurrency": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Concurrency configuration for the exporter."
+                            },
+                            "cache": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Cache configurations."
+                            }
+                          }
+                        },
+                        "description": "Azure Monitor Workspace Logs specific configurations."
+                      },
+                      "tcp": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "url": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "TCP url to export."
+                            }
+                          }
+                        },
+                        "description": "TCP based exporter. Used for pipelineGroup exporter."
+                      }
+                    }
+                  }
+                },
+                "description": "The exporters specified for a pipeline group instance."
+              },
+              "service": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "pipelines": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Name of the pipeline."
+                            },
+                            "type": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The type of pipeline"
+                            },
+                            "receivers": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reference to receivers configured for the pipeline."
+                            },
+                            "processors": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reference to processors configured for the pipeline."
+                            },
+                            "exporters": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Reference to exporters configured for the pipeline."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Pipelines belonging to a given pipeline group."
+                    },
+                    "persistence": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "persistentVolumeName": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The name of the mounted persistent volume."
+                          }
+                        }
+                      },
+                      "description": "Persistence options to all pipelines in the instance."
+                    }
+                  }
+                },
+                "description": "The service section for a given pipeline group instance."
+              },
+              "networkingConfigurations": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "externalNetworkingMode": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "External networking mode."
+                      },
+                      "host": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType",
+                          "pattern": "^[a-zA-Z0-9-\\.]+$"
+                        },
+                        "description": "The address exposed on the cluster. Example: azuremonitorpipeline.contoso.com."
+                      },
+                      "routes": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "Networking routes configuration."
+                      }
+                    }
+                  }
+                },
+                "description": "Networking configurations for the pipeline group instance."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Creating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of a pipeline group instance. Set to Succeeded if everything is healthy."
+              }
+            }
+          },
+          "description": "The resource-specific properties for this resource."
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 1,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeZone"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CustomLocation"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "The complex type of the extended location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,363 @@
+{
+  "resourceName": "Keys",
+  "bicepType": "Microsoft.KeyVault/vaults/keys@2024-04-01-preview",
+  "terraformType": "azurerm_key_vault_key",
+  "category": "menu",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.keyvault/vaults/keys",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.KeyVault/vaults/keys@2024-04-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "pattern": "^[a-zA-Z0-9-]{1,127}$"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.KeyVault/vaults/keys"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-04-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The tags that will be assigned to the key."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "attributes": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Determines whether or not the object is enabled."
+                    },
+                    "nbf": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Not before date in seconds since 1970-01-01T00:00:00Z."
+                    },
+                    "exp": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Expiry date in seconds since 1970-01-01T00:00:00Z."
+                    },
+                    "created": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Creation time in seconds since 1970-01-01T00:00:00Z."
+                    },
+                    "updated": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Last updated time in seconds since 1970-01-01T00:00:00Z."
+                    },
+                    "recoveryLevel": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Purgeable"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Recoverable+Purgeable"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Recoverable"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Recoverable+ProtectedSubscription"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The deletion recovery level currently in effect for the object. If it contains 'Purgeable', then the object can be permanently deleted by a privileged user; otherwise, only the system can purge the object at the end of the retention interval."
+                    },
+                    "exportable": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates if the private key can be exported."
+                    }
+                  }
+                },
+                "description": "The attributes of the key."
+              },
+              "kty": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EC-HSM"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RSA"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "RSA-HSM"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the key. For valid values, see JsonWebKeyType."
+              },
+              "keyOps": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "UnionType",
+                    "elements": [
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "encrypt"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "decrypt"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "sign"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "verify"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "wrapKey"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "unwrapKey"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "import"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "release"
+                      },
+                      {
+                        "$type": "StringType"
+                      }
+                    ]
+                  }
+                }
+              },
+              "keySize": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "The key size in bits. For example: 2048, 3072, or 4096 for RSA."
+              },
+              "curveName": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P-256"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P-384"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P-521"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "P-256K"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The elliptic curve name. For valid values, see JsonWebKeyCurveName."
+              },
+              "keyUri": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The URI to retrieve the current version of the key."
+              },
+              "keyUriWithVersion": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The URI to retrieve the specific version of the key."
+              },
+              "rotationPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "attributes": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "created": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Creation time in seconds since 1970-01-01T00:00:00Z."
+                          },
+                          "updated": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Last updated time in seconds since 1970-01-01T00:00:00Z."
+                          },
+                          "expiryTime": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The expiration time for the new key version. It should be in ISO8601 format. Eg: 'P90D', 'P1Y'."
+                          }
+                        }
+                      },
+                      "description": "The attributes of key rotation policy."
+                    },
+                    "lifetimeActions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "trigger": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The trigger of key rotation policy lifetimeAction."
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The action of key rotation policy lifetimeAction."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The lifetimeActions for key rotation action."
+                    }
+                  }
+                },
+                "description": "Key rotation policy in response. It will be used for both output and input. Omitted if empty"
+              },
+              "release_policy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "contentType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Content type and version of key release policy"
+                    },
+                    "data": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Blob encoding the policy rules under which the key can be released."
+                    }
+                  }
+                },
+                "description": "Key release policy in response. It will be used for both output and input. Omitted if empty"
+              }
+            }
+          },
+          "description": "The properties of the key to be created."
+        },
+        "location": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Azure location of the key vault resource."
+        }
+      }
+    }
+  }
+}

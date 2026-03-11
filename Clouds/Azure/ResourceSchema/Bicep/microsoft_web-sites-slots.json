@@ -1,0 +1,2450 @@
+{
+  "resourceName": "Web Slots",
+  "bicepType": "Microsoft.Web/sites/slots@2023-12-01",
+  "terraformType": "azurerm_linux_web_app_slot",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.web/sites/slots",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Web/sites/slots@2023-12-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Web/sites/slots"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-12-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "state": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Current state of the app."
+              },
+              "hostNames": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Hostnames associated with the app."
+              },
+              "repositorySiteName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the repository site."
+              },
+              "usageState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Normal"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Exceeded"
+                    }
+                  ]
+                },
+                "description": "State indicating whether the app has exceeded its quota usage. Read-only."
+              },
+              "enabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if the app is enabled; otherwise, <code>false</code>. Setting this value to false disables the app (takes the app offline)."
+              },
+              "enabledHostNames": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Enabled hostnames for the app.Hostnames need to be assigned (see HostNames) AND enabled. Otherwise,\nthe app is not served on those hostnames."
+              },
+              "availabilityState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Normal"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Limited"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "DisasterRecoveryMode"
+                    }
+                  ]
+                },
+                "description": "Management information availability state for the app."
+              },
+              "hostNameSslStates": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Hostname."
+                      },
+                      "sslState": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "SSL type."
+                      },
+                      "virtualIP": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Virtual IP address assigned to the hostname if IP based SSL is enabled."
+                      },
+                      "thumbprint": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "SSL certificate thumbprint."
+                      },
+                      "toUpdate": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Set to <code>true</code> to update existing hostname."
+                      },
+                      "hostType": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Indicates whether the hostname is a standard or repository hostname."
+                      }
+                    }
+                  }
+                },
+                "description": "Hostname SSL states are used to manage the SSL bindings for app's hostnames."
+              },
+              "serverFarmId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Resource ID of the associated App Service plan, formatted as: \"/subscriptions/{subscriptionID}/resourceGroups/{groupName}/providers/Microsoft.Web/serverfarms/{appServicePlanName}\"."
+              },
+              "reserved": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if reserved; otherwise, <code>false</code>."
+              },
+              "isXenon": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Obsolete: Hyper-V sandbox."
+              },
+              "hyperV": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Hyper-V sandbox."
+              },
+              "lastModifiedTimeUtc": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Last time the app was modified, in UTC. Read-only."
+              },
+              "dnsConfiguration": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "dnsServers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "List of custom DNS servers to be used by an app for lookups. Maximum 5 dns servers can be set."
+                    },
+                    "dnsAltServer": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Alternate DNS server to be used by apps. This property replicates the WEBSITE_DNS_ALT_SERVER app setting."
+                    },
+                    "dnsRetryAttemptTimeout": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Timeout for a single dns lookup in seconds. Allowed range: 1-30. Default is 3."
+                    },
+                    "dnsRetryAttemptCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Total number of retries for dns lookup. Allowed range: 1-5. Default is 3."
+                    },
+                    "dnsMaxCacheTimeout": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Custom time for DNS to be cached in seconds. Allowed range: 0-60. Default is 30 seconds. 0 means caching disabled."
+                    },
+                    "dnsLegacySortOrder": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Indicates that sites using Virtual network custom DNS servers are still sorting the list of DNS servers. Read-Only."
+                    }
+                  }
+                },
+                "description": "Property to configure various DNS related settings for a site."
+              },
+              "vnetRouteAllEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Virtual Network Route All enabled. This causes all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied."
+              },
+              "vnetImagePullEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "To enable pulling image over Virtual Network"
+              },
+              "vnetContentShareEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "To enable accessing content over virtual network"
+              },
+              "vnetBackupRestoreEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "To enable Backup and Restore operations over virtual network"
+              },
+              "siteConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "numberOfWorkers": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Number of workers."
+                    },
+                    "defaultDocuments": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Default documents."
+                    },
+                    "netFrameworkVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": ".NET Framework version."
+                    },
+                    "phpVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Version of PHP."
+                    },
+                    "pythonVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Version of Python."
+                    },
+                    "nodeVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Version of Node.js."
+                    },
+                    "powerShellVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Version of PowerShell."
+                    },
+                    "linuxFxVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Linux App Framework and version"
+                    },
+                    "windowsFxVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Xenon App Framework and version"
+                    },
+                    "requestTracingEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if request tracing is enabled; otherwise, <code>false</code>."
+                    },
+                    "requestTracingExpirationTime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Request tracing expiration time."
+                    },
+                    "remoteDebuggingEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if remote debugging is enabled; otherwise, <code>false</code>."
+                    },
+                    "remoteDebuggingVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Remote debugging version."
+                    },
+                    "httpLoggingEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if HTTP logging is enabled; otherwise, <code>false</code>."
+                    },
+                    "acrUseManagedIdentityCreds": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Flag to use Managed Identity Creds for ACR pull"
+                    },
+                    "acrUserManagedIdentityID": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "If using user managed identity, the user managed identity ClientId"
+                    },
+                    "logsDirectorySizeLimit": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "HTTP logs directory size limit."
+                    },
+                    "detailedErrorLoggingEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if detailed error logging is enabled; otherwise, <code>false</code>."
+                    },
+                    "publishingUsername": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Publishing user name."
+                    },
+                    "appSettings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Pair name."
+                            },
+                            "value": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Pair value."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Application settings."
+                    },
+                    "metadata": {
+                      "flags": 4,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Pair name."
+                            },
+                            "value": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Pair value."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Application metadata. This property cannot be retrieved, since it may contain secrets."
+                    },
+                    "connectionStrings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Name of connection string."
+                            },
+                            "connectionString": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Connection string value."
+                            },
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of database."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Connection strings."
+                    },
+                    "machineKey": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "validation": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "MachineKey validation."
+                          },
+                          "validationKey": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Validation key."
+                          },
+                          "decryption": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Algorithm used for decryption."
+                          },
+                          "decryptionKey": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Decryption key."
+                          }
+                        }
+                      },
+                      "description": "Site MachineKey."
+                    },
+                    "handlerMappings": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "extension": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Requests with this extension will be handled using the specified FastCGI application."
+                            },
+                            "scriptProcessor": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The absolute path to the FastCGI application."
+                            },
+                            "arguments": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Command-line arguments to be passed to the script processor."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Handler mappings."
+                    },
+                    "documentRoot": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Document root."
+                    },
+                    "scmType": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "None"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Dropbox"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Tfs"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LocalGit"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "GitHub"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CodePlexGit"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CodePlexHg"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "BitbucketGit"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "BitbucketHg"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ExternalGit"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "ExternalHg"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "OneDrive"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VSO"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "VSTSRM"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "SCM type."
+                    },
+                    "use32BitWorkerProcess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> to use 32-bit worker process; otherwise, <code>false</code>."
+                    },
+                    "webSocketsEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if WebSocket is enabled; otherwise, <code>false</code>."
+                    },
+                    "alwaysOn": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if Always On is enabled; otherwise, <code>false</code>."
+                    },
+                    "javaVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Java version."
+                    },
+                    "javaContainer": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Java container."
+                    },
+                    "javaContainerVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Java container version."
+                    },
+                    "appCommandLine": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "App command line to launch."
+                    },
+                    "managedPipelineMode": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Integrated"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Classic"
+                          }
+                        ]
+                      },
+                      "description": "Managed pipeline mode."
+                    },
+                    "virtualApplications": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "virtualPath": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Virtual path."
+                            },
+                            "physicalPath": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Physical path."
+                            },
+                            "preloadEnabled": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "<code>true</code> if preloading is enabled; otherwise, <code>false</code>."
+                            },
+                            "virtualDirectories": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Virtual directories for virtual application."
+                            }
+                          }
+                        }
+                      },
+                      "description": "Virtual applications."
+                    },
+                    "loadBalancing": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "WeightedRoundRobin"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LeastRequests"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "LeastResponseTime"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "WeightedTotalTraffic"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "RequestHash"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "PerSiteRoundRobin"
+                          }
+                        ]
+                      },
+                      "description": "Site load balancing."
+                    },
+                    "experiments": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "rampUpRules": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "List of ramp-up rules."
+                          }
+                        }
+                      },
+                      "description": "This is work around for polymorphic types."
+                    },
+                    "limits": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "maxPercentageCpu": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Maximum allowed CPU usage percentage."
+                          },
+                          "maxMemoryInMb": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Maximum allowed memory usage in MB."
+                          },
+                          "maxDiskSizeInMb": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Maximum allowed disk size usage in MB."
+                          }
+                        }
+                      },
+                      "description": "Site limits."
+                    },
+                    "autoHealEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> if Auto Heal is enabled; otherwise, <code>false</code>."
+                    },
+                    "autoHealRules": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "triggers": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "requests": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A rule based on total requests."
+                                },
+                                "privateBytesInKB": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A rule based on private bytes."
+                                },
+                                "statusCodes": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A rule based on status codes."
+                                },
+                                "slowRequests": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A rule based on request execution time."
+                                },
+                                "slowRequestsWithPath": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A rule based on multiple Slow Requests Rule with path"
+                                },
+                                "statusCodesRange": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "A rule based on status codes ranges."
+                                }
+                              }
+                            },
+                            "description": "Conditions that describe when to execute the auto-heal actions."
+                          },
+                          "actions": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "actionType": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Predefined action to be taken."
+                                },
+                                "customAction": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Custom action to be taken."
+                                },
+                                "minProcessExecutionTime": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Minimum time the process must execute\nbefore taking the action"
+                                }
+                              }
+                            },
+                            "description": "Actions to be executed when a rule is triggered."
+                          }
+                        }
+                      },
+                      "description": "Auto Heal rules."
+                    },
+                    "tracingOptions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Tracing options."
+                    },
+                    "vnetName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Virtual Network name."
+                    },
+                    "vnetRouteAllEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Virtual Network Route All enabled. This causes all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied."
+                    },
+                    "vnetPrivatePortsCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "The number of private ports assigned to this app. These will be assigned dynamically on runtime."
+                    },
+                    "cors": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "allowedOrigins": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Gets or sets the list of origins that should be allowed to make cross-origin\ncalls (for example: http://example.com:12345). Use \"*\" to allow all."
+                          },
+                          "supportCredentials": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "Gets or sets whether CORS requests with credentials are allowed. See \nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Requests_with_credentials\nfor more details."
+                          }
+                        }
+                      },
+                      "description": "Cross-Origin Resource Sharing (CORS) settings."
+                    },
+                    "push": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "properties": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "isPushEnabled": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets a flag indicating whether the Push endpoint is enabled."
+                                },
+                                "tagWhitelistJson": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets a JSON string containing a list of tags that are whitelisted for use by the push registration endpoint."
+                                },
+                                "tagsRequiringAuth": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets a JSON string containing a list of tags that require user authentication to be used in the push registration endpoint.\nTags can consist of alphanumeric characters and the following:\n'_', '@', '#', '.', ':', '-'. \nValidation should be performed at the PushRequestHandler."
+                                },
+                                "dynamicTagsJson": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Gets or sets a JSON string containing a list of dynamic tags that will be evaluated from user claims in the push registration endpoint."
+                                }
+                              }
+                            },
+                            "description": "PushSettings resource specific properties"
+                          },
+                          "id": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource Id."
+                          },
+                          "name": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource Name."
+                          },
+                          "kind": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Kind of resource."
+                          },
+                          "type": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Resource type."
+                          }
+                        }
+                      },
+                      "description": "Push endpoint settings."
+                    },
+                    "apiDefinition": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "url": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "The URL of the API definition."
+                          }
+                        }
+                      },
+                      "description": "Information about the formal API definition for the app."
+                    },
+                    "apiManagementConfig": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "APIM-Api Identifier."
+                          }
+                        }
+                      },
+                      "description": "Azure API management settings linked to the app."
+                    },
+                    "autoSwapSlotName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Auto-swap slot name."
+                    },
+                    "localMySqlEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> to enable local MySQL; otherwise, <code>false</code>."
+                    },
+                    "managedServiceIdentityId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Managed Service Identity Id"
+                    },
+                    "xManagedServiceIdentityId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Explicit Managed Service Identity Id"
+                    },
+                    "keyVaultReferenceIdentity": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Identity to use for Key Vault Reference authentication."
+                    },
+                    "ipSecurityRestrictions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "ipAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP address the security restriction is valid for.\nIt can be in form of pure ipv4 address (required SubnetMask property) or\nCIDR notation such as ipv4/mask (leading bit match). For CIDR,\nSubnetMask property must not be specified."
+                            },
+                            "subnetMask": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Subnet mask for the range of IP addresses the restriction is valid for."
+                            },
+                            "vnetSubnetResourceId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Virtual network resource id"
+                            },
+                            "vnetTrafficTag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "(internal) Vnet traffic tag"
+                            },
+                            "subnetTrafficTag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "(internal) Subnet traffic tag"
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Allow or Deny access for this IP range."
+                            },
+                            "tag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Defines what this IP filter will be used for. This is to support IP filtering on proxies."
+                            },
+                            "priority": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Priority of IP restriction rule."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP restriction rule name."
+                            },
+                            "description": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP restriction rule description."
+                            },
+                            "headers": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP restriction rule headers.\nX-Forwarded-Host (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host#Examples). \nThe matching logic is ..\n- If the property is null or empty (default), all hosts(or lack of) are allowed.\n- A value is compared using ordinal-ignore-case (excluding port number).\n- Subdomain wildcards are permitted but don't match the root domain. For example, *.contoso.com matches the subdomain foo.contoso.com\n but not the root domain contoso.com or multi-level foo.bar.contoso.com\n- Unicode host names are allowed but are converted to Punycode for matching.\n\nX-Forwarded-For (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For#Examples).\nThe matching logic is ..\n- If the property is null or empty (default), any forwarded-for chains (or lack of) are allowed.\n- If any address (excluding port number) in the chain (comma separated) matches the CIDR defined by the property.\n\nX-Azure-FDID and X-FD-HealthProbe.\nThe matching logic is exact match."
+                            }
+                          }
+                        }
+                      },
+                      "description": "IP security restrictions for main."
+                    },
+                    "ipSecurityRestrictionsDefaultAction": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Allow"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deny"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Default action for main access restriction if no rules are matched."
+                    },
+                    "scmIpSecurityRestrictions": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "ipAddress": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP address the security restriction is valid for.\nIt can be in form of pure ipv4 address (required SubnetMask property) or\nCIDR notation such as ipv4/mask (leading bit match). For CIDR,\nSubnetMask property must not be specified."
+                            },
+                            "subnetMask": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Subnet mask for the range of IP addresses the restriction is valid for."
+                            },
+                            "vnetSubnetResourceId": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Virtual network resource id"
+                            },
+                            "vnetTrafficTag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "(internal) Vnet traffic tag"
+                            },
+                            "subnetTrafficTag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "(internal) Subnet traffic tag"
+                            },
+                            "action": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Allow or Deny access for this IP range."
+                            },
+                            "tag": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Defines what this IP filter will be used for. This is to support IP filtering on proxies."
+                            },
+                            "priority": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Priority of IP restriction rule."
+                            },
+                            "name": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP restriction rule name."
+                            },
+                            "description": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP restriction rule description."
+                            },
+                            "headers": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "IP restriction rule headers.\nX-Forwarded-Host (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host#Examples). \nThe matching logic is ..\n- If the property is null or empty (default), all hosts(or lack of) are allowed.\n- A value is compared using ordinal-ignore-case (excluding port number).\n- Subdomain wildcards are permitted but don't match the root domain. For example, *.contoso.com matches the subdomain foo.contoso.com\n but not the root domain contoso.com or multi-level foo.bar.contoso.com\n- Unicode host names are allowed but are converted to Punycode for matching.\n\nX-Forwarded-For (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For#Examples).\nThe matching logic is ..\n- If the property is null or empty (default), any forwarded-for chains (or lack of) are allowed.\n- If any address (excluding port number) in the chain (comma separated) matches the CIDR defined by the property.\n\nX-Azure-FDID and X-FD-HealthProbe.\nThe matching logic is exact match."
+                            }
+                          }
+                        }
+                      },
+                      "description": "IP security restrictions for scm."
+                    },
+                    "scmIpSecurityRestrictionsDefaultAction": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Allow"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Deny"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Default action for scm access restriction if no rules are matched."
+                    },
+                    "scmIpSecurityRestrictionsUseMain": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "IP security restrictions for scm to use main."
+                    },
+                    "http20Enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Http20Enabled: configures a web site to allow clients to connect over http2.0"
+                    },
+                    "minTlsVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.0"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.1"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.2"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.3"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "MinTlsVersion: configures the minimum version of TLS required for SSL requests"
+                    },
+                    "minTlsCipherSuite": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_AES_256_GCM_SHA384"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_AES_128_GCM_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_RSA_WITH_AES_256_GCM_SHA384"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_RSA_WITH_AES_128_GCM_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_RSA_WITH_AES_256_CBC_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_RSA_WITH_AES_128_CBC_SHA256"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_RSA_WITH_AES_256_CBC_SHA"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TLS_RSA_WITH_AES_128_CBC_SHA"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The minimum strength TLS cipher suite allowed for an application"
+                    },
+                    "scmMinTlsVersion": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.0"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.1"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.2"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "1.3"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "ScmMinTlsVersion: configures the minimum version of TLS required for SSL requests for SCM site"
+                    },
+                    "ftpsState": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AllAllowed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "FtpsOnly"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disabled"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "State of FTP / FTPS service"
+                    },
+                    "preWarmedInstanceCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 10
+                      },
+                      "description": "Number of preWarmed instances.\nThis setting only applies to the Consumption and Elastic Plans"
+                    },
+                    "functionAppScaleLimit": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Maximum number of workers that a site can scale out to.\nThis setting only applies to the Consumption and Elastic Premium Plans"
+                    },
+                    "elasticWebAppScaleLimit": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Maximum number of workers that a site can scale out to.\nThis setting only applies to apps in plans where ElasticScaleEnabled is <code>true</code>"
+                    },
+                    "healthCheckPath": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Health check path"
+                    },
+                    "functionsRuntimeScaleMonitoringEnabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Gets or sets a value indicating whether functions runtime scale monitoring is enabled. When enabled,\nthe ScaleController will not monitor event sources directly, but will instead call to the\nruntime to get scale status."
+                    },
+                    "websiteTimeZone": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Sets the time zone a site uses for generating timestamps. Compatible with Linux and Windows App Service. Setting the WEBSITE_TIME_ZONE app setting takes precedence over this config. For Linux, expects tz database values https://www.iana.org/time-zones (for a quick reference see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). For Windows, expects one of the time zones listed under HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"
+                    },
+                    "minimumElasticInstanceCount": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0,
+                        "maxValue": 20
+                      },
+                      "description": "Number of minimum instance count for a site\nThis setting only applies to the Elastic Plans"
+                    },
+                    "azureStorageAccounts": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "type": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Type of storage."
+                            },
+                            "accountName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Name of the storage account."
+                            },
+                            "shareName": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Name of the file share (container name, for Blob storage)."
+                            },
+                            "accessKey": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Access key for the storage account."
+                            },
+                            "mountPath": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Path to mount the storage within the site's runtime environment."
+                            },
+                            "state": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "State of the storage account."
+                            },
+                            "protocol": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Mounting protocol to use for the storage account."
+                            }
+                          }
+                        }
+                      },
+                      "description": "List of Azure Storage Accounts."
+                    },
+                    "publicNetworkAccess": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Property to allow or block all public traffic."
+                    }
+                  }
+                },
+                "description": "Configuration of the app."
+              },
+              "functionAppConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "deployment": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "storage": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "type": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Property to select Azure Storage type. Available options: blobContainer."
+                                },
+                                "value": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Property to set the URL for the selected Azure Storage type. Example: For blobContainer, the value could be https://<storageAccountName>.blob.core.windows.net/<containerName>."
+                                },
+                                "authentication": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Authentication method to access the storage account for deployment."
+                                }
+                              }
+                            },
+                            "description": "Storage for deployed package used by the function app."
+                          }
+                        }
+                      },
+                      "description": "Function app deployment configuration."
+                    },
+                    "runtime": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "name": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Function app runtime name. Available options: dotnet-isolated, node, java, powershell, python, custom"
+                          },
+                          "version": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Function app runtime version. Example: 8 (for dotnet-isolated)"
+                          }
+                        }
+                      },
+                      "description": "Function app runtime settings."
+                    },
+                    "scaleAndConcurrency": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "alwaysReady": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ArrayType",
+                              "itemType": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "'Always Ready' configuration for the function app."
+                          },
+                          "maximumInstanceCount": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The maximum number of instances for the function app."
+                          },
+                          "instanceMemoryMB": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "Set the amount of memory allocated to each instance of the function app in MB. CPU and network bandwidth are allocated proportionally."
+                          },
+                          "triggers": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "http": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Scale and concurrency settings for the HTTP trigger."
+                                }
+                              }
+                            },
+                            "description": "Scale and concurrency settings for the function app triggers."
+                          }
+                        }
+                      },
+                      "description": "Function app scale and concurrency settings."
+                    }
+                  }
+                },
+                "description": "Configuration specific of the Azure Function app."
+              },
+              "daprConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Boolean indicating if the Dapr side car is enabled"
+                    },
+                    "appId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Dapr application identifier"
+                    },
+                    "appPort": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Tells Dapr which port your application is listening on"
+                    },
+                    "httpReadBufferSize": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Dapr max size of http header read buffer in KB to handle when sending multi-KB headers. Default is 65KB."
+                    },
+                    "httpMaxRequestSize": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Increasing max size of request body http servers parameter in MB to handle uploading of big files. Default is 4 MB."
+                    },
+                    "logLevel": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "info"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "debug"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "warn"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "error"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "Sets the log level for the Dapr sidecar. Allowed values are debug, info, warn, error. Default is info."
+                    },
+                    "enableApiLogging": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "Enables API logging for the Dapr sidecar"
+                    }
+                  }
+                },
+                "description": "Dapr configuration of the app."
+              },
+              "workloadProfileName": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Workload profile name for function app to execute on."
+              },
+              "resourceConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "cpu": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "IntegerType"
+                      },
+                      "description": "Required CPU in cores, e.g. 0.5"
+                    },
+                    "memory": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Required memory, e.g. \"1Gi\""
+                    }
+                  }
+                },
+                "description": "Function app resource requirements."
+              },
+              "trafficManagerHostNames": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "Azure Traffic Manager hostnames associated with the app. Read-only."
+              },
+              "scmSiteAlsoStopped": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> to stop SCM (KUDU) site when the app is stopped; otherwise, <code>false</code>. The default is <code>false</code>."
+              },
+              "targetSwapSlot": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Specifies which deployment slot this app will swap into. Read-only."
+              },
+              "hostingEnvironmentProfile": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID of the App Service Environment."
+                    },
+                    "name": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the App Service Environment."
+                    },
+                    "type": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource type of the App Service Environment."
+                    }
+                  }
+                },
+                "description": "App Service Environment to use for the app."
+              },
+              "clientAffinityEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> to enable client affinity; <code>false</code> to stop sending session affinity cookies, which route client requests in the same session to the same instance. Default is <code>true</code>."
+              },
+              "clientCertEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> to enable client certificate authentication (TLS mutual authentication); otherwise, <code>false</code>. Default is <code>false</code>."
+              },
+              "clientCertMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Required"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Optional"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "OptionalInteractiveUser"
+                    }
+                  ]
+                },
+                "description": "This composes with ClientCertEnabled setting.\n- ClientCertEnabled: false means ClientCert is ignored.\n- ClientCertEnabled: true and ClientCertMode: Required means ClientCert is required.\n- ClientCertEnabled: true and ClientCertMode: Optional means ClientCert is optional or accepted."
+              },
+              "clientCertExclusionPaths": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "client certificate authentication comma-separated exclusion paths"
+              },
+              "endToEndEncryptionEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether to use end to end encryption between the FrontEnd and the Worker"
+              },
+              "hostNamesDisabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> to disable the public hostnames of the app; otherwise, <code>false</code>.\n If <code>true</code>, the app is only accessible via API management process."
+              },
+              "customDomainVerificationId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Unique identifier that verifies the custom domains assigned to the app. Customer will add this id to a txt record for verification."
+              },
+              "outboundIpAddresses": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from tenants that site can be hosted with current settings. Read-only."
+              },
+              "possibleOutboundIpAddresses": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from all tenants except dataComponent. Read-only."
+              },
+              "containerSize": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Size of the function container."
+              },
+              "dailyMemoryTimeQuota": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Maximum allowed daily memory-time quota (applicable on dynamic apps only)."
+              },
+              "suspendedTill": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "App suspended till in case memory-time quota is exceeded."
+              },
+              "maxNumberOfWorkers": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Maximum number of workers.\nThis only applies to Functions container."
+              },
+              "cloningInfo": {
+                "flags": 4,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "correlationId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                      },
+                      "description": "Correlation ID of cloning operation. This ID ties multiple cloning operations\ntogether to use the same snapshot."
+                    },
+                    "overwrite": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> to overwrite destination app; otherwise, <code>false</code>."
+                    },
+                    "cloneCustomHostNames": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> to clone custom hostnames from source app; otherwise, <code>false</code>."
+                    },
+                    "cloneSourceControl": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> to clone source control from source app; otherwise, <code>false</code>."
+                    },
+                    "sourceWebAppId": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ARM resource ID of the source app. App resource ID is of the form \n/subscriptions/{subId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName} for production slots and \n/subscriptions/{subId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName}/slots/{slotName} for other slots."
+                    },
+                    "sourceWebAppLocation": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Location of source app ex: West US or North Europe"
+                    },
+                    "hostingEnvironment": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "App Service Environment."
+                    },
+                    "appSettingsOverrides": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "additionalProperties": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "Application setting overrides for cloned app. If specified, these settings override the settings cloned \nfrom source app. Otherwise, application settings from source app are retained."
+                    },
+                    "configureLoadBalancing": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "<code>true</code> to configure load balancing for source and destination app."
+                    },
+                    "trafficManagerProfileId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ARM resource ID of the Traffic Manager profile to use, if it exists. Traffic Manager resource ID is of the form \n/subscriptions/{subId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/trafficManagerProfiles/{profileName}."
+                    },
+                    "trafficManagerProfileName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of Traffic Manager profile to create. This is only needed if Traffic Manager profile does not already exist."
+                    }
+                  }
+                },
+                "description": "If specified during app creation, the app is cloned from a source app."
+              },
+              "resourceGroup": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of the resource group the app belongs to. Read-only."
+              },
+              "isDefaultContainer": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "<code>true</code> if the app is a default container; otherwise, <code>false</code>."
+              },
+              "defaultHostName": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Default hostname of the app. Read-only."
+              },
+              "slotSwapStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "timestampUtc": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The time the last successful slot swap completed."
+                    },
+                    "sourceSlotName": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The source slot of the last swap operation."
+                    },
+                    "destinationSlotName": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The destination slot of the last swap operation."
+                    }
+                  }
+                },
+                "description": "Status of the last deployment slot swap operation."
+              },
+              "httpsOnly": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "HttpsOnly: configures a web site to accept only https requests. Issues redirect for\nhttp requests"
+              },
+              "redundancyMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Manual"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failover"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ActiveActive"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GeoRedundant"
+                    }
+                  ]
+                },
+                "description": "Site redundancy mode"
+              },
+              "inProgressOperationId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+                },
+                "description": "Specifies an operation id if this site has a pending operation."
+              },
+              "publicNetworkAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Property to allow or block all public traffic. Allowed Values: 'Enabled', 'Disabled' or an empty string."
+              },
+              "storageAccountRequired": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Checks if Customer provided storage account is required"
+              },
+              "keyVaultReferenceIdentity": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Identity to use for Key Vault Reference authentication."
+              },
+              "virtualNetworkSubnetId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure Resource Manager ID of the Virtual network and subnet to be joined by Regional VNET Integration.\nThis must be of the form /subscriptions/{subscriptionName}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}"
+              },
+              "managedEnvironmentId": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Azure Resource Manager ID of the customer's selected Managed Environment on which to host this app. This must be of the form /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.App/managedEnvironments/{managedEnvironmentName}"
+              }
+            }
+          },
+          "description": "Site resource specific properties"
+        },
+        "identity": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "SystemAssigned, UserAssigned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "Type of managed service identity."
+              },
+              "tenantId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Tenant of managed service identity."
+              },
+              "principalId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Principal Id of managed service identity."
+              },
+              "userAssignedIdentities": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "principalId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Principal Id of user assigned identity"
+                      },
+                      "clientId": {
+                        "flags": 2,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Client Id of user assigned identity"
+                      }
+                    }
+                  }
+                },
+                "description": "The list of user assigned identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}"
+              }
+            }
+          },
+          "description": "Managed service identity."
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Name of extended location."
+              },
+              "type": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Type of extended location."
+              }
+            }
+          },
+          "description": "Extended Location."
+        },
+        "kind": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Kind of resource."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

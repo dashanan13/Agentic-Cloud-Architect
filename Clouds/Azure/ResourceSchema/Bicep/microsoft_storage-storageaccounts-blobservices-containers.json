@@ -1,0 +1,505 @@
+{
+  "resourceName": "Storage Container",
+  "bicepType": "Microsoft.Storage/storageAccounts/blobServices/containers@2024-01-01",
+  "terraformType": "azurerm_storage_container",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/blobservices/containers",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Storage/storageAccounts/blobServices/containers@2024-01-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType",
+            "minLength": 3,
+            "maxLength": 63
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Storage/storageAccounts/blobServices/containers"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-01-01"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "version": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The version of the deleted blob container."
+              },
+              "deleted": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates whether the blob container was deleted."
+              },
+              "deletedTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Blob container deletion time."
+              },
+              "remainingRetentionDays": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Remaining retention days for soft deleted blob container."
+              },
+              "defaultEncryptionScope": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Default the container to use specified encryption scope for all writes."
+              },
+              "denyEncryptionScopeOverride": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Block override of encryption scope from the container default."
+              },
+              "publicAccess": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Container"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Blob"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    }
+                  ]
+                },
+                "description": "Specifies whether data in the container may be accessed publicly and the level of access."
+              },
+              "lastModifiedTime": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Returns the date and time the container was last modified."
+              },
+              "leaseStatus": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Locked"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Unlocked"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The lease status of the container."
+              },
+              "leaseState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Available"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Leased"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Expired"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Breaking"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Broken"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Lease state of the container."
+              },
+              "leaseDuration": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Infinite"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Fixed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Specifies whether the lease on a container is of infinite or fixed duration, only when the container is leased."
+              },
+              "metadata": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "additionalProperties": {
+                    "$type": "StringType"
+                  }
+                },
+                "description": "A name-value pair to associate with the container as metadata."
+              },
+              "immutabilityPolicy": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "properties": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "immutabilityPeriodSinceCreationInDays": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType"
+                            },
+                            "description": "The immutability period for the blobs in the container since the policy creation, in days."
+                          },
+                          "state": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "The ImmutabilityPolicy state of a blob container, possible values include: Locked and Unlocked."
+                          },
+                          "allowProtectedAppendWrites": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API."
+                          },
+                          "allowProtectedAppendWritesAll": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API. The 'allowProtectedAppendWrites' and 'allowProtectedAppendWritesAll' properties are mutually exclusive."
+                          }
+                        }
+                      },
+                      "description": "The properties of an ImmutabilityPolicy of a blob container."
+                    },
+                    "etag": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "ImmutabilityPolicy Etag."
+                    },
+                    "updateHistory": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "update": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The ImmutabilityPolicy update type of a blob container, possible values include: put, lock and extend."
+                            },
+                            "immutabilityPeriodSinceCreationInDays": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The immutability period for the blobs in the container since the policy creation, in days."
+                            },
+                            "timestamp": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the date and time the ImmutabilityPolicy was updated."
+                            },
+                            "objectIdentifier": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the Object ID of the user who updated the ImmutabilityPolicy."
+                            },
+                            "tenantId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the Tenant ID that issued the token for the user who updated the ImmutabilityPolicy."
+                            },
+                            "upn": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the User Principal Name of the user who updated the ImmutabilityPolicy."
+                            },
+                            "allowProtectedAppendWrites": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API."
+                            },
+                            "allowProtectedAppendWritesAll": {
+                              "flags": 0,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "This property can only be changed for unlocked time-based retention policies. When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted. This property cannot be changed with ExtendImmutabilityPolicy API. The 'allowProtectedAppendWrites' and 'allowProtectedAppendWritesAll' properties are mutually exclusive."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The ImmutabilityPolicy update history of the blob container."
+                    }
+                  }
+                },
+                "description": "The ImmutabilityPolicy property of the container."
+              },
+              "legalHold": {
+                "flags": 2,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "hasLegalHold": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "The hasLegalHold public property is set to true by SRP if there are at least one existing tag. The hasLegalHold public property is set to false by SRP if all existing legal hold tags are cleared out. There can be a maximum of 1000 blob containers with hasLegalHold=true for a given account."
+                    },
+                    "tags": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "tag": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The tag value."
+                            },
+                            "timestamp": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the date and time the tag was added."
+                            },
+                            "objectIdentifier": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the Object ID of the user who added the tag."
+                            },
+                            "tenantId": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the Tenant ID that issued the token for the user who added the tag."
+                            },
+                            "upn": {
+                              "flags": 2,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Returns the User Principal Name of the user who added the tag."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of LegalHold tags of a blob container."
+                    },
+                    "protectedAppendWritesHistory": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "allowProtectedAppendWritesAll": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "BooleanType"
+                            },
+                            "description": "When enabled, new blocks can be written to both 'Append and Bock Blobs' while maintaining legal hold protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted."
+                          },
+                          "timestamp": {
+                            "flags": 2,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Returns the date and time the tag was added."
+                          }
+                        }
+                      },
+                      "description": "Protected append blob writes history."
+                    }
+                  }
+                },
+                "description": "The LegalHold property of the container."
+              },
+              "hasLegalHold": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "The hasLegalHold public property is set to true by SRP if there are at least one existing tag. The hasLegalHold public property is set to false by SRP if all existing legal hold tags are cleared out. There can be a maximum of 1000 blob containers with hasLegalHold=true for a given account."
+              },
+              "hasImmutabilityPolicy": {
+                "flags": 2,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "The hasImmutabilityPolicy public property is set to true by SRP if ImmutabilityPolicy has been created for this container. The hasImmutabilityPolicy public property is set to false by SRP if ImmutabilityPolicy has not been created for this container."
+              },
+              "immutableStorageWithVersioning": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "enabled": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "This is an immutable property, when set to true it enables object level immutability at the container level."
+                    },
+                    "timeStamp": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Returns the date and time the object level immutability was enabled."
+                    },
+                    "migrationState": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "InProgress"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Completed"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "This property denotes the container level immutability to object level immutability migration state."
+                    }
+                  }
+                },
+                "description": "The object level immutability property of the container. The property is immutable and can only be set to true at the container creation time. Existing containers must undergo a migration process."
+              },
+              "enableNfsV3RootSquash": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enable NFSv3 root squash on blob container."
+              },
+              "enableNfsV3AllSquash": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Enable NFSv3 all squash on blob container."
+              }
+            }
+          },
+          "description": "Properties of the blob container."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Etag."
+        }
+      }
+    }
+  }
+}

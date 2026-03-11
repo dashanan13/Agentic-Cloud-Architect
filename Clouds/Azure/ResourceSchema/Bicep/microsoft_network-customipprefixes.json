@@ -1,0 +1,375 @@
+{
+  "resourceName": "Custom IP Prefix",
+  "bicepType": "Microsoft.Network/customIpPrefixes@2024-03-01",
+  "terraformType": "azurerm_custom_ip_prefix",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/customipprefixes",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Network/customIpPrefixes@2024-03-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Network/customIpPrefixes"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2024-03-01"
+          },
+          "description": "The resource api version"
+        },
+        "extendedLocation": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the extended location."
+              },
+              "type": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EdgeZone"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of the extended location."
+              }
+            }
+          },
+          "description": "The extended location of the custom IP prefix."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "asn": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The ASN for CIDR advertising. Should be an integer as string."
+              },
+              "cidr": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The prefix range in CIDR notation. Should include the start address and the prefix length."
+              },
+              "signedMessage": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Signed message for WAN validation."
+              },
+              "authorizationMessage": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Authorization message for WAN validation."
+              },
+              "customIpPrefixParent": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Resource ID."
+                    }
+                  }
+                },
+                "description": "The Parent CustomIpPrefix for IPv6 /64 CustomIpPrefix."
+              },
+              "childCustomIpPrefixes": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of all Children for IPv6 /48 CustomIpPrefix."
+              },
+              "commissionedState": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Provisioned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Commissioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "CommissionedNoInternetAdvertise"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Commissioned"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Decommissioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deprovisioning"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deprovisioned"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The commissioned state of the Custom IP Prefix."
+              },
+              "expressRouteAdvertise": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether to do express route advertise."
+              },
+              "geo": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GLOBAL"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AFRI"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "APAC"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EURO"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "LATAM"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "NAM"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ME"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "OCEANIA"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AQ"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The Geo for CIDR advertising. Should be an Geo code."
+              },
+              "noInternetAdvertise": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Whether to Advertise the range to Internet."
+              },
+              "prefixType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Singular"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Parent"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Child"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Type of custom IP prefix. Should be Singular, Parent, or Child."
+              },
+              "publicIpPrefixes": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "id": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "Resource ID."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of all referenced PublicIpPrefixes."
+              },
+              "resourceGuid": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The resource GUID property of the custom IP prefix resource."
+              },
+              "failedReason": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The reason why resource is in failed state."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the custom IP prefix resource."
+              }
+            }
+          },
+          "description": "Custom IP prefix properties."
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "zones": {
+          "flags": 0,
+          "type": {
+            "$type": "ArrayType",
+            "itemType": {
+              "$type": "StringType"
+            }
+          },
+          "description": "A list of availability zones denoting the IP allocated for the resource needs to come from."
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource location."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        }
+      }
+    }
+  }
+}

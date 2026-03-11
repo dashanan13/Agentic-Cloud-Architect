@@ -1,0 +1,234 @@
+{
+  "resourceName": "Azure DevOps",
+  "bicepType": "Microsoft.DevOps/pipelines@2019-07-01-preview",
+  "terraformType": "",
+  "category": "devops",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.devops/pipelines",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DevOps/pipelines@2019-07-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DevOps/pipelines"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2019-07-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "pipelineId": {
+                "flags": 2,
+                "type": {
+                  "$type": "IntegerType"
+                },
+                "description": "Unique identifier of the Azure Pipeline within the Azure DevOps Project."
+              },
+              "organization": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Unique immutable identifier for the Azure DevOps Organization."
+                    },
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the Azure DevOps Organization."
+                    }
+                  }
+                },
+                "description": "Reference to the Azure DevOps Organization containing the Pipeline."
+              },
+              "project": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "id": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Unique immutable identifier of the Azure DevOps Project."
+                    },
+                    "name": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Name of the Azure DevOps Project."
+                    }
+                  }
+                },
+                "description": "Reference to the Azure DevOps Project containing the Pipeline."
+              },
+              "bootstrapConfiguration": {
+                "flags": 1,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "repository": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "repositoryType": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "UnionType",
+                              "elements": [
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                },
+                                {
+                                  "$type": "MaxDepthReached"
+                                }
+                              ]
+                            },
+                            "description": "Type of code repository."
+                          },
+                          "id": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Unique immutable identifier of the code repository."
+                          },
+                          "defaultBranch": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Default branch used to configure Continuous Integration (CI) in the pipeline."
+                          },
+                          "authorization": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "properties": {
+                                "authorizationType": {
+                                  "flags": 1,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Type of authorization."
+                                },
+                                "parameters": {
+                                  "flags": 0,
+                                  "type": {
+                                    "$type": "MaxDepthReached"
+                                  },
+                                  "description": "Authorization parameters corresponding to the authorization type."
+                                }
+                              }
+                            },
+                            "description": "Authorization info to access the code repository."
+                          },
+                          "properties": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "additionalProperties": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Repository-specific properties."
+                          }
+                        }
+                      },
+                      "description": "Repository containing the source code for the pipeline."
+                    },
+                    "template": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "id": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "StringType"
+                            },
+                            "description": "Unique identifier of the pipeline template."
+                          },
+                          "parameters": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "additionalProperties": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Dictionary of input parameters used in the pipeline template."
+                          }
+                        }
+                      },
+                      "description": "Template used to bootstrap the pipeline."
+                    }
+                  }
+                },
+                "description": "Configuration used to bootstrap the Pipeline."
+              }
+            }
+          },
+          "description": "Custom properties of the Pipeline."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource Tags"
+        },
+        "location": {
+          "flags": 0,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "Resource Location"
+        }
+      }
+    }
+  }
+}

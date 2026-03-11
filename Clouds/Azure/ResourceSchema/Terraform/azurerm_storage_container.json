@@ -1,0 +1,108 @@
+{
+  "resourceName": "Storage Container",
+  "bicepType": "Microsoft.Storage/storageAccounts/blobServices/containers@2024-01-01",
+  "terraformType": "azurerm_storage_container",
+  "category": "general",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.storage/storageaccounts/blobservices/containers",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "container_access_type": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "default_encryption_scope": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "encryption_scope_override_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "has_immutability_policy": {
+          "type": "bool",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "has_legal_hold": {
+          "type": "bool",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "metadata": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_manager_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "deprecated": true,
+          "computed": true
+        },
+        "storage_account_id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "storage_account_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "deprecated": true,
+          "optional": true
+        }
+      },
+      "block_types": {
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

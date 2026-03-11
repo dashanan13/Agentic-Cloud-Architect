@@ -1,0 +1,177 @@
+{
+  "resourceName": "Peering Service",
+  "bicepType": "Microsoft.Peering/peeringServices@2022-10-01",
+  "terraformType": "",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.peering/peeringservices",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.Peering/peeringServices@2022-10-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.Peering/peeringServices"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2022-10-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the peering service SKU."
+              }
+            }
+          },
+          "description": "The SKU that defines the type of the peering service."
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "peeringServiceLocation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The location (state/province) of the customer."
+              },
+              "peeringServiceProvider": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the service provider."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deleting"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the resource."
+              },
+              "providerPrimaryPeeringLocation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The primary peering (Microsoft/service provider) location to be used for customer traffic."
+              },
+              "providerBackupPeeringLocation": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The backup peering (Microsoft/service provider) location to be used for customer traffic."
+              },
+              "logAnalyticsWorkspaceProperties": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "workspaceID": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The Workspace ID."
+                    },
+                    "key": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The Workspace Key."
+                    },
+                    "connectedAgents": {
+                      "flags": 2,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "StringType"
+                        }
+                      },
+                      "description": "The list of connected agents."
+                    }
+                  }
+                },
+                "description": "The Log Analytics Workspace Properties"
+              }
+            }
+          },
+          "description": "The properties that define a peering service."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location of the resource."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "The resource tags."
+        }
+      }
+    }
+  }
+}

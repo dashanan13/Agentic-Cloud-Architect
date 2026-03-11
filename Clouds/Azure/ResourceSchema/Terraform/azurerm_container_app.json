@@ -1,0 +1,1154 @@
+{
+  "resourceName": "Worker Container App",
+  "bicepType": "Microsoft.App/containerApps@2024-08-02-preview",
+  "terraformType": "azurerm_container_app",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.app/containerapps",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "container_app_environment_id": {
+          "type": "string",
+          "description": "The ID of the Container App Environment to host this Container App.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "custom_domain_verification_id": {
+          "type": "string",
+          "description": "The ID of the Custom Domain Verification for this Container App.",
+          "description_kind": "plain",
+          "computed": true,
+          "sensitive": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "latest_revision_fqdn": {
+          "type": "string",
+          "description": "The FQDN of the Latest Revision of the Container App.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "latest_revision_name": {
+          "type": "string",
+          "description": "The name of the latest Container Revision.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "max_inactive_revisions": {
+          "type": "number",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description": "The name for this Container App.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "outbound_ip_addresses": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "revision_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "workload_profile_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "dapr": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "app_id": {
+                "type": "string",
+                "description": "The Dapr Application Identifier.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "app_port": {
+                "type": "number",
+                "description": "The port which the application is listening on. This is the same as the `ingress` port.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "app_protocol": {
+                "type": "string",
+                "description": "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "ingress": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "allow_insecure_connections": {
+                "type": "bool",
+                "description": "Should this ingress allow insecure connections?",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "client_certificate_mode": {
+                "type": "string",
+                "description": "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "custom_domain": {
+                "type": [
+                  "list",
+                  [
+                    "object",
+                    {
+                      "certificate_binding_type": "string",
+                      "certificate_id": "string",
+                      "name": "string"
+                    }
+                  ]
+                ],
+                "description_kind": "plain",
+                "computed": true
+              },
+              "exposed_port": {
+                "type": "number",
+                "description": "The exposed port on the container for the Ingress traffic.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "external_enabled": {
+                "type": "bool",
+                "description": "Is this an external Ingress.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "fqdn": {
+                "type": "string",
+                "description": "The FQDN of the ingress.",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "target_port": {
+                "type": "number",
+                "description": "The target port on the container for the Ingress traffic.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "transport": {
+                "type": "string",
+                "description": "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "cors": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "allow_credentials_enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "allowed_headers": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "allowed_methods": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "allowed_origins": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "exposed_headers": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "max_age_in_seconds": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "ip_security_restriction": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "action": {
+                      "type": "string",
+                      "description": "The action. Allow or Deny.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Describe the IP restriction rule that is being sent to the container-app.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ip_address_range": {
+                      "type": "string",
+                      "description": "The incoming IP address or range of IP addresses (in CIDR notation).",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name for the IP restriction rule.",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "traffic_weight": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "label": {
+                      "type": "string",
+                      "description": "The label to apply to the revision as a name prefix for routing traffic.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "latest_revision": {
+                      "type": "bool",
+                      "description": "This traffic Weight relates to the latest stable Container Revision.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "percentage": {
+                      "type": "number",
+                      "description": "The percentage of traffic to send to this revision.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "revision_suffix": {
+                      "type": "string",
+                      "description": "The suffix string to append to the revision. This must be unique for the Container App's lifetime. A default hash created by the service will be used if this value is omitted.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "registry": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity": {
+                "type": "string",
+                "description": "ID of the System or User Managed Identity used to pull images from the Container Registry",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "password_secret_name": {
+                "type": "string",
+                "description": "The name of the Secret Reference containing the password value for this user on the Container Registry.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "server": {
+                "type": "string",
+                "description": "The hostname for the Container Registry.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "username": {
+                "type": "string",
+                "description": "The username to use for this Container Registry.",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "secret": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "identity": {
+                "type": "string",
+                "description": "The identity to use for accessing key vault reference.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "key_vault_secret_id": {
+                "type": "string",
+                "description": "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description": "The secret name.",
+                "description_kind": "plain",
+                "required": true
+              },
+              "value": {
+                "type": "string",
+                "description": "The value for this secret.",
+                "description_kind": "plain",
+                "optional": true,
+                "sensitive": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "template": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "cooldown_period_in_seconds": {
+                "type": "number",
+                "description": "The number of seconds to wait before scaling down the number of instances again.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_replicas": {
+                "type": "number",
+                "description": "The maximum number of replicas for this container.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "min_replicas": {
+                "type": "number",
+                "description": "The minimum number of replicas for this container.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "polling_interval_in_seconds": {
+                "type": "number",
+                "description": "The interval in seconds used for polling KEDA.",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "revision_suffix": {
+                "type": "string",
+                "description": "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "termination_grace_period_seconds": {
+                "type": "number",
+                "description": "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "azure_queue_scale_rule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "queue_length": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "queue_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "authentication": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "secret_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "trigger_parameter": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "min_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "container": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "args": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "A list of args to pass to the container.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "command": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "cpu": {
+                      "type": "number",
+                      "description": "The amount of vCPU to allocate to the container.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "ephemeral_storage": {
+                      "type": "string",
+                      "description": "The amount of ephemeral storage available to the Container App.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "The image to use to create the container.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "memory": {
+                      "type": "string",
+                      "description": "The amount of memory to allocate to the container.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the container.",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "env": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the environment variable for the container.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "secret_name": {
+                            "type": "string",
+                            "description": "The name of the secret that contains the value for this environment variable.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    },
+                    "liveness_probe": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "failure_count_threshold": {
+                            "type": "number",
+                            "description": "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "host": {
+                            "type": "string",
+                            "description": "The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "initial_delay": {
+                            "type": "number",
+                            "description": "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "interval_seconds": {
+                            "type": "number",
+                            "description": "How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+                            "description_kind": "plain",
+                            "optional": true,
+                            "computed": true
+                          },
+                          "port": {
+                            "type": "number",
+                            "description": "The port number on which to connect. Possible values are between `1` and `65535`.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "termination_grace_period_seconds": {
+                            "type": "number",
+                            "description": "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+                            "description_kind": "plain",
+                            "computed": true
+                          },
+                          "timeout": {
+                            "type": "number",
+                            "description": "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "transport": {
+                            "type": "string",
+                            "description": "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "block_types": {
+                          "header": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The HTTP Header Name.",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "description": "The HTTP Header value.",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    },
+                    "readiness_probe": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "failure_count_threshold": {
+                            "type": "number",
+                            "description": "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "host": {
+                            "type": "string",
+                            "description": "The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "initial_delay": {
+                            "type": "number",
+                            "description": "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "interval_seconds": {
+                            "type": "number",
+                            "description": "How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+                            "description_kind": "plain",
+                            "optional": true,
+                            "computed": true
+                          },
+                          "port": {
+                            "type": "number",
+                            "description": "The port number on which to connect. Possible values are between `1` and `65535`.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "success_count_threshold": {
+                            "type": "number",
+                            "description": "The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "timeout": {
+                            "type": "number",
+                            "description": "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "transport": {
+                            "type": "string",
+                            "description": "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "block_types": {
+                          "header": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The HTTP Header Name.",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "description": "The HTTP Header value.",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    },
+                    "startup_probe": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "failure_count_threshold": {
+                            "type": "number",
+                            "description": "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "host": {
+                            "type": "string",
+                            "description": "The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "initial_delay": {
+                            "type": "number",
+                            "description": "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "interval_seconds": {
+                            "type": "number",
+                            "description": "How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+                            "description_kind": "plain",
+                            "optional": true,
+                            "computed": true
+                          },
+                          "port": {
+                            "type": "number",
+                            "description": "The port number on which to connect. Possible values are between `1` and `65535`.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "termination_grace_period_seconds": {
+                            "type": "number",
+                            "description": "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+                            "description_kind": "plain",
+                            "computed": true
+                          },
+                          "timeout": {
+                            "type": "number",
+                            "description": "Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "transport": {
+                            "type": "string",
+                            "description": "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "block_types": {
+                          "header": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The HTTP Header Name.",
+                                  "description_kind": "plain",
+                                  "required": true
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "description": "The HTTP Header value.",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    },
+                    "volume_mounts": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the Volume to be mounted in the container.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "The path in the container at which to mount this volume.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "sub_path": {
+                            "type": "string",
+                            "description": "The sub path of the volume to be mounted in the container.",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1
+              },
+              "custom_scale_rule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "custom_rule_type": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "metadata": {
+                      "type": [
+                        "map",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "authentication": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "secret_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "trigger_parameter": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "http_scale_rule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "concurrent_requests": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "authentication": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "secret_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "trigger_parameter": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "init_container": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "args": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "A list of args to pass to the container.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "command": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description": "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "cpu": {
+                      "type": "number",
+                      "description": "The amount of vCPU to allocate to the container.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "ephemeral_storage": {
+                      "type": "string",
+                      "description": "The amount of ephemeral storage available to the Container App.",
+                      "description_kind": "plain",
+                      "computed": true
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "The image to use to create the container.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "memory": {
+                      "type": "string",
+                      "description": "The amount of memory to allocate to the container.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the container.",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "env": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the environment variable for the container.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "secret_name": {
+                            "type": "string",
+                            "description": "The name of the secret that contains the value for this environment variable.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    },
+                    "volume_mounts": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the Volume to be mounted in the container.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "The path in the container at which to mount this volume.",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "sub_path": {
+                            "type": "string",
+                            "description": "The sub path of the volume to be mounted in the container.",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "tcp_scale_rule": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "concurrent_requests": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "authentication": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "secret_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "trigger_parameter": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "volume": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "mount_options": {
+                      "type": "string",
+                      "description": "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the volume.",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "storage_name": {
+                      "type": "string",
+                      "description": "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "storage_type": {
+                      "type": "string",
+                      "description": "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

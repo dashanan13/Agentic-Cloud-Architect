@@ -1,0 +1,434 @@
+{
+  "resourceName": "Web Application Firewall Policies(WAF)",
+  "bicepType": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies@2024-03-01",
+  "terraformType": "azurerm_web_application_firewall_policy",
+  "category": "networking",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+  "definition": {
+    "version": 1,
+    "block": {
+      "attributes": {
+        "http_listener_ids": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "path_based_rule_ids": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "description_kind": "plain",
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "custom_rules": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "action": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "group_rate_limit_by": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "priority": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "rate_limit_duration": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "rate_limit_threshold": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "rule_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "match_conditions": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "match_values": {
+                      "type": [
+                        "list",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "negation_condition": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "operator": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "transforms": {
+                      "type": [
+                        "set",
+                        "string"
+                      ],
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "block_types": {
+                    "match_variables": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "selector": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "variable_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "min_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "managed_rules": {
+          "nesting_mode": "list",
+          "block": {
+            "block_types": {
+              "exclusion": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "match_variable": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "selector": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "selector_match_operator": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "excluded_rule_set": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "type": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "version": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "block_types": {
+                          "rule_group": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "excluded_rules": {
+                                  "type": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "description_kind": "plain",
+                                  "optional": true
+                                },
+                                "rule_group_name": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          }
+                        },
+                        "description_kind": "plain"
+                      },
+                      "max_items": 1
+                    }
+                  },
+                  "description_kind": "plain"
+                }
+              },
+              "managed_rule_set": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "type": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "version": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "block_types": {
+                    "rule_group_override": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "rule_group_name": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          }
+                        },
+                        "block_types": {
+                          "rule": {
+                            "nesting_mode": "list",
+                            "block": {
+                              "attributes": {
+                                "action": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "optional": true
+                                },
+                                "enabled": {
+                                  "type": "bool",
+                                  "description_kind": "plain",
+                                  "optional": true
+                                },
+                                "id": {
+                                  "type": "string",
+                                  "description_kind": "plain",
+                                  "required": true
+                                }
+                              },
+                              "description_kind": "plain"
+                            }
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1,
+          "max_items": 1
+        },
+        "policy_settings": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "file_upload_enforcement": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true,
+                "computed": true
+              },
+              "file_upload_limit_in_mb": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "js_challenge_cookie_expiration_in_minutes": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "max_request_body_size_in_kb": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "mode": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "request_body_check": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "request_body_enforcement": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "request_body_inspect_limit_in_kb": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "log_scrubbing": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "enabled": {
+                      "type": "bool",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "block_types": {
+                    "rule": {
+                      "nesting_mode": "list",
+                      "block": {
+                        "attributes": {
+                          "enabled": {
+                            "type": "bool",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "match_variable": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "required": true
+                          },
+                          "selector": {
+                            "type": "string",
+                            "description": "When matchVariable is a collection, operator used to specify which elements in the collection this rule applies to.",
+                            "description_kind": "plain",
+                            "optional": true
+                          },
+                          "selector_match_operator": {
+                            "type": "string",
+                            "description_kind": "plain",
+                            "optional": true
+                          }
+                        },
+                        "description_kind": "plain"
+                      }
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

@@ -1,0 +1,1365 @@
+{
+  "resourceName": "Service Fabric Clusters",
+  "bicepType": "Microsoft.ServiceFabric/clusters@2023-11-01-preview",
+  "terraformType": "azurerm_service_fabric_cluster",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.servicefabric/clusters",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.ServiceFabric/clusters@2023-11-01-preview",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.ServiceFabric/clusters"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2023-11-01-preview"
+          },
+          "description": "The resource api version"
+        },
+        "properties": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "addOnFeatures": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "UnionType",
+                    "elements": [
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "RepairManager"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "DnsService"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "BackupRestoreService"
+                      },
+                      {
+                        "$type": "StringLiteralType",
+                        "value": "ResourceMonitorService"
+                      },
+                      {
+                        "$type": "StringType"
+                      }
+                    ]
+                  }
+                },
+                "description": "The list of add-on features to enable in the cluster."
+              },
+              "availableClusterVersions": {
+                "flags": 2,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "codeVersion": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The Service Fabric runtime version of the cluster."
+                      },
+                      "supportExpiryUtc": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The date of expiry of support of the version."
+                      },
+                      "environment": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "Indicates if this version is for Windows or Linux operating system."
+                      }
+                    }
+                  }
+                },
+                "description": "The Service Fabric runtime versions available for this cluster."
+              },
+              "azureActiveDirectory": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "tenantId": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Azure active directory tenant id."
+                    },
+                    "clusterApplication": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Azure active directory cluster application id."
+                    },
+                    "clientApplication": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Azure active directory client application id."
+                    }
+                  }
+                },
+                "description": "The AAD authentication settings of the cluster."
+              },
+              "certificate": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "thumbprint": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Thumbprint of the primary certificate."
+                    },
+                    "thumbprintSecondary": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Thumbprint of the secondary certificate."
+                    },
+                    "x509StoreName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AddressBook"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AuthRoot"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CertificateAuthority"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disallowed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "My"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Root"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPeople"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPublisher"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The local certificate store location."
+                    }
+                  }
+                },
+                "description": "The certificate to use for securing the cluster. The certificate provided will be used for node to node security within the cluster, SSL certificate for cluster management endpoint and default admin client."
+              },
+              "certificateCommonNames": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "commonNames": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "certificateCommonName": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The common name of the server certificate."
+                            },
+                            "certificateIssuerThumbprint": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The issuer thumbprint of the server certificate."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of server certificates referenced by common name that are used to secure the cluster."
+                    },
+                    "x509StoreName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AddressBook"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AuthRoot"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CertificateAuthority"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disallowed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "My"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Root"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPeople"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPublisher"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The local certificate store location."
+                    }
+                  }
+                },
+                "description": "Describes a list of server certificates referenced by common name that are used to secure the cluster."
+              },
+              "clientCertificateCommonNames": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "isAdmin": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates if the client certificate has admin access to the cluster. Non admin clients can perform only read only operations on the cluster."
+                      },
+                      "certificateCommonName": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The common name of the client certificate."
+                      },
+                      "certificateIssuerThumbprint": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The issuer thumbprint of the client certificate."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of client certificates referenced by common name that are allowed to manage the cluster."
+              },
+              "clientCertificateThumbprints": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "isAdmin": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates if the client certificate has admin access to the cluster. Non admin clients can perform only read only operations on the cluster."
+                      },
+                      "certificateThumbprint": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The thumbprint of the client certificate."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of client certificates referenced by thumbprint that are allowed to manage the cluster."
+              },
+              "clusterCodeVersion": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Service Fabric runtime version of the cluster. This property can only by set the user when **upgradeMode** is set to 'Manual'. To get list of available Service Fabric versions for new clusters use [ClusterVersion API](https://learn.microsoft.com/rest/api/servicefabric/cluster-versions/list). To get the list of available version for existing clusters use **availableClusterVersions**."
+              },
+              "clusterEndpoint": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The Azure Resource Provider endpoint. A system service in the cluster connects to this  endpoint."
+              },
+              "clusterId": {
+                "flags": 2,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "A service generated unique identifier for the cluster resource."
+              },
+              "clusterState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "WaitingForNodes"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Deploying"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "BaselineUpgrade"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpdatingUserConfiguration"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpdatingUserCertificate"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpdatingInfrastructure"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "EnforcingClusterVersion"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "UpgradeServiceUnreachable"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "AutoScale"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Ready"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The current state of the cluster.\n\n- WaitingForNodes - Indicates that the cluster resource is created and the resource provider is waiting for Service Fabric VM extension to boot up and report to it.\n- Deploying - Indicates that the Service Fabric runtime is being installed on the VMs. Cluster resource will be in this state until the cluster boots up and system services are up.\n- BaselineUpgrade - Indicates that the cluster is upgrading to establishes the cluster version. This upgrade is automatically initiated when the cluster boots up for the first time.\n- UpdatingUserConfiguration - Indicates that the cluster is being upgraded with the user provided configuration.\n- UpdatingUserCertificate - Indicates that the cluster is being upgraded with the user provided certificate.\n- UpdatingInfrastructure - Indicates that the cluster is being upgraded with the latest Service Fabric runtime version. This happens only when the **upgradeMode** is set to 'Automatic'.\n- EnforcingClusterVersion - Indicates that cluster is on a different version than expected and the cluster is being upgraded to the expected version.\n- UpgradeServiceUnreachable - Indicates that the system service in the cluster is no longer polling the Resource Provider. Clusters in this state cannot be managed by the Resource Provider.\n- AutoScale - Indicates that the ReliabilityLevel of the cluster is being adjusted.\n- Ready - Indicates that the cluster is in a stable state."
+              },
+              "diagnosticsStorageAccountConfig": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "storageAccountName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The Azure storage account name."
+                    },
+                    "protectedAccountKeyName": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The protected diagnostics storage key name."
+                    },
+                    "protectedAccountKeyName2": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The secondary protected diagnostics storage key name. If one of the storage account keys is rotated the cluster will fallback to using the other."
+                    },
+                    "blobEndpoint": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The blob endpoint of the azure storage account."
+                    },
+                    "queueEndpoint": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The queue endpoint of the azure storage account."
+                    },
+                    "tableEndpoint": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The table endpoint of the azure storage account."
+                    }
+                  }
+                },
+                "description": "The storage account information for storing Service Fabric diagnostic logs."
+              },
+              "eventStoreServiceEnabled": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates if the event store service is enabled."
+              },
+              "fabricSettings": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The section name of the fabric settings."
+                      },
+                      "parameters": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The collection of parameters in the section."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of custom fabric settings to configure the cluster."
+              },
+              "managementEndpoint": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The http management endpoint of the cluster."
+              },
+              "nodeTypes": {
+                "flags": 1,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "name": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "StringType"
+                        },
+                        "description": "The name of the node type."
+                      },
+                      "placementProperties": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run."
+                      },
+                      "capacities": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "additionalProperties": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "The capacity tags applied to the nodes in the node type, the cluster resource manager uses these tags to understand how much resource a node has."
+                      },
+                      "clientConnectionEndpointPort": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The TCP cluster management endpoint port."
+                      },
+                      "httpGatewayEndpointPort": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The HTTP cluster management endpoint port."
+                      },
+                      "durabilityLevel": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The durability level of the node type. Learn about [DurabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).\n\n- Bronze - No privileges. This is the default.\n- Silver - The infrastructure jobs can be paused for a duration of 10 minutes per UD.\n- Gold - The infrastructure jobs can be paused for a duration of 2 hours per UD. Gold durability can be enabled only on full node VM skus like D15_V2, G5 etc."
+                      },
+                      "applicationPorts": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "startPort": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Starting port of a range of ports"
+                            },
+                            "endPort": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "End port of a range of ports"
+                            }
+                          }
+                        },
+                        "description": "The range of ports from which cluster assigned port to Service Fabric applications."
+                      },
+                      "ephemeralPorts": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "startPort": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "Starting port of a range of ports"
+                            },
+                            "endPort": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "End port of a range of ports"
+                            }
+                          }
+                        },
+                        "description": "The range of ephemeral ports that nodes in this node type should be configured with."
+                      },
+                      "isPrimary": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "The node type on which system services will run. Only one node type should be marked as primary. Primary node type cannot be deleted or changed for existing clusters."
+                      },
+                      "vmInstanceCount": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "IntegerType",
+                          "minValue": 0,
+                          "maxValue": 2147483647
+                        },
+                        "description": "VMInstanceCount should be 1 to n, where n indicates the number of VM instances corresponding to this nodeType. VMInstanceCount = 0 can be done only in these scenarios: NodeType is a secondary nodeType. Durability = Bronze or Durability >= Bronze and InfrastructureServiceManager = true. If VMInstanceCount = 0, implies the VMs for this nodeType will not be used for the initial cluster size computation."
+                      },
+                      "reverseProxyEndpointPort": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The endpoint used by reverse proxy."
+                      },
+                      "isStateless": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates if the node type can only host Stateless workloads."
+                      },
+                      "multipleAvailabilityZones": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates if the node type is enabled to support multiple zones."
+                      },
+                      "httpGatewayTokenAuthEndpointPort": {
+                        "flags": 0,
+                        "type": {
+                          "$type": "IntegerType"
+                        },
+                        "description": "The port used for token-auth based HTTPS connections to the cluster. Cannot be set to the same port as HttpGatewayEndpoint."
+                      }
+                    }
+                  }
+                },
+                "description": "The list of node types in the cluster."
+              },
+              "provisioningState": {
+                "flags": 2,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Updating"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Succeeded"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Failed"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Canceled"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The provisioning state of the cluster resource."
+              },
+              "reliabilityLevel": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "None"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Bronze"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Silver"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Gold"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Platinum"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).\n\n- None - Run the System services with a target replica set count of 1. This should only be used for test clusters.\n- Bronze - Run the System services with a target replica set count of 3. This should only be used for test clusters.\n- Silver - Run the System services with a target replica set count of 5.\n- Gold - Run the System services with a target replica set count of 7.\n- Platinum - Run the System services with a target replica set count of 9."
+              },
+              "reverseProxyCertificate": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "thumbprint": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Thumbprint of the primary certificate."
+                    },
+                    "thumbprintSecondary": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "Thumbprint of the secondary certificate."
+                    },
+                    "x509StoreName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AddressBook"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AuthRoot"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CertificateAuthority"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disallowed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "My"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Root"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPeople"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPublisher"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The local certificate store location."
+                    }
+                  }
+                },
+                "description": "The server certificate used by reverse proxy."
+              },
+              "reverseProxyCertificateCommonNames": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "commonNames": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ArrayType",
+                        "itemType": {
+                          "$type": "ObjectType",
+                          "properties": {
+                            "certificateCommonName": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The common name of the server certificate."
+                            },
+                            "certificateIssuerThumbprint": {
+                              "flags": 1,
+                              "type": {
+                                "$type": "MaxDepthReached"
+                              },
+                              "description": "The issuer thumbprint of the server certificate."
+                            }
+                          }
+                        }
+                      },
+                      "description": "The list of server certificates referenced by common name that are used to secure the cluster."
+                    },
+                    "x509StoreName": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "UnionType",
+                        "elements": [
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AddressBook"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "AuthRoot"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "CertificateAuthority"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Disallowed"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "My"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "Root"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPeople"
+                          },
+                          {
+                            "$type": "StringLiteralType",
+                            "value": "TrustedPublisher"
+                          },
+                          {
+                            "$type": "StringType"
+                          }
+                        ]
+                      },
+                      "description": "The local certificate store location."
+                    }
+                  }
+                },
+                "description": "Describes a list of server certificates referenced by common name that are used to secure the cluster."
+              },
+              "upgradeDescription": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "forceRestart": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "BooleanType"
+                      },
+                      "description": "If true, then processes are forcefully restarted during upgrade even when the code version has not changed (the upgrade only changes configuration or data)."
+                    },
+                    "upgradeReplicaSetCheckTimeout": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The maximum amount of time to block processing of an upgrade domain and prevent loss of availability when there are unexpected issues. When this timeout expires, processing of the upgrade domain will proceed regardless of availability loss issues. The timeout is reset at the start of each upgrade domain. The timeout can be in either hh:mm:ss or in d.hh:mm:ss.ms format."
+                    },
+                    "healthCheckWaitDuration": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The length of time to wait after completing an upgrade domain before performing health checks. The duration can be in either hh:mm:ss or in d.hh:mm:ss.ms format."
+                    },
+                    "healthCheckStableDuration": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time that the application or cluster must remain healthy before the upgrade proceeds to the next upgrade domain. The duration can be in either hh:mm:ss or in d.hh:mm:ss.ms format."
+                    },
+                    "healthCheckRetryTimeout": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time to retry health evaluation when the application or cluster is unhealthy before the upgrade rolls back. The timeout can be in either hh:mm:ss or in d.hh:mm:ss.ms format."
+                    },
+                    "upgradeTimeout": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time the overall upgrade has to complete before the upgrade rolls back. The timeout can be in either hh:mm:ss or in d.hh:mm:ss.ms format."
+                    },
+                    "upgradeDomainTimeout": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "StringType"
+                      },
+                      "description": "The amount of time each upgrade domain has to complete before the upgrade rolls back. The timeout can be in either hh:mm:ss or in d.hh:mm:ss.ms format."
+                    },
+                    "healthPolicy": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "maxPercentUnhealthyNodes": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0,
+                              "maxValue": 100
+                            },
+                            "description": "The maximum allowed percentage of unhealthy nodes before reporting an error. For example, to allow 10% of nodes to be unhealthy, this value would be 10.\n\nThe percentage represents the maximum tolerated percentage of nodes that can be unhealthy before the cluster is considered in error.\nIf the percentage is respected but there is at least one unhealthy node, the health is evaluated as Warning.\nThe percentage is calculated by dividing the number of unhealthy nodes over the total number of nodes in the cluster.\nThe computation rounds up to tolerate one failure on small numbers of nodes. Default percentage is zero.\n\nIn large clusters, some nodes will always be down or out for repairs, so this percentage should be configured to tolerate that."
+                          },
+                          "maxPercentUnhealthyApplications": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0,
+                              "maxValue": 100
+                            },
+                            "description": "The maximum allowed percentage of unhealthy applications before reporting an error. For example, to allow 10% of applications to be unhealthy, this value would be 10.\n\nThe percentage represents the maximum tolerated percentage of applications that can be unhealthy before the cluster is considered in error.\nIf the percentage is respected but there is at least one unhealthy application, the health is evaluated as Warning.\nThis is calculated by dividing the number of unhealthy applications over the total number of application instances in the cluster, excluding applications of application types that are included in the ApplicationTypeHealthPolicyMap.\nThe computation rounds up to tolerate one failure on small numbers of applications. Default percentage is zero."
+                          },
+                          "applicationHealthPolicies": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "additionalProperties": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Defines the application health policy map used to evaluate the health of an application or one of its children entities."
+                          }
+                        }
+                      },
+                      "description": "The cluster health policy used when upgrading the cluster."
+                    },
+                    "deltaHealthPolicy": {
+                      "flags": 0,
+                      "type": {
+                        "$type": "ObjectType",
+                        "properties": {
+                          "maxPercentDeltaUnhealthyNodes": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0,
+                              "maxValue": 100
+                            },
+                            "description": "The maximum allowed percentage of nodes health degradation allowed during cluster upgrades.\nThe delta is measured between the state of the nodes at the beginning of upgrade and the state of the nodes at the time of the health evaluation.\nThe check is performed after every upgrade domain upgrade completion to make sure the global state of the cluster is within tolerated limits."
+                          },
+                          "maxPercentUpgradeDomainDeltaUnhealthyNodes": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0,
+                              "maxValue": 100
+                            },
+                            "description": "The maximum allowed percentage of upgrade domain nodes health degradation allowed during cluster upgrades.\nThe delta is measured between the state of the upgrade domain nodes at the beginning of upgrade and the state of the upgrade domain nodes at the time of the health evaluation.\nThe check is performed after every upgrade domain upgrade completion for all completed upgrade domains to make sure the state of the upgrade domains is within tolerated limits."
+                          },
+                          "maxPercentDeltaUnhealthyApplications": {
+                            "flags": 1,
+                            "type": {
+                              "$type": "IntegerType",
+                              "minValue": 0,
+                              "maxValue": 100
+                            },
+                            "description": "The maximum allowed percentage of applications health degradation allowed during cluster upgrades.\nThe delta is measured between the state of the applications at the beginning of upgrade and the state of the applications at the time of the health evaluation.\nThe check is performed after every upgrade domain upgrade completion to make sure the global state of the cluster is within tolerated limits. System services are not included in this."
+                          },
+                          "applicationDeltaHealthPolicies": {
+                            "flags": 0,
+                            "type": {
+                              "$type": "ObjectType",
+                              "additionalProperties": {
+                                "$type": "MaxDepthReached"
+                              }
+                            },
+                            "description": "Defines the application delta health policy map used to evaluate the health of an application or one of its child entities when upgrading the cluster."
+                          }
+                        }
+                      },
+                      "description": "The cluster delta health policy used when upgrading the cluster."
+                    }
+                  }
+                },
+                "description": "The policy to use when upgrading the cluster."
+              },
+              "upgradeMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Automatic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Manual"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The upgrade mode of the cluster when new Service Fabric runtime version is available."
+              },
+              "applicationTypeVersionsCleanupPolicy": {
+                "flags": 0,
+                "type": {
+                  "$type": "ObjectType",
+                  "properties": {
+                    "maxUnusedVersionsToKeep": {
+                      "flags": 1,
+                      "type": {
+                        "$type": "IntegerType",
+                        "minValue": 0
+                      },
+                      "description": "Number of unused versions per application type to keep."
+                    }
+                  }
+                },
+                "description": "The policy used to clean up unused versions."
+              },
+              "vmImage": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The VM image VMSS has been configured with. Generic names such as Windows or Linux can be used."
+              },
+              "sfZonalUpgradeMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Parallel"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Hierarchical"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "This property controls the logical grouping of VMs in upgrade domains (UDs). This property can't be modified if a node type with multiple Availability Zones is already present in the cluster."
+              },
+              "vmssZonalUpgradeMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Parallel"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Hierarchical"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "This property defines the upgrade mode for the virtual machine scale set, it is mandatory if a node type with multiple Availability Zones is added."
+              },
+              "infrastructureServiceManager": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Indicates if infrastructure service manager is enabled."
+              },
+              "upgradeWave": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Wave0"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Wave1"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Wave2"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "Indicates when new cluster runtime version upgrades will be applied after they are released. By default is Wave0. Only applies when **upgradeMode** is set to 'Automatic'."
+              },
+              "upgradePauseStartTimestampUtc": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Indicates the start date and time to pause automatic runtime version upgrades on the cluster for an specific period of time on the cluster (UTC)."
+              },
+              "upgradePauseEndTimestampUtc": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "Indicates the end date and time to pause automatic runtime version upgrades on the cluster for an specific period of time on the cluster (UTC)."
+              },
+              "waveUpgradePaused": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "Boolean to pause automatic runtime version upgrades to the cluster."
+              },
+              "notifications": {
+                "flags": 0,
+                "type": {
+                  "$type": "ArrayType",
+                  "itemType": {
+                    "$type": "ObjectType",
+                    "properties": {
+                      "isEnabled": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "BooleanType"
+                        },
+                        "description": "Indicates if the notification is enabled."
+                      },
+                      "notificationCategory": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The category of notification."
+                      },
+                      "notificationLevel": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "UnionType",
+                          "elements": [
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            },
+                            {
+                              "$type": "MaxDepthReached"
+                            }
+                          ]
+                        },
+                        "description": "The level of notification."
+                      },
+                      "notificationTargets": {
+                        "flags": 1,
+                        "type": {
+                          "$type": "ArrayType",
+                          "itemType": {
+                            "$type": "MaxDepthReached"
+                          }
+                        },
+                        "description": "List of targets that subscribe to the notification."
+                      }
+                    }
+                  }
+                },
+                "description": "Indicates a list of notification channels for cluster events."
+              },
+              "enableHttpGatewayExclusiveAuthMode": {
+                "flags": 0,
+                "type": {
+                  "$type": "BooleanType"
+                },
+                "description": "If true, token-based authentication is not allowed on the HttpGatewayEndpoint. This is required to support TLS versions 1.3 and above. If token-based authentication is used, HttpGatewayTokenAuthEndpointPort must be defined."
+              }
+            }
+          },
+          "description": "The cluster resource properties"
+        },
+        "etag": {
+          "flags": 2,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "\"If etag is provided in the response body, it may also be provided as a header per the normal etag convention.  Entity tags are used for comparing two or more entities from the same requested resource. HTTP/1.1 uses entity tags in the etag (section 14.19), If-Match (section 14.24), If-None-Match (section 14.26), and If-Range (section 14.27) header fields.\")"
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Resource tags."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The geo-location where the resource lives"
+        },
+        "systemData": {
+          "flags": 2,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "createdBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that created the resource."
+              },
+              "createdByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that created the resource."
+              },
+              "createdAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource creation (UTC)."
+              },
+              "lastModifiedBy": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The identity that last modified the resource."
+              },
+              "lastModifiedByType": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "User"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Application"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "ManagedIdentity"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Key"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The type of identity that last modified the resource."
+              },
+              "lastModifiedAt": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The timestamp of resource last modification (UTC)"
+              }
+            }
+          },
+          "description": "Azure Resource Manager metadata containing createdBy and modifiedBy information."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,560 @@
+{
+  "resourceName": "Service Fabric Clusters",
+  "bicepType": "Microsoft.ServiceFabric/clusters@2023-11-01-preview",
+  "terraformType": "azurerm_service_fabric_cluster",
+  "category": "compute",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.servicefabric/clusters",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "add_on_features": {
+          "type": [
+            "set",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "cluster_code_version": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "cluster_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "management_endpoint": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "reliability_level": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "service_fabric_zonal_upgrade_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "upgrade_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "vm_image": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "vmss_zonal_upgrade_mode": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "azure_active_directory": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "client_application_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "cluster_application_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "certificate": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "thumbprint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "thumbprint_secondary": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "x509_store_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "certificate_common_names": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "x509_store_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "common_names": {
+                "nesting_mode": "set",
+                "block": {
+                  "attributes": {
+                    "certificate_common_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "certificate_issuer_thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "client_certificate_common_name": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "common_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "is_admin": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              },
+              "issuer_thumbprint": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "client_certificate_thumbprint": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "is_admin": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              },
+              "thumbprint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "diagnostics_config": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "blob_endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "protected_account_key_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "queue_endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "storage_account_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "table_endpoint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "fabric_settings": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "parameters": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "node_type": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "capacities": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "client_endpoint_port": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "durability_level": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "http_endpoint_port": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "instance_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "required": true
+              },
+              "is_primary": {
+                "type": "bool",
+                "description_kind": "plain",
+                "required": true
+              },
+              "is_stateless": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "multiple_availability_zones": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "placement_properties": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "reverse_proxy_endpoint_port": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "application_ports": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "end_port": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "start_port": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "ephemeral_ports": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "end_port": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "start_port": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "required": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "min_items": 1
+        },
+        "reverse_proxy_certificate": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "thumbprint": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "thumbprint_secondary": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "x509_store_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "reverse_proxy_certificate_common_names": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "x509_store_name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "block_types": {
+              "common_names": {
+                "nesting_mode": "set",
+                "block": {
+                  "attributes": {
+                    "certificate_common_name": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "required": true
+                    },
+                    "certificate_issuer_thumbprint": {
+                      "type": "string",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "min_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "upgrade_policy": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "force_restart_enabled": {
+                "type": "bool",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "health_check_retry_timeout": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "health_check_stable_duration": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "health_check_wait_duration": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "upgrade_domain_timeout": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "upgrade_replica_set_check_timeout": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "upgrade_timeout": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "block_types": {
+              "delta_health_policy": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "max_delta_unhealthy_applications_percent": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "max_delta_unhealthy_nodes_percent": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "max_upgrade_domain_delta_unhealthy_nodes_percent": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              },
+              "health_policy": {
+                "nesting_mode": "list",
+                "block": {
+                  "attributes": {
+                    "max_unhealthy_applications_percent": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    },
+                    "max_unhealthy_nodes_percent": {
+                      "type": "number",
+                      "description_kind": "plain",
+                      "optional": true
+                    }
+                  },
+                  "description_kind": "plain"
+                },
+                "max_items": 1
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

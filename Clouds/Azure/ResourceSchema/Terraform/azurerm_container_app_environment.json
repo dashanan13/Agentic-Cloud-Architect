@@ -1,0 +1,226 @@
+{
+  "resourceName": "Container Apps Environments",
+  "bicepType": "Microsoft.App/managedEnvironments@2024-08-02-preview",
+  "terraformType": "azurerm_container_app_environment",
+  "category": "other",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.app/managedenvironments",
+  "definition": {
+    "version": 0,
+    "block": {
+      "attributes": {
+        "custom_domain_verification_id": {
+          "type": "string",
+          "description": "The ID of the Custom Domain Verification for this Container App Environment.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "dapr_application_insights_connection_string": {
+          "type": "string",
+          "description": "Application Insights connection string used by Dapr to export Service to Service communication telemetry.",
+          "description_kind": "plain",
+          "optional": true,
+          "sensitive": true
+        },
+        "default_domain": {
+          "type": "string",
+          "description": "The default publicly resolvable name of this Container App Environment",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "docker_bridge_cidr": {
+          "type": "string",
+          "description": "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "id": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "infrastructure_resource_group_name": {
+          "type": "string",
+          "description": "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "infrastructure_subnet_id": {
+          "type": "string",
+          "description": "The existing Subnet to use for the Container Apps Control Plane. **NOTE:** The Subnet must have a `/21` or larger address space.",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "internal_load_balancer_enabled": {
+          "type": "bool",
+          "description": "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "location": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "log_analytics_workspace_id": {
+          "type": "string",
+          "description": "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "logs_destination": {
+          "type": "string",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "mutual_tls_enabled": {
+          "type": "bool",
+          "description": "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+          "description_kind": "plain",
+          "optional": true
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the Container Apps Managed Environment.",
+          "description_kind": "plain",
+          "required": true
+        },
+        "platform_reserved_cidr": {
+          "type": "string",
+          "description": "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "platform_reserved_dns_ip_address": {
+          "type": "string",
+          "description": "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "public_network_access": {
+          "type": "string",
+          "description": "The public network access setting for the Container App Environment.",
+          "description_kind": "plain",
+          "optional": true,
+          "computed": true
+        },
+        "resource_group_name": {
+          "type": "string",
+          "description_kind": "plain",
+          "required": true
+        },
+        "static_ip_address": {
+          "type": "string",
+          "description": "The Static IP Address of the Environment.",
+          "description_kind": "plain",
+          "computed": true
+        },
+        "tags": {
+          "type": [
+            "map",
+            "string"
+          ],
+          "description_kind": "plain",
+          "optional": true
+        },
+        "zone_redundancy_enabled": {
+          "type": "bool",
+          "description_kind": "plain",
+          "optional": true
+        }
+      },
+      "block_types": {
+        "identity": {
+          "nesting_mode": "list",
+          "block": {
+            "attributes": {
+              "identity_ids": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "description_kind": "plain",
+                "optional": true
+              },
+              "principal_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "tenant_id": {
+                "type": "string",
+                "description_kind": "plain",
+                "computed": true
+              },
+              "type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          },
+          "max_items": 1
+        },
+        "timeouts": {
+          "nesting_mode": "single",
+          "block": {
+            "attributes": {
+              "create": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "delete": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "read": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "update": {
+                "type": "string",
+                "description_kind": "plain",
+                "optional": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        },
+        "workload_profile": {
+          "nesting_mode": "set",
+          "block": {
+            "attributes": {
+              "maximum_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "minimum_count": {
+                "type": "number",
+                "description_kind": "plain",
+                "optional": true
+              },
+              "name": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              },
+              "workload_profile_type": {
+                "type": "string",
+                "description_kind": "plain",
+                "required": true
+              }
+            },
+            "description_kind": "plain"
+          }
+        }
+      },
+      "description_kind": "plain"
+    }
+  }
+}

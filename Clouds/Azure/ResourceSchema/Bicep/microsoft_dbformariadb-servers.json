@@ -1,0 +1,241 @@
+{
+  "resourceName": "Azure Database MariaDB Server",
+  "bicepType": "Microsoft.DBforMariaDB/servers@2018-06-01",
+  "terraformType": "azurerm_mariadb_server",
+  "category": "databases",
+  "schemaRef": "https://learn.microsoft.com/azure/templates/microsoft.dbformariadb/servers",
+  "definition": {
+    "$type": "ResourceType",
+    "name": "Microsoft.DBforMariaDB/servers@2018-06-01",
+    "body": {
+      "$type": "ObjectType",
+      "properties": {
+        "id": {
+          "flags": 10,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource id"
+        },
+        "name": {
+          "flags": 9,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The resource name"
+        },
+        "type": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "Microsoft.DBforMariaDB/servers"
+          },
+          "description": "The resource type"
+        },
+        "apiVersion": {
+          "flags": 10,
+          "type": {
+            "$type": "StringLiteralType",
+            "value": "2018-06-01"
+          },
+          "description": "The resource api version"
+        },
+        "sku": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "properties": {
+              "name": {
+                "flags": 1,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The name of the sku, typically, tier + family + cores, e.g. B_Gen4_1, GP_Gen5_8."
+              },
+              "tier": {
+                "flags": 0,
+                "type": {
+                  "$type": "UnionType",
+                  "elements": [
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "Basic"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "GeneralPurpose"
+                    },
+                    {
+                      "$type": "StringLiteralType",
+                      "value": "MemoryOptimized"
+                    },
+                    {
+                      "$type": "StringType"
+                    }
+                  ]
+                },
+                "description": "The tier of the particular SKU, e.g. Basic."
+              },
+              "capacity": {
+                "flags": 0,
+                "type": {
+                  "$type": "IntegerType",
+                  "minValue": 0
+                },
+                "description": "The scale up/out capacity, representing server's compute units."
+              },
+              "size": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The size code, to be interpreted by resource as appropriate."
+              },
+              "family": {
+                "flags": 0,
+                "type": {
+                  "$type": "StringType"
+                },
+                "description": "The family of hardware."
+              }
+            }
+          },
+          "description": "The SKU (pricing tier) of the server."
+        },
+        "properties": {
+          "flags": 1,
+          "type": {
+            "$type": "DiscriminatedObjectType",
+            "name": "ServerPropertiesForCreateOrServerProperties",
+            "discriminator": "createMode",
+            "baseProperties": {
+              "version": {
+                "type": {
+                  "$ref": "#/13"
+                },
+                "flags": 0,
+                "description": "Server version."
+              },
+              "sslEnforcement": {
+                "type": {
+                  "$ref": "#/16"
+                },
+                "flags": 0,
+                "description": "Enable ssl enforcement or not when connect to server."
+              },
+              "minimalTlsVersion": {
+                "type": {
+                  "$ref": "#/21"
+                },
+                "flags": 0,
+                "description": "Enforce a minimal Tls version for the server."
+              },
+              "publicNetworkAccess": {
+                "type": {
+                  "$ref": "#/24"
+                },
+                "flags": 0,
+                "description": "Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'"
+              },
+              "storageProfile": {
+                "type": {
+                  "$ref": "#/25"
+                },
+                "flags": 0,
+                "description": "Storage profile of a server."
+              },
+              "administratorLogin": {
+                "type": {
+                  "$ref": "#/0"
+                },
+                "flags": 2,
+                "description": "The administrator's login name of a server. Can only be specified when the server is being created (and is required for creation)."
+              },
+              "userVisibleState": {
+                "type": {
+                  "$ref": "#/36"
+                },
+                "flags": 2,
+                "description": "A state of a server that is visible to user."
+              },
+              "fullyQualifiedDomainName": {
+                "type": {
+                  "$ref": "#/0"
+                },
+                "flags": 2,
+                "description": "The fully qualified domain name of a server."
+              },
+              "earliestRestoreDate": {
+                "type": {
+                  "$ref": "#/0"
+                },
+                "flags": 2,
+                "description": "Earliest restore point creation time (ISO8601 format)"
+              },
+              "replicationRole": {
+                "type": {
+                  "$ref": "#/0"
+                },
+                "flags": 2,
+                "description": "The replication role of the server."
+              },
+              "masterServerId": {
+                "type": {
+                  "$ref": "#/0"
+                },
+                "flags": 2,
+                "description": "The master server id of a replica server."
+              },
+              "replicaCapacity": {
+                "type": {
+                  "$ref": "#/9"
+                },
+                "flags": 2,
+                "description": "The maximum number of replicas that a master server can have."
+              },
+              "privateEndpointConnections": {
+                "type": {
+                  "$ref": "#/54"
+                },
+                "flags": 2,
+                "description": "List of private endpoint connections on a server"
+              }
+            },
+            "elements": {
+              "Default": {
+                "$ref": "#/55"
+              },
+              "GeoRestore": {
+                "$ref": "#/58"
+              },
+              "PointInTimeRestore": {
+                "$ref": "#/60"
+              },
+              "Replica": {
+                "$ref": "#/62"
+              }
+            }
+          },
+          "description": "Properties of the server."
+        },
+        "location": {
+          "flags": 1,
+          "type": {
+            "$type": "StringType"
+          },
+          "description": "The location the resource resides in."
+        },
+        "tags": {
+          "flags": 0,
+          "type": {
+            "$type": "ObjectType",
+            "additionalProperties": {
+              "$type": "StringType"
+            }
+          },
+          "description": "Application-specific metadata in the form of key-value pairs."
+        }
+      }
+    }
+  }
+}
