@@ -1179,6 +1179,35 @@ select.property-input {
   padding-top: 8px;
 }
 
+.property-inline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.property-helper {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.tag-list {
+  display: grid;
+  gap: 8px;
+}
+
+.tag-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.property-row--tags .btn {
+  justify-self: flex-start;
+}
+
 .splitter {
   background: transparent;
   position: relative;

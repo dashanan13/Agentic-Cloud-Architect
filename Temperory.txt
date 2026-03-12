@@ -1,0 +1,58 @@
+Management Groups
+Subscriptions
+Reservations
+DNS Zones
+Network Security Groups
+Route Tables
+Virtual Networks
+Public IP Addresses
+Subnet
+DNS Private Resolver
+Web Application Firewall Policies
+Azure Firewall Policy
+Load Balancers
+Load Balancer Hub
+Application Gateways
+Firewalls
+Connections
+Peering Service
+Front Door and CDN Profiles
+Managed Identities
+Key Vaults
+Storage Accounts
+Log Analytics Workspaces
+Application Insights
+App Configuration
+Container Registries
+App Service Environments
+App Service Plans
+Azure SQL
+Azure Cosmos DB
+Cache Redis
+SignalR
+SQL Database
+Container Apps Environments
+Container Instances
+Kubernetes Services
+Availability Sets
+Virtual Machine
+VM Scale Sets
+Logic Apps
+App Services
+Function Apps
+Azure Virtual Desktop
+
+
+Important dependency choices behind this order:
+
+Virtual Networks → Subnet
+Network Security Groups / Route Tables → Subnet
+Public IP Addresses / Subnet / Web Application Firewall Policies → Application Gateways
+Azure Firewall Policy / Public IP Addresses / Subnet → Firewalls
+App Service Environments → App Service Plans
+App Service Plans → App Services, Function Apps, and conservatively Logic Apps
+Storage Accounts → Function Apps, and conservatively Logic Apps
+Azure SQL → SQL Database
+Log Analytics Workspaces → Application Insights, Container Apps Environments, Kubernetes Services
+Container Registries → Container Instances, Kubernetes Services
+Availability Sets → Virtual Machine

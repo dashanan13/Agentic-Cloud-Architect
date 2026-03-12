@@ -1,4 +1,5 @@
 App_State/app.settings.env
+App_State/portal_observer/
 Projects/*
 !Projects/**/project.settings.env
 !Projects/Default
