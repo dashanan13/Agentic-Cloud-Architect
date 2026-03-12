@@ -88,6 +88,9 @@ function formatContextWindow(modelName) {
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
+let saveRequestInFlight = false;
+let queuedSaveOptions = null;
+let activeSavePromise = Promise.resolve();
 const tabGroups = Array.from(document.querySelectorAll('[role="tablist"]'))
   .map((tabListEl) => {
     const groupTabs = Array.from(tabListEl.querySelectorAll('.tab[role="tab"]'));
@@ -336,6 +339,28 @@ function resolveSubnetNameForPurpose(purpose, nameValue = "") {
 
   const customName = String(nameValue || "").trim();
   return customName || getSubnetPredefinedName("default");
+}
+
+function syncSubnetItemName(item) {
+  if (!item || !isSubnetItem(item)) {
+    return false;
+  }
+
+  const properties = ensureItemProperties(item);
+  const subnetPurpose = normalizeSubnetPurpose(properties.subnetPurpose);
+  const subnetName = isSubnetNameLocked(subnetPurpose)
+    ? getSubnetPredefinedName(subnetPurpose)
+    : resolveSubnetNameForPurpose(subnetPurpose, properties.subnetName);
+
+  properties.subnetPurpose = subnetPurpose;
+  properties.subnetName = subnetName;
+
+  if (String(item.name || "") === subnetName) {
+    return false;
+  }
+
+  item.name = subnetName;
+  return true;
 }
 
 function buildDnsZoneEffectiveName(properties, options = {}) {
@@ -1501,6 +1526,7 @@ function sanitizeProject(project) {
   const validItemIds = new Set(sanitizedItems.map((item) => item.id));
   sanitizedItems.forEach((item) => {
     item.properties = sanitizeItemProperties(item.resourceType, item.properties, validItemIds, item.name);
+    syncSubnetItemName(item);
   });
   const pattern = /^resource\s+(\d+)$/i;
   let maxResourceIndex = 0;
@@ -1516,6 +1542,7 @@ function sanitizeProject(project) {
     cloud,
     name: `${prefix}${suffix}`,
     lastSaved: Number(project.lastSaved) || Date.now(),
+    canvasStateHash: String(project.canvasStateHash || "").trim(),
     canvasView: {
       x: Number(incomingView.x) || 0,
       y: Number(incomingView.y) || 0,
@@ -1924,6 +1951,7 @@ async function loadCurrentProject(projectId) {
 
     const normalized = sanitizeProject({
       ...project,
+      canvasStateHash: payload?.stateHash,
       leftWidth: canvasState.leftWidth,
       rightWidth: canvasState.rightWidth,
       bottomHeight: canvasState.bottomHeight,
@@ -3478,6 +3506,8 @@ function createCanvasItem(resource, worldX, worldY) {
     properties: createDefaultItemProperties(resourceType, parentContainer)
   };
 
+  syncSubnetItemName(newItem);
+
   state.canvasItems.push(newItem);
   applyAutoBindingsForItemAndDescendants(newItem);
   renderCanvasItems();
@@ -3850,6 +3880,7 @@ function buildProjectSnapshot() {
       applicationDescription: String(state.currentProject.applicationDescription || "").trim(),
       lastSaved: state.currentProject.lastSaved
     },
+    baseStateHash: String(state.currentProject.canvasStateHash || "").trim(),
     canvasState: {
       leftWidth: state.leftWidth,
       rightWidth: state.rightWidth,
@@ -3868,36 +3899,91 @@ function buildProjectSnapshot() {
   };
 }
 
+function mergeQueuedSaveOptions(existingOptions, incomingOptions) {
+  const incomingSilent = Boolean(incomingOptions?.silent);
+  if (!existingOptions) {
+    return { silent: incomingSilent };
+  }
+  return {
+    silent: Boolean(existingOptions.silent && incomingSilent)
+  };
+}
+
+async function runProjectSaveRequest(options = {}) {
+  const { silent = false } = options;
+  const snapshot = buildProjectSnapshot();
+
+  const response = await fetch("/api/project/save", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(snapshot)
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = payload && typeof payload.detail === "string"
+      ? payload.detail.trim()
+      : "";
+    throw new Error(detail || "Unable to write project files");
+  }
+
+  const nextStateHash = payload && typeof payload.stateHash === "string"
+    ? payload.stateHash.trim()
+    : "";
+  if (nextStateHash && state.currentProject) {
+    state.currentProject.canvasStateHash = nextStateHash;
+    saveCurrentProject();
+  }
+
+  if (!silent) {
+    setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 60s)`);
+  }
+}
+
 async function saveProjectFiles(options = {}) {
   if (!state.currentProject) {
     return;
   }
 
-  const { silent = false } = options;
-  const snapshot = buildProjectSnapshot();
+  const requestedOptions = { silent: Boolean(options.silent) };
 
-  try {
-    const response = await fetch("/api/project/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(snapshot)
-    });
-
-    if (!response.ok) {
-      throw new Error("Unable to write project files");
-    }
-
-    if (!silent) {
-      setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 60s)`);
-    }
-  } catch {
-    if (!silent) {
-      setSaveStatus("Save failed", true);
-    }
-    throw new Error("Save failed");
+  if (saveRequestInFlight) {
+    queuedSaveOptions = mergeQueuedSaveOptions(queuedSaveOptions, requestedOptions);
+    return activeSavePromise;
   }
+
+  saveRequestInFlight = true;
+  activeSavePromise = (async () => {
+    let nextOptions = requestedOptions;
+    while (nextOptions) {
+      const runOptions = nextOptions;
+      queuedSaveOptions = null;
+
+      try {
+        await runProjectSaveRequest(runOptions);
+      } catch (error) {
+        if (!runOptions.silent) {
+          setSaveStatus(error?.message || "Save failed", true);
+        }
+        throw error;
+      }
+
+      nextOptions = queuedSaveOptions;
+    }
+  })().finally(() => {
+    saveRequestInFlight = false;
+    activeSavePromise = Promise.resolve();
+  });
+
+  return activeSavePromise;
 }
 
 // ===== Sizing & Splitters =====
@@ -4476,6 +4562,10 @@ propertyContentEl?.addEventListener("input", (event) => {
       ? getSubnetPredefinedName(subnetPurpose)
       : resolveSubnetNameForPurpose(subnetPurpose, target.value);
 
+    syncSubnetItemName(selectedItem);
+    setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
+    renderCanvasItems();
+
     persistCanvasLocal();
     return;
   }
@@ -4866,6 +4956,9 @@ propertyContentEl?.addEventListener("change", (event) => {
       properties.subnetName = resolveSubnetNameForPurpose(subnetPurpose, preferredName);
     }
 
+    syncSubnetItemName(selectedItem);
+    setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
+    renderCanvasItems();
     updatePropertyPanelForSelection();
     persistCanvasLocal();
     return;

@@ -1,5 +1,6 @@
 from pathlib import Path
 import base64
+import hashlib
 import json
 import os
 import re
@@ -97,6 +98,7 @@ class ProjectSavePayload(BaseModel):
     project: ProjectMeta
     canvasState: dict = {}
     create: bool | None = None
+    baseStateHash: str | None = None
 
 
 class DiagramExportPayload(BaseModel):
@@ -138,6 +140,17 @@ def read_json_file(path: Path, default):
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return default
+
+
+def compute_canvas_state_hash(canvas_state: dict | None) -> str:
+    normalized = canvas_state if isinstance(canvas_state, dict) else {}
+    serialized = json.dumps(
+        normalized,
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
 def collect_project_entries() -> list[dict]:
@@ -1649,9 +1662,28 @@ def save_project_snapshot(body: ProjectSavePayload):
         project_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         architecture_dir = project_dir / "Architecture"
         metadata_path = architecture_dir / "project.metadata.json"
+        canvas_state_path = architecture_dir / "canvas.state.json"
 
         ensure_project_structure(project_dir)
         architecture_dir.mkdir(parents=True, exist_ok=True)
+
+        existing_canvas_state = read_json_file(canvas_state_path, {})
+        if not isinstance(existing_canvas_state, dict):
+            existing_canvas_state = {}
+        current_state_hash = compute_canvas_state_hash(existing_canvas_state)
+
+        incoming_base_state_hash = str(body.baseStateHash or "").strip()
+        if not is_create_request:
+            if not incoming_base_state_hash:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Save blocked: stale editor session detected. Refresh the canvas page and retry.",
+                )
+            if incoming_base_state_hash != current_state_hash:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Save blocked: newer canvas data already exists. Refresh to load the latest canvas state.",
+                )
 
         existing_metadata = read_json_file(metadata_path, {})
         if not isinstance(existing_metadata, dict):
@@ -1740,20 +1772,25 @@ def save_project_snapshot(body: ProjectSavePayload):
             encoding="utf-8",
         )
 
-        (architecture_dir / "canvas.state.json").write_text(
-            json.dumps(body.canvasState or {}, indent=2),
+        canvas_state_payload = body.canvasState if isinstance(body.canvasState, dict) else {}
+        canvas_state_path.write_text(
+            json.dumps(canvas_state_payload, indent=2),
             encoding="utf-8",
         )
+        saved_state_hash = compute_canvas_state_hash(canvas_state_payload)
 
         return {
             "ok": True,
             "projectPath": str(project_dir.relative_to(WORKSPACE_ROOT)),
             "foundryThread": foundry_thread_result,
+            "stateHash": saved_state_hash,
             "files": [
                 str(metadata_path.relative_to(WORKSPACE_ROOT)),
-                str((architecture_dir / "canvas.state.json").relative_to(WORKSPACE_ROOT)),
+                str(canvas_state_path.relative_to(WORKSPACE_ROOT)),
             ],
         }
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to save project snapshot: {exc}") from exc
 
@@ -1875,6 +1912,7 @@ def get_project_snapshot(project_id: str):
             "iacLanguage": str(project_settings.get("iacLanguage") or "bicep").strip().lower(),
         },
         "canvasState": canvas_state,
+        "stateHash": compute_canvas_state_hash(canvas_state),
     }
 
 
