@@ -1,5 +1,8 @@
 App_State/app.settings.env
+App_State/logs/
 App_State/portal_observer/
+**/__pycache__/
+*.pyc
 Projects/*
 !Projects/**/project.settings.env
 !Projects/Default

@@ -15,6 +15,7 @@ from Agents.AzureAIFoundry.foundry_bootstrap import (
     FoundryRequestError as FoundryChatRequestError,
 )
 from Agents.AzureAIFoundry.foundry_description import FoundryAssistantRunner
+from Agents.common.activity_log import log_activity as write_activity_log
 
 DEFAULT_TOTAL_QUESTIONS = 4
 DEFAULT_AGENT_DEFINITION_FILE = "cloudarchitect_chat_agent.md"
@@ -257,6 +258,26 @@ class AzureMcpCredentials:
         )
 
 
+def _log_chat_event(
+    event_type: str,
+    *,
+    level: str = "info",
+    step: str = "",
+    details: Mapping[str, Any] | None = None,
+    project_id: str | None = None,
+) -> None:
+    category = "mcp" if str(event_type or "").strip().lower().startswith("mcp.") else "chat"
+    write_activity_log(
+        event_type=str(event_type or "chat.event").strip() or "chat.event",
+        category=category,
+        level=level,
+        step=str(step or event_type or "chat.event").strip() or "chat.event",
+        source="agent.cloudarchitect",
+        project_id=str(project_id or "").strip() or None,
+        details=details if isinstance(details, Mapping) else None,
+    )
+
+
 def run_cloudarchitect_chat_agent(
     app_settings: Mapping[str, Any],
     user_message: str,
@@ -268,6 +289,10 @@ def run_cloudarchitect_chat_agent(
     text = str(user_message or "").strip()
     if not text:
         raise AzureMcpChatConfigurationError("message is required")
+
+    project_id = ""
+    if isinstance(project_context, Mapping):
+        project_id = str(project_context.get("id") or "").strip()
 
     normalized_state = _normalize_agent_state(agent_state)
     model_info = _resolve_model_info(app_settings)
@@ -347,6 +372,20 @@ def run_cloudarchitect_chat_agent(
     assistant_message = ""
     out_of_scope_count = int(normalized_state.get("outOfScopeCount") or 0)
 
+    _log_chat_event(
+        "mcp.configuration.check",
+        level="info",
+        step="checked",
+        project_id=project_id,
+        details={
+            "intent": intent,
+            "mcpConfigured": bool(mcp_configured),
+            "foundryConfigured": bool(foundry_configured),
+            "foundryThreadId": str(foundry_thread_id or ""),
+            "foundryAgentId": str(foundry_agent_id or ""),
+        },
+    )
+
     if intent == "architecture":
         out_of_scope_count = 0
         architecture_turn_count += 1
@@ -371,6 +410,17 @@ def run_cloudarchitect_chat_agent(
             "state": json.dumps(normalized_state["cloudArchitectState"], ensure_ascii=False),
         }
 
+        _log_chat_event(
+            "mcp.call.chat",
+            level="info",
+            step="requested",
+            project_id=project_id,
+            details={
+                "questionNumber": architecture_turn_count,
+                "nextQuestionNeeded": next_question_needed,
+            },
+        )
+
         try:
             tool_result = _run_async(_invoke_cloudarchitect(credentials, tool_args))
             response_object = _extract_response_object(tool_result.get("payload"))
@@ -386,6 +436,15 @@ def run_cloudarchitect_chat_agent(
                     "success": True,
                 }
             )
+            _log_chat_event(
+                "mcp.call.chat",
+                level="info",
+                step="completed",
+                project_id=project_id,
+                details={
+                    "tool": str(tool_result.get("toolName") or "cloudarchitect_design"),
+                },
+            )
         except Exception as exc:
             tool_calls.append(
                 {
@@ -393,6 +452,13 @@ def run_cloudarchitect_chat_agent(
                     "success": False,
                     "error": str(exc),
                 }
+            )
+            _log_chat_event(
+                "mcp.call.chat",
+                level="error",
+                step="failed",
+                project_id=project_id,
+                details={"error": str(exc)},
             )
             raise AzureMcpChatRequestError(f"Azure MCP Cloud Architect call failed: {exc}") from exc
 
@@ -414,6 +480,16 @@ def run_cloudarchitect_chat_agent(
         assistant_message = foundry_text
         model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
         model_info["usedFoundryModel"] = True
+        _log_chat_event(
+            "chat.model.response",
+            level="info",
+            step="completed",
+            project_id=project_id,
+            details={
+                "connected": bool(foundry_connected),
+                "activeModel": model_info.get("activeModel"),
+            },
+        )
     else:
         # conversational: greetings, canvas questions, context recall, or anything else.
         # The LLM decides naturally how to respond based on full project context.
@@ -435,8 +511,27 @@ def run_cloudarchitect_chat_agent(
             assistant_message = foundry_text
             model_info["activeModel"] = str(foundry_meta.get("model") or model_info.get("activeModel"))
             model_info["usedFoundryModel"] = True
+            _log_chat_event(
+                "chat.model.response",
+                level="info",
+                step="completed",
+                project_id=project_id,
+                details={
+                    "connected": bool(foundry_connected),
+                    "activeModel": model_info.get("activeModel"),
+                },
+            )
         except Exception:
             assistant_message = "I'm your Azure cloud architect assistant. Share what you're building and I'll help design it."
+            _log_chat_event(
+                "chat.model.response",
+                level="warning",
+                step="fallback",
+                project_id=project_id,
+                details={
+                    "reason": "foundry-response-unavailable",
+                },
+            )
 
     # --- Update tiered memory after getting the response ----------------------
     memory = _update_memory(
@@ -551,10 +646,22 @@ def _run_async(coro):
 
 
 async def _invoke_cloudarchitect(credentials: AzureMcpCredentials, args: dict[str, Any]) -> dict[str, Any]:
+    _log_chat_event(
+        "mcp.call.chat",
+        level="info",
+        step="session-start",
+        details={"command": "@azure/mcp server start"},
+    )
     try:
         mcp_module = importlib.import_module("mcp")
         mcp_stdio_module = importlib.import_module("mcp.client.stdio")
     except ModuleNotFoundError as exc:
+        _log_chat_event(
+            "mcp.call.chat",
+            level="error",
+            step="failed",
+            details={"error": str(exc)},
+        )
         raise AzureMcpChatConfigurationError(
             "Python package 'mcp' is required for architecture chat. Install backend dependencies and rebuild the app container."
         ) from exc
@@ -583,6 +690,13 @@ async def _invoke_cloudarchitect(credentials: AzureMcpCredentials, args: dict[st
             await session.initialize()
             tool_name, raw_response = await _call_cloudarchitect_tool(session, args)
 
+    _log_chat_event(
+        "mcp.call.chat",
+        level="info",
+        step="session-completed",
+        details={"tool": tool_name},
+    )
+
     payload = _try_json(raw_response)
     if not isinstance(payload, dict):
         payload = {"raw": raw_response}
@@ -604,7 +718,22 @@ async def _call_cloudarchitect_tool(session: Any, args: dict[str, Any]) -> tuple
             return tool_name, _extract_text(result.content)
         except Exception as exc:
             failures.append(f"{tool_name}: {exc}")
+            _log_chat_event(
+                "mcp.call.chat",
+                level="warning",
+                step="tool-retry",
+                details={
+                    "tool": tool_name,
+                    "error": str(exc),
+                },
+            )
 
+    _log_chat_event(
+        "mcp.call.chat",
+        level="error",
+        step="failed",
+        details={"errors": failures},
+    )
     raise AzureMcpChatRequestError(
         "Unable to call Azure MCP Cloud Architect tool. " + " | ".join(failures)
     )

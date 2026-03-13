@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Agentic Cloud Architect - IaC</title>
-    <link rel="stylesheet" href="./styles.css?v=20260313b" />
+    <link rel="stylesheet" href="./styles.css?v=20260313d" />
   </head>
   <body>
-    <div class="app" id="app">
+    <div class="app app--iac" id="app">
       <div class="screen is-active screen--iac" id="screen-iac">
         <header class="topbar">
           <div class="topbar__left">
@@ -15,12 +15,36 @@
             <span class="project-name-prefix-display" id="iac-project-context">(Project)</span>
           </div>
           <div class="topbar__right">
+            <button
+              id="btn-iac-retry"
+              class="btn btn--secondary btn--sm"
+              type="button"
+              hidden
+              disabled
+            >
+              Retry Generation
+            </button>
             <button id="btn-iac-back" class="btn btn--sm" type="button">Back to Canvas</button>
           </div>
         </header>
 
         <main class="iac-layout">
           <section class="iac-status is-idle" id="iac-status" aria-live="polite">
+            <div class="iac-status__header">
+              <h2 class="iac-status__title">Generation Status</h2>
+              <button
+                id="btn-iac-status-toggle"
+                class="btn btn--secondary btn--sm iac-icon-btn"
+                type="button"
+                aria-expanded="true"
+                aria-controls="iac-status-body"
+                aria-label="Collapse generation status"
+                title="Collapse generation status"
+              >
+                <span aria-hidden="true">▴</span>
+              </button>
+            </div>
+
             <p class="iac-status__text" id="iac-status-text">IaC status: waiting</p>
             <p class="iac-status__meta" id="iac-status-meta">Task not started.</p>
             <div class="iac-status__progress">
@@ -31,14 +55,29 @@
                 </div>
               </div>
             </div>
-            <ul class="iac-stage-list" id="iac-stage-list" aria-label="IaC generation stages"></ul>
+
+            <div class="iac-status__details" id="iac-status-body">
+              <ul class="iac-stage-list" id="iac-stage-list" aria-label="IaC generation stages"></ul>
+            </div>
           </section>
 
           <section class="iac-panels">
             <div class="iac-panel iac-panel--files">
               <div class="iac-panel__header">
                 <h2>IaC Files</h2>
-                <span class="iac-panel__meta" id="iac-file-count">0 files</span>
+                <div class="iac-panel__actions">
+                  <span class="iac-panel__meta" id="iac-file-count">0 files</span>
+                  <button
+                    id="btn-iac-download"
+                    class="btn btn--secondary btn--sm iac-icon-btn"
+                    type="button"
+                    aria-label="Download IaC ZIP"
+                    title="Download IaC ZIP"
+                    disabled
+                  >
+                    <span aria-hidden="true">⤓</span>
+                  </button>
+                </div>
               </div>
               <div class="iac-file-list" id="iac-file-list" aria-label="IaC files"></div>
             </div>
@@ -46,7 +85,16 @@
             <div class="iac-panel iac-panel--viewer">
               <div class="iac-panel__header">
                 <h2 id="iac-viewer-title">File Preview</h2>
-                <button id="btn-iac-copy" class="btn btn--secondary btn--sm" type="button" disabled>Copy</button>
+                <button
+                  id="btn-iac-copy"
+                  class="btn btn--secondary btn--sm iac-icon-btn"
+                  type="button"
+                  aria-label="Copy file contents"
+                  title="Copy file contents"
+                  disabled
+                >
+                  <span aria-hidden="true">⧉</span>
+                </button>
               </div>
               <pre class="iac-file-content is-empty" id="iac-file-content">Select a file to view its contents.</pre>
             </div>
@@ -55,6 +103,6 @@
       </div>
     </div>
 
-    <script src="./iac.js?v=20260313b"></script>
+    <script src="./iac.js?v=20260313e"></script>
   </body>
 </html>

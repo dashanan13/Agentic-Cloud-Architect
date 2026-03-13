@@ -1,5 +1,8 @@
 const btnBack = document.getElementById("btn-iac-back");
+const btnRetry = document.getElementById("btn-iac-retry");
 const btnCopy = document.getElementById("btn-iac-copy");
+const btnDownload = document.getElementById("btn-iac-download");
+const btnStatusToggle = document.getElementById("btn-iac-status-toggle");
 const fileListEl = document.getElementById("iac-file-list");
 const fileCountEl = document.getElementById("iac-file-count");
 const fileContentEl = document.getElementById("iac-file-content");
@@ -33,9 +36,24 @@ const state = {
   autostart: false,
   pollTimer: null,
   latestTask: null,
+  retryBusy: false,
   loadedTaskResultId: "",
-  collapsedDirs: new Set()
+  collapsedDirs: new Set(),
+  expandedStageIds: new Set(),
+  statusCollapsed: false
 };
+
+function updateRetryButtonState() {
+  if (!btnRetry) {
+    return;
+  }
+
+  const currentStatus = String(state.latestTask?.status || "").trim().toLowerCase();
+  const isTerminalState = currentStatus === "completed" || currentStatus === "error";
+
+  btnRetry.hidden = !isTerminalState;
+  btnRetry.disabled = !isTerminalState || state.retryBusy;
+}
 
 function consumeAutostartIntent(projectId) {
   const safeProjectId = String(projectId || "").trim();
@@ -117,9 +135,39 @@ function buildDefaultStages() {
     label: stage.label,
     status: "pending",
     message: "",
+    detailSummary: "",
+    detailItems: [],
     startedAt: null,
     completedAt: null
   }));
+}
+
+function normalizeStageDetailItems(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const normalized = [];
+  value.forEach((item) => {
+    if (!item || typeof item !== "object") {
+      return;
+    }
+
+    const label = String(item.label || "Step").trim() || "Step";
+    const detailValue = String(item.value || "").trim();
+    if (!detailValue) {
+      return;
+    }
+
+    const status = String(item.status || "info").trim().toLowerCase();
+    normalized.push({
+      label,
+      value: detailValue,
+      status: ["info", "pass", "fail", "warning", "skipped"].includes(status) ? status : "info"
+    });
+  });
+
+  return normalized.slice(0, 20);
 }
 
 function normalizeTask(task) {
@@ -140,6 +188,8 @@ function normalizeTask(task) {
         label: String(stage?.label || "").trim(),
         status: String(stage?.status || "pending").trim().toLowerCase(),
         message: String(stage?.message || "").trim(),
+        detailSummary: String(stage?.detailSummary || "").trim(),
+        detailItems: normalizeStageDetailItems(stage?.detailItems),
         startedAt: stage?.startedAt ?? null,
         completedAt: stage?.completedAt ?? null
       }))
@@ -158,6 +208,8 @@ function normalizeTask(task) {
       label: existing.label || template.label,
       status: existing.status || template.status,
       message: existing.message || "",
+      detailSummary: existing.detailSummary || "",
+      detailItems: Array.isArray(existing.detailItems) ? existing.detailItems : [],
       startedAt: existing.startedAt,
       completedAt: existing.completedAt
     };
@@ -191,6 +243,99 @@ function setStatus(status, { text, meta, progress } = {}) {
   if (progressFillEl && progress !== undefined) {
     progressFillEl.style.width = `${clampProgress(progress, 0)}%`;
   }
+}
+
+function humanizeStageStatus(status) {
+  const normalized = String(status || "pending").trim().toLowerCase();
+  if (normalized === "running") {
+    return "Running";
+  }
+  if (normalized === "completed") {
+    return "Completed";
+  }
+  if (normalized === "error") {
+    return "Failed";
+  }
+  return "Waiting";
+}
+
+function buildStageMicroDetails(stage, status) {
+  const details = [];
+
+  const summary = String(stage?.message || "").trim();
+  const detailSummary = String(stage?.detailSummary || "").trim();
+  if (detailSummary) {
+    details.push({ label: "Explanation", value: detailSummary, status: "info" });
+  }
+
+  const stageDetailItems = normalizeStageDetailItems(stage?.detailItems);
+  stageDetailItems.forEach((item) => {
+    details.push({
+      label: item.label,
+      value: item.value,
+      status: item.status
+    });
+  });
+
+  if (!details.length && summary) {
+    details.push({ label: "Summary", value: summary, status: "info" });
+  }
+
+  if (!details.length) {
+    details.push({
+      label: "State",
+      value: humanizeStageStatus(status),
+      status: status === "error" ? "fail" : "info"
+    });
+  }
+
+  return details;
+}
+
+function setStatusCollapsed(collapsed) {
+  state.statusCollapsed = Boolean(collapsed);
+  statusEl?.classList.toggle("is-collapsed", state.statusCollapsed);
+
+  if (btnStatusToggle) {
+    btnStatusToggle.innerHTML = `<span aria-hidden="true">${state.statusCollapsed ? "▾" : "▴"}</span>`;
+    btnStatusToggle.setAttribute("aria-expanded", String(!state.statusCollapsed));
+    btnStatusToggle.setAttribute(
+      "aria-label",
+      state.statusCollapsed ? "Expand generation status" : "Collapse generation status"
+    );
+    btnStatusToggle.title = state.statusCollapsed ? "Expand generation status" : "Collapse generation status";
+  }
+}
+
+function updateDownloadButtonState() {
+  if (!btnDownload) {
+    return;
+  }
+
+  btnDownload.disabled = !(state.projectId && Array.isArray(state.files) && state.files.length > 0);
+}
+
+function parseDownloadFilename(contentDisposition, fallback) {
+  const safeFallback = String(fallback || "iac-output.zip").trim() || "iac-output.zip";
+  const header = String(contentDisposition || "").trim();
+  if (!header) {
+    return safeFallback;
+  }
+
+  const utfMatch = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (utfMatch && utfMatch[1]) {
+    try {
+      return decodeURIComponent(utfMatch[1]);
+    } catch {
+    }
+  }
+
+  const plainMatch = /filename="?([^";]+)"?/i.exec(header);
+  if (plainMatch && plainMatch[1]) {
+    return String(plainMatch[1]).trim() || safeFallback;
+  }
+
+  return safeFallback;
 }
 
 function renderProgressMilestones(stages) {
@@ -252,12 +397,28 @@ function renderStageList(stages) {
   }
 
   const safeStages = Array.isArray(stages) && stages.length ? stages : buildDefaultStages();
+  const validStageIds = new Set(
+    safeStages
+      .map((stage) => String(stage?.id || "").trim())
+      .filter(Boolean)
+  );
+  Array.from(state.expandedStageIds).forEach((stageId) => {
+    if (!validStageIds.has(stageId)) {
+      state.expandedStageIds.delete(stageId);
+    }
+  });
+
   stageListEl.innerHTML = "";
 
   safeStages.forEach((stage, index) => {
+    const stageId = String(stage?.id || `stage-${index + 1}`).trim() || `stage-${index + 1}`;
     const row = document.createElement("li");
     const status = String(stage.status || "pending").trim().toLowerCase() || "pending";
     row.className = `iac-stage-item is-${status}`;
+    const isExpanded = state.expandedStageIds.has(stageId);
+    if (isExpanded) {
+      row.classList.add("is-expanded");
+    }
 
     const badge = document.createElement("span");
     badge.className = "iac-stage-item__badge";
@@ -292,10 +453,55 @@ function renderStageList(stages) {
       message.textContent = "Waiting";
     }
 
+    const detailId = `iac-stage-details-${index + 1}`;
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "iac-stage-item__toggle";
+    toggle.textContent = isExpanded ? "−" : "+";
+    toggle.setAttribute("aria-expanded", String(isExpanded));
+    toggle.setAttribute("aria-controls", detailId);
+    toggle.setAttribute(
+      "aria-label",
+      `${isExpanded ? "Hide" : "Show"} details for ${String(stage.label || `Stage ${index + 1}`)}`
+    );
+    toggle.addEventListener("click", () => {
+      if (state.expandedStageIds.has(stageId)) {
+        state.expandedStageIds.delete(stageId);
+      } else {
+        state.expandedStageIds.add(stageId);
+      }
+      renderStageList(safeStages);
+    });
+
+    const details = document.createElement("div");
+    details.className = "iac-stage-item__details";
+    details.id = detailId;
+    buildStageMicroDetails(stage, status).forEach((item) => {
+      const detailRow = document.createElement("div");
+      detailRow.className = "iac-stage-item__detail";
+      const itemStatus = String(item?.status || "").trim().toLowerCase();
+      if (["pass", "fail", "warning", "skipped"].includes(itemStatus)) {
+        detailRow.classList.add(`is-${itemStatus}`);
+      }
+
+      const key = document.createElement("span");
+      key.className = "iac-stage-item__detail-key";
+      key.textContent = `${item.label}:`;
+
+      const value = document.createElement("span");
+      value.textContent = String(item.value || "");
+
+      detailRow.appendChild(key);
+      detailRow.appendChild(value);
+      details.appendChild(detailRow);
+    });
+
     body.appendChild(title);
     body.appendChild(message);
     row.appendChild(badge);
     row.appendChild(body);
+    row.appendChild(toggle);
+    row.appendChild(details);
     stageListEl.appendChild(row);
   });
 
@@ -497,6 +703,7 @@ async function loadFiles({ updateErrorStatus = true } = {}) {
       const label = state.files.length === 1 ? "file" : "files";
       fileCountEl.textContent = `${state.files.length} ${label}`;
     }
+    updateDownloadButtonState();
 
     if (!state.files.length) {
       state.selectedPath = "";
@@ -517,6 +724,7 @@ async function loadFiles({ updateErrorStatus = true } = {}) {
   } catch (error) {
     state.files = [];
     state.selectedPath = "";
+    updateDownloadButtonState();
     renderFileList();
     updateViewerTitle("");
     setFileContent(error?.message || "Failed to load IaC files.", true);
@@ -577,6 +785,7 @@ function renderTask(task) {
   state.taskId = normalized.taskId;
   syncTaskUrl(normalized.taskId);
   renderStageList(normalized.stages);
+  updateRetryButtonState();
 
   if (normalized.status === "completed") {
     setStatus("complete", {
@@ -705,7 +914,14 @@ async function startGenerationTask() {
     return;
   }
 
+  state.retryBusy = true;
+  state.latestTask = {
+    status: "running",
+  };
+  updateRetryButtonState();
+
   state.loadedTaskResultId = "";
+  state.expandedStageIds.clear();
   renderStageList(buildDefaultStages());
   setStatus("running", {
     text: "IaC status: starting generation",
@@ -759,11 +975,18 @@ async function startGenerationTask() {
     failedStages[0].status = "error";
     failedStages[0].message = error?.message || "Failed to start generation.";
     renderStageList(failedStages);
+    state.latestTask = {
+      status: "error",
+    };
     setStatus("error", {
       text: "IaC status: error",
       meta: error?.message || "Unable to start generation.",
       progress: 0
     });
+    updateRetryButtonState();
+  } finally {
+    state.retryBusy = false;
+    updateRetryButtonState();
   }
 }
 
@@ -775,6 +998,62 @@ function handleBack() {
   }
 
   window.location.href = "./landing.html";
+}
+
+async function handleDownloadZip() {
+  if (!state.projectId || !btnDownload) {
+    return;
+  }
+
+  const previousTitle = btnDownload.title;
+  btnDownload.disabled = true;
+  btnDownload.title = "Preparing ZIP archive...";
+
+  try {
+    const response = await fetch(`/api/project/${encodeURIComponent(state.projectId)}/iac/download`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      let message = "Unable to download IaC ZIP archive.";
+      try {
+        const errorPayload = await response.json();
+        if (errorPayload?.detail) {
+          message = String(errorPayload.detail);
+        }
+      } catch {
+      }
+      throw new Error(message);
+    }
+
+    const blob = await response.blob();
+    if (!blob || blob.size <= 0) {
+      throw new Error("Downloaded archive is empty.");
+    }
+
+    const fallbackName = `${state.projectId || "project"}-iac.zip`;
+    const fileName = parseDownloadFilename(response.headers.get("content-disposition"), fallbackName);
+
+    const objectUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(objectUrl);
+
+    if (statusMetaEl) {
+      statusMetaEl.textContent = "IaC ZIP download started.";
+    }
+  } catch (error) {
+    if (statusMetaEl) {
+      statusMetaEl.textContent = error?.message || "Unable to download IaC ZIP archive.";
+    }
+  } finally {
+    btnDownload.title = previousTitle || "Download IaC ZIP";
+    updateDownloadButtonState();
+  }
 }
 
 async function handleCopy() {
@@ -800,6 +1079,14 @@ async function handleCopy() {
   }
 }
 
+async function handleRetryGeneration() {
+  if (!btnRetry || btnRetry.disabled) {
+    return;
+  }
+
+  await startGenerationTask();
+}
+
 async function initialize() {
   const params = getParams();
   state.projectId = params.projectId;
@@ -821,10 +1108,23 @@ async function initialize() {
   }
 
   btnBack?.addEventListener("click", handleBack);
+  btnRetry?.addEventListener("click", () => {
+    handleRetryGeneration();
+  });
+  btnStatusToggle?.addEventListener("click", () => {
+    setStatusCollapsed(!state.statusCollapsed);
+  });
   btnCopy?.addEventListener("click", () => {
     handleCopy();
   });
+  btnDownload?.addEventListener("click", () => {
+    handleDownloadZip();
+  });
   window.addEventListener("beforeunload", stopTaskPolling);
+
+  setStatusCollapsed(false);
+  updateDownloadButtonState();
+  updateRetryButtonState();
 
   renderStageList(buildDefaultStages());
   setStatus("idle", {
@@ -841,6 +1141,7 @@ async function initialize() {
     });
     setFileContent("Project ID is missing. Return to the canvas and try again.", true);
     renderFileList();
+    updateDownloadButtonState();
     return;
   }
 
@@ -854,6 +1155,7 @@ async function initialize() {
     });
     setFileContent("Project details could not be loaded.", true);
     renderFileList();
+    updateDownloadButtonState();
     return;
   }
 
@@ -886,12 +1188,16 @@ async function initialize() {
       meta: "No active generation task. Existing IaC files are shown below.",
       progress: 0
     });
+    state.latestTask = null;
+    updateRetryButtonState();
   } else {
     setStatus("idle", {
       text: "IaC status: waiting",
       meta: "Use Generate Code from canvas to start IaC generation.",
       progress: 0
     });
+    state.latestTask = null;
+    updateRetryButtonState();
   }
 }
 

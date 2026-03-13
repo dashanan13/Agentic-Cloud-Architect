@@ -4690,7 +4690,19 @@ function setSaveStatus(message, isError = false) {
 }
 
 
-function buildProjectSnapshot() {
+function normalizeSaveTrigger(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "autosave" || normalized === "auto") {
+    return "autosave";
+  }
+  if (normalized === "manual" || normalized === "user") {
+    return "manual";
+  }
+  return "unspecified";
+}
+
+function buildProjectSnapshot(options = {}) {
+  const saveTrigger = normalizeSaveTrigger(options.saveTrigger);
   return {
     project: {
       id: state.currentProject.id,
@@ -4702,6 +4714,7 @@ function buildProjectSnapshot() {
       iacParameterFormat: String(state.currentProject.iacParameterFormat || "bicepparam").trim().toLowerCase(),
       lastSaved: state.currentProject.lastSaved
     },
+    saveTrigger,
     baseStateHash: String(state.currentProject.canvasStateHash || "").trim(),
     canvasState: {
       leftWidth: state.leftWidth,
@@ -4723,17 +4736,31 @@ function buildProjectSnapshot() {
 
 function mergeQueuedSaveOptions(existingOptions, incomingOptions) {
   const incomingSilent = Boolean(incomingOptions?.silent);
+  const incomingTrigger = normalizeSaveTrigger(incomingOptions?.saveTrigger);
   if (!existingOptions) {
-    return { silent: incomingSilent };
+    return {
+      silent: incomingSilent,
+      saveTrigger: incomingTrigger
+    };
   }
+
+  const existingTrigger = normalizeSaveTrigger(existingOptions.saveTrigger);
+  const mergedTrigger = (existingTrigger === "manual" || incomingTrigger === "manual")
+    ? "manual"
+    : (existingTrigger === "autosave" || incomingTrigger === "autosave" ? "autosave" : "unspecified");
+
   return {
-    silent: Boolean(existingOptions.silent && incomingSilent)
+    silent: Boolean(existingOptions.silent && incomingSilent),
+    saveTrigger: mergedTrigger
   };
 }
 
 async function runProjectSaveRequest(options = {}) {
-  const { silent = false } = options;
-  const snapshot = buildProjectSnapshot();
+  const {
+    silent = false,
+    saveTrigger = "unspecified"
+  } = options;
+  const snapshot = buildProjectSnapshot({ saveTrigger });
 
   const response = await fetch("/api/project/save", {
     method: "POST",
@@ -4787,7 +4814,10 @@ async function saveProjectFiles(options = {}) {
     return;
   }
 
-  const requestedOptions = { silent: Boolean(options.silent) };
+  const requestedOptions = {
+    silent: Boolean(options.silent),
+    saveTrigger: normalizeSaveTrigger(options.saveTrigger)
+  };
 
   if (saveRequestInFlight) {
     queuedSaveOptions = mergeQueuedSaveOptions(queuedSaveOptions, requestedOptions);
@@ -5266,7 +5296,7 @@ projectNameDisplay?.addEventListener("keydown", (event) => {
 // ===== Event Listeners =====
 btnBackProjects.addEventListener("click", async () => {
   try {
-    await saveProjectFiles();
+    await saveProjectFiles({ saveTrigger: "manual" });
   } catch {
     // Continue navigation even if file save fails.
   }
@@ -5275,7 +5305,7 @@ btnBackProjects.addEventListener("click", async () => {
 
 btnProjectSave?.addEventListener("click", async () => {
   updateTimestamp();
-  await saveProjectFiles();
+  await saveProjectFiles({ saveTrigger: "manual" });
 });
 
 btnProjectSettings?.addEventListener("click", () => {
@@ -5310,7 +5340,7 @@ btnGenerateCode?.addEventListener("click", async () => {
 
   try {
     updateTimestamp();
-    await saveProjectFiles({ silent: true });
+    await saveProjectFiles({ silent: true, saveTrigger: "manual" });
   } catch {
     // Continue navigation even if file save fails.
   }
@@ -5588,7 +5618,7 @@ propertyContentEl?.addEventListener("click", async (event) => {
 
     try {
       updateTimestamp();
-      await saveProjectFiles();
+      await saveProjectFiles({ saveTrigger: "manual" });
       saveBtn.textContent = "Saved!";
     } catch {
       saveBtn.textContent = "Save failed";
@@ -6526,7 +6556,7 @@ async function initialize() {
   window.setInterval(async () => {
     try {
       updateTimestamp();
-      await saveProjectFiles({ silent: true });
+      await saveProjectFiles({ silent: true, saveTrigger: "autosave" });
     } catch {
       // Keep autosave non-blocking.
     }

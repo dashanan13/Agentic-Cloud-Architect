@@ -1,11 +1,13 @@
 from pathlib import Path
 import base64
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import time
+import zipfile
 from datetime import datetime
 from threading import Lock, Thread
 from typing import Any, Mapping
@@ -38,8 +40,10 @@ from Agents.AzureMCP.cloudarchitect_chat_agent import (
     run_cloudarchitect_chat_agent,
 )
 from Agents.AzureMCP.iac_generation_agent import generate_bicep_iac_from_canvas
+from Agents.common.activity_log import log_activity as write_activity_log
+from Agents.common.activity_log import resolve_logs_dir as resolve_activity_logs_dir
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -90,52 +94,23 @@ IAC_TASK_STALE_QUEUED_SECONDS = 2 * 60
 IAC_TASKS: dict[str, dict] = {}
 IAC_PROJECT_TASKS: dict[str, str] = {}
 IAC_TASK_LOCK = Lock()
-APP_ACTIVITY_LOG_PATH = APP_STATE_DIR / "application.log.ndjson"
-
-_LOG_SENSITIVE_KEYWORDS = (
-    "secret",
-    "password",
-    "token",
-    "authorization",
-    "credential",
-    "clientsecret",
-    "accesskey",
-)
+APP_LOG_DEFAULT_SOURCE = "backend.api"
 
 
-def _mask_identifier(value: Any) -> str:
-    text = str(value or "").strip()
-    if not text:
-        return ""
-    if len(text) <= 10:
-        return "***"
-    return f"{text[:4]}...{text[-4:]}"
+def _derive_log_category(event_type: str) -> str:
+    normalized = str(event_type or "").strip().lower()
+    if not normalized:
+        return "application"
+    return normalized.split(".", 1)[0]
 
 
-def _sanitize_for_app_log(value: Any, key_hint: str = "") -> Any:
-    key_text = str(key_hint or "").strip().lower()
-    if any(token in key_text for token in _LOG_SENSITIVE_KEYWORDS):
-        return "[REDACTED]"
-
-    if isinstance(value, Mapping):
-        cleaned: dict[str, Any] = {}
-        for raw_key, raw_value in value.items():
-            safe_key = str(raw_key)
-            cleaned[safe_key] = _sanitize_for_app_log(raw_value, safe_key)
-        return cleaned
-
-    if isinstance(value, list):
-        return [_sanitize_for_app_log(item, key_hint) for item in value[:50]]
-
-    if isinstance(value, str):
-        text = value.strip()
-        if key_text.endswith("id") or key_text in {"thread", "threadid", "agent", "agentid", "assistantid"}:
-            return _mask_identifier(text)
-        if len(text) > 400:
-            return text[:400] + "..."
-        return text
-
-    return value
+def _normalize_log_level(value: str | None) -> str:
+    candidate = str(value or "info").strip().lower()
+    if candidate in {"warning", "warn"}:
+        return "warning"
+    if candidate in {"error", "failed", "failure", "fatal"}:
+        return "error"
+    return "info"
 
 
 def _append_app_activity(
@@ -144,24 +119,20 @@ def _append_app_activity(
     status: str = "info",
     project_id: str | None = None,
     details: Mapping[str, Any] | None = None,
+    category: str | None = None,
+    step: str | None = None,
+    source: str = APP_LOG_DEFAULT_SOURCE,
 ) -> None:
-    try:
-        APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
-        payload: dict[str, Any] = {
-            "timestampUtc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
-            "eventType": str(event_type or "application.event").strip(),
-            "status": str(status or "info").strip().lower(),
-        }
-        safe_project_id = str(project_id or "").strip()
-        if safe_project_id:
-            payload["projectId"] = safe_project_id
-        if isinstance(details, Mapping) and details:
-            payload["details"] = _sanitize_for_app_log(dict(details))
-
-        with APP_ACTIVITY_LOG_PATH.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    except Exception:
-        return
+    write_activity_log(
+        app_state_dir=APP_STATE_DIR,
+        event_type=str(event_type or "application.event").strip() or "application.event",
+        category=str(category or _derive_log_category(event_type)).strip() or "application",
+        level=_normalize_log_level(status),
+        step=str(step or event_type or "application.event").strip() or "application.event",
+        source=str(source or APP_LOG_DEFAULT_SOURCE).strip() or APP_LOG_DEFAULT_SOURCE,
+        project_id=str(project_id or "").strip() or None,
+        details=details if isinstance(details, Mapping) else None,
+    )
 
 
 class AppSettingsPayload(BaseModel):
@@ -197,6 +168,7 @@ class ProjectSavePayload(BaseModel):
     canvasState: dict = {}
     create: bool | None = None
     baseStateHash: str | None = None
+    saveTrigger: str | None = None
 
 
 class DiagramExportPayload(BaseModel):
@@ -235,6 +207,63 @@ class IacGeneratePayload(BaseModel):
     parameterFormat: str | None = None
 
 
+def _normalize_save_trigger(value: str | None) -> str:
+    text = str(value or "").strip().lower()
+    if text in {"auto", "autosave", "background"}:
+        return "autosave"
+    if text in {"manual", "user", "button"}:
+        return "manual"
+    return "unspecified"
+
+
+def _canvas_entity_counts(canvas_state: Mapping[str, Any] | None) -> tuple[int, int]:
+    payload = canvas_state if isinstance(canvas_state, Mapping) else {}
+    items = payload.get("canvasItems") if isinstance(payload.get("canvasItems"), list) else []
+    connections = payload.get("canvasConnections") if isinstance(payload.get("canvasConnections"), list) else []
+    return len(items), len(connections)
+
+
+@app.on_event("startup")
+def initialize_application_activity_log() -> None:
+    _append_app_activity(
+        "application.startup.begin",
+        status="info",
+        category="startup",
+        step="initialize",
+        source="backend.startup",
+        details={
+            "workspaceRoot": str(WORKSPACE_ROOT),
+            "appStateDir": str(APP_STATE_DIR),
+            "logsDir": str(resolve_activity_logs_dir(APP_STATE_DIR)),
+        },
+    )
+
+    try:
+        APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
+        projects_count = len(collect_project_entries())
+        provider = str(load_app_settings().get("modelProvider") or "ollama-local").strip().lower()
+        _append_app_activity(
+            "application.startup.ready",
+            status="info",
+            category="startup",
+            step="ready",
+            source="backend.startup",
+            details={
+                "modelProvider": provider,
+                "projectsLoaded": projects_count,
+            },
+        )
+    except Exception as exc:
+        _append_app_activity(
+            "application.startup.failed",
+            status="error",
+            category="startup",
+            step="failed",
+            source="backend.startup",
+            details={"error": str(exc)},
+        )
+
+
 def read_json_file(path: Path, default):
     try:
         if not path.exists():
@@ -266,6 +295,37 @@ def _timestamp_ms() -> int:
     return int(time.time() * 1000)
 
 
+def _sanitize_iac_stage_detail_items(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    normalized: list[dict[str, str]] = []
+    for item in value:
+        if not isinstance(item, Mapping):
+            continue
+
+        label = str(item.get("label") or "Step").strip() or "Step"
+        text_value = str(item.get("value") or "").strip()
+        if not text_value:
+            continue
+
+        status = str(item.get("status") or "info").strip().lower()
+        if status not in {"info", "pass", "fail", "warning", "skipped"}:
+            status = "info"
+
+        normalized.append(
+            {
+                "label": label,
+                "value": text_value,
+                "status": status,
+            }
+        )
+        if len(normalized) >= 20:
+            break
+
+    return normalized
+
+
 def _new_iac_stage_payload() -> list[dict]:
     return [
         {
@@ -273,6 +333,8 @@ def _new_iac_stage_payload() -> list[dict]:
             "label": stage["label"],
             "status": "pending",
             "message": "",
+            "detailSummary": "",
+            "detailItems": [],
             "startedAt": None,
             "completedAt": None,
         }
@@ -358,6 +420,8 @@ def _serialize_iac_task(task: dict) -> dict:
                 "label": str(stage.get("label") or "").strip(),
                 "status": str(stage.get("status") or "pending").strip().lower(),
                 "message": str(stage.get("message") or "").strip(),
+                "detailSummary": str(stage.get("detailSummary") or "").strip(),
+                "detailItems": _sanitize_iac_stage_detail_items(stage.get("detailItems")),
                 "startedAt": stage.get("startedAt"),
                 "completedAt": stage.get("completedAt"),
             }
@@ -391,6 +455,19 @@ def _create_iac_task(project_id: str, parameter_format: str) -> dict:
     }
     IAC_TASKS[task_id] = payload
     IAC_PROJECT_TASKS[payload["projectId"]] = task_id
+
+    _append_app_activity(
+        "codegen.task",
+        status="info",
+        project_id=payload["projectId"],
+        category="codegen",
+        step="queued",
+        source="backend.codegen",
+        details={
+            "taskId": task_id,
+            "parameterFormat": payload["parameterFormat"],
+        },
+    )
     return payload
 
 
@@ -407,6 +484,20 @@ def _mark_iac_task_running(task_id: str, message: str = "IaC generation started"
         task["startedAt"] = now
     task["progress"] = max(1, _clamp_progress(task.get("progress"), 1))
 
+    _append_app_activity(
+        "codegen.task",
+        status="info",
+        project_id=str(task.get("projectId") or "").strip() or None,
+        category="codegen",
+        step="running",
+        source="backend.codegen",
+        details={
+            "taskId": str(task.get("taskId") or task_id),
+            "message": task["message"],
+            "progress": task["progress"],
+        },
+    )
+
 
 def _update_iac_task_stage(
     task_id: str,
@@ -415,6 +506,8 @@ def _update_iac_task_stage(
     status: str,
     message: str = "",
     progress: int | float | str | None = None,
+    detail_items: Any = None,
+    detail_summary: Any = None,
 ) -> None:
     now = _timestamp_ms()
     task = IAC_TASKS.get(task_id)
@@ -437,6 +530,10 @@ def _update_iac_task_stage(
 
     stage["status"] = normalized_status
     stage["message"] = str(message or "").strip()
+    if detail_items is not None:
+        stage["detailItems"] = _sanitize_iac_stage_detail_items(detail_items)
+    if detail_summary is not None:
+        stage["detailSummary"] = str(detail_summary or "").strip()
     if normalized_status == "running":
         if not isinstance(stage.get("startedAt"), (int, float)):
             stage["startedAt"] = now
@@ -458,6 +555,22 @@ def _update_iac_task_stage(
 
     if progress is not None:
         task["progress"] = _clamp_progress(progress, task.get("progress") or 0)
+
+    _append_app_activity(
+        "codegen.stage",
+        status="error" if normalized_status == "error" else "info",
+        project_id=str(task.get("projectId") or "").strip() or None,
+        category="codegen",
+        step=normalized_status,
+        source="backend.codegen",
+        details={
+            "taskId": str(task.get("taskId") or task_id),
+            "stageId": str(stage.get("id") or stage_id).strip(),
+            "stageLabel": str(stage.get("label") or "").strip(),
+            "message": stage.get("message"),
+            "progress": task.get("progress"),
+        },
+    )
 
 
 def _complete_iac_task(task_id: str, result: dict | None = None) -> None:
@@ -482,6 +595,20 @@ def _complete_iac_task(task_id: str, result: dict | None = None) -> None:
     task["finishedAt"] = now
     task["result"] = result if isinstance(result, dict) else result
     task["error"] = None
+
+    _append_app_activity(
+        "codegen.task",
+        status="info",
+        project_id=str(task.get("projectId") or "").strip() or None,
+        category="codegen",
+        step="completed",
+        source="backend.codegen",
+        details={
+            "taskId": str(task.get("taskId") or task_id),
+            "progress": task.get("progress"),
+            "resultOk": bool(isinstance(result, Mapping) and result.get("ok")),
+        },
+    )
 
 
 def _fail_iac_task(task_id: str, message: str) -> None:
@@ -518,6 +645,20 @@ def _fail_iac_task(task_id: str, message: str) -> None:
     task["updatedAt"] = now
     task["finishedAt"] = now
 
+    _append_app_activity(
+        "codegen.task",
+        status="error",
+        project_id=str(task.get("projectId") or "").strip() or None,
+        category="codegen",
+        step="failed",
+        source="backend.codegen",
+        details={
+            "taskId": str(task.get("taskId") or task_id),
+            "error": failure_message,
+            "progress": task.get("progress"),
+        },
+    )
+
 
 def _record_iac_progress_event(task_id: str, event: dict) -> None:
     if not isinstance(event, dict):
@@ -533,6 +674,8 @@ def _record_iac_progress_event(task_id: str, event: dict) -> None:
         status=str(event.get("status") or "running"),
         message=str(event.get("message") or "").strip(),
         progress=event.get("progress"),
+        detail_items=event.get("detailItems"),
+        detail_summary=event.get("detailSummary"),
     )
 
 
@@ -965,6 +1108,14 @@ def write_app_settings_file(settings: dict) -> Path:
 
 def bootstrap_default_foundry_resources(settings: dict) -> dict:
     if not is_azure_foundry_provider(settings):
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="info",
+            category="foundry",
+            step="skipped",
+            source="backend.foundry",
+            details={"reason": "provider-not-azure-foundry"},
+        )
         return {
             "ok": True,
             "skipped": True,
@@ -986,6 +1137,9 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
         _append_app_activity(
             "foundry.bootstrap",
             status="warning",
+            category="foundry",
+            step="skipped",
+            source="backend.foundry",
             details={
                 "reason": "configuration-incomplete",
                 "detail": str(exc),
@@ -1001,6 +1155,9 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
         _append_app_activity(
             "foundry.bootstrap",
             status="error",
+            category="foundry",
+            step="failed",
+            source="backend.foundry",
             details={
                 "reason": "request-failed",
                 "statusCode": exc.status_code,
@@ -1025,6 +1182,9 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
     _append_app_activity(
         "foundry.bootstrap",
         status="info",
+        category="foundry",
+        step="completed",
+        source="backend.foundry",
         details={
             "chatAgentId": result.chat_agent_id,
             "iacAgentId": result.iac_agent_id,
@@ -1080,6 +1240,9 @@ def _record_orchestration_event(
             "orchestration.event",
             status="warning",
             project_id=safe_project_id,
+            category="orchestration",
+            step="thread-missing",
+            source="backend.orchestrator",
             details={
                 "workflow": safe_workflow,
                 "status": safe_status,
@@ -1114,6 +1277,9 @@ def _record_orchestration_event(
             "orchestration.event",
             status="error" if safe_status.lower() == "failed" else "info",
             project_id=safe_project_id,
+            category="orchestration",
+            step=safe_status,
+            source="backend.orchestrator",
             details={
                 "workflow": safe_workflow,
                 "status": safe_status,
@@ -1127,6 +1293,15 @@ def _record_orchestration_event(
 
 def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_id: str | None = None) -> dict:
     if not is_azure_foundry_provider(settings):
+        _append_app_activity(
+            "foundry.thread",
+            status="info",
+            project_id=str(project_id or "").strip() or None,
+            category="foundry",
+            step="skipped",
+            source="backend.foundry",
+            details={"reason": "provider-not-azure-foundry"},
+        )
         return {
             "ok": True,
             "skipped": True,
@@ -1135,6 +1310,16 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
 
     safe_project_id = str(project_id or "").strip()
     if not safe_project_id:
+        _append_app_activity(
+            "foundry.thread",
+            status="warning",
+            category="foundry",
+            step="failed",
+            source="backend.foundry",
+            details={
+                "reason": "project-id-missing",
+            },
+        )
         return {
             "ok": False,
             "skipped": False,
@@ -1149,6 +1334,18 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
             known_thread_id=known_thread_id,
         )
     except FoundryConfigurationError as exc:
+        _append_app_activity(
+            "foundry.thread",
+            status="warning",
+            project_id=safe_project_id,
+            category="foundry",
+            step="skipped",
+            source="backend.foundry",
+            details={
+                "reason": "configuration-incomplete",
+                "detail": str(exc),
+            },
+        )
         return {
             "ok": True,
             "skipped": True,
@@ -1156,6 +1353,19 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
             "detail": str(exc),
         }
     except FoundryRequestError as exc:
+        _append_app_activity(
+            "foundry.thread",
+            status="error",
+            project_id=safe_project_id,
+            category="foundry",
+            step="failed",
+            source="backend.foundry",
+            details={
+                "reason": "request-failed",
+                "statusCode": exc.status_code,
+                "detail": f"{exc} {str(exc.detail or '')[:400]}".strip(),
+            },
+        )
         return {
             "ok": False,
             "skipped": False,
@@ -1163,6 +1373,19 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
             "statusCode": exc.status_code,
             "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
         }
+
+    _append_app_activity(
+        "foundry.thread",
+        status="info",
+        project_id=safe_project_id,
+        category="foundry",
+        step="completed",
+        source="backend.foundry",
+        details={
+            "threadId": thread_result.thread_id,
+            "created": bool(thread_result.created),
+        },
+    )
 
     return {
         "ok": True,
@@ -1630,6 +1853,20 @@ def save_app_settings(body: AppSettingsPayload):
             **DEFAULT_APP_SETTINGS,
             **incoming_settings,
         }
+        provider = str(effective_settings.get("modelProvider") or "ollama-local").strip().lower()
+
+        _append_app_activity(
+            "settings.app.save",
+            status="info",
+            category="settings",
+            step="requested",
+            source="backend.api",
+            details={
+                "provider": provider,
+                "requestedKeyCount": len(incoming_settings),
+                "requestedKeys": sorted([str(key) for key in incoming_settings.keys()])[:50],
+            },
+        )
 
         target = write_app_settings_file(effective_settings)
         bootstrap_result = bootstrap_default_foundry_resources(effective_settings)
@@ -1637,20 +1874,53 @@ def save_app_settings(body: AppSettingsPayload):
         if bootstrap_result.get("settingsUpdated"):
             target = write_app_settings_file(effective_settings)
 
+        _append_app_activity(
+            "settings.app.save",
+            status="info",
+            category="settings",
+            step="completed",
+            source="backend.api",
+            details={
+                "provider": provider,
+                "path": str(target.relative_to(WORKSPACE_ROOT)),
+                "foundryBootstrap": bootstrap_result,
+            },
+        )
+
         return {
             "ok": True,
             "path": str(target.relative_to(WORKSPACE_ROOT)),
             "foundryBootstrap": bootstrap_result,
         }
     except Exception as exc:
+        _append_app_activity(
+            "settings.app.save",
+            status="error",
+            category="settings",
+            step="failed",
+            source="backend.api",
+            details={"error": str(exc)},
+        )
         raise HTTPException(status_code=500, detail=f"Failed to save app settings: {exc}") from exc
 
 
 @app.get("/api/settings/app")
 def get_app_settings():
     target = APP_STATE_DIR / "app.settings.env"
+    settings = load_app_settings()
+    _append_app_activity(
+        "settings.app.load",
+        status="info",
+        category="settings",
+        step="completed",
+        source="backend.api",
+        details={
+            "provider": str(settings.get("modelProvider") or "ollama-local").strip().lower(),
+            "hasFoundryEndpoint": bool(str(settings.get("aiFoundryEndpoint") or "").strip()),
+        },
+    )
     return {
-        "settings": load_app_settings(),
+        "settings": settings,
         "path": str(target.relative_to(WORKSPACE_ROOT)) if target.exists() else None,
     }
 
@@ -1658,6 +1928,13 @@ def get_app_settings():
 @app.post("/api/foundry/bootstrap-default")
 def bootstrap_foundry_defaults():
     try:
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="info",
+            category="foundry",
+            step="requested",
+            source="backend.api",
+        )
         settings = load_app_settings()
         result = bootstrap_default_foundry_resources(settings)
 
@@ -1670,11 +1947,31 @@ def bootstrap_foundry_defaults():
             if target.exists():
                 path = str(target.relative_to(WORKSPACE_ROOT))
 
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="info",
+            category="foundry",
+            step="completed",
+            source="backend.api",
+            details={
+                "path": path,
+                "result": result,
+            },
+        )
+
         return {
             **result,
             "path": path,
         }
     except Exception as exc:
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="error",
+            category="foundry",
+            step="failed",
+            source="backend.api",
+            details={"error": str(exc)},
+        )
         raise HTTPException(status_code=500, detail=f"Failed to bootstrap Foundry defaults: {exc}") from exc
 
 
@@ -1909,6 +2206,19 @@ def get_app_model(purpose: str = "chat", profile: str | None = None):
         purpose_value = str(profile).strip().lower()
 
     variable, model = resolve_model_by_purpose(settings, purpose_value)
+    _append_app_activity(
+        "models.resolve",
+        status="info",
+        category="model",
+        step="resolved",
+        source="backend.api",
+        details={
+            "purpose": purpose_value,
+            "provider": str(settings.get("modelProvider") or "azure-foundry").strip(),
+            "variable": variable,
+            "model": model,
+        },
+    )
     return {
         "purpose": purpose_value,
         "provider": str(settings.get("modelProvider") or "azure-foundry").strip(),
@@ -2136,18 +2446,79 @@ def verify_app_settings(body: VerifySettingsPayload):
     settings = body.settings or {}
 
     provider = str(settings.get("modelProvider") or "ollama-local").strip().lower()
-    if provider == "ollama-local":
-        message, models = verify_ollama_settings(settings)
-        return {"ok": True, "provider": provider, "message": message, "models": models}
-    else:
-        message, models = verify_foundry_settings(settings)
+    try:
+        _append_app_activity(
+            "settings.app.verify",
+            status="info",
+            category="settings",
+            step="requested",
+            source="backend.api",
+            details={"provider": provider},
+        )
 
-    return {"ok": True, "provider": provider, "message": message, "models": models}
+        if provider == "ollama-local":
+            message, models = verify_ollama_settings(settings)
+        else:
+            message, models = verify_foundry_settings(settings)
+
+        _append_app_activity(
+            "settings.app.verify",
+            status="info",
+            category="settings",
+            step="completed",
+            source="backend.api",
+            details={
+                "provider": provider,
+                "message": message,
+                "modelCount": len(models),
+                "models": models,
+            },
+        )
+        return {"ok": True, "provider": provider, "message": message, "models": models}
+    except HTTPException as exc:
+        _append_app_activity(
+            "settings.app.verify",
+            status="warning",
+            category="settings",
+            step="failed",
+            source="backend.api",
+            details={
+                "provider": provider,
+                "error": str(exc.detail or exc),
+            },
+        )
+        raise
+    except Exception as exc:
+        _append_app_activity(
+            "settings.app.verify",
+            status="error",
+            category="settings",
+            step="failed",
+            source="backend.api",
+            details={
+                "provider": provider,
+                "error": str(exc),
+            },
+        )
+        raise
 
 
 @app.post("/api/settings/project")
 def save_project_settings(body: ProjectSettingsPayload):
     try:
+        _append_app_activity(
+            "settings.project.save",
+            status="info",
+            project_id=body.project.id,
+            category="settings",
+            step="requested",
+            source="backend.api",
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+            },
+        )
+
         if not find_project_entry(body.project.id):
             raise HTTPException(status_code=404, detail="Project not found")
 
@@ -2179,8 +2550,50 @@ def save_project_settings(body: ProjectSettingsPayload):
             body.project.cloud,
             merged_settings,
         )
+
+        _append_app_activity(
+            "settings.project.save",
+            status="info",
+            project_id=body.project.id,
+            category="settings",
+            step="completed",
+            source="backend.api",
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+                "path": str(target.relative_to(WORKSPACE_ROOT)),
+            },
+        )
         return {"ok": True, "path": str(target.relative_to(WORKSPACE_ROOT))}
+    except HTTPException as exc:
+        _append_app_activity(
+            "settings.project.save",
+            status="warning",
+            project_id=body.project.id,
+            category="settings",
+            step="failed",
+            source="backend.api",
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+                "error": str(exc.detail or exc),
+            },
+        )
+        raise
     except Exception as exc:
+        _append_app_activity(
+            "settings.project.save",
+            status="error",
+            project_id=body.project.id,
+            category="settings",
+            step="failed",
+            source="backend.api",
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+                "error": str(exc),
+            },
+        )
         raise HTTPException(status_code=500, detail=f"Failed to save project settings: {exc}") from exc
 
 
@@ -2237,6 +2650,11 @@ def get_project_settings(project_id: str):
 
 @app.post("/api/project/save")
 def save_project_snapshot(body: ProjectSavePayload):
+    safe_project_id = str(body.project.id or "").strip()
+    safe_project_name = str(body.project.name or "").strip()
+    safe_project_cloud = str(body.project.cloud or "").strip()
+    save_trigger = _normalize_save_trigger(body.saveTrigger)
+
     try:
         existing_entry = find_project_entry(body.project.id)
         is_create_request = bool(body.create)
@@ -2245,6 +2663,21 @@ def save_project_snapshot(body: ProjectSavePayload):
                 status_code=409,
                 detail="Project does not exist. Create a project from the landing page first.",
             )
+
+        _append_app_activity(
+            "canvas.save",
+            status="info",
+            project_id=safe_project_id,
+            category="canvas",
+            step="requested",
+            source="backend.api",
+            details={
+                "projectName": safe_project_name,
+                "cloud": safe_project_cloud,
+                "create": is_create_request,
+                "saveTrigger": save_trigger,
+            },
+        )
 
         project_dir = resolve_project_dir_for_write(body.project.id, body.project.name)
         architecture_dir = project_dir / "Architecture"
@@ -2374,12 +2807,29 @@ def save_project_snapshot(body: ProjectSavePayload):
                 created_at=datetime.utcnow(),
             )
 
+        if is_create_request:
+            _append_app_activity(
+                "project.lifecycle",
+                status="info",
+                project_id=safe_project_id,
+                category="project",
+                step="created",
+                source="backend.api",
+                details={
+                    "projectName": safe_project_name,
+                    "cloud": safe_project_cloud,
+                    "threadCreated": bool(foundry_thread_result.get("created")),
+                    "threadId": foundry_thread_id or "",
+                },
+            )
+
         metadata_path.write_text(
             json.dumps(metadata_payload, indent=2),
             encoding="utf-8",
         )
 
         canvas_state_payload = body.canvasState if isinstance(body.canvasState, dict) else {}
+        resource_count, connection_count = _canvas_entity_counts(canvas_state_payload)
         canvas_state_path.write_text(
             json.dumps(canvas_state_payload, indent=2),
             encoding="utf-8",
@@ -2387,13 +2837,19 @@ def save_project_snapshot(body: ProjectSavePayload):
         saved_state_hash = compute_canvas_state_hash(canvas_state_payload)
 
         _append_app_activity(
-            "project.save",
+            "canvas.save",
             status="info",
-            project_id=body.project.id,
+            project_id=safe_project_id,
+            category="canvas",
+            step="completed",
+            source="backend.api",
             details={
-                "projectName": body.project.name,
-                "cloud": body.project.cloud,
+                "projectName": safe_project_name,
+                "cloud": safe_project_cloud,
                 "create": is_create_request,
+                "saveTrigger": save_trigger,
+                "resourceCount": resource_count,
+                "connectionCount": connection_count,
                 "stateHash": saved_state_hash,
                 "foundryBootstrap": bootstrap_result,
                 "foundryThread": foundry_thread_result,
@@ -2413,24 +2869,32 @@ def save_project_snapshot(body: ProjectSavePayload):
         }
     except HTTPException as exc:
         _append_app_activity(
-            "project.save",
+            "canvas.save",
             status="warning",
-            project_id=body.project.id,
+            project_id=safe_project_id,
+            category="canvas",
+            step="failed",
+            source="backend.api",
             details={
-                "projectName": body.project.name,
-                "cloud": body.project.cloud,
+                "projectName": safe_project_name,
+                "cloud": safe_project_cloud,
+                "saveTrigger": save_trigger,
                 "error": str(exc.detail or exc),
             },
         )
         raise
     except Exception as exc:
         _append_app_activity(
-            "project.save",
+            "canvas.save",
             status="error",
-            project_id=body.project.id,
+            project_id=safe_project_id,
+            category="canvas",
+            step="failed",
+            source="backend.api",
             details={
-                "projectName": body.project.name,
-                "cloud": body.project.cloud,
+                "projectName": safe_project_name,
+                "cloud": safe_project_cloud,
+                "saveTrigger": save_trigger,
                 "error": str(exc),
             },
         )
@@ -2439,45 +2903,107 @@ def save_project_snapshot(body: ProjectSavePayload):
 
 @app.post("/api/project/export-diagram")
 def export_project_diagram(body: DiagramExportPayload):
-    entry = find_project_entry(body.projectId)
-    if not entry:
-        raise HTTPException(status_code=404, detail="Project not found")
-
+    safe_project_id = str(body.projectId or "").strip()
+    safe_project_name = str(body.projectName or "").strip()
     fmt = str(body.format or "png").strip().lower()
-    if fmt not in {"png", "jpeg", "jpg"}:
-        raise HTTPException(status_code=400, detail="Unsupported format. Use png or jpeg.")
 
-    image_data = str(body.imageData or "").strip()
-    data_url_match = re.match(r"^data:image\/(png|jpeg);base64,(.+)$", image_data, flags=re.IGNORECASE | re.DOTALL)
-    if not data_url_match:
-        raise HTTPException(status_code=400, detail="Invalid image payload.")
-
-    data_url_format = data_url_match.group(1).lower()
-    payload_b64 = data_url_match.group(2)
-    normalized_format = "jpeg" if fmt in {"jpeg", "jpg"} else "png"
-
-    if normalized_format != data_url_format:
-        raise HTTPException(status_code=400, detail="Image format does not match payload.")
+    _append_app_activity(
+        "canvas.export",
+        status="info",
+        project_id=safe_project_id,
+        category="canvas",
+        step="requested",
+        source="backend.api",
+        details={
+            "projectName": safe_project_name,
+            "format": fmt,
+        },
+    )
 
     try:
-        image_bytes = base64.b64decode(payload_b64, validate=True)
+        entry = find_project_entry(body.projectId)
+        if not entry:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        if fmt not in {"png", "jpeg", "jpg"}:
+            raise HTTPException(status_code=400, detail="Unsupported format. Use png or jpeg.")
+
+        image_data = str(body.imageData or "").strip()
+        data_url_match = re.match(r"^data:image\/(png|jpeg);base64,(.+)$", image_data, flags=re.IGNORECASE | re.DOTALL)
+        if not data_url_match:
+            raise HTTPException(status_code=400, detail="Invalid image payload.")
+
+        data_url_format = data_url_match.group(1).lower()
+        payload_b64 = data_url_match.group(2)
+        normalized_format = "jpeg" if fmt in {"jpeg", "jpg"} else "png"
+
+        if normalized_format != data_url_format:
+            raise HTTPException(status_code=400, detail="Image format does not match payload.")
+
+        try:
+            image_bytes = base64.b64decode(payload_b64, validate=True)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail="Failed to decode image payload.") from exc
+
+        extension = "jpg" if normalized_format == "jpeg" else "png"
+        project_name = sanitize_segment(body.projectName, "project")
+        file_name = f"{project_name}-{format_diagram_timestamp()}.{extension}"
+
+        diagram_dir = entry["projectDir"] / "Diagram"
+        diagram_dir.mkdir(parents=True, exist_ok=True)
+        target = diagram_dir / file_name
+        target.write_bytes(image_bytes)
+
+        _append_app_activity(
+            "canvas.export",
+            status="info",
+            project_id=safe_project_id,
+            category="canvas",
+            step="completed",
+            source="backend.api",
+            details={
+                "projectName": safe_project_name,
+                "format": fmt,
+                "bytes": len(image_bytes),
+                "path": str(target.relative_to(WORKSPACE_ROOT)),
+            },
+        )
+
+        return {
+            "ok": True,
+            "fileName": file_name,
+            "path": str(target.relative_to(WORKSPACE_ROOT)),
+        }
+    except HTTPException as exc:
+        _append_app_activity(
+            "canvas.export",
+            status="warning",
+            project_id=safe_project_id,
+            category="canvas",
+            step="failed",
+            source="backend.api",
+            details={
+                "projectName": safe_project_name,
+                "format": fmt,
+                "error": str(exc.detail or exc),
+            },
+        )
+        raise
     except Exception as exc:
-        raise HTTPException(status_code=400, detail="Failed to decode image payload.") from exc
-
-    extension = "jpg" if normalized_format == "jpeg" else "png"
-    project_name = sanitize_segment(body.projectName, "project")
-    file_name = f"{project_name}-{format_diagram_timestamp()}.{extension}"
-
-    diagram_dir = entry["projectDir"] / "Diagram"
-    diagram_dir.mkdir(parents=True, exist_ok=True)
-    target = diagram_dir / file_name
-    target.write_bytes(image_bytes)
-
-    return {
-        "ok": True,
-        "fileName": file_name,
-        "path": str(target.relative_to(WORKSPACE_ROOT)),
-    }
+        _append_app_activity(
+            "canvas.export",
+            status="error",
+            project_id=safe_project_id,
+            category="canvas",
+            step="failed",
+            source="backend.api",
+            details={
+                "projectName": safe_project_name,
+                "format": fmt,
+                "error": str(exc),
+            },
+        )
+        raise
 
 
 @app.get("/api/projects")
@@ -2613,6 +3139,7 @@ def _generate_project_iac_payload(
     canvas_state = read_json_file(entry["statePath"], {})
     if not isinstance(canvas_state, dict):
         canvas_state = {}
+    resource_count, connection_count = _canvas_entity_counts(canvas_state)
 
     app_settings = load_app_settings()
     bootstrap_result = bootstrap_default_foundry_resources(app_settings)
@@ -2621,6 +3148,23 @@ def _generate_project_iac_payload(
 
     foundry_agent_id = _resolve_foundry_iac_agent_id(app_settings) or None
     foundry_thread_id = resolve_project_foundry_thread_id(entry, app_settings)
+
+    _append_app_activity(
+        "codegen.request",
+        status="info",
+        project_id=entry["id"],
+        category="codegen",
+        step="requested",
+        source="backend.codegen",
+        details={
+            "projectName": str(metadata.get("name") or entry["name"]),
+            "parameterFormat": parameter_format,
+            "resourceCount": resource_count,
+            "connectionCount": connection_count,
+            "foundryAgentId": foundry_agent_id or "",
+            "foundryThreadId": foundry_thread_id or "",
+        },
+    )
 
     if is_azure_foundry_provider(app_settings):
         if not foundry_thread_id:
@@ -2662,6 +3206,20 @@ def _generate_project_iac_payload(
             detail="IaC generation completed successfully.",
             child_agent_id=foundry_agent_id,
         )
+        _append_app_activity(
+            "codegen.result",
+            status="info",
+            project_id=entry["id"],
+            category="codegen",
+            step="completed",
+            source="backend.codegen",
+            details={
+                "projectName": str(metadata.get("name") or entry["name"]),
+                "parameterFormat": parameter_format,
+                "fileCount": len(result.get("files") if isinstance(result.get("files"), list) else []),
+                "warningCount": len(result.get("warnings") if isinstance(result.get("warnings"), list) else []),
+            },
+        )
     except ValueError as exc:
         _record_orchestration_event(
             app_settings,
@@ -2672,6 +3230,19 @@ def _generate_project_iac_payload(
             project_name=str(metadata.get("name") or entry["name"]),
             detail=str(exc),
             child_agent_id=foundry_agent_id,
+        )
+        _append_app_activity(
+            "codegen.result",
+            status="warning",
+            project_id=entry["id"],
+            category="codegen",
+            step="failed",
+            source="backend.codegen",
+            details={
+                "projectName": str(metadata.get("name") or entry["name"]),
+                "parameterFormat": parameter_format,
+                "error": str(exc),
+            },
         )
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HTTPException:
@@ -2686,6 +3257,19 @@ def _generate_project_iac_payload(
             project_name=str(metadata.get("name") or entry["name"]),
             detail=str(exc),
             child_agent_id=foundry_agent_id,
+        )
+        _append_app_activity(
+            "codegen.result",
+            status="error",
+            project_id=entry["id"],
+            category="codegen",
+            step="failed",
+            source="backend.codegen",
+            details={
+                "projectName": str(metadata.get("name") or entry["name"]),
+                "parameterFormat": parameter_format,
+                "error": str(exc),
+            },
         )
         raise HTTPException(status_code=500, detail=f"IaC generation failed: {exc}") from exc
 
@@ -2847,11 +3431,64 @@ def get_project_iac_file(project_id: str, path: str):
     }
 
 
+@app.get("/api/project/{project_id}/iac/download")
+def download_project_iac_archive(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    iac_dir = entry["projectDir"] / "IaC"
+    files = list_iac_files(iac_dir)
+    if not files:
+        raise HTTPException(status_code=404, detail="No IaC files available for download")
+
+    archive_buffer = io.BytesIO()
+    with zipfile.ZipFile(archive_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for file_entry in files:
+            rel_path = str(file_entry.get("path") or "").strip()
+            if not rel_path:
+                continue
+
+            source_path = iac_dir / Path(rel_path)
+            if not source_path.exists() or not source_path.is_file():
+                continue
+
+            archive.write(source_path, arcname=rel_path)
+
+    if archive_buffer.getbuffer().nbytes == 0:
+        raise HTTPException(status_code=404, detail="No IaC files available for download")
+
+    archive_buffer.seek(0)
+    file_stem = sanitize_segment(str(entry.get("name") or entry["id"]), "project")
+    archive_name = f"{file_stem}-iac.zip"
+
+    return StreamingResponse(
+        archive_buffer,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{archive_name}"',
+        },
+    )
+
+
 @app.delete("/api/project/{project_id}")
 def delete_project_snapshot(project_id: str):
     entry = find_project_entry(project_id)
     if not entry:
         raise HTTPException(status_code=404, detail="Project not found")
+
+    _append_app_activity(
+        "project.lifecycle",
+        status="info",
+        project_id=entry["id"],
+        category="project",
+        step="delete-requested",
+        source="backend.api",
+        details={
+            "projectName": entry["name"],
+            "cloud": entry["cloud"],
+        },
+    )
 
     try:
         project_settings = load_project_settings_file(entry["projectDir"])
@@ -2885,8 +3522,34 @@ def delete_project_snapshot(project_id: str):
             )
 
         shutil.rmtree(entry["projectDir"])
+
+        _append_app_activity(
+            "project.lifecycle",
+            status="info",
+            project_id=entry["id"],
+            category="project",
+            step="deleted",
+            source="backend.api",
+            details={
+                "projectName": entry["name"],
+                "cloud": entry["cloud"],
+            },
+        )
         return {"ok": True}
     except Exception as exc:
+        _append_app_activity(
+            "project.lifecycle",
+            status="error",
+            project_id=entry["id"],
+            category="project",
+            step="delete-failed",
+            source="backend.api",
+            details={
+                "projectName": entry["name"],
+                "cloud": entry["cloud"],
+                "error": str(exc),
+            },
+        )
         raise HTTPException(status_code=500, detail=f"Failed to delete project: {exc}") from exc
 
 

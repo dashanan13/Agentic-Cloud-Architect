@@ -15,6 +15,7 @@ from Agents.AzureAIFoundry.foundry_bootstrap import (
 )
 from Agents.AzureAIFoundry.foundry_description import FoundryAssistantRunner
 from Agents.AzureMCP.cloudarchitect_chat_agent import AzureMcpCredentials
+from Agents.common.activity_log import log_activity as write_activity_log
 
 DEFAULT_PARAMETER_FORMAT = "bicepparam"
 SUPPORTED_PARAMETER_FORMATS = {"bicepparam", "json"}
@@ -27,6 +28,26 @@ IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 NON_DEPENDENCY_REF_KEYS = {
     "associatedsubnetref",
 }
+
+
+def _log_iac_event(
+    event_type: str,
+    *,
+    level: str = "info",
+    step: str = "",
+    details: Mapping[str, Any] | None = None,
+    project_id: str | None = None,
+) -> None:
+    category = "mcp" if str(event_type or "").strip().lower().startswith("mcp.") else "codegen"
+    write_activity_log(
+        event_type=str(event_type or "codegen.event").strip() or "codegen.event",
+        category=category,
+        level=level,
+        step=str(step or event_type or "codegen.event").strip() or "codegen.event",
+        source="agent.iac",
+        project_id=str(project_id or "").strip() or None,
+        details=details if isinstance(details, Mapping) else None,
+    )
 
 
 @dataclass
@@ -53,6 +74,8 @@ def _emit_progress(
     status: str,
     message: str,
     progress: int,
+    detail_items: list[Mapping[str, Any]] | None = None,
+    detail_summary: str = "",
 ) -> None:
     if not callable(progress_callback):
         return
@@ -64,10 +87,434 @@ def _emit_progress(
         "progress": max(0, min(100, int(progress))),
     }
 
+    safe_detail_items: list[dict[str, str]] = []
+    if isinstance(detail_items, list):
+        for item in detail_items:
+            if not isinstance(item, Mapping):
+                continue
+            label = str(item.get("label") or "Step").strip() or "Step"
+            value = str(item.get("value") or "").strip()
+            if not value:
+                continue
+            status_value = str(item.get("status") or "info").strip().lower()
+            if status_value not in {"info", "pass", "fail", "warning", "skipped"}:
+                status_value = "info"
+            safe_detail_items.append(
+                {
+                    "label": label,
+                    "value": value,
+                    "status": status_value,
+                }
+            )
+            if len(safe_detail_items) >= 20:
+                break
+
+    if safe_detail_items:
+        payload["detailItems"] = safe_detail_items
+
+    safe_detail_summary = str(detail_summary or "").strip()
+    if safe_detail_summary:
+        payload["detailSummary"] = safe_detail_summary
+
     try:
         progress_callback(payload)
     except Exception:
         return
+
+
+def _normalize_guardrail_status(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    if text in {"pass", "passed", "ok", "success", "compliant", "true"}:
+        return "pass"
+    if text in {"fail", "failed", "error", "violation", "noncompliant", "false"}:
+        return "fail"
+    if text in {"warn", "warning", "caution"}:
+        return "warning"
+    if text in {"skip", "skipped", "n/a", "na"}:
+        return "skipped"
+    return "info"
+
+
+def _looks_like_guardrail_tooling_error(value: Any) -> bool:
+    text = str(value or "").strip().lower()
+    if not text:
+        return False
+
+    if re.search(r"\btool\b.+\bnot\s+found\b", text):
+        return True
+
+    known_fragments = (
+        "unable to call azure mcp",
+        "azure mcp guardrail evaluation failed",
+        "python package 'mcp' is required",
+        "traceback (most recent call last)",
+    )
+    return any(fragment in text for fragment in known_fragments)
+
+
+def _coerce_guardrail_check(item: Any) -> dict[str, str] | None:
+    if isinstance(item, Mapping):
+        name = str(
+            item.get("name")
+            or item.get("rule")
+            or item.get("title")
+            or item.get("guardrail")
+            or item.get("check")
+            or ""
+        ).strip()
+        if not name:
+            return None
+
+        reason = str(
+            item.get("reason")
+            or item.get("detail")
+            or item.get("details")
+            or item.get("message")
+            or item.get("result")
+            or ""
+        ).strip()
+
+        status = _normalize_guardrail_status(item.get("status") or item.get("outcome") or item.get("state"))
+        if status == "info" and isinstance(item.get("passed"), bool):
+            status = "pass" if bool(item.get("passed")) else "fail"
+
+        return {
+            "name": name,
+            "status": status,
+            "reason": reason,
+        }
+
+    text = str(item or "").strip()
+    if not text:
+        return None
+
+    if _looks_like_guardrail_tooling_error(text):
+        return None
+
+    prefix_match = re.match(r"^(pass|passed|fail|failed|warning|warn|skipped|skip|info)\s*[:\-]\s*(.+)$", text, flags=re.IGNORECASE)
+    if prefix_match:
+        status = _normalize_guardrail_status(prefix_match.group(1))
+        name = str(prefix_match.group(2) or "").strip()
+        if name:
+            return {
+                "name": name,
+                "status": status,
+                "reason": "",
+            }
+
+    suffix_match = re.match(r"^(.+?)\s*[:\-]\s*(pass|passed|fail|failed|warning|warn|skipped|skip|info)\s*$", text, flags=re.IGNORECASE)
+    if suffix_match:
+        name = str(suffix_match.group(1) or "").strip()
+        status = _normalize_guardrail_status(suffix_match.group(2))
+        if name:
+            return {
+                "name": name,
+                "status": status,
+                "reason": "",
+            }
+
+    return {
+        "name": text,
+        "status": "info",
+        "reason": "",
+    }
+
+
+def _extract_guardrail_checks_from_payload(payload: Any) -> tuple[list[dict[str, str]], str]:
+    checks: list[dict[str, str]] = []
+    explanation = ""
+
+    def append_candidate(candidate: Any) -> None:
+        nonlocal explanation
+        if isinstance(candidate, list):
+            for item in candidate:
+                coerced = _coerce_guardrail_check(item)
+                if coerced:
+                    checks.append(coerced)
+            return
+
+        if isinstance(candidate, str):
+            if not candidate.strip():
+                return
+            if "\n" in candidate:
+                parsed_any = False
+                for line in candidate.splitlines():
+                    coerced = _coerce_guardrail_check(line)
+                    if coerced:
+                        checks.append(coerced)
+                        parsed_any = True
+                if not parsed_any and not explanation:
+                    explanation = str(candidate).strip()
+                return
+            coerced = _coerce_guardrail_check(candidate)
+            if coerced:
+                checks.append(coerced)
+            elif not explanation:
+                explanation = str(candidate).strip()
+            return
+
+        if isinstance(candidate, Mapping):
+            append_candidate(candidate.get("checks"))
+            append_candidate(candidate.get("guardrails"))
+            append_candidate(candidate.get("recommendations"))
+            if not explanation:
+                explanation = str(
+                    candidate.get("explanation")
+                    or candidate.get("summary")
+                    or candidate.get("message")
+                    or ""
+                ).strip()
+
+            response_object = candidate.get("responseObject") if isinstance(candidate.get("responseObject"), Mapping) else None
+            if response_object:
+                append_candidate(response_object)
+
+            results = candidate.get("results") if isinstance(candidate.get("results"), Mapping) else None
+            if results:
+                append_candidate(results)
+
+    append_candidate(payload)
+
+    seen: set[str] = set()
+    deduped: list[dict[str, str]] = []
+    for item in checks:
+        key = f"{item.get('name','').strip().lower()}|{item.get('status','').strip().lower()}|{item.get('reason','').strip().lower()}"
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+        if len(deduped) >= 20:
+            break
+
+    return deduped, explanation
+
+
+def _summarize_guardrail_counts(checks: list[dict[str, str]]) -> dict[str, int]:
+    counts = {
+        "tested": len(checks),
+        "passed": 0,
+        "failed": 0,
+        "warning": 0,
+        "skipped": 0,
+        "info": 0,
+    }
+    for item in checks:
+        status = _normalize_guardrail_status(item.get("status"))
+        if status == "pass":
+            counts["passed"] += 1
+        elif status == "fail":
+            counts["failed"] += 1
+        elif status == "warning":
+            counts["warning"] += 1
+        elif status == "skipped":
+            counts["skipped"] += 1
+        else:
+            counts["info"] += 1
+    return counts
+
+
+def _guardrail_checks_to_lines(checks: list[dict[str, str]]) -> list[str]:
+    lines: list[str] = []
+    for item in checks:
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        status = _normalize_guardrail_status(item.get("status"))
+        reason = str(item.get("reason") or "").strip()
+        if reason:
+            lines.append(f"{status.upper()}: {name} ({reason})")
+        else:
+            lines.append(f"{status.upper()}: {name}")
+    return lines
+
+
+def _safe_non_negative_int(value: Any) -> int:
+    try:
+        return max(0, int(value))
+    except Exception:
+        return 0
+
+
+def _evaluate_guardrail_source_pass(diagnostics: Mapping[str, Any]) -> tuple[bool, str]:
+    source = str(diagnostics.get("source") or "Guardrail source").strip() or "Guardrail source"
+    explanation = str(diagnostics.get("explanation") or "").strip()
+    connection_state = str(diagnostics.get("connectionState") or "unknown").strip().lower()
+    counts = diagnostics.get("counts") if isinstance(diagnostics.get("counts"), Mapping) else {}
+
+    tested = _safe_non_negative_int(counts.get("tested"))
+    passed = _safe_non_negative_int(counts.get("passed"))
+    failed = _safe_non_negative_int(counts.get("failed"))
+    warning = _safe_non_negative_int(counts.get("warning"))
+    skipped = _safe_non_negative_int(counts.get("skipped"))
+    info = _safe_non_negative_int(counts.get("info"))
+
+    if connection_state != "connected":
+        reason = explanation or f"{source} did not complete successfully ({connection_state})."
+        return False, reason
+
+    if tested <= 0:
+        reason = explanation or f"{source} returned zero checks."
+        return False, reason
+
+    if failed > 0 or warning > 0 or skipped > 0 or info > 0 or passed < tested:
+        outcomes: list[str] = []
+        if failed > 0:
+            outcomes.append(f"failed={failed}")
+        if warning > 0:
+            outcomes.append(f"warning={warning}")
+        if skipped > 0:
+            outcomes.append(f"skipped={skipped}")
+        if info > 0:
+            outcomes.append(f"info={info}")
+        if passed < tested:
+            outcomes.append(f"passed={passed}/{tested}")
+
+        reason = f"{source} requires all checks to pass ({'; '.join(outcomes)})."
+        if explanation:
+            reason = f"{reason} {explanation}"
+        return False, reason
+
+    return True, explanation or f"{source} passed all checks ({passed}/{tested})."
+
+
+def _build_guardrail_gate_failure_message(
+    *,
+    mcp_diagnostics: Mapping[str, Any],
+    coding_diagnostics: Mapping[str, Any],
+) -> tuple[bool, str]:
+    mcp_ok, mcp_reason = _evaluate_guardrail_source_pass(mcp_diagnostics)
+    coding_ok, coding_reason = _evaluate_guardrail_source_pass(coding_diagnostics)
+
+    if mcp_ok and coding_ok:
+        return True, ""
+
+    reasons: list[str] = []
+    if not mcp_ok:
+        reasons.append(f"Azure MCP guardrails failed: {mcp_reason}")
+    if not coding_ok:
+        reasons.append(f"Coding-model guardrails failed: {coding_reason}")
+
+    return False, "Guardrail gate blocked file generation. " + " ".join(reasons)
+
+
+def _build_template_stage_detail_items(diagnostics: Mapping[str, Any]) -> list[dict[str, str]]:
+    details: list[dict[str, str]] = []
+
+    connection_state = str(diagnostics.get("connectionState") or "unknown").strip().lower()
+    connection_label = {
+        "connected": "Connected",
+        "unavailable": "Unavailable",
+        "failed": "Failed",
+    }.get(connection_state, "Unknown")
+    details.append(
+        {
+            "label": "MCP connection",
+            "value": connection_label,
+            "status": "pass" if connection_state == "connected" else ("warning" if connection_state == "unavailable" else "fail"),
+        }
+    )
+
+    details.append(
+        {
+            "label": "Schema queries",
+            "value": (
+                f"{int(diagnostics.get('queryCount') or 0)} type queries; "
+                f"{int(diagnostics.get('querySuccessCount') or 0)} succeeded; "
+                f"{int(diagnostics.get('queryFailureCount') or 0)} failed"
+            ),
+            "status": "info",
+        }
+    )
+
+    queried_types = diagnostics.get("queriedResourceTypes") if isinstance(diagnostics.get("queriedResourceTypes"), list) else []
+    if queried_types:
+        details.append(
+            {
+                "label": "Resource types queried",
+                "value": ", ".join(str(item) for item in queried_types[:10]),
+                "status": "info",
+            }
+        )
+
+    response_quality = str(diagnostics.get("responseQuality") or "unknown").strip().lower()
+    details.append(
+        {
+            "label": "Template response",
+            "value": (
+                f"{response_quality}; {int(diagnostics.get('liveTemplateModules') or 0)} live template modules; "
+                f"{int(diagnostics.get('fallbackTemplateModules') or 0)} fallback modules"
+            ),
+            "status": "pass" if response_quality == "full" else ("warning" if response_quality in {"partial", "none"} else "info"),
+        }
+    )
+
+    failure_samples = diagnostics.get("failureSamples") if isinstance(diagnostics.get("failureSamples"), list) else []
+    if failure_samples:
+        details.append(
+            {
+                "label": "Fallback reasons",
+                "value": "; ".join(str(item) for item in failure_samples[:3]),
+                "status": "warning",
+            }
+        )
+
+    return details[:12]
+
+
+def _build_guardrail_stage_detail_items(diagnostics: Mapping[str, Any]) -> list[dict[str, str]]:
+    details: list[dict[str, str]] = []
+
+    source = str(diagnostics.get("source") or "Guardrail engine").strip() or "Guardrail engine"
+    connection_state = str(diagnostics.get("connectionState") or "unknown").strip().lower()
+    connection_label = {
+        "connected": "Connected",
+        "unavailable": "Unavailable",
+        "failed": "Failed",
+        "skipped": "Skipped",
+    }.get(connection_state, "Unknown")
+    details.append(
+        {
+            "label": f"{source} connection",
+            "value": connection_label,
+            "status": "pass" if connection_state == "connected" else ("warning" if connection_state in {"unavailable", "skipped"} else "fail"),
+        }
+    )
+
+    counts = diagnostics.get("counts") if isinstance(diagnostics.get("counts"), Mapping) else {}
+    details.append(
+        {
+            "label": "Check totals",
+            "value": (
+                f"tested={int(counts.get('tested') or 0)}, "
+                f"passed={int(counts.get('passed') or 0)}, "
+                f"failed={int(counts.get('failed') or 0)}, "
+                f"warning={int(counts.get('warning') or 0)}, "
+                f"skipped={int(counts.get('skipped') or 0)}"
+            ),
+            "status": "info",
+        }
+    )
+
+    checks = diagnostics.get("checks") if isinstance(diagnostics.get("checks"), list) else []
+    for item in checks[:8]:
+        if not isinstance(item, Mapping):
+            continue
+        name = str(item.get("name") or "Guardrail").strip() or "Guardrail"
+        status = _normalize_guardrail_status(item.get("status"))
+        reason = str(item.get("reason") or "").strip()
+        if reason:
+            value = f"{status.upper()} — {reason}"
+        else:
+            value = status.upper()
+        details.append(
+            {
+                "label": name,
+                "value": value,
+                "status": status,
+            }
+        )
+
+    return details[:14]
 
 
 def generate_bicep_iac_from_canvas(
@@ -82,6 +529,17 @@ def generate_bicep_iac_from_canvas(
     foundry_thread_id: str | None = None,
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
+    _log_iac_event(
+        "codegen.generate",
+        level="info",
+        step="requested",
+        project_id=project_id,
+        details={
+            "projectName": project_name,
+            "parameterFormat": parameter_format,
+        },
+    )
+
     _emit_progress(
         progress_callback,
         stage="gather_properties",
@@ -94,6 +552,16 @@ def generate_bicep_iac_from_canvas(
     canvas_items = _coerce_canvas_items(canvas_state)
     canvas_connections = _coerce_canvas_connections(canvas_state)
     if not canvas_items:
+        _log_iac_event(
+            "codegen.generate",
+            level="warning",
+            step="failed",
+            project_id=project_id,
+            details={
+                "projectName": project_name,
+                "reason": "no-canvas-resources",
+            },
+        )
         raise ValueError("No canvas resources found. Add resources to the canvas before generating IaC.")
 
     _emit_progress(
@@ -156,7 +624,7 @@ def generate_bicep_iac_from_canvas(
             + preview
         )
 
-    module_contents = _render_modules_from_live_templates(
+    module_contents, template_diagnostics = _render_modules_from_live_templates(
         app_settings=app_settings,
         nodes=nodes,
         generation_warnings=generation_warnings,
@@ -164,12 +632,22 @@ def generate_bicep_iac_from_canvas(
 
     main_bicep = _render_main_bicep(nodes, nodes_by_id, deps_by_id)
 
+    template_response_quality = str(template_diagnostics.get("responseQuality") or "unknown").strip().lower()
+    if template_response_quality == "none":
+        template_message = "No live templates were returned by Azure MCP; local fallback templates were used"
+    elif template_response_quality == "partial":
+        template_message = "Azure MCP returned partial templates; missing templates used local fallback"
+    else:
+        template_message = f"Rendered {len(module_contents)} modules and main.bicep"
+
     _emit_progress(
         progress_callback,
         stage="render_templates",
         status="completed",
-        message=f"Rendered {len(module_contents)} modules and main.bicep",
+        message=template_message,
         progress=55,
+        detail_items=_build_template_stage_detail_items(template_diagnostics),
+        detail_summary=str(template_diagnostics.get("explanation") or "").strip(),
     )
 
     _emit_progress(
@@ -209,14 +687,22 @@ def generate_bicep_iac_from_canvas(
         progress=74,
     )
 
-    mcp_guardrails = _collect_guardrails_from_mcp(app_settings, nodes, deps_by_id)
+    mcp_guardrails, mcp_guardrail_diagnostics = _collect_guardrails_from_mcp(app_settings, nodes, deps_by_id)
+    mcp_counts = mcp_guardrail_diagnostics.get("counts") if isinstance(mcp_guardrail_diagnostics.get("counts"), Mapping) else {}
+    mcp_tested = int(mcp_counts.get("tested") or 0)
+    if mcp_tested <= 0:
+        mcp_message = "Azure MCP guardrails returned no checks"
+    else:
+        mcp_message = f"Azure MCP guardrails evaluated ({mcp_tested} checks)"
 
     _emit_progress(
         progress_callback,
         stage="guardrails_mcp",
         status="completed",
-        message=f"Azure MCP guardrails completed ({len(mcp_guardrails)} checks)",
+        message=mcp_message,
         progress=82,
+        detail_items=_build_guardrail_stage_detail_items(mcp_guardrail_diagnostics),
+        detail_summary=str(mcp_guardrail_diagnostics.get("explanation") or "").strip(),
     )
 
     _emit_progress(
@@ -227,7 +713,7 @@ def generate_bicep_iac_from_canvas(
         progress=85,
     )
 
-    coding_model_guardrails = _collect_guardrails_from_coding_model(
+    coding_model_guardrails, coding_guardrail_diagnostics = _collect_guardrails_from_coding_model(
         app_settings=app_settings,
         nodes=nodes,
         deps_by_id=deps_by_id,
@@ -239,12 +725,21 @@ def generate_bicep_iac_from_canvas(
         project_id=project_id,
     )
 
+    coding_counts = coding_guardrail_diagnostics.get("counts") if isinstance(coding_guardrail_diagnostics.get("counts"), Mapping) else {}
+    coding_tested = int(coding_counts.get("tested") or 0)
+    if coding_tested <= 0:
+        coding_message = "Coding-model guardrails returned no checks"
+    else:
+        coding_message = f"Coding-model guardrails evaluated ({coding_tested} checks)"
+
     _emit_progress(
         progress_callback,
         stage="guardrails_model",
         status="completed",
-        message=f"Coding-model guardrails completed ({len(coding_model_guardrails)} checks)",
+        message=coding_message,
         progress=90,
+        detail_items=_build_guardrail_stage_detail_items(coding_guardrail_diagnostics),
+        detail_summary=str(coding_guardrail_diagnostics.get("explanation") or "").strip(),
     )
 
     _emit_progress(
@@ -254,6 +749,25 @@ def generate_bicep_iac_from_canvas(
         message="Writing IaC files to project",
         progress=93,
     )
+
+    guardrails_passed, guardrail_failure_message = _build_guardrail_gate_failure_message(
+        mcp_diagnostics=mcp_guardrail_diagnostics,
+        coding_diagnostics=coding_guardrail_diagnostics,
+    )
+    if not guardrails_passed:
+        generation_warnings.append(guardrail_failure_message)
+        _log_iac_event(
+            "codegen.guardrails",
+            level="warning",
+            step="blocked",
+            project_id=project_id,
+            details={
+                "reason": guardrail_failure_message,
+                "mcpConnectionState": str(mcp_guardrail_diagnostics.get("connectionState") or "").strip(),
+                "codingConnectionState": str(coding_guardrail_diagnostics.get("connectionState") or "").strip(),
+            },
+        )
+        raise ValueError(guardrail_failure_message)
 
     written_files = _write_iac_files(
         output_dir=output_dir,
@@ -274,6 +788,20 @@ def generate_bicep_iac_from_canvas(
     )
 
     deployment_order = [node.name for node in nodes]
+    _log_iac_event(
+        "codegen.generate",
+        level="info",
+        step="completed",
+        project_id=project_id,
+        details={
+            "projectName": project_name,
+            "resourceCount": len(canvas_items),
+            "connectionCount": len(canvas_connections),
+            "moduleCount": len(module_contents),
+            "warningCount": len(generation_warnings),
+        },
+    )
+
     return {
         "ok": True,
         "parameterFormat": safe_parameter_format,
@@ -643,41 +1171,150 @@ def _render_modules_from_live_templates(
     app_settings: Mapping[str, Any],
     nodes: list[ResourceNode],
     generation_warnings: list[str],
-) -> dict[str, str]:
+) -> tuple[dict[str, str], dict[str, Any]]:
     strict_live_templates = _read_live_template_strict_setting(app_settings)
+    diagnostics: dict[str, Any] = {
+        "source": "Azure MCP bicepschema",
+        "strictMode": bool(strict_live_templates),
+        "resourceCount": len(nodes),
+        "connectionState": "unknown",
+        "queryCount": 0,
+        "querySuccessCount": 0,
+        "queryFailureCount": 0,
+        "cacheHitCount": 0,
+        "liveTemplateModules": 0,
+        "fallbackTemplateModules": 0,
+        "responseQuality": "unknown",
+        "queriedResourceTypes": [],
+        "failureSamples": [],
+        "explanation": "",
+    }
+
+    _log_iac_event(
+        "mcp.live-template",
+        level="info",
+        step="requested",
+        details={
+            "resourceCount": len(nodes),
+            "strictMode": bool(strict_live_templates),
+        },
+    )
 
     try:
         credentials = AzureMcpCredentials.from_app_settings(app_settings)
+        diagnostics["connectionState"] = "connected"
     except Exception as exc:
         message = "Azure MCP credentials are required for live template generation."
+        diagnostics["connectionState"] = "unavailable"
+        diagnostics["responseQuality"] = "none"
+        diagnostics["liveTemplateModules"] = 0
+        diagnostics["fallbackTemplateModules"] = len(nodes)
+        diagnostics["explanation"] = "Azure MCP credentials are not configured, so local templates were used for all resources."
         if strict_live_templates:
+            _log_iac_event(
+                "mcp.live-template",
+                level="error",
+                step="failed",
+                details={"error": str(exc)},
+            )
             raise ValueError(message) from exc
         generation_warnings.append(message + " Falling back to local templates.")
-        return {node.module_file: _render_module_bicep(node) for node in nodes}
+        _log_iac_event(
+            "mcp.live-template",
+            level="warning",
+            step="fallback",
+            details={
+                "reason": "credentials-missing",
+                "resourceCount": len(nodes),
+            },
+        )
+        return ({node.module_file: _render_module_bicep(node) for node in nodes}, diagnostics)
 
     module_contents: dict[str, str] = {}
     template_cache: dict[str, str] = {}
+    template_source_by_key: dict[str, str] = {}
+    queried_types: set[str] = set()
 
     for node in nodes:
         cache_key = _live_template_cache_key(node)
         template_text = template_cache.get(cache_key)
 
         if template_text is None:
+            diagnostics["queryCount"] = int(diagnostics.get("queryCount") or 0) + 1
+            type_label = str(node.resource_label or node.arm_type or "").strip()
+            if type_label:
+                queried_types.add(type_label)
             try:
                 template_text = _generate_live_module_template(credentials=credentials, node=node)
+                diagnostics["querySuccessCount"] = int(diagnostics.get("querySuccessCount") or 0) + 1
+                template_source_by_key[cache_key] = "live"
             except Exception as exc:
+                diagnostics["queryFailureCount"] = int(diagnostics.get("queryFailureCount") or 0) + 1
                 error_message = (
                     f"Live template generation failed for {node.name} ({node.resource_label}): {exc}"
                 )
+                failure_samples = diagnostics.get("failureSamples") if isinstance(diagnostics.get("failureSamples"), list) else []
+                if len(failure_samples) < 5:
+                    failure_samples.append(error_message)
+                    diagnostics["failureSamples"] = failure_samples
                 if strict_live_templates:
+                    _log_iac_event(
+                        "mcp.live-template",
+                        level="error",
+                        step="failed",
+                        details={
+                            "resourceName": node.name,
+                            "resourceType": node.resource_label,
+                            "error": str(exc),
+                        },
+                    )
                     raise ValueError(error_message) from exc
                 generation_warnings.append(error_message + " Falling back to local template.")
                 template_text = _render_module_bicep(node)
+                template_source_by_key[cache_key] = "fallback"
             template_cache[cache_key] = template_text
+        else:
+            diagnostics["cacheHitCount"] = int(diagnostics.get("cacheHitCount") or 0) + 1
 
         module_contents[node.module_file] = template_text
 
-    return module_contents
+    live_template_modules = 0
+    fallback_template_modules = 0
+    for node in nodes:
+        cache_key = _live_template_cache_key(node)
+        source = str(template_source_by_key.get(cache_key) or "live").strip().lower()
+        if source == "fallback":
+            fallback_template_modules += 1
+        else:
+            live_template_modules += 1
+
+    diagnostics["queriedResourceTypes"] = sorted(queried_types)
+    diagnostics["liveTemplateModules"] = live_template_modules
+    diagnostics["fallbackTemplateModules"] = fallback_template_modules
+
+    query_failures = int(diagnostics.get("queryFailureCount") or 0)
+    if live_template_modules <= 0:
+        diagnostics["responseQuality"] = "none"
+        diagnostics["explanation"] = "Azure MCP returned no usable live templates, so local fallback templates were used for all resources."
+    elif query_failures > 0:
+        diagnostics["responseQuality"] = "partial"
+        diagnostics["explanation"] = "Azure MCP returned partial template coverage; missing templates were filled with local fallback templates."
+    else:
+        diagnostics["responseQuality"] = "full"
+        diagnostics["explanation"] = "Azure MCP returned live templates for all queried resource types."
+
+    _log_iac_event(
+        "mcp.live-template",
+        level="warning" if fallback_template_modules else "info",
+        step="completed",
+        details={
+            "moduleCount": len(module_contents),
+            "fallbackCount": fallback_template_modules,
+            "strictMode": bool(strict_live_templates),
+        },
+    )
+
+    return module_contents, diagnostics
 
 
 def _live_template_cache_key(node: ResourceNode) -> str:
@@ -1578,11 +2215,42 @@ def _collect_guardrails_from_mcp(
     app_settings: Mapping[str, Any],
     nodes: list[ResourceNode],
     deps_by_id: dict[str, set[str]],
-) -> list[str]:
+) -> tuple[list[str], dict[str, Any]]:
+    diagnostics: dict[str, Any] = {
+        "source": "Azure MCP guardrails",
+        "connectionState": "unknown",
+        "counts": {
+            "tested": 0,
+            "passed": 0,
+            "failed": 0,
+            "warning": 0,
+            "skipped": 0,
+            "info": 0,
+        },
+        "checks": [],
+        "explanation": "",
+    }
+
+    _log_iac_event(
+        "mcp.guardrails",
+        level="info",
+        step="requested",
+        details={"resourceCount": len(nodes)},
+    )
+
     try:
         credentials = AzureMcpCredentials.from_app_settings(app_settings)
-    except Exception:
-        return []
+        diagnostics["connectionState"] = "connected"
+    except Exception as exc:
+        diagnostics["connectionState"] = "unavailable"
+        diagnostics["explanation"] = "Azure MCP credentials are not configured, so MCP guardrail checks were skipped."
+        _log_iac_event(
+            "mcp.guardrails",
+            level="warning",
+            step="skipped",
+            details={"reason": "credentials-missing", "error": str(exc)},
+        )
+        return [], diagnostics
 
     summary_lines = ["Generated architecture resources:"]
     for node in nodes[:30]:
@@ -1596,7 +2264,11 @@ def _collect_guardrails_from_mcp(
 
     args = {
         "command": "cloudarchitect_design",
-        "question": "Provide concise Azure IaC guardrails for this architecture. Return JSON: {\"guardrails\":[\"...\"]}",
+        "question": (
+            "Evaluate this architecture and return guardrail check results in strict JSON with this shape: "
+            "{\"checks\":[{\"name\":\"...\",\"status\":\"pass|fail|warning|skipped\",\"reason\":\"...\"}],\"explanation\":\"...\"}. "
+            "If no checks can be evaluated, return checks as [] and explain why in explanation."
+        ),
         "answer": "\n".join(summary_lines),
         "question-number": 1,
         "total-questions": 1,
@@ -1606,10 +2278,39 @@ def _collect_guardrails_from_mcp(
 
     try:
         payload = _run_async(_invoke_mcp_guardrails(credentials, args))
-        extracted = _extract_guardrails_from_payload(payload)
-        return extracted[:10]
-    except Exception:
-        return []
+        checks, explanation = _extract_guardrail_checks_from_payload(payload)
+        counts = _summarize_guardrail_counts(checks)
+
+        diagnostics["checks"] = checks[:12]
+        diagnostics["counts"] = counts
+        diagnostics["explanation"] = str(explanation or "").strip()
+
+        if not checks and not diagnostics["explanation"]:
+            diagnostics["explanation"] = "Azure MCP returned no guardrail checks for this architecture context."
+
+        _log_iac_event(
+            "mcp.guardrails",
+            level="info",
+            step="completed",
+            details={
+                "guardrailCount": len(checks),
+                "passed": counts.get("passed"),
+                "failed": counts.get("failed"),
+                "warning": counts.get("warning"),
+            },
+        )
+
+        return _guardrail_checks_to_lines(checks[:10]), diagnostics
+    except Exception as exc:
+        diagnostics["connectionState"] = "failed"
+        diagnostics["explanation"] = f"Azure MCP guardrail evaluation failed: {exc}"
+        _log_iac_event(
+            "mcp.guardrails",
+            level="error",
+            step="failed",
+            details={"error": str(exc)},
+        )
+        return [], diagnostics
 
 
 def _collect_guardrails_from_coding_model(
@@ -1623,13 +2324,43 @@ def _collect_guardrails_from_coding_model(
     foundry_thread_id: str | None,
     project_name: str,
     project_id: str,
-) -> list[str]:
-    result_holder: dict[str, list[str]] = {"value": []}
+) -> tuple[list[str], dict[str, Any]]:
+    diagnostics: dict[str, Any] = {
+        "source": "Coding-model guardrails",
+        "connectionState": "unknown",
+        "counts": {
+            "tested": 0,
+            "passed": 0,
+            "failed": 0,
+            "warning": 0,
+            "skipped": 0,
+            "info": 0,
+        },
+        "checks": [],
+        "explanation": "",
+    }
+
+    _log_iac_event(
+        "codegen.guardrails.model",
+        level="info",
+        step="requested",
+        project_id=project_id,
+        details={
+            "projectName": project_name,
+            "resourceCount": len(nodes),
+            "parameterFormat": parameter_format,
+        },
+    )
+
+    result_holder: dict[str, Any] = {
+        "checks": [],
+        "diagnostics": diagnostics,
+    }
     done = threading.Event()
 
     def worker() -> None:
         try:
-            result_holder["value"] = _collect_guardrails_from_coding_model_inner(
+            checks, inner_diagnostics = _collect_guardrails_from_coding_model_inner(
                 app_settings=app_settings,
                 nodes=nodes,
                 deps_by_id=deps_by_id,
@@ -1640,8 +2371,15 @@ def _collect_guardrails_from_coding_model(
                 project_name=project_name,
                 project_id=project_id,
             )
-        except Exception:
-            result_holder["value"] = []
+            result_holder["checks"] = checks
+            result_holder["diagnostics"] = inner_diagnostics
+        except Exception as exc:
+            result_holder["checks"] = []
+            result_holder["diagnostics"] = {
+                **diagnostics,
+                "connectionState": "failed",
+                "explanation": f"Coding-model guardrail evaluation failed: {exc}",
+            }
         finally:
             done.set()
 
@@ -1651,9 +2389,45 @@ def _collect_guardrails_from_coding_model(
 
     if not done.is_set():
         generation_warnings.append("Coding-model guardrails timed out and were skipped.")
-        return []
+        diagnostics["connectionState"] = "skipped"
+        diagnostics["explanation"] = (
+            f"Coding-model guardrails timed out after {CODING_MODEL_GUARDRAIL_TIMEOUT_SECONDS} seconds."
+        )
+        _log_iac_event(
+            "codegen.guardrails.model",
+            level="warning",
+            step="timeout",
+            project_id=project_id,
+            details={
+                "projectName": project_name,
+                "timeoutSeconds": CODING_MODEL_GUARDRAIL_TIMEOUT_SECONDS,
+            },
+        )
+        return [], diagnostics
 
-    return result_holder.get("value", [])
+    final_guardrails = result_holder.get("checks") if isinstance(result_holder.get("checks"), list) else []
+    final_diagnostics = result_holder.get("diagnostics") if isinstance(result_holder.get("diagnostics"), Mapping) else diagnostics
+
+    if not isinstance(final_diagnostics.get("counts"), Mapping):
+        final_diagnostics = {
+            **final_diagnostics,
+            "counts": _summarize_guardrail_counts(
+                final_diagnostics.get("checks") if isinstance(final_diagnostics.get("checks"), list) else []
+            ),
+        }
+
+    _log_iac_event(
+        "codegen.guardrails.model",
+        level="info",
+        step="completed",
+        project_id=project_id,
+        details={
+            "projectName": project_name,
+            "guardrailCount": len(final_guardrails),
+        },
+    )
+
+    return final_guardrails, dict(final_diagnostics)
 
 
 def _collect_guardrails_from_coding_model_inner(
@@ -1667,10 +2441,34 @@ def _collect_guardrails_from_coding_model_inner(
     foundry_thread_id: str | None,
     project_name: str,
     project_id: str,
-) -> list[str]:
+) -> tuple[list[str], dict[str, Any]]:
+    diagnostics: dict[str, Any] = {
+        "source": "Coding-model guardrails",
+        "connectionState": "unknown",
+        "counts": {
+            "tested": 0,
+            "passed": 0,
+            "failed": 0,
+            "warning": 0,
+            "skipped": 0,
+            "info": 0,
+        },
+        "checks": [],
+        "explanation": "",
+    }
+
     provider = str(app_settings.get("modelProvider") or "").strip().lower()
     if provider != "azure-foundry":
-        return []
+        diagnostics["connectionState"] = "skipped"
+        diagnostics["explanation"] = "Model provider is not Azure Foundry, so coding-model guardrails were skipped."
+        _log_iac_event(
+            "codegen.guardrails.model",
+            level="warning",
+            step="skipped",
+            project_id=project_id,
+            details={"reason": "provider-not-azure-foundry", "provider": provider},
+        )
+        return [], diagnostics
 
     coding_model = _first_non_empty(
         app_settings,
@@ -1678,7 +2476,16 @@ def _collect_guardrails_from_coding_model_inner(
         "modelCoding",
     )
     if not coding_model:
-        return []
+        diagnostics["connectionState"] = "skipped"
+        diagnostics["explanation"] = "No coding model is configured, so coding-model guardrails were skipped."
+        _log_iac_event(
+            "codegen.guardrails.model",
+            level="warning",
+            step="skipped",
+            project_id=project_id,
+            details={"reason": "coding-model-missing"},
+        )
+        return [], diagnostics
 
     safe_agent_id = str(
         foundry_agent_id
@@ -1689,12 +2496,34 @@ def _collect_guardrails_from_coding_model_inner(
     ).strip()
     safe_thread_id = str(foundry_thread_id or app_settings.get("foundryDefaultThreadId") or "").strip()
     if not safe_agent_id or not safe_thread_id:
-        return []
+        diagnostics["connectionState"] = "skipped"
+        diagnostics["explanation"] = "Foundry agent or thread is missing, so coding-model guardrails were skipped."
+        _log_iac_event(
+            "codegen.guardrails.model",
+            level="warning",
+            step="skipped",
+            project_id=project_id,
+            details={
+                "reason": "foundry-agent-or-thread-missing",
+                "foundryAgentId": safe_agent_id,
+                "foundryThreadId": safe_thread_id,
+            },
+        )
+        return [], diagnostics
 
     try:
         base_connection = FoundryConnectionSettings.from_app_settings(app_settings)
     except FoundryConfigurationError:
-        return []
+        diagnostics["connectionState"] = "skipped"
+        diagnostics["explanation"] = "Foundry configuration is incomplete, so coding-model guardrails were skipped."
+        _log_iac_event(
+            "codegen.guardrails.model",
+            level="warning",
+            step="skipped",
+            project_id=project_id,
+            details={"reason": "foundry-configuration-incomplete"},
+        )
+        return [], diagnostics
 
     connection = FoundryConnectionSettings(
         endpoint=base_connection.endpoint,
@@ -1719,7 +2548,7 @@ def _collect_guardrails_from_coding_model_inner(
             instruction_text,
             "",
             "Return compact JSON with this shape:",
-            '{"guardrails":["..."]}',
+            '{"checks":[{"name":"...","status":"pass|fail|warning|skipped","reason":"..."}],"explanation":"..."}',
             "",
             f"Project: {project_name} ({project_id})",
             f"Parameter format: {parameter_format}",
@@ -1730,12 +2559,13 @@ def _collect_guardrails_from_coding_model_inner(
             "Existing generator warnings:",
             warning_summary,
             "",
-            "Provide up to 8 practical guardrails focused on: schema validity, dependency safety, secure defaults, and deployability.",
-            "Do not include explanations. Return JSON only.",
+            "Provide up to 8 practical guardrail checks focused on schema validity, dependency safety, secure defaults, and deployability.",
+            "Each check must include status and reason. Return JSON only.",
         ]
     )
 
     try:
+        diagnostics["connectionState"] = "connected"
         runner = FoundryAssistantRunner(connection, timeout_seconds=60)
         result = runner.run_assistant(
             assistant_id=safe_agent_id,
@@ -1743,15 +2573,26 @@ def _collect_guardrails_from_coding_model_inner(
             content=prompt,
         )
         parsed = _extract_json_from_text(str(result.response_text or ""))
-        if not isinstance(parsed, Mapping):
-            return []
-        raw_guardrails = parsed.get("guardrails")
-        if not isinstance(raw_guardrails, list):
-            return []
-        cleaned = [str(item).strip() for item in raw_guardrails if str(item).strip()]
-        return cleaned[:8]
-    except Exception:
-        return []
+        checks, explanation = _extract_guardrail_checks_from_payload(parsed if parsed is not None else str(result.response_text or ""))
+        checks = checks[:8]
+        diagnostics["checks"] = checks
+        diagnostics["counts"] = _summarize_guardrail_counts(checks)
+        diagnostics["explanation"] = str(explanation or "").strip()
+        if not checks and not diagnostics["explanation"]:
+            diagnostics["explanation"] = "Coding model returned no guardrail checks for this architecture context."
+
+        return _guardrail_checks_to_lines(checks), diagnostics
+    except Exception as exc:
+        diagnostics["connectionState"] = "failed"
+        diagnostics["explanation"] = f"Coding-model guardrail evaluation failed: {exc}"
+        _log_iac_event(
+            "codegen.guardrails.model",
+            level="error",
+            step="failed",
+            project_id=project_id,
+            details={"error": str(exc)},
+        )
+        return [], diagnostics
 
 
 def _load_agent_definition_text() -> str:
@@ -1877,10 +2718,23 @@ def _run_async(coro):
 
 
 async def _invoke_mcp_guardrails(credentials: AzureMcpCredentials, args: dict[str, Any]) -> Any:
+    _log_iac_event(
+        "mcp.guardrails",
+        level="info",
+        step="session-start",
+        details={"command": "@azure/mcp server start"},
+    )
+
     try:
         mcp_module = importlib.import_module("mcp")
         mcp_stdio_module = importlib.import_module("mcp.client.stdio")
     except ModuleNotFoundError as exc:
+        _log_iac_event(
+            "mcp.guardrails",
+            level="error",
+            step="failed",
+            details={"error": str(exc)},
+        )
         raise RuntimeError("Python package 'mcp' is required for Azure MCP guardrails") from exc
 
     client_session_cls = getattr(mcp_module, "ClientSession")
@@ -1906,6 +2760,12 @@ async def _invoke_mcp_guardrails(credentials: AzureMcpCredentials, args: dict[st
             await session.initialize()
             payload_text = await _call_mcp_cloudarchitect_tool(session, args, timeout_seconds=35)
 
+    _log_iac_event(
+        "mcp.guardrails",
+        level="info",
+        step="session-completed",
+    )
+
     parsed = _extract_json_from_text(payload_text)
     if parsed is not None:
         return parsed
@@ -1917,6 +2777,12 @@ async def _invoke_mcp_live_template(credentials: AzureMcpCredentials, args: dict
         mcp_module = importlib.import_module("mcp")
         mcp_stdio_module = importlib.import_module("mcp.client.stdio")
     except ModuleNotFoundError as exc:
+        _log_iac_event(
+            "mcp.live-template",
+            level="error",
+            step="failed",
+            details={"error": str(exc)},
+        )
         raise RuntimeError("Python package 'mcp' is required for live Azure MCP templates") from exc
 
     client_session_cls = getattr(mcp_module, "ClientSession")
@@ -1958,17 +2824,50 @@ async def _call_mcp_cloudarchitect_tool(
     *,
     timeout_seconds: int,
 ) -> str:
-    tool_candidates = ["cloudarchitect_design", "cloudarchitect"]
+    tool_candidates = ["cloudarchitect", "cloudarchitect_design"]
     last_error = ""
 
     for tool_name in tool_candidates:
+        call_args = dict(args or {})
+        if tool_name == "cloudarchitect_design":
+            command_name = str(call_args.get("command") or "").strip().lower()
+            if command_name in {"cloudarchitect", "cloudarchitect_design"}:
+                call_args.pop("command", None)
         try:
-            result = await asyncio.wait_for(session.call_tool(tool_name, args), timeout=timeout_seconds)
-            return _extract_tool_text(getattr(result, "content", result))
+            result = await asyncio.wait_for(session.call_tool(tool_name, call_args), timeout=timeout_seconds)
+            response_text = _extract_tool_text(getattr(result, "content", result))
+            if _looks_like_guardrail_tooling_error(response_text):
+                last_error = response_text
+                _log_iac_event(
+                    "mcp.guardrails",
+                    level="warning",
+                    step="tool-retry",
+                    details={
+                        "tool": tool_name,
+                        "error": last_error,
+                    },
+                )
+                continue
+            return response_text
         except Exception as exc:
             last_error = str(exc)
+            _log_iac_event(
+                "mcp.guardrails",
+                level="warning",
+                step="tool-retry",
+                details={
+                    "tool": tool_name,
+                    "error": last_error,
+                },
+            )
             continue
 
+    _log_iac_event(
+        "mcp.guardrails",
+        level="error",
+        step="failed",
+        details={"error": last_error},
+    )
     raise RuntimeError(f"Unable to call Azure MCP guardrail tool: {last_error}")
 
 
@@ -1982,6 +2881,12 @@ async def _call_mcp_bicepschema_tool(
         result = await asyncio.wait_for(session.call_tool("bicepschema", args), timeout=timeout_seconds)
         return _extract_tool_text(getattr(result, "content", result))
     except Exception as exc:
+        _log_iac_event(
+            "mcp.live-template",
+            level="error",
+            step="failed",
+            details={"error": str(exc)},
+        )
         raise RuntimeError(f"Unable to call Azure MCP bicepschema tool: {exc}") from exc
 
 
