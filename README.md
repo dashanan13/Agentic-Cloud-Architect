@@ -110,7 +110,7 @@ Converts the finalized architecture into Infrastructure-as-Code.
 **Code generation is based on:**
 
 - Azure resource schemas
-- Predefined templates
+- Live Azure MCP templates (resolved at generation time)
 - Azure Verified Modules
 
 The system generates modular infrastructure code with a central deployment file.
@@ -573,7 +573,7 @@ Supported outputs:
 * Azure Bicep
 * Terraform
 
-Generation is primarily **deterministic**, using predefined templates based on resource schemas and properties.
+Generation is driven by **live Azure MCP template resolution**, using current resource schemas and canvas properties at generation time.
 
 The engine can optionally:
 

@@ -19,6 +19,8 @@ from Agents.AzureMCP.cloudarchitect_chat_agent import AzureMcpCredentials
 DEFAULT_PARAMETER_FORMAT = "bicepparam"
 SUPPORTED_PARAMETER_FORMATS = {"bicepparam", "json"}
 CODING_MODEL_GUARDRAIL_TIMEOUT_SECONDS = 45
+MCP_TEMPLATE_GENERATION_TIMEOUT_SECONDS = 45
+DEFAULT_LIVE_TEMPLATE_STRICT = True
 CATALOG_PATH = Path(__file__).resolve().parents[2] / "Clouds" / "Azure" / "resource_catalog.json"
 AGENT_DEFINITION_PATH = Path(__file__).resolve().parents[1] / "iac_generation_agent.md"
 IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -129,7 +131,7 @@ def generate_bicep_iac_from_canvas(
         progress_callback,
         stage="render_templates",
         status="running",
-        message="Rendering Bicep modules and main template",
+        message="Rendering live Bicep modules from Azure MCP and composing main template",
         progress=35,
     )
 
@@ -154,9 +156,11 @@ def generate_bicep_iac_from_canvas(
             + preview
         )
 
-    module_contents: dict[str, str] = {}
-    for node in nodes:
-        module_contents[node.module_file] = _render_module_bicep(node)
+    module_contents = _render_modules_from_live_templates(
+        app_settings=app_settings,
+        nodes=nodes,
+        generation_warnings=generation_warnings,
+    )
 
     main_bicep = _render_main_bicep(nodes, nodes_by_id, deps_by_id)
 
@@ -619,6 +623,224 @@ def _resource_kind(arm_type: str) -> str:
     return "generic"
 
 
+def _read_live_template_strict_setting(app_settings: Mapping[str, Any]) -> bool:
+    raw_value = app_settings.get("iacLiveTemplateStrict")
+    if raw_value is None:
+        return DEFAULT_LIVE_TEMPLATE_STRICT
+    if isinstance(raw_value, bool):
+        return raw_value
+
+    text = str(raw_value).strip().lower()
+    if text in {"1", "true", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "no", "n", "off"}:
+        return False
+    return DEFAULT_LIVE_TEMPLATE_STRICT
+
+
+def _render_modules_from_live_templates(
+    *,
+    app_settings: Mapping[str, Any],
+    nodes: list[ResourceNode],
+    generation_warnings: list[str],
+) -> dict[str, str]:
+    strict_live_templates = _read_live_template_strict_setting(app_settings)
+
+    try:
+        credentials = AzureMcpCredentials.from_app_settings(app_settings)
+    except Exception as exc:
+        message = "Azure MCP credentials are required for live template generation."
+        if strict_live_templates:
+            raise ValueError(message) from exc
+        generation_warnings.append(message + " Falling back to local templates.")
+        return {node.module_file: _render_module_bicep(node) for node in nodes}
+
+    module_contents: dict[str, str] = {}
+    template_cache: dict[str, str] = {}
+
+    for node in nodes:
+        cache_key = _live_template_cache_key(node)
+        template_text = template_cache.get(cache_key)
+
+        if template_text is None:
+            try:
+                template_text = _generate_live_module_template(credentials=credentials, node=node)
+            except Exception as exc:
+                error_message = (
+                    f"Live template generation failed for {node.name} ({node.resource_label}): {exc}"
+                )
+                if strict_live_templates:
+                    raise ValueError(error_message) from exc
+                generation_warnings.append(error_message + " Falling back to local template.")
+                template_text = _render_module_bicep(node)
+            template_cache[cache_key] = template_text
+
+        module_contents[node.module_file] = template_text
+
+    return module_contents
+
+
+def _live_template_cache_key(node: ResourceNode) -> str:
+    kind = _resource_kind(node.arm_type)
+    if kind != "generic":
+        return kind
+    arm_type = str(node.arm_type or "").strip().lower() or "unknown"
+    api_version = str(node.api_version or "").strip().lower() or "latest"
+    return f"generic::{arm_type}@{api_version}"
+
+
+def _module_contract_for_kind(kind: str) -> tuple[str, list[str]]:
+    if kind == "resource_group":
+        return "subscription", ["resourceName", "location", "tags"]
+    if kind == "virtual_network":
+        return "resourceGroup", ["resourceName", "location", "addressPrefixes", "dnsServers", "tags"]
+    if kind == "subnet":
+        return "resourceGroup", [
+            "resourceName",
+            "virtualNetworkName",
+            "addressPrefix",
+            "privateEndpointNetworkPolicies",
+            "serviceEndpoints",
+            "networkSecurityGroupId",
+            "routeTableId",
+        ]
+    if kind == "network_security_group":
+        return "resourceGroup", ["resourceName", "location", "securityRules", "tags"]
+    if kind == "route_table":
+        return "resourceGroup", ["resourceName", "location", "disableBgpRoutePropagation", "routes", "tags"]
+    if kind == "public_ip":
+        return "resourceGroup", [
+            "resourceName",
+            "location",
+            "allocationMethod",
+            "ipVersion",
+            "skuName",
+            "idleTimeoutMinutes",
+            "tags",
+        ]
+    return "resourceGroup", ["resourceName", "location", "tags"]
+
+
+def _generate_live_module_template(*, credentials: AzureMcpCredentials, node: ResourceNode) -> str:
+    kind = _resource_kind(node.arm_type)
+    default_target_scope, _ = _module_contract_for_kind(kind)
+
+    schema_details = _fetch_live_schema_details(
+        credentials=credentials,
+        resource_type=str(node.arm_type or "").strip(),
+        default_target_scope=default_target_scope,
+    )
+
+    resource_type = str(schema_details.get("resourceType") or node.arm_type or "").strip() or "unknown"
+    api_version = str(schema_details.get("apiVersion") or node.api_version or "").strip() or "2024-03-01"
+    target_scope = str(schema_details.get("targetScope") or default_target_scope).strip() or default_target_scope
+
+    if kind == "resource_group":
+        return _render_resource_group_module(resource_type=resource_type, api_version=api_version)
+    if kind == "virtual_network":
+        return _render_virtual_network_module(resource_type=resource_type, api_version=api_version)
+    if kind == "subnet":
+        return _render_subnet_module(resource_type=resource_type, api_version=api_version)
+    if kind == "network_security_group":
+        return _render_network_security_group_module(resource_type=resource_type, api_version=api_version)
+    if kind == "route_table":
+        return _render_route_table_module(resource_type=resource_type, api_version=api_version)
+    if kind == "public_ip":
+        return _render_public_ip_module(resource_type=resource_type, api_version=api_version)
+    return _render_generic_module(
+        node,
+        resource_type=resource_type,
+        api_version=api_version,
+        target_scope=target_scope,
+    )
+
+
+def _fetch_live_schema_details(
+    *,
+    credentials: AzureMcpCredentials,
+    resource_type: str,
+    default_target_scope: str,
+) -> dict[str, str]:
+    safe_resource_type = str(resource_type or "").strip()
+    if not safe_resource_type:
+        raise RuntimeError("Missing ARM resource type for MCP schema lookup.")
+
+    args = {
+        "intent": f"Get latest Bicep schema for {safe_resource_type}",
+        "command": "bicepschema_get",
+        "parameters": {
+            "resource-type": safe_resource_type,
+        },
+    }
+
+    payload = _run_async(_invoke_mcp_live_template(credentials, args))
+    parsed_payload = payload if isinstance(payload, Mapping) else _extract_json_from_text(str(payload))
+    if not isinstance(parsed_payload, Mapping):
+        raise RuntimeError("Invalid response from bicepschema MCP tool.")
+
+    results = parsed_payload.get("results") if isinstance(parsed_payload.get("results"), Mapping) else None
+    schema_items = results.get("BicepSchemaResult") if isinstance(results, Mapping) else None
+    if not isinstance(schema_items, list) or not schema_items:
+        raise RuntimeError("No schema results returned by bicepschema MCP tool.")
+
+    selected_resource = _select_schema_resource(schema_items, safe_resource_type)
+    if not isinstance(selected_resource, Mapping):
+        raise RuntimeError(f"No matching schema found for {safe_resource_type}.")
+
+    schema_name = str(selected_resource.get("name") or "").strip()
+    schema_resource_type, schema_api_version = _split_bicep_type(schema_name)
+    if not schema_resource_type:
+        schema_resource_type = safe_resource_type
+
+    writable_scopes = str(selected_resource.get("writableScopes") or "").strip()
+    normalized_scope = _normalize_schema_scope(writable_scopes, default_target_scope)
+
+    return {
+        "resourceType": schema_resource_type,
+        "apiVersion": schema_api_version,
+        "targetScope": normalized_scope,
+    }
+
+
+def _select_schema_resource(schema_items: list[Any], resource_type: str) -> Mapping[str, Any] | None:
+    normalized_type = str(resource_type or "").strip().lower()
+    fallback_match: Mapping[str, Any] | None = None
+
+    for item in schema_items:
+        if not isinstance(item, Mapping):
+            continue
+        if str(item.get("$type") or "").strip().lower() != "resource":
+            continue
+
+        name_value = str(item.get("name") or "").strip()
+        parsed_type, _ = _split_bicep_type(name_value)
+        if not parsed_type:
+            continue
+
+        if not fallback_match:
+            fallback_match = item
+
+        if parsed_type.strip().lower() == normalized_type:
+            return item
+
+    return fallback_match
+
+
+def _normalize_schema_scope(scope_value: str, fallback: str) -> str:
+    text = str(scope_value or "").strip().lower()
+    if not text:
+        return fallback
+    if "subscription" in text:
+        return "subscription"
+    if "resourcegroup" in text:
+        return "resourceGroup"
+    if "managementgroup" in text:
+        return "managementGroup"
+    if "tenant" in text:
+        return "tenant"
+    return fallback
+
+
 def _render_module_bicep(node: ResourceNode) -> str:
     kind = _resource_kind(node.arm_type)
     if kind == "resource_group":
@@ -995,8 +1217,12 @@ def _render_pipeline_yaml(parameter_file_name: str, parameter_format: str) -> st
     )
 
 
-def _render_resource_group_module() -> str:
-    return """targetScope = 'subscription'
+def _render_resource_group_module(
+    *,
+    resource_type: str = "Microsoft.Resources/resourceGroups",
+    api_version: str = "2024-03-01",
+) -> str:
+    template = """targetScope = 'subscription'
 
 param resourceName string
 param location string
@@ -1012,10 +1238,21 @@ output id string = rg.id
 output name string = rg.name
 output type string = 'Microsoft.Resources/resourceGroups'
 """
+    return template.replace(
+        "Microsoft.Resources/resourceGroups@2024-03-01",
+        f"{resource_type}@{api_version}",
+    ).replace(
+        "'Microsoft.Resources/resourceGroups'",
+        f"'{resource_type}'",
+    )
 
 
-def _render_virtual_network_module() -> str:
-    return """targetScope = 'resourceGroup'
+def _render_virtual_network_module(
+    *,
+    resource_type: str = "Microsoft.Network/virtualNetworks",
+    api_version: str = "2024-03-01",
+) -> str:
+    template = """targetScope = 'resourceGroup'
 
 param resourceName string
 param location string
@@ -1051,10 +1288,21 @@ output id string = vnet.id
 output name string = vnet.name
 output type string = 'Microsoft.Network/virtualNetworks'
 """
+    return template.replace(
+        "Microsoft.Network/virtualNetworks@2024-03-01",
+        f"{resource_type}@{api_version}",
+    ).replace(
+        "'Microsoft.Network/virtualNetworks'",
+        f"'{resource_type}'",
+    )
 
 
-def _render_subnet_module() -> str:
-    return """targetScope = 'resourceGroup'
+def _render_subnet_module(
+    *,
+    resource_type: str = "Microsoft.Network/virtualNetworks/subnets",
+    api_version: str = "2024-03-01",
+) -> str:
+    template = """targetScope = 'resourceGroup'
 
 param resourceName string
 param virtualNetworkName string
@@ -1102,10 +1350,24 @@ output id string = subnet.id
 output name string = subnet.name
 output type string = 'Microsoft.Network/virtualNetworks/subnets'
 """
+    return template.replace(
+        "Microsoft.Network/virtualNetworks/subnets@2024-03-01",
+        f"{resource_type}@{api_version}",
+    ).replace(
+        "Microsoft.Network/virtualNetworks@2024-03-01",
+        f"Microsoft.Network/virtualNetworks@{api_version}",
+    ).replace(
+        "'Microsoft.Network/virtualNetworks/subnets'",
+        f"'{resource_type}'",
+    )
 
 
-def _render_network_security_group_module() -> str:
-    return """targetScope = 'resourceGroup'
+def _render_network_security_group_module(
+    *,
+    resource_type: str = "Microsoft.Network/networkSecurityGroups",
+    api_version: str = "2024-03-01",
+) -> str:
+    template = """targetScope = 'resourceGroup'
 
 param resourceName string
 param location string
@@ -1137,10 +1399,21 @@ output id string = nsg.id
 output name string = nsg.name
 output type string = 'Microsoft.Network/networkSecurityGroups'
 """
+    return template.replace(
+        "Microsoft.Network/networkSecurityGroups@2024-03-01",
+        f"{resource_type}@{api_version}",
+    ).replace(
+        "'Microsoft.Network/networkSecurityGroups'",
+        f"'{resource_type}'",
+    )
 
 
-def _render_route_table_module() -> str:
-    return """targetScope = 'resourceGroup'
+def _render_route_table_module(
+    *,
+    resource_type: str = "Microsoft.Network/routeTables",
+    api_version: str = "2024-03-01",
+) -> str:
+    template = """targetScope = 'resourceGroup'
 
 param resourceName string
 param location string
@@ -1173,10 +1446,21 @@ output id string = routeTable.id
 output name string = routeTable.name
 output type string = 'Microsoft.Network/routeTables'
 """
+    return template.replace(
+        "Microsoft.Network/routeTables@2024-03-01",
+        f"{resource_type}@{api_version}",
+    ).replace(
+        "'Microsoft.Network/routeTables'",
+        f"'{resource_type}'",
+    )
 
 
-def _render_public_ip_module() -> str:
-    return """targetScope = 'resourceGroup'
+def _render_public_ip_module(
+    *,
+    resource_type: str = "Microsoft.Network/publicIPAddresses",
+    api_version: str = "2024-03-01",
+) -> str:
+    template = """targetScope = 'resourceGroup'
 
 param resourceName string
 param location string
@@ -1204,23 +1488,41 @@ output id string = publicIp.id
 output name string = publicIp.name
 output type string = 'Microsoft.Network/publicIPAddresses'
 """
+    return template.replace(
+        "Microsoft.Network/publicIPAddresses@2024-03-01",
+        f"{resource_type}@{api_version}",
+    ).replace(
+        "'Microsoft.Network/publicIPAddresses'",
+        f"'{resource_type}'",
+    )
 
 
-def _render_generic_module(node: ResourceNode) -> str:
-    safe_type = node.arm_type or "unknown"
-    safe_api = node.api_version or "unknown"
+def _render_generic_module(
+    node: ResourceNode,
+    *,
+    resource_type: str | None = None,
+    api_version: str | None = None,
+    target_scope: str = "resourceGroup",
+) -> str:
+    safe_type = str(resource_type or node.arm_type or "unknown").strip() or "unknown"
+    safe_api = str(api_version or node.api_version or "unknown").strip() or "unknown"
+    safe_target_scope = str(target_scope or "resourceGroup").strip() or "resourceGroup"
+
     return "\n".join(
         [
-            "targetScope = 'resourceGroup'",
+            f"targetScope = '{safe_target_scope}'",
             "",
-            "@description('Manual implementation required for this resource type.')",
+            "@description('Schema-driven generic scaffold. Manual implementation required for this resource type.')",
             "param resourceName string",
-            "param location string",
+            "param location string = deployment().location",
             "param tags object = {}",
+            "param properties object = {}",
+            "param parentResourceName string = ''",
             "",
-            f"output id string = ''",
-            "output name string = resourceName",
-            f"output type string = '{safe_type}@{safe_api}'",
+            "output id string = ''",
+            "output name string = empty(parentResourceName) ? resourceName : '${parentResourceName}/${resourceName}'",
+            f"output type string = '{safe_type}'",
+            f"output apiVersion string = '{safe_api}'",
             "",
         ]
     )
@@ -1596,7 +1898,7 @@ async def _invoke_mcp_guardrails(credentials: AzureMcpCredentials, args: dict[st
     async with stdio_client(server_params) as (read_stream, write_stream):
         async with client_session_cls(read_stream, write_stream) as session:
             await session.initialize()
-            payload_text = await _call_mcp_guardrail_tool(session, args)
+            payload_text = await _call_mcp_cloudarchitect_tool(session, args, timeout_seconds=35)
 
     parsed = _extract_json_from_text(payload_text)
     if parsed is not None:
@@ -1604,19 +1906,77 @@ async def _invoke_mcp_guardrails(credentials: AzureMcpCredentials, args: dict[st
     return payload_text
 
 
-async def _call_mcp_guardrail_tool(session: Any, args: dict[str, Any]) -> str:
+async def _invoke_mcp_live_template(credentials: AzureMcpCredentials, args: dict[str, Any]) -> Any:
+    try:
+        mcp_module = importlib.import_module("mcp")
+        mcp_stdio_module = importlib.import_module("mcp.client.stdio")
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("Python package 'mcp' is required for live Azure MCP templates") from exc
+
+    client_session_cls = getattr(mcp_module, "ClientSession")
+    server_parameters_cls = getattr(mcp_module, "StdioServerParameters")
+    stdio_client = getattr(mcp_stdio_module, "stdio_client")
+
+    mcp_env = {
+        "AZURE_CLIENT_ID": credentials.client_id,
+        "AZURE_CLIENT_SECRET": credentials.client_secret,
+        "AZURE_TENANT_ID": credentials.tenant_id,
+    }
+    if credentials.subscription_id:
+        mcp_env["AZURE_SUBSCRIPTION_ID"] = credentials.subscription_id
+
+    server_params = server_parameters_cls(
+        command="npx",
+        args=["-y", "@azure/mcp@latest", "server", "start"],
+        env=mcp_env,
+    )
+
+    async with stdio_client(server_params) as (read_stream, write_stream):
+        async with client_session_cls(read_stream, write_stream) as session:
+            await session.initialize()
+            payload_text = await _call_mcp_bicepschema_tool(
+                session,
+                args,
+                timeout_seconds=MCP_TEMPLATE_GENERATION_TIMEOUT_SECONDS,
+            )
+
+    parsed = _extract_json_from_text(payload_text)
+    if parsed is not None:
+        return parsed
+    return payload_text
+
+
+async def _call_mcp_cloudarchitect_tool(
+    session: Any,
+    args: dict[str, Any],
+    *,
+    timeout_seconds: int,
+) -> str:
     tool_candidates = ["cloudarchitect_design", "cloudarchitect"]
     last_error = ""
 
     for tool_name in tool_candidates:
         try:
-            result = await asyncio.wait_for(session.call_tool(tool_name, args), timeout=35)
+            result = await asyncio.wait_for(session.call_tool(tool_name, args), timeout=timeout_seconds)
             return _extract_tool_text(getattr(result, "content", result))
         except Exception as exc:
             last_error = str(exc)
             continue
 
     raise RuntimeError(f"Unable to call Azure MCP guardrail tool: {last_error}")
+
+
+async def _call_mcp_bicepschema_tool(
+    session: Any,
+    args: dict[str, Any],
+    *,
+    timeout_seconds: int,
+) -> str:
+    try:
+        result = await asyncio.wait_for(session.call_tool("bicepschema", args), timeout=timeout_seconds)
+        return _extract_tool_text(getattr(result, "content", result))
+    except Exception as exc:
+        raise RuntimeError(f"Unable to call Azure MCP bicepschema tool: {exc}") from exc
 
 
 def _extract_tool_text(content: Any) -> str:

@@ -147,6 +147,19 @@
                   </div>
                 </div>
                 </section>
+
+                <section class="settings-section">
+                  <h3 class="settings-section-title">IaC Generation</h3>
+
+                  <div class="form-group">
+                    <label for="as-iac-continue-on-mcp-failure">Live template failure behavior</label>
+                    <div class="input-row">
+                      <input type="checkbox" id="as-iac-continue-on-mcp-failure" />
+                      <label for="as-iac-continue-on-mcp-failure">Continue on MCP failure (fallback to local templates)</label>
+                    </div>
+                    <span class="name-hint">If unchecked, generation fails fast when live MCP template/schema lookup fails.</span>
+                  </div>
+                </section>
               </form>
 
             </div>

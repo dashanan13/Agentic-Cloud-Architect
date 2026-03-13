@@ -68,12 +68,13 @@ DEFAULT_APP_SETTINGS = {
     "ollamaModelPathCoding": "",
     "ollamaModelPathReasoning": "",
     "ollamaModelPathFast": "",
+    "iacLiveTemplateStrict": True,
 }
 
 IAC_STAGE_DEFINITIONS = [
     {"id": "gather_properties", "label": "Gather resource properties"},
     {"id": "dependency_tree", "label": "Build dependency tree"},
-    {"id": "render_templates", "label": "Render Bicep templates"},
+    {"id": "render_templates", "label": "Render live Bicep templates"},
     {"id": "generate_parameters", "label": "Generate parameters and pipeline"},
     {"id": "guardrails_mcp", "label": "Run MCP guardrails"},
     {"id": "guardrails_model", "label": "Run coding-model guardrails"},
@@ -834,6 +835,7 @@ def build_persistable_app_settings(settings: dict) -> dict:
             "foundryModelFast",
             "foundryDefaultAgentId",
             "foundryDefaultThreadId",
+            "iacLiveTemplateStrict",
         )
     else:
         keys = (
@@ -845,6 +847,7 @@ def build_persistable_app_settings(settings: dict) -> dict:
             "ollamaModelPathCoding",
             "ollamaModelPathReasoning",
             "ollamaModelPathFast",
+            "iacLiveTemplateStrict",
         )
 
     return {key: sanitized.get(key, "") for key in keys}

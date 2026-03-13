@@ -24,6 +24,7 @@ const foundryDefaultThreadInput = document.getElementById("as-foundry-app-thread
 const ollamaCodingSelect = document.getElementById("as-ollama-model-coding");
 const ollamaReasoningSelect = document.getElementById("as-ollama-model-reasoning");
 const ollamaFastSelect = document.getElementById("as-ollama-model-fast");
+const iacContinueOnMcpFailureCheckbox = document.getElementById("as-iac-continue-on-mcp-failure");
 
 const DEFAULT_APP_SETTINGS = {
   modelProvider: "ollama-local",
@@ -43,7 +44,8 @@ const DEFAULT_APP_SETTINGS = {
   foundryDefaultThreadId: "",
   ollamaModelPathCoding: "",
   ollamaModelPathReasoning: "",
-  ollamaModelPathFast: ""
+  ollamaModelPathFast: "",
+  iacLiveTemplateStrict: true
 };
 
 const DEFAULT_PROJECT_SETTINGS = {
@@ -329,6 +331,21 @@ function normalizeLegacyKeys(incoming) {
   return normalized;
 }
 
+function toBooleanSetting(value, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const text = String(value || "").trim().toLowerCase();
+  if (["1", "true", "yes", "y", "on"].includes(text)) {
+    return true;
+  }
+  if (["0", "false", "no", "n", "off"].includes(text)) {
+    return false;
+  }
+  return fallback;
+}
+
 async function loadAppSettings() {
   const response = await fetch("/api/settings/app", { cache: "no-store" });
   if (!response.ok) {
@@ -417,6 +434,13 @@ function populateAppSettings() {
   }
   if (foundryDefaultThreadInput) {
     foundryDefaultThreadInput.value = String(appSettings.foundryDefaultThreadId || "");
+  }
+  if (iacContinueOnMcpFailureCheckbox) {
+    const strictMode = toBooleanSetting(
+      appSettings.iacLiveTemplateStrict,
+      DEFAULT_APP_SETTINGS.iacLiveTemplateStrict,
+    );
+    iacContinueOnMcpFailureCheckbox.checked = !strictMode;
   }
 
   setFoundryModelOptions([], {
@@ -544,7 +568,8 @@ function collectAppSettings() {
     foundryModelFast: document.getElementById("as-foundry-model-fast").value.trim(),
     ollamaModelPathCoding: document.getElementById("as-ollama-model-coding").value.trim(),
     ollamaModelPathReasoning: document.getElementById("as-ollama-model-reasoning").value.trim(),
-    ollamaModelPathFast: document.getElementById("as-ollama-model-fast").value.trim()
+    ollamaModelPathFast: document.getElementById("as-ollama-model-fast").value.trim(),
+    iacLiveTemplateStrict: !(iacContinueOnMcpFailureCheckbox?.checked || false)
   };
 }
 
