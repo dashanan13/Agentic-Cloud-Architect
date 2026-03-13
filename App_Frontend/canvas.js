@@ -213,23 +213,8 @@ const CANVAS_CONTAINER = {
   padding: 12
 };
 
-const AZURE_LOCATION_SUGGESTIONS = [
-  "eastus",
-  "eastus2",
-  "centralus",
-  "westus2",
-  "westeurope",
-  "northeurope",
-  "uksouth",
-  "swedencentral",
-  "centralindia",
-  "southeastasia",
-  "australiaeast",
-  "japaneast"
-];
-
 const RESOURCE_BOOLEAN_SELECT_FIELDS = new Set([
-  "propagateGatewayRoutes",
+  "disableBgpRoutePropagation",
   "enableVirtualNetworkEncryption",
   "enableAzureBastion",
   "enableAzureFirewall",
@@ -258,7 +243,7 @@ const SUBNET_PURPOSE_NAMES = {
 const RESOURCE_ENUM_SELECT_OPTIONS = {
   firewallTier: ["basic", "standard", "premium"],
   subnetPurpose: SUBNET_PURPOSE_OPTIONS,
-  privateEndpointPolicy: ["disabled", "nsg", "route-table", "both"],
+  privateEndpointNetworkPolicies: ["disabled", "enabled"],
   ipVersion: ["ipv4", "ipv6"],
   sku: ["standard", "standardv2"],
   zone: ["zone-redundant", "1", "2", "3"],
@@ -286,10 +271,146 @@ function sanitizeTagList(tags) {
     return [];
   }
 
-  return tags.map((tag) => ({
-    key: String(tag?.key ?? tag?.label ?? ""),
-    value: String(tag?.value ?? "")
-  }));
+  return tags
+    .map((tag) => ({
+      key: String(tag?.key ?? tag?.label ?? "").trim().slice(0, 128),
+      value: String(tag?.value ?? "").trim().slice(0, 256)
+    }))
+    .filter((tag) => Boolean(tag.key || tag.value));
+}
+
+function buildEditableTagRows(tags) {
+  const normalizedTags = sanitizeTagList(tags);
+  return [
+    ...normalizedTags,
+    { key: "", value: "" }
+  ];
+}
+
+function sanitizeStringList(value, options = {}) {
+  const {
+    maxItems = 40,
+    maxLength = 200,
+    allowCsv = true,
+    fallback = []
+  } = options;
+
+  const fallbackList = Array.isArray(fallback)
+    ? fallback
+    : (allowCsv && typeof fallback === "string" ? fallback.split(",") : (fallback == null ? [] : [fallback]));
+
+  const source = Array.isArray(value)
+    ? value
+    : (allowCsv && typeof value === "string"
+      ? value.split(",")
+      : fallbackList);
+
+  const seen = new Set();
+  const cleaned = [];
+
+  source.forEach((entry) => {
+    const rawValue = entry && typeof entry === "object"
+      ? (entry.name ?? entry.service ?? entry.id ?? "")
+      : entry;
+    const normalized = String(rawValue ?? "").trim();
+    if (!normalized) {
+      return;
+    }
+
+    const normalizedKey = normalized.toLowerCase();
+    if (seen.has(normalizedKey)) {
+      return;
+    }
+
+    seen.add(normalizedKey);
+    cleaned.push(normalized.slice(0, maxLength));
+  });
+
+  return cleaned.slice(0, maxItems);
+}
+
+function normalizeSecurityRuleDirection(value) {
+  return String(value || "").toLowerCase() === "outbound" ? "outbound" : "inbound";
+}
+
+function normalizeSecurityRuleAccess(value) {
+  return String(value || "").toLowerCase() === "deny" ? "deny" : "allow";
+}
+
+function normalizeSecurityRuleProtocol(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (normalized === "*" || normalized === "any") {
+    return "any";
+  }
+  if (["tcp", "udp", "icmp"].includes(normalized)) {
+    return normalized;
+  }
+  return "tcp";
+}
+
+function sanitizeNetworkSecurityRules(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.slice(0, 100).map((rule, index) => {
+    const fallbackPriority = clamp(100 + (index * 10), 100, 4096);
+    const sanitizedName = String(rule?.name || `rule-${index + 1}`).trim().slice(0, 80);
+    return {
+      name: sanitizedName || `rule-${index + 1}`,
+      priority: normalizeIntegerValue(rule?.priority, fallbackPriority, 100, 4096),
+      direction: normalizeSecurityRuleDirection(rule?.direction),
+      access: normalizeSecurityRuleAccess(rule?.access),
+      protocol: normalizeSecurityRuleProtocol(rule?.protocol),
+      sourceAddressPrefix: String(rule?.sourceAddressPrefix || "*").trim() || "*",
+      sourcePortRange: String(rule?.sourcePortRange || "*").trim() || "*",
+      destinationAddressPrefix: String(rule?.destinationAddressPrefix || "*").trim() || "*",
+      destinationPortRange: String(rule?.destinationPortRange || "*").trim() || "*"
+    };
+  });
+}
+
+function normalizeRouteNextHopType(value) {
+  const normalized = String(value || "").toLowerCase();
+  const allowed = [
+    "virtual-network-gateway",
+    "vnet-local",
+    "internet",
+    "virtual-appliance",
+    "none"
+  ];
+  return allowed.includes(normalized) ? normalized : "internet";
+}
+
+function sanitizeRouteDefinitions(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.slice(0, 100).map((route, index) => {
+    const sanitizedName = String(route?.name || `route-${index + 1}`).trim().slice(0, 80);
+    return {
+      name: sanitizedName || `route-${index + 1}`,
+      addressPrefix: String(route?.addressPrefix || "0.0.0.0/0").trim() || "0.0.0.0/0",
+      nextHopType: normalizeRouteNextHopType(route?.nextHopType),
+      nextHopIpAddress: String(route?.nextHopIpAddress || "").trim()
+    };
+  });
+}
+
+function sanitizeSubnetDelegations(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.slice(0, 40).map((delegation, index) => {
+    const sanitizedName = String(delegation?.name || `delegation-${index + 1}`).trim().slice(0, 80);
+    const serviceName = String(delegation?.serviceName || "").trim().slice(0, 120);
+    return {
+      name: sanitizedName || `delegation-${index + 1}`,
+      serviceName
+    };
+  });
 }
 
 function sanitizeDnsNameValue(value) {
@@ -575,6 +696,11 @@ function getCanvasRouteTables(options = {}) {
   return state.canvasItems.filter((item) => item.id !== excludeId && isRouteTableItem(item));
 }
 
+function getCanvasSubnets(options = {}) {
+  const { excludeId = null } = options;
+  return state.canvasItems.filter((item) => item.id !== excludeId && isSubnetItem(item));
+}
+
 function getCanvasVirtualNetworks(options = {}) {
   const { excludeId = null } = options;
   return state.canvasItems.filter((item) => item.id !== excludeId && isVirtualNetworkItem(item));
@@ -816,51 +942,92 @@ function sanitizeItemProperties(resourceType, properties, validItemIds = null, i
 
   if (isNetworkSecurityGroupTypeName(normalizedType)) {
     const resourceGroupSelection = sanitizeExistingCustomReference(source.resourceGroupMode, source.resourceGroupRef, validItemIds);
+    const associatedSubnetSelection = sanitizeExistingCustomReference(
+      source.associatedSubnetMode || source.subnetAssociationMode,
+      source.associatedSubnetRef || source.subnetAssociationRef,
+      validItemIds
+    );
     return {
       resourceGroupMode: resourceGroupSelection.mode,
       resourceGroupRef: resourceGroupSelection.ref,
       resourceGroupName: String(source.resourceGroupName || ""),
       location: String(source.location || ""),
+      associatedSubnetMode: associatedSubnetSelection.mode,
+      associatedSubnetRef: associatedSubnetSelection.ref,
+      associatedSubnetName: String(source.associatedSubnetName || source.subnetAssociationName || ""),
+      securityRules: sanitizeNetworkSecurityRules(source.securityRules),
       tags
     };
   }
 
   if (isRouteTableTypeName(normalizedType)) {
     const resourceGroupSelection = sanitizeExistingCustomReference(source.resourceGroupMode, source.resourceGroupRef, validItemIds);
+    const disableBgpRoutePropagation = source.disableBgpRoutePropagation === undefined
+      ? !normalizeBooleanValue(source.propagateGatewayRoutes, true)
+      : normalizeBooleanValue(source.disableBgpRoutePropagation, false);
     return {
       resourceGroupMode: resourceGroupSelection.mode,
       resourceGroupRef: resourceGroupSelection.ref,
       resourceGroupName: String(source.resourceGroupName || ""),
       location: String(source.location || ""),
-      propagateGatewayRoutes: normalizeBooleanValue(source.propagateGatewayRoutes, true),
+      disableBgpRoutePropagation,
+      routes: sanitizeRouteDefinitions(source.routes || source.routeDefinitions),
       tags
     };
   }
 
   if (isSubnetTypeName(normalizedType)) {
-    const parentVirtualNetworkSelection = sanitizeExistingCustomReference(source.parentVirtualNetworkMode, source.parentVirtualNetworkRef, validItemIds);
-    const subnetNsgSelection = sanitizeExistingCustomReference(source.subnetNsgMode, source.subnetNsgRef, validItemIds);
-    const subnetRouteTableSelection = sanitizeExistingCustomReference(source.subnetRouteTableMode, source.subnetRouteTableRef, validItemIds);
-    const privateEndpointPolicy = ["disabled", "nsg", "route-table", "both"].includes(String(source.privateEndpointPolicy || "").toLowerCase())
-      ? String(source.privateEndpointPolicy || "").toLowerCase()
-      : "disabled";
+    const parentVirtualNetworkSelection = sanitizeExistingCustomReference(
+      source.virtualNetworkMode || source.parentVirtualNetworkMode,
+      source.virtualNetworkRef || source.parentVirtualNetworkRef,
+      validItemIds
+    );
+    const networkSecurityGroupSelection = sanitizeExistingCustomReference(
+      source.networkSecurityGroupMode || source.subnetNsgMode,
+      source.networkSecurityGroupRef || source.subnetNsgRef,
+      validItemIds
+    );
+    const routeTableSelection = sanitizeExistingCustomReference(
+      source.routeTableMode || source.subnetRouteTableMode,
+      source.routeTableRef || source.subnetRouteTableRef,
+      validItemIds
+    );
+    const legacyPrivateEndpointPolicy = String(source.privateEndpointPolicy || "").toLowerCase();
+    const privateEndpointNetworkPolicies = ["disabled", "enabled"].includes(String(source.privateEndpointNetworkPolicies || "").toLowerCase())
+      ? String(source.privateEndpointNetworkPolicies || "").toLowerCase()
+      : (["nsg", "route-table", "both"].includes(legacyPrivateEndpointPolicy) ? "enabled" : "disabled");
     const subnetPurpose = normalizeSubnetPurpose(source.subnetPurpose);
 
     return {
       subnetPurpose,
       subnetName: resolveSubnetNameForPurpose(subnetPurpose, source.subnetName),
       subnetPrivate: normalizeBooleanValue(source.subnetPrivate, false),
-      parentVirtualNetworkMode: parentVirtualNetworkSelection.mode,
-      parentVirtualNetworkRef: parentVirtualNetworkSelection.ref,
-      parentVirtualNetworkName: String(source.parentVirtualNetworkName || ""),
-      subnetNsgMode: subnetNsgSelection.mode,
-      subnetNsgRef: subnetNsgSelection.ref,
-      subnetNsgName: String(source.subnetNsgName || ""),
-      subnetRouteTableMode: subnetRouteTableSelection.mode,
-      subnetRouteTableRef: subnetRouteTableSelection.ref,
-      subnetRouteTableName: String(source.subnetRouteTableName || ""),
-      subnetServiceEndpoints: String(source.subnetServiceEndpoints || ""),
-      privateEndpointPolicy,
+      virtualNetworkMode: parentVirtualNetworkSelection.mode,
+      virtualNetworkRef: parentVirtualNetworkSelection.ref,
+      virtualNetworkName: String(source.virtualNetworkName || source.parentVirtualNetworkName || ""),
+      networkSecurityGroupMode: networkSecurityGroupSelection.mode,
+      networkSecurityGroupRef: networkSecurityGroupSelection.ref,
+      networkSecurityGroupName: String(source.networkSecurityGroupName || source.subnetNsgName || ""),
+      routeTableMode: routeTableSelection.mode,
+      routeTableRef: routeTableSelection.ref,
+      routeTableName: String(source.routeTableName || source.subnetRouteTableName || ""),
+      serviceEndpoints: sanitizeStringList(source.serviceEndpoints, {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true,
+        fallback: source.subnetServiceEndpoints
+      }),
+      serviceEndpointPolicyNames: sanitizeStringList(
+        source.serviceEndpointPolicyNames,
+        {
+          maxItems: 40,
+          maxLength: 120,
+          allowCsv: true,
+          fallback: source.serviceEndpointPolicies
+        }
+      ),
+      delegations: sanitizeSubnetDelegations(source.delegations),
+      privateEndpointNetworkPolicies,
       tags
     };
   }
@@ -879,7 +1046,17 @@ function sanitizeItemProperties(resourceType, properties, validItemIds = null, i
       resourceGroupRef: resourceGroupSelection.ref,
       resourceGroupName: String(source.resourceGroupName || ""),
       location: String(source.location || ""),
-      addressSpace: String(source.addressSpace || source.addressSpaceCidr || "10.0.0.0/16"),
+      addressPrefixes: sanitizeStringList(source.addressPrefixes, {
+        maxItems: 20,
+        maxLength: 64,
+        allowCsv: true,
+        fallback: source.addressSpace || source.addressSpaceCidr || []
+      }),
+      dnsServers: sanitizeStringList(source.dnsServers, {
+        maxItems: 20,
+        maxLength: 64,
+        allowCsv: true
+      }),
       enableVirtualNetworkEncryption: normalizeBooleanValue(source.enableVirtualNetworkEncryption, false),
       enableAzureBastion: normalizeBooleanValue(source.enableAzureBastion, false),
       bastionName: String(source.bastionName || ""),
@@ -923,6 +1100,7 @@ function sanitizeItemProperties(resourceType, properties, validItemIds = null, i
       resourceGroupRef: resourceGroupSelection.ref,
       resourceGroupName: String(source.resourceGroupName || ""),
       location: String(source.location || ""),
+      publicIPAllocationMethod: "static",
       ipVersion,
       sku,
       zone,
@@ -986,6 +1164,28 @@ function getPreferredVirtualNetwork(parentContainer = null) {
   return getCanvasVirtualNetworks()[0] || null;
 }
 
+function getPreferredSubnet(parentContainer = null) {
+  if (parentContainer && isSubnetItem(parentContainer)) {
+    return parentContainer;
+  }
+
+  let ancestorId = String(parentContainer?.parentId || "");
+  while (ancestorId) {
+    const ancestorItem = getItemById(ancestorId);
+    if (!ancestorItem) {
+      break;
+    }
+
+    if (isSubnetItem(ancestorItem)) {
+      return ancestorItem;
+    }
+
+    ancestorId = String(ancestorItem.parentId || "");
+  }
+
+  return getCanvasSubnets()[0] || null;
+}
+
 function buildDefaultResourceGroupBinding(parentContainer = null) {
   const preferredResourceGroup = getPreferredResourceGroup(parentContainer);
   const preferredResourceGroupProperties = preferredResourceGroup ? ensureItemProperties(preferredResourceGroup) : {};
@@ -1025,8 +1225,13 @@ function createDefaultItemProperties(resourceType, parentContainer = null) {
 
   if (isNetworkSecurityGroupTypeName(resourceType)) {
     const binding = buildDefaultResourceGroupBinding(parentContainer);
+    const preferredSubnet = getPreferredSubnet(parentContainer);
     return {
       ...binding,
+      associatedSubnetMode: preferredSubnet ? "existing" : "custom",
+      associatedSubnetRef: preferredSubnet ? preferredSubnet.id : "",
+      associatedSubnetName: preferredSubnet ? preferredSubnet.name : "",
+      securityRules: [],
       tags: []
     };
   }
@@ -1035,7 +1240,8 @@ function createDefaultItemProperties(resourceType, parentContainer = null) {
     const binding = buildDefaultResourceGroupBinding(parentContainer);
     return {
       ...binding,
-      propagateGatewayRoutes: true,
+      disableBgpRoutePropagation: false,
+      routes: [],
       tags: []
     };
   }
@@ -1044,7 +1250,8 @@ function createDefaultItemProperties(resourceType, parentContainer = null) {
     const binding = buildDefaultResourceGroupBinding(parentContainer);
     return {
       ...binding,
-      addressSpace: "10.0.0.0/16",
+      addressPrefixes: [],
+      dnsServers: [],
       enableVirtualNetworkEncryption: false,
       enableAzureBastion: false,
       bastionName: "",
@@ -1070,17 +1277,19 @@ function createDefaultItemProperties(resourceType, parentContainer = null) {
       subnetPurpose,
       subnetName: resolveSubnetNameForPurpose(subnetPurpose),
       subnetPrivate: false,
-      parentVirtualNetworkMode: preferredVirtualNetwork ? "existing" : "custom",
-      parentVirtualNetworkRef: preferredVirtualNetwork ? preferredVirtualNetwork.id : "",
-      parentVirtualNetworkName: preferredVirtualNetwork ? preferredVirtualNetwork.name : "",
-      subnetNsgMode: "custom",
-      subnetNsgRef: "",
-      subnetNsgName: "",
-      subnetRouteTableMode: "custom",
-      subnetRouteTableRef: "",
-      subnetRouteTableName: "",
-      subnetServiceEndpoints: "",
-      privateEndpointPolicy: "disabled",
+      virtualNetworkMode: preferredVirtualNetwork ? "existing" : "custom",
+      virtualNetworkRef: preferredVirtualNetwork ? preferredVirtualNetwork.id : "",
+      virtualNetworkName: preferredVirtualNetwork ? preferredVirtualNetwork.name : "",
+      networkSecurityGroupMode: "custom",
+      networkSecurityGroupRef: "",
+      networkSecurityGroupName: "",
+      routeTableMode: "custom",
+      routeTableRef: "",
+      routeTableName: "",
+      serviceEndpoints: [],
+      serviceEndpointPolicyNames: [],
+      delegations: [],
+      privateEndpointNetworkPolicies: "disabled",
       tags: []
     };
   }
@@ -1089,6 +1298,7 @@ function createDefaultItemProperties(resourceType, parentContainer = null) {
     const binding = buildDefaultResourceGroupBinding(parentContainer);
     return {
       ...binding,
+      publicIPAllocationMethod: "static",
       ipVersion: "ipv4",
       sku: "standard",
       zone: "zone-redundant",
@@ -1157,9 +1367,9 @@ function assignExistingParentVirtualNetwork(item, virtualNetworkItem) {
   }
 
   const properties = ensureItemProperties(item);
-  properties.parentVirtualNetworkMode = "existing";
-  properties.parentVirtualNetworkRef = virtualNetworkItem.id;
-  properties.parentVirtualNetworkName = String(virtualNetworkItem.name || properties.parentVirtualNetworkName || "");
+  properties.virtualNetworkMode = "existing";
+  properties.virtualNetworkRef = virtualNetworkItem.id;
+  properties.virtualNetworkName = String(virtualNetworkItem.name || properties.virtualNetworkName || "");
 }
 
 function switchSubnetParentVirtualNetworkToCustom(item, fallbackName = "") {
@@ -1168,10 +1378,10 @@ function switchSubnetParentVirtualNetworkToCustom(item, fallbackName = "") {
   }
 
   const properties = ensureItemProperties(item);
-  const currentVirtualNetwork = getItemById(properties.parentVirtualNetworkRef);
-  properties.parentVirtualNetworkMode = "custom";
-  properties.parentVirtualNetworkRef = "";
-  properties.parentVirtualNetworkName = String(fallbackName || currentVirtualNetwork?.name || properties.parentVirtualNetworkName || "");
+  const currentVirtualNetwork = getItemById(properties.virtualNetworkRef);
+  properties.virtualNetworkMode = "custom";
+  properties.virtualNetworkRef = "";
+  properties.virtualNetworkName = String(fallbackName || currentVirtualNetwork?.name || properties.virtualNetworkName || "");
 }
 
 function getCanvasItemAndDescendants(rootItem) {
@@ -1241,38 +1451,58 @@ function applyAutoBindingsForItem(item) {
   }
 
   if (isSubnetItem(item)) {
-    const nextParentVirtualNetwork = getPreferredContextualCandidate(item, isVirtualNetworkItem, properties.parentVirtualNetworkRef);
+    const nextParentVirtualNetwork = getPreferredContextualCandidate(item, isVirtualNetworkItem, properties.virtualNetworkRef);
     if (nextParentVirtualNetwork) {
       if (
-        properties.parentVirtualNetworkMode !== "existing"
-        || properties.parentVirtualNetworkRef !== nextParentVirtualNetwork.id
-        || String(properties.parentVirtualNetworkName || "") !== String(nextParentVirtualNetwork.name || "")
+        properties.virtualNetworkMode !== "existing"
+        || properties.virtualNetworkRef !== nextParentVirtualNetwork.id
+        || String(properties.virtualNetworkName || "") !== String(nextParentVirtualNetwork.name || "")
       ) {
         assignExistingParentVirtualNetwork(item, nextParentVirtualNetwork);
         changed = true;
       }
     }
 
-    const nextNetworkSecurityGroup = getPreferredContextualCandidate(item, isNetworkSecurityGroupItem, properties.subnetNsgRef);
+    const nextNetworkSecurityGroup = getPreferredContextualCandidate(item, isNetworkSecurityGroupItem, properties.networkSecurityGroupRef);
     if (nextNetworkSecurityGroup) {
       if (
-        properties.subnetNsgMode !== "existing"
-        || properties.subnetNsgRef !== nextNetworkSecurityGroup.id
-        || String(properties.subnetNsgName || "") !== String(nextNetworkSecurityGroup.name || "")
+        properties.networkSecurityGroupMode !== "existing"
+        || properties.networkSecurityGroupRef !== nextNetworkSecurityGroup.id
+        || String(properties.networkSecurityGroupName || "") !== String(nextNetworkSecurityGroup.name || "")
       ) {
-        assignExistingDependency(properties, "subnetNsgMode", "subnetNsgRef", "subnetNsgName", nextNetworkSecurityGroup);
+        assignExistingDependency(
+          properties,
+          "networkSecurityGroupMode",
+          "networkSecurityGroupRef",
+          "networkSecurityGroupName",
+          nextNetworkSecurityGroup
+        );
         changed = true;
       }
     }
 
-    const nextRouteTable = getPreferredContextualCandidate(item, isRouteTableItem, properties.subnetRouteTableRef);
+    const nextRouteTable = getPreferredContextualCandidate(item, isRouteTableItem, properties.routeTableRef);
     if (nextRouteTable) {
       if (
-        properties.subnetRouteTableMode !== "existing"
-        || properties.subnetRouteTableRef !== nextRouteTable.id
-        || String(properties.subnetRouteTableName || "") !== String(nextRouteTable.name || "")
+        properties.routeTableMode !== "existing"
+        || properties.routeTableRef !== nextRouteTable.id
+        || String(properties.routeTableName || "") !== String(nextRouteTable.name || "")
       ) {
-        assignExistingDependency(properties, "subnetRouteTableMode", "subnetRouteTableRef", "subnetRouteTableName", nextRouteTable);
+        assignExistingDependency(properties, "routeTableMode", "routeTableRef", "routeTableName", nextRouteTable);
+        changed = true;
+      }
+    }
+  }
+
+  if (isNetworkSecurityGroupItem(item)) {
+    const nextSubnet = getPreferredContextualCandidate(item, isSubnetItem, properties.associatedSubnetRef);
+    if (nextSubnet) {
+      if (
+        properties.associatedSubnetMode !== "existing"
+        || properties.associatedSubnetRef !== nextSubnet.id
+        || String(properties.associatedSubnetName || "") !== String(nextSubnet.name || "")
+      ) {
+        assignExistingDependency(properties, "associatedSubnetMode", "associatedSubnetRef", "associatedSubnetName", nextSubnet);
         changed = true;
       }
     }
@@ -2024,26 +2254,21 @@ function buildResourceActionMarkup() {
 }
 
 function buildTagEditorMarkup(tags) {
-  const safeTags = Array.isArray(tags) ? tags : [];
-  const tagRows = safeTags
+  const editableRows = buildEditableTagRows(tags);
+  const tagRows = editableRows
     .map((tag, index) => [
-      '<div class="tag-row">',
-      `<input class="property-input" type="text" placeholder="Key" value="${escapeHtml(tag.key)}" data-resource-tag-field="key" data-tag-index="${index}" maxlength="128" />`,
-      `<input class="property-input" type="text" placeholder="Value" value="${escapeHtml(tag.value)}" data-resource-tag-field="value" data-tag-index="${index}" maxlength="256" />`,
-      `<button class="btn btn--sm btn--danger" type="button" data-tag-action="remove" data-tag-index="${index}">Remove</button>`,
+      '<div class="tag-row tag-row--key-value">',
+      `<input class="property-input" type="text" placeholder="&lt;Key&gt;" value="${escapeHtml(tag.key)}" data-resource-tag-field="key" data-tag-index="${index}" maxlength="128" />`,
+      '<span class="tag-row__separator">:</span>',
+      `<input class="property-input" type="text" placeholder="&lt;value&gt;" value="${escapeHtml(tag.value)}" data-resource-tag-field="value" data-tag-index="${index}" maxlength="256" />`,
       "</div>"
     ].join(""))
     .join("");
 
   return [
     '<div class="property-row property-row--tags">',
-    '<div class="property-inline-header">',
-    '<span class="property-label">Tags</span>',
-    '<button class="btn btn--sm btn--secondary" type="button" data-tag-action="add">Add Tag</button>',
-    "</div>",
-    safeTags.length
-      ? `<div class="tag-list">${tagRows}</div>`
-      : '<div class="property-helper">No tags configured.</div>',
+    '<span class="property-label">Tags:</span>',
+    `<div class="tag-list">${tagRows}</div>`,
     "</div>"
   ].join("");
 }
@@ -2115,13 +2340,16 @@ function buildExistingCustomReferenceMarkup(config) {
 }
 
 function buildGenericResourcePropertyMarkup(selectedItem) {
-  return [
-    '<div class="property-form">',
+  const basicSectionContent = [
     '<label class="property-row">',
     '<span class="property-label">Name</span>',
     `<input class="property-input" type="text" value="${escapeHtml(selectedItem.name)}" data-resource-field="name" maxlength="80" />`,
-    '</label>',
-    buildResourceMetaMarkup(selectedItem),
+    '</label>'
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2129,39 +2357,30 @@ function buildGenericResourcePropertyMarkup(selectedItem) {
 
 function buildResourceGroupPropertyMarkup(selectedItem) {
   const properties = ensureItemProperties(selectedItem);
-  const locationOptions = AZURE_LOCATION_SUGGESTIONS
-    .map((location) => `<option value="${escapeHtml(location)}"></option>`)
-    .join("");
 
-  return [
-    '<div class="property-form">',
+  const basicSectionContent = [
     '<label class="property-row">',
     '<span class="property-label">Resource Group Name</span>',
     `<input class="property-input" type="text" value="${escapeHtml(selectedItem.name)}" data-resource-field="name" maxlength="80" />`,
     '</label>',
-    '<label class="property-row">',
-    '<span class="property-label">Location</span>',
-    `<input class="property-input" type="text" list="azure-location-suggestions" value="${escapeHtml(properties.location)}" data-resource-field="location" placeholder="e.g. westeurope" maxlength="60" />`,
-    '</label>',
-    `<datalist id="azure-location-suggestions">${locationOptions}</datalist>`,
-    buildTagEditorMarkup(properties.tags),
-    buildResourceMetaMarkup(selectedItem),
+    buildLocationInputMarkup(properties.location),
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
 }
 
 function buildLocationInputMarkup(value, fieldName = "location") {
-  const locationOptions = AZURE_LOCATION_SUGGESTIONS
-    .map((location) => `<option value="${escapeHtml(location)}"></option>`)
-    .join("");
-
   return [
     '<label class="property-row">',
     '<span class="property-label">Location</span>',
-    `<input class="property-input" type="text" list="azure-location-suggestions" value="${escapeHtml(value || "")}" data-resource-field="${escapeHtml(fieldName)}" placeholder="e.g. westeurope" maxlength="60" />`,
-    '</label>',
-    `<datalist id="azure-location-suggestions">${locationOptions}</datalist>`
+    `<input class="property-input" type="text" value="${escapeHtml(value || "")}" data-resource-field="${escapeHtml(fieldName)}" placeholder="e.g. westeurope" maxlength="60" />`,
+    '</label>'
   ].join("");
 }
 
@@ -2173,6 +2392,306 @@ function buildBooleanSelectMarkup(label, fieldName, value, trueLabel = "Enabled"
     `<select class="property-input" data-resource-field="${escapeHtml(fieldName)}"><option value="true" ${normalizedValue ? "selected" : ""}>${escapeHtml(trueLabel)}</option><option value="false" ${normalizedValue ? "" : "selected"}>${escapeHtml(falseLabel)}</option></select>`,
     '</label>'
   ].join("");
+}
+
+function buildPropertySectionMarkup(title, content, options = {}) {
+  const { open = false } = options;
+  return [
+    `<details class="property-group"${open ? " open" : ""}>`,
+    `<summary class="property-group__summary">${escapeHtml(title)}</summary>`,
+    `<div class="property-group__body">${content}</div>`,
+    '</details>'
+  ].join("");
+}
+
+function buildStringListEditorMarkup(config) {
+  const {
+    label,
+    fieldName,
+    values,
+    placeholder = "",
+    addLabel = "Add",
+    emptyMessage = "No items configured.",
+    maxLength = 120
+  } = config;
+
+  const safeValues = Array.isArray(values) ? values : [];
+  const rows = safeValues
+    .map((value, index) => [
+      '<div class="tag-row">',
+      `<input class="property-input" type="text" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}" data-string-list-field="${escapeHtml(fieldName)}" data-list-index="${index}" maxlength="${Number.parseInt(maxLength, 10) || 120}" />`,
+      '<span></span>',
+      `<button class="btn btn--sm btn--danger" type="button" data-list-action="remove-string" data-list-field="${escapeHtml(fieldName)}" data-list-index="${index}">Remove</button>`,
+      '</div>'
+    ].join(""))
+    .join("");
+
+  return [
+    '<div class="property-row property-row--tags">',
+    '<div class="property-inline-header">',
+    `<span class="property-label">${escapeHtml(label)}</span>`,
+    `<button class="btn btn--sm btn--secondary" type="button" data-list-action="add-string" data-list-field="${escapeHtml(fieldName)}">${escapeHtml(addLabel)}</button>`,
+    '</div>',
+    safeValues.length
+      ? `<div class="tag-list">${rows}</div>`
+      : `<div class="property-helper">${escapeHtml(emptyMessage)}</div>`,
+    '</div>'
+  ].join("");
+}
+
+function buildRouteDefinitionsEditorMarkup(routes) {
+  const safeRoutes = Array.isArray(routes) ? routes : [];
+  const rows = safeRoutes
+    .map((route, index) => [
+      '<details class="property-subsection">',
+      `<summary class="property-subsection__summary">${escapeHtml(String(route.name || `route-${index + 1}`))}</summary>`,
+      '<div class="property-subsection__body">',
+      '<label class="property-row">',
+      '<span class="property-label">Route Name:</span>',
+      `<input class="property-input" type="text" placeholder="Route name" value="${escapeHtml(route.name || "")}" data-object-list-field="routes" data-object-key="name" data-list-index="${index}" maxlength="80" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Address Prefix:</span>',
+      `<input class="property-input" type="text" placeholder="Address prefix" value="${escapeHtml(route.addressPrefix || "")}" data-object-list-field="routes" data-object-key="addressPrefix" data-list-index="${index}" maxlength="64" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Next Hop Type:</span>',
+      `<select class="property-input" data-object-list-field="routes" data-object-key="nextHopType" data-list-index="${index}"><option value="virtual-network-gateway" ${route.nextHopType === "virtual-network-gateway" ? "selected" : ""}>Virtual Network Gateway</option><option value="vnet-local" ${route.nextHopType === "vnet-local" ? "selected" : ""}>VNet Local</option><option value="internet" ${route.nextHopType === "internet" ? "selected" : ""}>Internet</option><option value="virtual-appliance" ${route.nextHopType === "virtual-appliance" ? "selected" : ""}>Virtual Appliance</option><option value="none" ${route.nextHopType === "none" ? "selected" : ""}>None</option></select>`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Next Hop IP Address:</span>',
+      `<input class="property-input" type="text" placeholder="Next hop IP (optional)" value="${escapeHtml(route.nextHopIpAddress || "")}" data-object-list-field="routes" data-object-key="nextHopIpAddress" data-list-index="${index}" maxlength="64" />`,
+      '</label>',
+      '<div class="property-inline-header">',
+      `<span class="property-helper">Route ${index + 1}</span>`,
+      `<button class="btn btn--sm btn--danger" type="button" data-list-action="remove-object" data-list-field="routes" data-list-index="${index}">Remove Route</button>`,
+      '</div>',
+      '</div>',
+      '</details>'
+    ].join(""))
+    .join("");
+
+  return [
+    '<div class="property-row property-row--tags">',
+    '<div class="property-inline-header">',
+    '<span class="property-label">Routes</span>',
+    '<button class="btn btn--sm btn--secondary" type="button" data-list-action="add-object" data-list-field="routes">Add Route</button>',
+    '</div>',
+    safeRoutes.length
+      ? `<div class="tag-list">${rows}</div>`
+      : '<div class="property-helper">No routes configured.</div>',
+    '</div>'
+  ].join("");
+}
+
+function buildSubnetDelegationsEditorMarkup(delegations) {
+  const safeDelegations = Array.isArray(delegations) ? delegations : [];
+  const rows = safeDelegations
+    .map((delegation, index) => [
+      '<div class="tag-row">',
+      `<input class="property-input" type="text" placeholder="Delegation name" value="${escapeHtml(delegation.name || "")}" data-object-list-field="delegations" data-object-key="name" data-list-index="${index}" maxlength="80" />`,
+      `<input class="property-input" type="text" placeholder="Service name (e.g. Microsoft.Web/serverFarms)" value="${escapeHtml(delegation.serviceName || "")}" data-object-list-field="delegations" data-object-key="serviceName" data-list-index="${index}" maxlength="120" />`,
+      `<button class="btn btn--sm btn--danger" type="button" data-list-action="remove-object" data-list-field="delegations" data-list-index="${index}">Remove</button>`,
+      '</div>'
+    ].join(""))
+    .join("");
+
+  return [
+    '<div class="property-row property-row--tags">',
+    '<div class="property-inline-header">',
+    '<span class="property-label">Delegations</span>',
+    '<button class="btn btn--sm btn--secondary" type="button" data-list-action="add-object" data-list-field="delegations">Add Delegation</button>',
+    '</div>',
+    safeDelegations.length
+      ? `<div class="tag-list">${rows}</div>`
+      : '<div class="property-helper">No delegations configured.</div>',
+    '</div>'
+  ].join("");
+}
+
+function buildNetworkSecurityRuleMarkup(securityRules) {
+  const safeRules = Array.isArray(securityRules) ? securityRules : [];
+  const rows = safeRules
+    .map((rule, index) => [
+      '<details class="property-subsection">',
+      `<summary class="property-subsection__summary">${escapeHtml(String(rule.name || `rule-${index + 1}`))}</summary>`,
+      '<div class="property-subsection__body">',
+      '<label class="property-row">',
+      '<span class="property-label">Rule Name:</span>',
+      `<input class="property-input" type="text" placeholder="Rule name" value="${escapeHtml(rule.name || "")}" data-object-list-field="securityRules" data-object-key="name" data-list-index="${index}" maxlength="80" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Priority:</span>',
+      `<input class="property-input" type="number" min="100" max="4096" step="1" value="${escapeHtml(String(rule.priority ?? ""))}" data-object-list-field="securityRules" data-object-key="priority" data-list-index="${index}" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Direction:</span>',
+      `<select class="property-input" data-object-list-field="securityRules" data-object-key="direction" data-list-index="${index}"><option value="inbound" ${rule.direction === "inbound" ? "selected" : ""}>Inbound</option><option value="outbound" ${rule.direction === "outbound" ? "selected" : ""}>Outbound</option></select>`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Access:</span>',
+      `<select class="property-input" data-object-list-field="securityRules" data-object-key="access" data-list-index="${index}"><option value="allow" ${rule.access === "allow" ? "selected" : ""}>Allow</option><option value="deny" ${rule.access === "deny" ? "selected" : ""}>Deny</option></select>`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Protocol:</span>',
+      `<select class="property-input" data-object-list-field="securityRules" data-object-key="protocol" data-list-index="${index}"><option value="tcp" ${rule.protocol === "tcp" ? "selected" : ""}>TCP</option><option value="udp" ${rule.protocol === "udp" ? "selected" : ""}>UDP</option><option value="icmp" ${rule.protocol === "icmp" ? "selected" : ""}>ICMP</option><option value="any" ${rule.protocol === "any" ? "selected" : ""}>Any</option></select>`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Source Address Prefix:</span>',
+      `<input class="property-input" type="text" placeholder="Source address prefix" value="${escapeHtml(rule.sourceAddressPrefix || "*")}" data-object-list-field="securityRules" data-object-key="sourceAddressPrefix" data-list-index="${index}" maxlength="120" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Source Port Range:</span>',
+      `<input class="property-input" type="text" placeholder="Source port range" value="${escapeHtml(rule.sourcePortRange || "*")}" data-object-list-field="securityRules" data-object-key="sourcePortRange" data-list-index="${index}" maxlength="40" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Destination Address Prefix:</span>',
+      `<input class="property-input" type="text" placeholder="Destination address prefix" value="${escapeHtml(rule.destinationAddressPrefix || "*")}" data-object-list-field="securityRules" data-object-key="destinationAddressPrefix" data-list-index="${index}" maxlength="120" />`,
+      '</label>',
+      '<label class="property-row">',
+      '<span class="property-label">Destination Port Range:</span>',
+      `<input class="property-input" type="text" placeholder="Destination port range" value="${escapeHtml(rule.destinationPortRange || "*")}" data-object-list-field="securityRules" data-object-key="destinationPortRange" data-list-index="${index}" maxlength="40" />`,
+      '</label>',
+      '<div class="property-inline-header">',
+      `<span class="property-helper">Rule ${index + 1}</span>`,
+      `<button class="btn btn--sm btn--danger" type="button" data-list-action="remove-object" data-list-field="securityRules" data-list-index="${index}">Remove Rule</button>`,
+      '</div>',
+      '</div>',
+      '</details>'
+    ].join(""))
+    .join("");
+
+  return [
+    '<div class="property-row property-row--tags">',
+    '<div class="property-inline-header">',
+    '<span class="property-label">Security Rules</span>',
+    '<button class="btn btn--sm btn--secondary" type="button" data-list-action="add-object" data-list-field="securityRules">Add Rule</button>',
+    '</div>',
+    safeRules.length
+      ? `<div class="tag-list">${rows}</div>`
+      : '<div class="property-helper">No security rules configured.</div>',
+    '</div>'
+  ].join("");
+}
+
+function createDefaultObjectListItem(fieldName, index = 0) {
+  if (fieldName === "routes") {
+    return {
+      name: `route-${index + 1}`,
+      addressPrefix: "0.0.0.0/0",
+      nextHopType: "internet",
+      nextHopIpAddress: ""
+    };
+  }
+
+  if (fieldName === "delegations") {
+    return {
+      name: `delegation-${index + 1}`,
+      serviceName: ""
+    };
+  }
+
+  if (fieldName === "securityRules") {
+    return {
+      name: `rule-${index + 1}`,
+      priority: clamp(100 + (index * 10), 100, 4096),
+      direction: "inbound",
+      access: "allow",
+      protocol: "tcp",
+      sourceAddressPrefix: "*",
+      sourcePortRange: "*",
+      destinationAddressPrefix: "*",
+      destinationPortRange: "*"
+    };
+  }
+
+  return {};
+}
+
+function ensureStringListField(properties, fieldName) {
+  if (!properties || !fieldName) {
+    return [];
+  }
+
+  if (!Array.isArray(properties[fieldName])) {
+    properties[fieldName] = [];
+  }
+
+  return properties[fieldName];
+}
+
+function ensureObjectListField(properties, fieldName) {
+  if (!properties || !fieldName) {
+    return [];
+  }
+
+  if (!Array.isArray(properties[fieldName])) {
+    properties[fieldName] = [];
+  }
+
+  return properties[fieldName];
+}
+
+function normalizeObjectListInputValue(fieldName, key, value, fallback, index = 0) {
+  if (fieldName === "routes") {
+    if (key === "nextHopType") {
+      return normalizeRouteNextHopType(value);
+    }
+
+    if (key === "name") {
+      const normalizedName = String(value || "").trim().slice(0, 80);
+      return normalizedName || String(fallback || `route-${index + 1}`);
+    }
+
+    if (key === "addressPrefix") {
+      const addressPrefix = String(value || "").trim().slice(0, 64);
+      return addressPrefix || String(fallback || "0.0.0.0/0");
+    }
+
+    if (key === "nextHopIpAddress") {
+      return String(value || "").trim().slice(0, 64);
+    }
+  }
+
+  if (fieldName === "delegations") {
+    if (key === "name") {
+      const normalizedName = String(value || "").trim().slice(0, 80);
+      return normalizedName || String(fallback || `delegation-${index + 1}`);
+    }
+
+    if (key === "serviceName") {
+      return String(value || "").trim().slice(0, 120);
+    }
+  }
+
+  if (fieldName === "securityRules") {
+    if (key === "priority") {
+      return normalizeIntegerValue(value, normalizeIntegerValue(fallback, 100, 100, 4096), 100, 4096);
+    }
+
+    if (key === "direction") {
+      return normalizeSecurityRuleDirection(value);
+    }
+
+    if (key === "access") {
+      return normalizeSecurityRuleAccess(value);
+    }
+
+    if (key === "protocol") {
+      return normalizeSecurityRuleProtocol(value);
+    }
+
+    if (key === "name") {
+      const normalizedName = String(value || "").trim().slice(0, 80);
+      return normalizedName || String(fallback || `rule-${index + 1}`);
+    }
+
+    if (["sourceAddressPrefix", "sourcePortRange", "destinationAddressPrefix", "destinationPortRange"].includes(key)) {
+      return String(value || "").trim().slice(0, 120) || String(fallback || "*");
+    }
+  }
+
+  return String(value || "");
 }
 
 function buildNetworkSecurityGroupPropertyMarkup(selectedItem) {
@@ -2193,15 +2712,39 @@ function buildNetworkSecurityGroupPropertyMarkup(selectedItem) {
     emptyExistingMessage: "No Resource Group is on the canvas yet. Switch to Custom to type a name."
   });
 
-  return [
-    '<div class="property-form">',
+  const associatedSubnetReference = buildExistingCustomReferenceMarkup({
+    sourceLabel: "Associated Subnet Source",
+    modeField: "associatedSubnetMode",
+    modeValue: properties.associatedSubnetMode,
+    refField: "associatedSubnetRef",
+    refValue: properties.associatedSubnetRef,
+    nameField: "associatedSubnetName",
+    nameValue: properties.associatedSubnetName,
+    existingItems: getCanvasSubnets({ excludeId: selectedItem.id }),
+    existingLabel: "Associated Subnet",
+    customLabel: "Associated Subnet Name",
+    customPlaceholder: "Enter subnet name",
+    customMaxLength: 80,
+    emptyExistingMessage: "No Subnet is on the canvas yet. Switch to Custom to type a name."
+  });
+
+  const basicSectionContent = [
     resourceGroupReference.markup,
     '<label class="property-row">',
     '<span class="property-label">Network Security Group Name</span>',
     `<input class="property-input" type="text" value="${escapeHtml(selectedItem.name)}" data-resource-field="name" maxlength="80" />`,
     '</label>',
     buildLocationInputMarkup(properties.location),
-    buildTagEditorMarkup(properties.tags),
+    associatedSubnetReference.markup,
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  const additionalSectionContent = buildNetworkSecurityRuleMarkup(properties.securityRules);
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
+    buildPropertySectionMarkup("Additional", additionalSectionContent),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2225,16 +2768,31 @@ function buildRouteTablePropertyMarkup(selectedItem) {
     emptyExistingMessage: "No Resource Group is on the canvas yet. Switch to Custom to type a name."
   });
 
-  return [
-    '<div class="property-form">',
+  const basicSectionContent = [
     resourceGroupReference.markup,
     '<label class="property-row">',
     '<span class="property-label">Route Table Name</span>',
     `<input class="property-input" type="text" value="${escapeHtml(selectedItem.name)}" data-resource-field="name" maxlength="80" />`,
     '</label>',
     buildLocationInputMarkup(properties.location),
-    buildBooleanSelectMarkup("Propagate Gateway Routes", "propagateGatewayRoutes", properties.propagateGatewayRoutes, "Yes", "No"),
-    buildTagEditorMarkup(properties.tags),
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  const additionalSectionContent = [
+    buildBooleanSelectMarkup(
+      "Disable BGP Route Propagation",
+      "disableBgpRoutePropagation",
+      properties.disableBgpRoutePropagation,
+      "Yes",
+      "No"
+    ),
+    buildRouteDefinitionsEditorMarkup(properties.routes)
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
+    buildPropertySectionMarkup("Additional", additionalSectionContent),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2290,8 +2848,14 @@ function buildVirtualNetworkPropertyMarkup(selectedItem) {
     emptyExistingMessage: "No Public IP resource is on the canvas yet. Switch to Custom to type a name."
   });
 
-  return [
-    '<div class="property-form">',
+  const addressPrefixesValue = Array.isArray(properties.addressPrefixes)
+    ? properties.addressPrefixes.join(", ")
+    : "";
+  const dnsServersValue = Array.isArray(properties.dnsServers)
+    ? properties.dnsServers.join(", ")
+    : "";
+
+  const basicSectionContent = [
     resourceGroupReference.markup,
     '<label class="property-row">',
     '<span class="property-label">Virtual Network Name</span>',
@@ -2299,9 +2863,17 @@ function buildVirtualNetworkPropertyMarkup(selectedItem) {
     '</label>',
     buildLocationInputMarkup(properties.location),
     '<label class="property-row">',
-    '<span class="property-label">Address Space (CIDR)</span>',
-    `<input class="property-input" type="text" value="${escapeHtml(properties.addressSpace)}" data-resource-field="addressSpace" placeholder="e.g. 10.0.0.0/16" maxlength="64" />`,
+    '<span class="property-label">Address Prefix</span>',
+    `<input class="property-input" type="text" value="${escapeHtml(addressPrefixesValue)}" data-resource-field="addressPrefixes" placeholder="e.g. 10.0.0.0/16, 10.1.0.0/16" maxlength="400" />`,
     '</label>',
+    '<label class="property-row">',
+    '<span class="property-label">DNS Server</span>',
+    `<input class="property-input" type="text" value="${escapeHtml(dnsServersValue)}" data-resource-field="dnsServers" placeholder="e.g. 10.0.0.4, 10.0.0.5" maxlength="400" />`,
+    '</label>',
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  const additionalSectionContent = [
     buildBooleanSelectMarkup("Virtual Network Encryption", "enableVirtualNetworkEncryption", properties.enableVirtualNetworkEncryption),
     buildBooleanSelectMarkup("Enable DDoS Protection", "enableDdosProtection", properties.enableDdosProtection),
     buildBooleanSelectMarkup("Enable Azure Bastion", "enableAzureBastion", properties.enableAzureBastion),
@@ -2331,8 +2903,13 @@ function buildVirtualNetworkPropertyMarkup(selectedItem) {
           '</label>',
           firewallPublicIpReference.markup
         ].join("")
-      : "",
-    buildTagEditorMarkup(properties.tags),
+      : ""
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
+    buildPropertySectionMarkup("Additional", additionalSectionContent),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2349,12 +2926,12 @@ function buildSubnetPropertyMarkup(selectedItem) {
 
   const subnetNsgReference = buildExistingCustomReferenceMarkup({
     sourceLabel: "Subnet NSG Source",
-    modeField: "subnetNsgMode",
-    modeValue: properties.subnetNsgMode,
-    refField: "subnetNsgRef",
-    refValue: properties.subnetNsgRef,
-    nameField: "subnetNsgName",
-    nameValue: properties.subnetNsgName,
+    modeField: "networkSecurityGroupMode",
+    modeValue: properties.networkSecurityGroupMode,
+    refField: "networkSecurityGroupRef",
+    refValue: properties.networkSecurityGroupRef,
+    nameField: "networkSecurityGroupName",
+    nameValue: properties.networkSecurityGroupName,
     existingItems: getCanvasNetworkSecurityGroups({ excludeId: selectedItem.id }),
     existingLabel: "Subnet Network Security Group",
     customLabel: "Subnet Network Security Group Name",
@@ -2364,16 +2941,16 @@ function buildSubnetPropertyMarkup(selectedItem) {
   });
 
   const parentVirtualNetworkReference = buildExistingCustomReferenceMarkup({
-    sourceLabel: "Parent Virtual Network Source",
-    modeField: "parentVirtualNetworkMode",
-    modeValue: properties.parentVirtualNetworkMode,
-    refField: "parentVirtualNetworkRef",
-    refValue: properties.parentVirtualNetworkRef,
-    nameField: "parentVirtualNetworkName",
-    nameValue: properties.parentVirtualNetworkName,
+    sourceLabel: "Virtual Network Source",
+    modeField: "virtualNetworkMode",
+    modeValue: properties.virtualNetworkMode,
+    refField: "virtualNetworkRef",
+    refValue: properties.virtualNetworkRef,
+    nameField: "virtualNetworkName",
+    nameValue: properties.virtualNetworkName,
     existingItems: getCanvasVirtualNetworks({ excludeId: selectedItem.id }),
-    existingLabel: "Parent Virtual Network",
-    customLabel: "Parent Virtual Network Name",
+    existingLabel: "Virtual Network",
+    customLabel: "Virtual Network Name",
     customPlaceholder: "Enter virtual network name",
     customMaxLength: 80,
     emptyExistingMessage: "No Virtual Network is on the canvas yet. Switch to Custom to type a name."
@@ -2381,12 +2958,12 @@ function buildSubnetPropertyMarkup(selectedItem) {
 
   const subnetRouteTableReference = buildExistingCustomReferenceMarkup({
     sourceLabel: "Subnet Route Table Source",
-    modeField: "subnetRouteTableMode",
-    modeValue: properties.subnetRouteTableMode,
-    refField: "subnetRouteTableRef",
-    refValue: properties.subnetRouteTableRef,
-    nameField: "subnetRouteTableName",
-    nameValue: properties.subnetRouteTableName,
+    modeField: "routeTableMode",
+    modeValue: properties.routeTableMode,
+    refField: "routeTableRef",
+    refValue: properties.routeTableRef,
+    nameField: "routeTableName",
+    nameValue: properties.routeTableName,
     existingItems: getCanvasRouteTables({ excludeId: selectedItem.id }),
     existingLabel: "Subnet Route Table",
     customLabel: "Subnet Route Table Name",
@@ -2395,8 +2972,7 @@ function buildSubnetPropertyMarkup(selectedItem) {
     emptyExistingMessage: "No Route Table is on the canvas yet. Switch to Custom to type a name."
   });
 
-  return [
-    '<div class="property-form">',
+  const basicSectionContent = [
     '<label class="property-row">',
     '<span class="property-label">Subnet Type</span>',
     `<select class="property-input" data-resource-field="subnetPurpose"><option value="default" ${subnetPurpose === "default" ? "selected" : ""}>Default</option><option value="bastion" ${subnetPurpose === "bastion" ? "selected" : ""}>Bastion</option><option value="firewall" ${subnetPurpose === "firewall" ? "selected" : ""}>Firewall</option><option value="firewall-management" ${subnetPurpose === "firewall-management" ? "selected" : ""}>Firewall Management</option><option value="virtual-network-gateway" ${subnetPurpose === "virtual-network-gateway" ? "selected" : ""}>Virtual Network Gateway</option><option value="route-server" ${subnetPurpose === "route-server" ? "selected" : ""}>Route Server</option></select>`,
@@ -2412,15 +2988,39 @@ function buildSubnetPropertyMarkup(selectedItem) {
     buildBooleanSelectMarkup("Private Subnet", "subnetPrivate", properties.subnetPrivate, "Yes", "No"),
     subnetNsgReference.markup,
     subnetRouteTableReference.markup,
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  const additionalSectionContent = [
+    buildStringListEditorMarkup({
+      label: "Service Endpoints",
+      fieldName: "serviceEndpoints",
+      values: properties.serviceEndpoints,
+      placeholder: "e.g. Microsoft.Storage",
+      addLabel: "Add Endpoint",
+      emptyMessage: "No service endpoints configured.",
+      maxLength: 120
+    }),
+    buildStringListEditorMarkup({
+      label: "Service Endpoint Policies",
+      fieldName: "serviceEndpointPolicyNames",
+      values: properties.serviceEndpointPolicyNames,
+      placeholder: "Service Endpoint Policy Name",
+      addLabel: "Add Policy",
+      emptyMessage: "No service endpoint policies configured.",
+      maxLength: 120
+    }),
+    buildSubnetDelegationsEditorMarkup(properties.delegations),
     '<label class="property-row">',
-    '<span class="property-label">Subnet Service Endpoints</span>',
-    `<input class="property-input" type="text" value="${escapeHtml(properties.subnetServiceEndpoints)}" data-resource-field="subnetServiceEndpoints" placeholder="e.g. Microsoft.Storage,Microsoft.KeyVault" maxlength="200" />`,
-    '</label>',
-    '<label class="property-row">',
-    '<span class="property-label">Private Endpoint Policy</span>',
-    `<select class="property-input" data-resource-field="privateEndpointPolicy"><option value="disabled" ${properties.privateEndpointPolicy === "disabled" ? "selected" : ""}>Disabled</option><option value="nsg" ${properties.privateEndpointPolicy === "nsg" ? "selected" : ""}>NSG only</option><option value="route-table" ${properties.privateEndpointPolicy === "route-table" ? "selected" : ""}>Route table only</option><option value="both" ${properties.privateEndpointPolicy === "both" ? "selected" : ""}>NSG and Route table</option></select>`,
-    '</label>',
-    buildTagEditorMarkup(properties.tags),
+    '<span class="property-label">Private Endpoint Network Policies</span>',
+    `<select class="property-input" data-resource-field="privateEndpointNetworkPolicies"><option value="disabled" ${properties.privateEndpointNetworkPolicies === "disabled" ? "selected" : ""}>Disabled</option><option value="enabled" ${properties.privateEndpointNetworkPolicies === "enabled" ? "selected" : ""}>Enabled</option></select>`,
+    '</label>'
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
+    buildPropertySectionMarkup("Additional", additionalSectionContent),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2447,14 +3047,17 @@ function buildPublicIpPropertyMarkup(selectedItem) {
   const effectiveSku = properties.sku === "standardv2" ? "standardv2" : "standard";
   const isStandardV2 = effectiveSku === "standardv2";
 
-  return [
-    '<div class="property-form">',
+  const basicSectionContent = [
     resourceGroupReference.markup,
     '<label class="property-row">',
     '<span class="property-label">Public IP Name</span>',
     `<input class="property-input" type="text" value="${escapeHtml(selectedItem.name)}" data-resource-field="name" maxlength="80" />`,
     '</label>',
     buildLocationInputMarkup(properties.location),
+    '<label class="property-row">',
+    '<span class="property-label">Allocation Method</span>',
+    '<input class="property-input" type="text" value="Static" data-resource-field="publicIPAllocationMethod" disabled />',
+    '</label>',
     '<label class="property-row">',
     '<span class="property-label">IP Version</span>',
     `<select class="property-input" data-resource-field="ipVersion"><option value="ipv4" ${properties.ipVersion === "ipv4" ? "selected" : ""}>IPv4</option><option value="ipv6" ${properties.ipVersion === "ipv6" ? "selected" : ""}>IPv6</option></select>`,
@@ -2467,6 +3070,10 @@ function buildPublicIpPropertyMarkup(selectedItem) {
     '<span class="property-label">Zone</span>',
     `<select class="property-input" data-resource-field="zone"><option value="zone-redundant" ${properties.zone === "zone-redundant" ? "selected" : ""}>Zone-redundant</option><option value="1" ${properties.zone === "1" ? "selected" : ""}>Zone 1</option><option value="2" ${properties.zone === "2" ? "selected" : ""}>Zone 2</option><option value="3" ${properties.zone === "3" ? "selected" : ""}>Zone 3</option></select>`,
     '</label>',
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  const additionalSectionContent = [
     '<label class="property-row">',
     '<span class="property-label">Tier</span>',
     `<select class="property-input" data-resource-field="tier" ${isStandardV2 ? "disabled" : ""}><option value="regional" ${properties.tier === "regional" ? "selected" : ""}>Regional</option><option value="global" ${properties.tier === "global" ? "selected" : ""}>Global</option></select>`,
@@ -2490,8 +3097,13 @@ function buildPublicIpPropertyMarkup(selectedItem) {
     '<label class="property-row">',
     '<span class="property-label">DDoS Protection Mode</span>',
     `<select class="property-input" data-resource-field="ddosProtection"><option value="disabled" ${properties.ddosProtection === "disabled" ? "selected" : ""}>Disabled</option><option value="network" ${properties.ddosProtection === "network" ? "selected" : ""}>Inherit Network</option><option value="ip" ${properties.ddosProtection === "ip" ? "selected" : ""}>IP level</option></select>`,
-    '</label>',
-    buildTagEditorMarkup(properties.tags),
+    '</label>'
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
+    buildPropertySectionMarkup("Additional", additionalSectionContent),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2538,8 +3150,7 @@ function buildDnsZonePropertyMarkup(selectedItem) {
     parentZoneName: resolvedParentZoneName
   });
 
-  return [
-    '<div class="property-form">',
+  const basicSectionContent = [
     resourceGroupReference.markup,
     '<label class="property-row">',
     `<span class="property-label">${properties.dnsMode === "child" ? "Child Domain Name" : "DNS Name"}</span>`,
@@ -2555,7 +3166,12 @@ function buildDnsZonePropertyMarkup(selectedItem) {
         ].join("")
       : '',
     `<div class="property-row"><span class="property-label">Effective DNS Name</span><span class="property-value">${escapeHtml(effectiveDnsName || "Not set")}</span></div>`,
-    buildTagEditorMarkup(properties.tags),
+    buildTagEditorMarkup(properties.tags)
+  ].join("");
+
+  return [
+    '<div class="property-form">',
+    buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
     buildResourceActionMarkup(),
     '</div>'
   ].join("");
@@ -2875,6 +3491,7 @@ function removeCanvasItem(itemId) {
   const removedIsNetworkSecurityGroup = isNetworkSecurityGroupItem(item);
   const removedIsRouteTable = isRouteTableItem(item);
   const removedIsVirtualNetwork = isVirtualNetworkItem(item);
+  const removedIsSubnet = isSubnetItem(item);
   const removedIsPublicIp = isPublicIpItem(item);
 
   state.canvasItems.forEach((candidate) => {
@@ -2893,18 +3510,30 @@ function removeCanvasItem(itemId) {
     }
 
     if (isSubnetItem(candidate)) {
-      if (removedIsVirtualNetwork && properties.parentVirtualNetworkRef === itemId) {
+      if (removedIsVirtualNetwork && properties.virtualNetworkRef === itemId) {
         switchSubnetParentVirtualNetworkToCustom(candidate, item.name);
       }
 
-      if (removedIsNetworkSecurityGroup && properties.subnetNsgRef === itemId) {
-        switchDependencyToCustom(properties, "subnetNsgMode", "subnetNsgRef", "subnetNsgName", item.name);
+      if (removedIsNetworkSecurityGroup && properties.networkSecurityGroupRef === itemId) {
+        switchDependencyToCustom(
+          properties,
+          "networkSecurityGroupMode",
+          "networkSecurityGroupRef",
+          "networkSecurityGroupName",
+          item.name
+        );
       }
 
-      if (removedIsRouteTable && properties.subnetRouteTableRef === itemId) {
-        switchDependencyToCustom(properties, "subnetRouteTableMode", "subnetRouteTableRef", "subnetRouteTableName", item.name);
+      if (removedIsRouteTable && properties.routeTableRef === itemId) {
+        switchDependencyToCustom(properties, "routeTableMode", "routeTableRef", "routeTableName", item.name);
       }
 
+    }
+
+    if (isNetworkSecurityGroupItem(candidate)) {
+      if (removedIsSubnet && properties.associatedSubnetRef === itemId) {
+        switchDependencyToCustom(properties, "associatedSubnetMode", "associatedSubnetRef", "associatedSubnetName", item.name);
+      }
     }
 
     if (isVirtualNetworkItem(candidate)) {
@@ -4498,6 +5127,37 @@ propertyContentEl?.addEventListener("input", (event) => {
   const target = event.target;
   const properties = ensureItemProperties(selectedItem);
 
+  if (target.matches("[data-string-list-field]")) {
+    const fieldName = String(target.dataset.stringListField || "");
+    const index = Number.parseInt(target.dataset.listIndex || "-1", 10);
+    if (!fieldName || !Number.isInteger(index) || index < 0) {
+      return;
+    }
+
+    const values = ensureStringListField(properties, fieldName);
+    values[index] = String(target.value || "").trim();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-object-list-field]")) {
+    const fieldName = String(target.dataset.objectListField || "");
+    const key = String(target.dataset.objectKey || "");
+    const index = Number.parseInt(target.dataset.listIndex || "-1", 10);
+    if (!fieldName || !key || !Number.isInteger(index) || index < 0) {
+      return;
+    }
+
+    const list = ensureObjectListField(properties, fieldName);
+    if (!list[index] || typeof list[index] !== "object") {
+      list[index] = createDefaultObjectListItem(fieldName, index);
+    }
+
+    list[index][key] = normalizeObjectListInputValue(fieldName, key, target.value, list[index][key], index);
+    persistCanvasLocal();
+    return;
+  }
+
   if (target.matches("[data-resource-field='name']")) {
     selectedItem.name = String(target.value || "");
     setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
@@ -4508,6 +5168,26 @@ propertyContentEl?.addEventListener("input", (event) => {
 
   if (target.matches("[data-resource-field='location']")) {
     properties.location = String(target.value || "");
+    persistCanvasLocal();
+    return;
+  }
+
+  if (isVirtualNetworkItem(selectedItem) && target.matches("[data-resource-field='addressPrefixes']")) {
+    properties.addressPrefixes = sanitizeStringList(target.value, {
+      allowCsv: true,
+      maxItems: 20,
+      maxLength: 64
+    });
+    persistCanvasLocal();
+    return;
+  }
+
+  if (isVirtualNetworkItem(selectedItem) && target.matches("[data-resource-field='dnsServers']")) {
+    properties.dnsServers = sanitizeStringList(target.value, {
+      allowCsv: true,
+      maxItems: 20,
+      maxLength: 64
+    });
     persistCanvasLocal();
     return;
   }
@@ -4571,16 +5251,15 @@ propertyContentEl?.addEventListener("input", (event) => {
   }
 
   if (
-    target.matches("[data-resource-field='addressSpace']")
-    || target.matches("[data-resource-field='bastionName']")
+    target.matches("[data-resource-field='bastionName']")
     || target.matches("[data-resource-field='bastionPublicIpName']")
     || target.matches("[data-resource-field='firewallName']")
     || target.matches("[data-resource-field='firewallPolicyName']")
     || target.matches("[data-resource-field='firewallPublicIpName']")
-    || target.matches("[data-resource-field='parentVirtualNetworkName']")
-    || target.matches("[data-resource-field='subnetNsgName']")
-    || target.matches("[data-resource-field='subnetRouteTableName']")
-    || target.matches("[data-resource-field='subnetServiceEndpoints']")
+    || target.matches("[data-resource-field='virtualNetworkName']")
+    || target.matches("[data-resource-field='networkSecurityGroupName']")
+    || target.matches("[data-resource-field='routeTableName']")
+    || target.matches("[data-resource-field='associatedSubnetName']")
     || target.matches("[data-resource-field='dnsLabel']")
   ) {
     const fieldName = String(target.dataset.resourceField || "");
@@ -4609,12 +5288,15 @@ propertyContentEl?.addEventListener("input", (event) => {
       return;
     }
 
-    properties.tags = Array.isArray(properties.tags) ? properties.tags : [];
-    if (!properties.tags[index]) {
-      properties.tags[index] = { key: "", value: "" };
+    const editableRows = buildEditableTagRows(properties.tags);
+    if (!editableRows[index]) {
+      return;
     }
-    properties.tags[index][fieldName] = String(target.value || "");
+
+    editableRows[index][fieldName] = String(target.value || "");
+    properties.tags = sanitizeTagList(editableRows);
     persistCanvasLocal();
+    return;
   }
 });
 
@@ -4644,25 +5326,56 @@ propertyContentEl?.addEventListener("click", async (event) => {
     return;
   }
 
-  const tagActionEl = event.target.closest("[data-tag-action]");
-  if (tagActionEl && state.selectedResource) {
+  const listActionEl = event.target.closest("[data-list-action]");
+  if (listActionEl && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem) {
       return;
     }
 
     const properties = ensureItemProperties(selectedItem);
-    properties.tags = Array.isArray(properties.tags) ? properties.tags : [];
+    const action = String(listActionEl.dataset.listAction || "");
+    const fieldName = String(listActionEl.dataset.listField || "");
+    const index = Number.parseInt(listActionEl.dataset.listIndex || "-1", 10);
 
-    if (tagActionEl.dataset.tagAction === "add") {
-      properties.tags.push({ key: "", value: "" });
+    if (action === "add-string" && fieldName) {
+      const values = ensureStringListField(properties, fieldName);
+      values.push("");
     }
 
-    if (tagActionEl.dataset.tagAction === "remove") {
-      const index = Number.parseInt(tagActionEl.dataset.tagIndex || "-1", 10);
-      if (Number.isInteger(index) && index >= 0) {
-        properties.tags.splice(index, 1);
-      }
+    if (action === "remove-string" && fieldName && Number.isInteger(index) && index >= 0) {
+      const values = ensureStringListField(properties, fieldName);
+      values.splice(index, 1);
+    }
+
+    if (action === "add-object" && fieldName) {
+      const values = ensureObjectListField(properties, fieldName);
+      values.push(createDefaultObjectListItem(fieldName, values.length));
+    }
+
+    if (action === "remove-object" && fieldName && Number.isInteger(index) && index >= 0) {
+      const values = ensureObjectListField(properties, fieldName);
+      values.splice(index, 1);
+    }
+
+    if (fieldName === "securityRules") {
+      properties.securityRules = sanitizeNetworkSecurityRules(properties.securityRules);
+    }
+
+    if (fieldName === "routes") {
+      properties.routes = sanitizeRouteDefinitions(properties.routes);
+    }
+
+    if (fieldName === "delegations") {
+      properties.delegations = sanitizeSubnetDelegations(properties.delegations);
+    }
+
+    if (["addressPrefixes", "dnsServers", "serviceEndpoints", "serviceEndpointPolicyNames"].includes(fieldName)) {
+      properties[fieldName] = sanitizeStringList(properties[fieldName], {
+        allowCsv: true,
+        maxItems: 40,
+        maxLength: 200
+      });
     }
 
     updatePropertyPanelForSelection();
@@ -4727,6 +5440,115 @@ propertyContentEl?.addEventListener("click", async (event) => {
 
 propertyContentEl?.addEventListener("change", (event) => {
   const target = event.target;
+
+  if (target.matches("[data-resource-tag-field]") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem) {
+      return;
+    }
+
+    const index = Number.parseInt(target.dataset.tagIndex || "-1", 10);
+    const fieldName = target.dataset.resourceTagField;
+    if (!Number.isInteger(index) || index < 0 || (fieldName !== "key" && fieldName !== "value")) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    const editableRows = buildEditableTagRows(properties.tags);
+    if (editableRows[index]) {
+      editableRows[index][fieldName] = String(target.value || "");
+    }
+
+    properties.tags = sanitizeTagList(editableRows);
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-resource-field='addressPrefixes']") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem || !isVirtualNetworkItem(selectedItem)) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    properties.addressPrefixes = sanitizeStringList(target.value, {
+      allowCsv: true,
+      maxItems: 20,
+      maxLength: 64
+    });
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-resource-field='dnsServers']") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem || !isVirtualNetworkItem(selectedItem)) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    properties.dnsServers = sanitizeStringList(target.value, {
+      allowCsv: true,
+      maxItems: 20,
+      maxLength: 64
+    });
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-string-list-field]") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    const fieldName = String(target.dataset.stringListField || "");
+    if (!fieldName) {
+      return;
+    }
+
+    properties[fieldName] = sanitizeStringList(properties[fieldName], {
+      allowCsv: true,
+      maxItems: 40,
+      maxLength: 200
+    });
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-object-list-field]") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    const fieldName = String(target.dataset.objectListField || "");
+    if (!fieldName) {
+      return;
+    }
+
+    if (fieldName === "securityRules") {
+      properties.securityRules = sanitizeNetworkSecurityRules(properties.securityRules);
+    }
+
+    if (fieldName === "routes") {
+      properties.routes = sanitizeRouteDefinitions(properties.routes);
+    }
+
+    if (fieldName === "delegations") {
+      properties.delegations = sanitizeSubnetDelegations(properties.delegations);
+    }
+
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
 
   if (target.matches("[data-connection-field='name']") && state.selectedConnectionId) {
     const selected = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId);
@@ -4964,7 +5786,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     return;
   }
 
-  if (target.matches("[data-resource-field='parentVirtualNetworkMode']") && state.selectedResource) {
+  if (target.matches("[data-resource-field='virtualNetworkMode']") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem || !isSubnetItem(selectedItem)) {
       return;
@@ -4973,10 +5795,10 @@ propertyContentEl?.addEventListener("change", (event) => {
     const properties = ensureItemProperties(selectedItem);
     const virtualNetworks = getCanvasVirtualNetworks({ excludeId: selectedItem.id });
     if (target.value === "existing" && virtualNetworks.length) {
-      const nextVirtualNetwork = virtualNetworks.find((item) => item.id === properties.parentVirtualNetworkRef) || virtualNetworks[0];
+      const nextVirtualNetwork = virtualNetworks.find((item) => item.id === properties.virtualNetworkRef) || virtualNetworks[0];
       assignExistingParentVirtualNetwork(selectedItem, nextVirtualNetwork);
     } else {
-      switchSubnetParentVirtualNetworkToCustom(selectedItem, properties.parentVirtualNetworkName);
+      switchSubnetParentVirtualNetworkToCustom(selectedItem, properties.virtualNetworkName);
     }
 
     updatePropertyPanelForSelection();
@@ -4984,7 +5806,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     return;
   }
 
-  if (target.matches("[data-resource-field='parentVirtualNetworkRef']") && state.selectedResource) {
+  if (target.matches("[data-resource-field='virtualNetworkRef']") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem || !isSubnetItem(selectedItem)) {
       return;
@@ -5001,7 +5823,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     return;
   }
 
-  if (target.matches("[data-resource-field='subnetNsgMode']") && state.selectedResource) {
+  if (target.matches("[data-resource-field='networkSecurityGroupMode']") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem || !isSubnetItem(selectedItem)) {
       return;
@@ -5010,10 +5832,22 @@ propertyContentEl?.addEventListener("change", (event) => {
     const properties = ensureItemProperties(selectedItem);
     const networkSecurityGroups = getCanvasNetworkSecurityGroups({ excludeId: selectedItem.id });
     if (target.value === "existing" && networkSecurityGroups.length) {
-      const nextNetworkSecurityGroup = networkSecurityGroups.find((item) => item.id === properties.subnetNsgRef) || networkSecurityGroups[0];
-      assignExistingDependency(properties, "subnetNsgMode", "subnetNsgRef", "subnetNsgName", nextNetworkSecurityGroup);
+      const nextNetworkSecurityGroup = networkSecurityGroups.find((item) => item.id === properties.networkSecurityGroupRef) || networkSecurityGroups[0];
+      assignExistingDependency(
+        properties,
+        "networkSecurityGroupMode",
+        "networkSecurityGroupRef",
+        "networkSecurityGroupName",
+        nextNetworkSecurityGroup
+      );
     } else {
-      switchDependencyToCustom(properties, "subnetNsgMode", "subnetNsgRef", "subnetNsgName", properties.subnetNsgName);
+      switchDependencyToCustom(
+        properties,
+        "networkSecurityGroupMode",
+        "networkSecurityGroupRef",
+        "networkSecurityGroupName",
+        properties.networkSecurityGroupName
+      );
     }
 
     updatePropertyPanelForSelection();
@@ -5021,7 +5855,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     return;
   }
 
-  if (target.matches("[data-resource-field='subnetNsgRef']") && state.selectedResource) {
+  if (target.matches("[data-resource-field='networkSecurityGroupRef']") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem || !isSubnetItem(selectedItem)) {
       return;
@@ -5033,13 +5867,19 @@ propertyContentEl?.addEventListener("change", (event) => {
       return;
     }
 
-    assignExistingDependency(properties, "subnetNsgMode", "subnetNsgRef", "subnetNsgName", nextNetworkSecurityGroup);
+    assignExistingDependency(
+      properties,
+      "networkSecurityGroupMode",
+      "networkSecurityGroupRef",
+      "networkSecurityGroupName",
+      nextNetworkSecurityGroup
+    );
     updatePropertyPanelForSelection();
     persistCanvasLocal();
     return;
   }
 
-  if (target.matches("[data-resource-field='subnetRouteTableMode']") && state.selectedResource) {
+  if (target.matches("[data-resource-field='routeTableMode']") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem || !isSubnetItem(selectedItem)) {
       return;
@@ -5048,10 +5888,10 @@ propertyContentEl?.addEventListener("change", (event) => {
     const properties = ensureItemProperties(selectedItem);
     const routeTables = getCanvasRouteTables({ excludeId: selectedItem.id });
     if (target.value === "existing" && routeTables.length) {
-      const nextRouteTable = routeTables.find((item) => item.id === properties.subnetRouteTableRef) || routeTables[0];
-      assignExistingDependency(properties, "subnetRouteTableMode", "subnetRouteTableRef", "subnetRouteTableName", nextRouteTable);
+      const nextRouteTable = routeTables.find((item) => item.id === properties.routeTableRef) || routeTables[0];
+      assignExistingDependency(properties, "routeTableMode", "routeTableRef", "routeTableName", nextRouteTable);
     } else {
-      switchDependencyToCustom(properties, "subnetRouteTableMode", "subnetRouteTableRef", "subnetRouteTableName", properties.subnetRouteTableName);
+      switchDependencyToCustom(properties, "routeTableMode", "routeTableRef", "routeTableName", properties.routeTableName);
     }
 
     updatePropertyPanelForSelection();
@@ -5059,7 +5899,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     return;
   }
 
-  if (target.matches("[data-resource-field='subnetRouteTableRef']") && state.selectedResource) {
+  if (target.matches("[data-resource-field='routeTableRef']") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
     if (!selectedItem || !isSubnetItem(selectedItem)) {
       return;
@@ -5071,7 +5911,45 @@ propertyContentEl?.addEventListener("change", (event) => {
       return;
     }
 
-    assignExistingDependency(properties, "subnetRouteTableMode", "subnetRouteTableRef", "subnetRouteTableName", nextRouteTable);
+    assignExistingDependency(properties, "routeTableMode", "routeTableRef", "routeTableName", nextRouteTable);
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-resource-field='associatedSubnetMode']") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem || !isNetworkSecurityGroupItem(selectedItem)) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    const subnets = getCanvasSubnets({ excludeId: selectedItem.id });
+    if (target.value === "existing" && subnets.length) {
+      const nextSubnet = subnets.find((item) => item.id === properties.associatedSubnetRef) || subnets[0];
+      assignExistingDependency(properties, "associatedSubnetMode", "associatedSubnetRef", "associatedSubnetName", nextSubnet);
+    } else {
+      switchDependencyToCustom(properties, "associatedSubnetMode", "associatedSubnetRef", "associatedSubnetName", properties.associatedSubnetName);
+    }
+
+    updatePropertyPanelForSelection();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-resource-field='associatedSubnetRef']") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem || !isNetworkSecurityGroupItem(selectedItem)) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    const nextSubnet = getCanvasSubnets({ excludeId: selectedItem.id }).find((item) => item.id === target.value);
+    if (!nextSubnet) {
+      return;
+    }
+
+    assignExistingDependency(properties, "associatedSubnetMode", "associatedSubnetRef", "associatedSubnetName", nextSubnet);
     updatePropertyPanelForSelection();
     persistCanvasLocal();
     return;
