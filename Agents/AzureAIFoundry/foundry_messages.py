@@ -346,6 +346,69 @@ def list_thread_messages(
         }
 
 
+def post_thread_activity_message(
+    app_settings: Mapping[str, Any],
+    thread_id: str,
+    actor: str,
+    activity_type: str,
+    content: str,
+    created_at: datetime | None = None,
+) -> dict:
+    if not _is_azure_foundry_provider(app_settings):
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "provider-not-azure-foundry",
+        }
+
+    safe_thread_id = str(thread_id or "").strip()
+    if not safe_thread_id:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "thread-id-missing",
+        }
+
+    safe_actor = str(actor or "activity").strip() or "activity"
+    safe_type = str(activity_type or "event").strip() or "event"
+    safe_content = str(content or "").strip()
+    timestamp_text = _format_timestamp(created_at)
+
+    message = "\n".join(
+        [
+            f"[{safe_actor}] {safe_type}",
+            f"Timestamp (UTC): {timestamp_text}",
+            safe_content,
+        ]
+    ).strip()
+
+    try:
+        connection = FoundryConnectionSettings.from_app_settings(app_settings)
+        messenger = FoundryThreadMessenger(connection)
+        result = messenger.post_message(safe_thread_id, message)
+        return {
+            "ok": True,
+            "skipped": False,
+            "threadId": result.thread_id,
+            "messageId": result.message_id,
+        }
+    except FoundryConfigurationError as exc:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "configuration-incomplete",
+            "detail": str(exc),
+        }
+    except FoundryRequestError as exc:
+        return {
+            "ok": False,
+            "skipped": False,
+            "reason": "request-failed",
+            "statusCode": exc.status_code,
+            "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
+        }
+
+
 def _build_project_event_message(project_name: str, project_id: str, timestamp_text: str, event: str) -> str:
     safe_name = str(project_name or "").strip() or "(unknown)"
     safe_id = str(project_id or "").strip() or "(unknown)"

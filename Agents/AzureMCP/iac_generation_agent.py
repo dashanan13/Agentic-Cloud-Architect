@@ -1680,7 +1680,13 @@ def _collect_guardrails_from_coding_model_inner(
     if not coding_model:
         return []
 
-    safe_agent_id = str(foundry_agent_id or app_settings.get("foundryDefaultAgentId") or "").strip()
+    safe_agent_id = str(
+        foundry_agent_id
+        or app_settings.get("foundryIacAgentId")
+        or app_settings.get("foundryChatAgentId")
+        or app_settings.get("foundryDefaultAgentId")
+        or ""
+    ).strip()
     safe_thread_id = str(foundry_thread_id or app_settings.get("foundryDefaultThreadId") or "").strip()
     if not safe_agent_id or not safe_thread_id:
         return []

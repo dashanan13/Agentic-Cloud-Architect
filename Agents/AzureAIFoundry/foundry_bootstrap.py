@@ -13,6 +13,10 @@ DEFAULT_AGENT_NAME = "architect-agent"
 DEFAULT_THREAD_NAME = "architect-thread"
 DEFAULT_FOUNDRY_API_VERSION = "2025-05-01"
 DEFAULT_AGENT_DEFINITION_FILE = "architect"
+DEFAULT_CHAT_AGENT_NAME = "architect-chat-agent"
+DEFAULT_IAC_AGENT_NAME = "iac-generation-agent"
+DEFAULT_CHAT_AGENT_DEFINITION_FILE = "cloudarchitect_chat_agent.md"
+DEFAULT_IAC_AGENT_DEFINITION_FILE = "iac_generation_agent.md"
 
 
 class FoundryConfigurationError(ValueError):
@@ -101,10 +105,72 @@ class ThreadResult:
     created: bool
 
 
+@dataclass(frozen=True)
+class AppFoundryResourcesResult:
+    chat_agent_id: str
+    iac_agent_id: str
+    thread_id: str
+    created_chat_agent: bool
+    created_iac_agent: bool
+    created_thread: bool
+
+    @property
+    def settings_patch(self) -> dict[str, str]:
+        return {
+            "foundryChatAgentId": self.chat_agent_id,
+            "foundryIacAgentId": self.iac_agent_id,
+            "foundryDefaultAgentId": self.chat_agent_id,
+            "foundryDefaultThreadId": self.thread_id,
+        }
+
+
 class FoundryBootstrapClient:
     def __init__(self, settings: FoundryConnectionSettings, timeout_seconds: int = 20):
         self.settings = settings
         self.timeout_seconds = timeout_seconds
+
+    def ensure_app_agents_and_thread(
+        self,
+        *,
+        chat_agent_name: str = DEFAULT_CHAT_AGENT_NAME,
+        iac_agent_name: str = DEFAULT_IAC_AGENT_NAME,
+        app_thread_name: str = DEFAULT_THREAD_NAME,
+        chat_agent_definition: str = DEFAULT_CHAT_AGENT_DEFINITION_FILE,
+        iac_agent_definition: str = DEFAULT_IAC_AGENT_DEFINITION_FILE,
+        known_chat_agent_id: str | None = None,
+        known_iac_agent_id: str | None = None,
+        known_thread_id: str | None = None,
+    ) -> AppFoundryResourcesResult:
+        chat_instructions = _load_agent_instructions(chat_agent_definition)
+        iac_instructions = _load_agent_instructions(iac_agent_definition)
+
+        (
+            chat_agent_id,
+            created_chat_agent,
+            iac_agent_id,
+            created_iac_agent,
+            thread_result,
+        ) = _run_sync(
+            self._ensure_app_agents_and_thread_async(
+                chat_agent_name=str(chat_agent_name or DEFAULT_CHAT_AGENT_NAME).strip() or DEFAULT_CHAT_AGENT_NAME,
+                iac_agent_name=str(iac_agent_name or DEFAULT_IAC_AGENT_NAME).strip() or DEFAULT_IAC_AGENT_NAME,
+                app_thread_name=str(app_thread_name or DEFAULT_THREAD_NAME).strip() or DEFAULT_THREAD_NAME,
+                chat_instructions=chat_instructions,
+                iac_instructions=iac_instructions,
+                known_chat_agent_id=known_chat_agent_id,
+                known_iac_agent_id=known_iac_agent_id,
+                known_thread_id=known_thread_id,
+            )
+        )
+
+        return AppFoundryResourcesResult(
+            chat_agent_id=chat_agent_id,
+            iac_agent_id=iac_agent_id,
+            thread_id=thread_result.thread_id,
+            created_chat_agent=created_chat_agent,
+            created_iac_agent=created_iac_agent,
+            created_thread=thread_result.created,
+        )
 
     def ensure_default_agent_and_thread(
         self,
@@ -169,6 +235,44 @@ class FoundryBootstrapClient:
                 agents_client=agents_client,
             )
             return agent_id, created_agent, thread_result
+
+    async def _ensure_app_agents_and_thread_async(
+        self,
+        *,
+        chat_agent_name: str,
+        iac_agent_name: str,
+        app_thread_name: str,
+        chat_instructions: str,
+        iac_instructions: str,
+        known_chat_agent_id: str | None,
+        known_iac_agent_id: str | None,
+        known_thread_id: str | None,
+    ) -> tuple[str, bool, str, bool, ThreadResult]:
+        async with self._agents_client_context() as agents_client:
+            chat_agent_id, created_chat_agent = await self._ensure_agent_async(
+                agents_client=agents_client,
+                name=chat_agent_name,
+                instructions=chat_instructions,
+                known_agent_id=known_chat_agent_id,
+            )
+            iac_agent_id, created_iac_agent = await self._ensure_agent_async(
+                agents_client=agents_client,
+                name=iac_agent_name,
+                instructions=iac_instructions,
+                known_agent_id=known_iac_agent_id,
+            )
+            thread_result = await self._ensure_named_thread_async(
+                thread_name=app_thread_name,
+                known_thread_id=known_thread_id,
+                agents_client=agents_client,
+            )
+            return (
+                chat_agent_id,
+                created_chat_agent,
+                iac_agent_id,
+                created_iac_agent,
+                thread_result,
+            )
 
     async def _ensure_named_thread_async(
         self,
@@ -309,7 +413,7 @@ class FoundryBootstrapClient:
     async def _list_agents_async(self, agents_client: AgentsClient) -> list[Any]:
         try:
             items: list[Any] = []
-            async for agent in agents_client.list_agents(limit=200):
+            async for agent in agents_client.list_agents(limit=100):
                 items.append(agent)
             return items
         except HttpResponseError as exc:
@@ -320,7 +424,7 @@ class FoundryBootstrapClient:
     async def _list_threads_async(self, agents_client: AgentsClient) -> list[Any] | None:
         try:
             items: list[Any] = []
-            async for thread in agents_client.threads.list(limit=200):
+            async for thread in agents_client.threads.list(limit=100):
                 items.append(thread)
             return items
         except HttpResponseError as exc:
@@ -468,6 +572,22 @@ def ensure_project_thread_for_project(
     connection = FoundryConnectionSettings.from_app_settings(app_settings)
     client = FoundryBootstrapClient(connection)
     return client.ensure_project_thread(project_id=project_id, known_thread_id=known_thread_id)
+
+
+def ensure_app_agents_and_thread(
+    app_settings: Mapping[str, Any],
+    *,
+    known_chat_agent_id: str | None = None,
+    known_iac_agent_id: str | None = None,
+    known_thread_id: str | None = None,
+) -> AppFoundryResourcesResult:
+    connection = FoundryConnectionSettings.from_app_settings(app_settings)
+    client = FoundryBootstrapClient(connection)
+    return client.ensure_app_agents_and_thread(
+        known_chat_agent_id=known_chat_agent_id,
+        known_iac_agent_id=known_iac_agent_id,
+        known_thread_id=known_thread_id,
+    )
 
 
 def _load_agent_instructions(agent_definition: str = DEFAULT_AGENT_DEFINITION_FILE) -> str:

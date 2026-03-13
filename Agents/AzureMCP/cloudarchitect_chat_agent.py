@@ -1395,7 +1395,12 @@ def _try_foundry_architect_response(
         api_version=base_connection.api_version,
     )
 
-    assistant_id = str(foundry_agent_id or app_settings.get("foundryDefaultAgentId") or "").strip()
+    assistant_id = str(
+        foundry_agent_id
+        or app_settings.get("foundryChatAgentId")
+        or app_settings.get("foundryDefaultAgentId")
+        or ""
+    ).strip()
     thread_id = str(foundry_thread_id or app_settings.get("foundryDefaultThreadId") or "").strip()
     if not assistant_id or not thread_id:
         raise AzureMcpChatConfigurationError("Foundry agent and thread are required for architecture chat memory.")

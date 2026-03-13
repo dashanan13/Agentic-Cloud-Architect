@@ -20,6 +20,7 @@ const foundryCodingSelect = document.getElementById("as-foundry-model-coding");
 const foundryReasoningSelect = document.getElementById("as-foundry-model-reasoning");
 const foundryFastSelect = document.getElementById("as-foundry-model-fast");
 const foundryDefaultAgentInput = document.getElementById("as-foundry-app-agent");
+const foundryIacAgentInput = document.getElementById("as-foundry-iac-agent");
 const foundryDefaultThreadInput = document.getElementById("as-foundry-app-thread");
 const ollamaCodingSelect = document.getElementById("as-ollama-model-coding");
 const ollamaReasoningSelect = document.getElementById("as-ollama-model-reasoning");
@@ -40,6 +41,8 @@ const DEFAULT_APP_SETTINGS = {
   foundryModelCoding: "",
   foundryModelReasoning: "",
   foundryModelFast: "",
+  foundryChatAgentId: "",
+  foundryIacAgentId: "",
   foundryDefaultAgentId: "",
   foundryDefaultThreadId: "",
   ollamaModelPathCoding: "",
@@ -328,6 +331,13 @@ function normalizeLegacyKeys(incoming) {
     normalized.foundryModelFast = normalized.modelFast;
   }
 
+  if (!normalized.foundryChatAgentId && normalized.foundryDefaultAgentId) {
+    normalized.foundryChatAgentId = normalized.foundryDefaultAgentId;
+  }
+  if (!normalized.foundryDefaultAgentId && normalized.foundryChatAgentId) {
+    normalized.foundryDefaultAgentId = normalized.foundryChatAgentId;
+  }
+
   return normalized;
 }
 
@@ -429,8 +439,12 @@ function populateAppSettings() {
   document.getElementById("as-ai-foundry-project-name").value = appSettings.aiFoundryProjectName;
   document.getElementById("as-ai-foundry-endpoint").value = appSettings.aiFoundryEndpoint;
   document.getElementById("as-ollama-base-url").value = appSettings.ollamaBaseUrl;
+  const chatAgentId = String(appSettings.foundryChatAgentId || appSettings.foundryDefaultAgentId || "");
   if (foundryDefaultAgentInput) {
-    foundryDefaultAgentInput.value = String(appSettings.foundryDefaultAgentId || "");
+    foundryDefaultAgentInput.value = chatAgentId;
+  }
+  if (foundryIacAgentInput) {
+    foundryIacAgentInput.value = String(appSettings.foundryIacAgentId || "");
   }
   if (foundryDefaultThreadInput) {
     foundryDefaultThreadInput.value = String(appSettings.foundryDefaultThreadId || "");
@@ -550,6 +564,7 @@ function buildProviderScopedSettings(settings) {
 }
 
 function collectAppSettings() {
+  const chatAgentId = String(state.appSettings.foundryChatAgentId || state.appSettings.foundryDefaultAgentId || "").trim();
   return {
     modelProvider: document.getElementById("as-model-provider").value,
     azureTenantId: document.getElementById("as-azure-tenant-id").value.trim(),
@@ -560,7 +575,9 @@ function collectAppSettings() {
     aiFoundryProjectName: document.getElementById("as-ai-foundry-project-name").value.trim(),
     aiFoundryEndpoint: document.getElementById("as-ai-foundry-endpoint").value.trim(),
     foundryApiVersion: String(state.appSettings.foundryApiVersion || "").trim(),
-    foundryDefaultAgentId: String(state.appSettings.foundryDefaultAgentId || "").trim(),
+    foundryChatAgentId: chatAgentId,
+    foundryIacAgentId: String(state.appSettings.foundryIacAgentId || "").trim(),
+    foundryDefaultAgentId: chatAgentId,
     foundryDefaultThreadId: String(state.appSettings.foundryDefaultThreadId || "").trim(),
     ollamaBaseUrl: document.getElementById("as-ollama-base-url").value.trim(),
     foundryModelCoding: document.getElementById("as-foundry-model-coding").value.trim(),
@@ -680,8 +697,13 @@ async function handleSave() {
 
     const bootstrap = payload?.foundryBootstrap || {};
     const updatedSettings = { ...settings };
-    if (bootstrap.agentId) {
-      updatedSettings.foundryDefaultAgentId = String(bootstrap.agentId || "").trim();
+    if (bootstrap.chatAgentId || bootstrap.agentId) {
+      const chatAgentId = String(bootstrap.chatAgentId || bootstrap.agentId || "").trim();
+      updatedSettings.foundryChatAgentId = chatAgentId;
+      updatedSettings.foundryDefaultAgentId = chatAgentId;
+    }
+    if (bootstrap.iacAgentId) {
+      updatedSettings.foundryIacAgentId = String(bootstrap.iacAgentId || "").trim();
     }
     if (bootstrap.threadId) {
       updatedSettings.foundryDefaultThreadId = String(bootstrap.threadId || "").trim();

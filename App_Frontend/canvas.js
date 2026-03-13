@@ -198,7 +198,7 @@ const constraints = {
 };
 
 const MAX_PROJECT_NAME_LENGTH = 50;
-const AUTOSAVE_INTERVAL_MS = 60000;
+const AUTOSAVE_INTERVAL_MS = 30000;
 const CANVAS_ZOOM = {
   min: 0.05,
   max: 3,
@@ -3564,7 +3564,7 @@ function updateTimestamp() {
   if (state.currentProject) {
     state.currentProject.lastSaved = Date.now();
     saveCurrentProject();
-    setSaveStatus(`Last saved: ${formatTimestamp(state.currentProject.lastSaved)} (Autosave: every 60s)`);
+    setSaveStatus(`Last saved: ${formatTimestamp(state.currentProject.lastSaved)} (Autosave: every 30s)`);
   }
 }
 
@@ -4766,7 +4766,19 @@ async function runProjectSaveRequest(options = {}) {
   }
 
   if (!silent) {
-    setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 60s)`);
+    setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 30s)`);
+  }
+}
+
+async function bootstrapFoundryDefaultsOnLoad() {
+  try {
+    await fetch("/api/foundry/bootstrap-default", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  } catch {
   }
 }
 
@@ -6454,6 +6466,8 @@ async function initialize() {
     window.location.href = "./landing.html";
     return;
   }
+
+  await bootstrapFoundryDefaultsOnLoad();
 
   // Load this specific project from backend files
   if (!await loadCurrentProject(projectId)) {

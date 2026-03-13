@@ -8,6 +8,7 @@ import shutil
 import time
 from datetime import datetime
 from threading import Lock, Thread
+from typing import Any, Mapping
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
 from urllib import request as urllib_request
@@ -17,7 +18,7 @@ from azure.ai.projects import AIProjectClient
 from Agents.AzureAIFoundry.foundry_bootstrap import (
     FoundryConfigurationError,
     FoundryRequestError,
-    ensure_default_agent_and_thread,
+    ensure_app_agents_and_thread,
     ensure_project_thread_for_project,
 )
 from Agents.AzureAIFoundry.foundry_description import (
@@ -28,6 +29,7 @@ from Agents.AzureAIFoundry.foundry_messages import (
     list_thread_messages,
     post_project_created_message,
     post_project_deleted_message,
+    post_thread_activity_message,
 )
 from Agents.AzureMCP.cloudarchitect_chat_agent import (
     AzureMcpChatConfigurationError,
@@ -63,6 +65,8 @@ DEFAULT_APP_SETTINGS = {
     "foundryModelCoding": "",
     "foundryModelReasoning": "",
     "foundryModelFast": "",
+    "foundryChatAgentId": "",
+    "foundryIacAgentId": "",
     "foundryDefaultAgentId": "",
     "foundryDefaultThreadId": "",
     "ollamaModelPathCoding": "",
@@ -86,6 +90,78 @@ IAC_TASK_STALE_QUEUED_SECONDS = 2 * 60
 IAC_TASKS: dict[str, dict] = {}
 IAC_PROJECT_TASKS: dict[str, str] = {}
 IAC_TASK_LOCK = Lock()
+APP_ACTIVITY_LOG_PATH = APP_STATE_DIR / "application.log.ndjson"
+
+_LOG_SENSITIVE_KEYWORDS = (
+    "secret",
+    "password",
+    "token",
+    "authorization",
+    "credential",
+    "clientsecret",
+    "accesskey",
+)
+
+
+def _mask_identifier(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    if len(text) <= 10:
+        return "***"
+    return f"{text[:4]}...{text[-4:]}"
+
+
+def _sanitize_for_app_log(value: Any, key_hint: str = "") -> Any:
+    key_text = str(key_hint or "").strip().lower()
+    if any(token in key_text for token in _LOG_SENSITIVE_KEYWORDS):
+        return "[REDACTED]"
+
+    if isinstance(value, Mapping):
+        cleaned: dict[str, Any] = {}
+        for raw_key, raw_value in value.items():
+            safe_key = str(raw_key)
+            cleaned[safe_key] = _sanitize_for_app_log(raw_value, safe_key)
+        return cleaned
+
+    if isinstance(value, list):
+        return [_sanitize_for_app_log(item, key_hint) for item in value[:50]]
+
+    if isinstance(value, str):
+        text = value.strip()
+        if key_text.endswith("id") or key_text in {"thread", "threadid", "agent", "agentid", "assistantid"}:
+            return _mask_identifier(text)
+        if len(text) > 400:
+            return text[:400] + "..."
+        return text
+
+    return value
+
+
+def _append_app_activity(
+    event_type: str,
+    *,
+    status: str = "info",
+    project_id: str | None = None,
+    details: Mapping[str, Any] | None = None,
+) -> None:
+    try:
+        APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
+        payload: dict[str, Any] = {
+            "timestampUtc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+            "eventType": str(event_type or "application.event").strip(),
+            "status": str(status or "info").strip().lower(),
+        }
+        safe_project_id = str(project_id or "").strip()
+        if safe_project_id:
+            payload["projectId"] = safe_project_id
+        if isinstance(details, Mapping) and details:
+            payload["details"] = _sanitize_for_app_log(dict(details))
+
+        with APP_ACTIVITY_LOG_PATH.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        return
 
 
 class AppSettingsPayload(BaseModel):
@@ -747,6 +823,13 @@ def load_app_settings() -> dict:
     if not loaded.get("foundryModelFast") and loaded.get("modelFast"):
         loaded["foundryModelFast"] = loaded.get("modelFast")
 
+    if not loaded.get("foundryChatAgentId") and loaded.get("foundryDefaultAgentId"):
+        loaded["foundryChatAgentId"] = loaded.get("foundryDefaultAgentId")
+    if not loaded.get("foundryDefaultAgentId") and loaded.get("foundryChatAgentId"):
+        loaded["foundryDefaultAgentId"] = loaded.get("foundryChatAgentId")
+
+    loaded.pop("foundryMasterAgentId", None)
+
     for key in (
         "azureTenantId",
         "azureClientId",
@@ -833,6 +916,8 @@ def build_persistable_app_settings(settings: dict) -> dict:
             "foundryModelCoding",
             "foundryModelReasoning",
             "foundryModelFast",
+            "foundryChatAgentId",
+            "foundryIacAgentId",
             "foundryDefaultAgentId",
             "foundryDefaultThreadId",
             "iacLiveTemplateStrict",
@@ -857,6 +942,19 @@ def is_azure_foundry_provider(settings: dict) -> bool:
     return str(settings.get("modelProvider") or "ollama-local").strip().lower() == "azure-foundry"
 
 
+def _resolve_foundry_chat_agent_id(settings: Mapping[str, Any]) -> str:
+    return str(settings.get("foundryChatAgentId") or settings.get("foundryDefaultAgentId") or "").strip()
+
+
+def _resolve_foundry_iac_agent_id(settings: Mapping[str, Any]) -> str:
+    return str(
+        settings.get("foundryIacAgentId")
+        or settings.get("foundryChatAgentId")
+        or settings.get("foundryDefaultAgentId")
+        or ""
+    ).strip()
+
+
 def write_app_settings_file(settings: dict) -> Path:
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
     target = APP_STATE_DIR / "app.settings.env"
@@ -873,16 +971,26 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
             "reason": "provider-not-azure-foundry",
         }
 
-    known_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    known_chat_agent_id = _resolve_foundry_chat_agent_id(settings) or None
+    known_iac_agent_id = str(settings.get("foundryIacAgentId") or "").strip() or None
     known_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
 
     try:
-        result = ensure_default_agent_and_thread(
+        result = ensure_app_agents_and_thread(
             settings,
-            known_agent_id=known_agent_id,
+            known_chat_agent_id=known_chat_agent_id,
+            known_iac_agent_id=known_iac_agent_id,
             known_thread_id=known_thread_id,
         )
     except FoundryConfigurationError as exc:
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="warning",
+            details={
+                "reason": "configuration-incomplete",
+                "detail": str(exc),
+            },
+        )
         return {
             "ok": True,
             "skipped": True,
@@ -890,6 +998,15 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
             "detail": str(exc),
         }
     except FoundryRequestError as exc:
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="error",
+            details={
+                "reason": "request-failed",
+                "statusCode": exc.status_code,
+                "detail": f"{exc} {str(exc.detail or '')[:400]}".strip(),
+            },
+        )
         return {
             "ok": False,
             "skipped": False,
@@ -905,15 +1022,107 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
             changed = True
             settings[key] = value
 
+    _append_app_activity(
+        "foundry.bootstrap",
+        status="info",
+        details={
+            "chatAgentId": result.chat_agent_id,
+            "iacAgentId": result.iac_agent_id,
+            "threadId": result.thread_id,
+            "createdChatAgent": result.created_chat_agent,
+            "createdIacAgent": result.created_iac_agent,
+            "createdThread": result.created_thread,
+            "settingsUpdated": changed,
+        },
+    )
+
     return {
         "ok": True,
         "skipped": False,
-        "agentId": result.agent_id,
+        "agentId": result.chat_agent_id,
+        "chatAgentId": result.chat_agent_id,
+        "iacAgentId": result.iac_agent_id,
         "threadId": result.thread_id,
-        "createdAgent": result.created_agent,
+        "createdAgent": result.created_chat_agent,
+        "createdChatAgent": result.created_chat_agent,
+        "createdIacAgent": result.created_iac_agent,
         "createdThread": result.created_thread,
         "settingsUpdated": changed,
     }
+
+
+def _record_orchestration_event(
+    settings: Mapping[str, Any],
+    *,
+    thread_id: str | None,
+    workflow: str,
+    status: str,
+    project_id: str | None = None,
+    project_name: str | None = None,
+    detail: str = "",
+    child_agent_id: str | None = None,
+) -> None:
+    if not is_azure_foundry_provider(dict(settings)):
+        return
+
+    safe_thread_id = str(thread_id or "").strip()
+    safe_workflow = str(workflow or "").strip() or "workflow"
+    safe_status = str(status or "").strip() or "event"
+    safe_project_id = str(project_id or "").strip()
+    safe_project_name = str(project_name or "").strip()
+    safe_child_agent_id = str(child_agent_id or "").strip()
+    safe_detail = str(detail or "").strip()
+    if len(safe_detail) > 240:
+        safe_detail = safe_detail[:240] + "..."
+
+    if not safe_thread_id:
+        _append_app_activity(
+            "orchestration.event",
+            status="warning",
+            project_id=safe_project_id,
+            details={
+                "workflow": safe_workflow,
+                "status": safe_status,
+                "projectName": safe_project_name,
+                "childAgentId": safe_child_agent_id,
+                "reason": "thread-missing",
+            },
+        )
+        return
+
+    payload = {
+        "workflow": safe_workflow,
+        "status": safe_status,
+        "projectId": safe_project_id,
+        "projectName": safe_project_name,
+        "childAgentId": safe_child_agent_id,
+        "detail": safe_detail,
+        "timestampUtc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+    }
+    serialized_payload = json.dumps(payload, ensure_ascii=False)
+
+    try:
+        post_thread_activity_message(
+            settings,
+            thread_id=safe_thread_id,
+            actor="orchestrator",
+            activity_type=f"{safe_workflow}.{safe_status}",
+            content=serialized_payload,
+        )
+    finally:
+        _append_app_activity(
+            "orchestration.event",
+            status="error" if safe_status.lower() == "failed" else "info",
+            project_id=safe_project_id,
+            details={
+                "workflow": safe_workflow,
+                "status": safe_status,
+                "projectName": safe_project_name,
+                "childAgentId": safe_child_agent_id,
+                "threadId": safe_thread_id,
+                "detail": safe_detail,
+            },
+        )
 
 
 def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_id: str | None = None) -> dict:
@@ -1476,13 +1685,13 @@ def evaluate_description(body: DescriptionEvaluatePayload):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    agent_id = _resolve_foundry_chat_agent_id(settings)
     thread_id = str(settings.get("foundryDefaultThreadId") or "").strip()
     if not agent_id or not thread_id:
         return {
             "ok": False,
             "skipped": True,
-            "reason": "default-agent-or-thread-missing",
+            "reason": "chat-agent-or-thread-missing",
         }
 
     return evaluate_description_with_architect(
@@ -1502,13 +1711,13 @@ def improve_description(body: DescriptionImprovePayload):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    agent_id = _resolve_foundry_chat_agent_id(settings)
     thread_id = str(settings.get("foundryDefaultThreadId") or "").strip()
     if not agent_id or not thread_id:
         return {
             "ok": False,
             "skipped": True,
-            "reason": "default-agent-or-thread-missing",
+            "reason": "chat-agent-or-thread-missing",
         }
 
     return improve_description_with_architect(
@@ -1532,12 +1741,12 @@ def evaluate_project_description(body: ProjectDescriptionPayload):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    agent_id = _resolve_foundry_chat_agent_id(settings)
     if not agent_id:
         return {
             "ok": False,
             "skipped": True,
-            "reason": "default-agent-missing",
+            "reason": "chat-agent-missing",
         }
 
     project_dir = entry["projectDir"]
@@ -1630,12 +1839,12 @@ def improve_project_description(body: ProjectDescriptionPayload):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    agent_id = str(settings.get("foundryDefaultAgentId") or "").strip()
+    agent_id = _resolve_foundry_chat_agent_id(settings)
     if not agent_id:
         return {
             "ok": False,
             "skipped": True,
-            "reason": "default-agent-missing",
+            "reason": "chat-agent-missing",
         }
 
     project_dir = entry["projectDir"]
@@ -1720,7 +1929,7 @@ def architecture_chat(body: ArchitectureChatPayload):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    foundry_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    foundry_agent_id = _resolve_foundry_chat_agent_id(settings) or None
     foundry_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
 
     project_context = None
@@ -1775,12 +1984,29 @@ def architecture_chat(body: ArchitectureChatPayload):
                 foundry_thread_id = resolved_thread_id
 
     if not foundry_agent_id:
-        raise HTTPException(status_code=400, detail="Azure AI Foundry default agent is not configured.")
+        raise HTTPException(status_code=400, detail="Azure AI Foundry chat agent is not configured.")
     if not foundry_thread_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured.")
 
+    project_name_for_log = ""
+    project_id_for_log = ""
+    if isinstance(project_context, dict):
+        project_name_for_log = str(project_context.get("name") or "").strip()
+        project_id_for_log = str(project_context.get("id") or body.projectId or "").strip()
+
     try:
-        return run_cloudarchitect_chat_agent(
+        _record_orchestration_event(
+            settings,
+            thread_id=foundry_thread_id,
+            workflow="chat",
+            status="dispatch",
+            project_id=project_id_for_log,
+            project_name=project_name_for_log,
+            detail="Routing user architecture message to chat agent.",
+            child_agent_id=foundry_agent_id,
+        )
+
+        response = run_cloudarchitect_chat_agent(
             app_settings=settings,
             user_message=message,
             agent_state=body.agentState if isinstance(body.agentState, dict) else None,
@@ -1788,11 +2014,53 @@ def architecture_chat(body: ArchitectureChatPayload):
             foundry_thread_id=foundry_thread_id,
             foundry_agent_id=foundry_agent_id,
         )
+
+        _record_orchestration_event(
+            settings,
+            thread_id=foundry_thread_id,
+            workflow="chat",
+            status="completed",
+            project_id=project_id_for_log,
+            project_name=project_name_for_log,
+            detail="Architecture chat response completed.",
+            child_agent_id=foundry_agent_id,
+        )
+        return response
     except AzureMcpChatConfigurationError as exc:
+        _record_orchestration_event(
+            settings,
+            thread_id=foundry_thread_id,
+            workflow="chat",
+            status="failed",
+            project_id=project_id_for_log,
+            project_name=project_name_for_log,
+            detail=str(exc),
+            child_agent_id=foundry_agent_id,
+        )
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except AzureMcpChatRequestError as exc:
+        _record_orchestration_event(
+            settings,
+            thread_id=foundry_thread_id,
+            workflow="chat",
+            status="failed",
+            project_id=project_id_for_log,
+            project_name=project_name_for_log,
+            detail=str(exc),
+            child_agent_id=foundry_agent_id,
+        )
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except Exception as exc:
+        _record_orchestration_event(
+            settings,
+            thread_id=foundry_thread_id,
+            workflow="chat",
+            status="failed",
+            project_id=project_id_for_log,
+            project_name=project_name_for_log,
+            detail=str(exc),
+            child_agent_id=foundry_agent_id,
+        )
         raise HTTPException(status_code=500, detail=f"Architecture chat failed: {exc}") from exc
 
 
@@ -1803,7 +2071,7 @@ def architecture_chat_status(projectId: str | None = None):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    foundry_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    foundry_agent_id = _resolve_foundry_chat_agent_id(settings) or None
     foundry_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
 
     if projectId:
@@ -2018,6 +2286,10 @@ def save_project_snapshot(body: ProjectSavePayload):
         ).strip() or None
 
         app_settings = load_app_settings()
+        bootstrap_result = bootstrap_default_foundry_resources(app_settings)
+        if bootstrap_result.get("settingsUpdated"):
+            write_app_settings_file(app_settings)
+
         foundry_thread_result = ensure_project_foundry_thread(
             app_settings,
             project_id=body.project.id,
@@ -2085,6 +2357,15 @@ def save_project_snapshot(body: ProjectSavePayload):
             )
 
         if is_create_request and foundry_thread_id:
+            _record_orchestration_event(
+                app_settings,
+                thread_id=foundry_thread_id,
+                workflow="project-lifecycle",
+                status="created",
+                project_id=body.project.id,
+                project_name=body.project.name,
+                detail="Project created and project thread initialized.",
+            )
             post_project_created_message(
                 app_settings,
                 thread_id=foundry_thread_id,
@@ -2105,9 +2386,24 @@ def save_project_snapshot(body: ProjectSavePayload):
         )
         saved_state_hash = compute_canvas_state_hash(canvas_state_payload)
 
+        _append_app_activity(
+            "project.save",
+            status="info",
+            project_id=body.project.id,
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+                "create": is_create_request,
+                "stateHash": saved_state_hash,
+                "foundryBootstrap": bootstrap_result,
+                "foundryThread": foundry_thread_result,
+            },
+        )
+
         return {
             "ok": True,
             "projectPath": str(project_dir.relative_to(WORKSPACE_ROOT)),
+            "foundryBootstrap": bootstrap_result,
             "foundryThread": foundry_thread_result,
             "stateHash": saved_state_hash,
             "files": [
@@ -2115,9 +2411,29 @@ def save_project_snapshot(body: ProjectSavePayload):
                 str(canvas_state_path.relative_to(WORKSPACE_ROOT)),
             ],
         }
-    except HTTPException:
+    except HTTPException as exc:
+        _append_app_activity(
+            "project.save",
+            status="warning",
+            project_id=body.project.id,
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+                "error": str(exc.detail or exc),
+            },
+        )
         raise
     except Exception as exc:
+        _append_app_activity(
+            "project.save",
+            status="error",
+            project_id=body.project.id,
+            details={
+                "projectName": body.project.name,
+                "cloud": body.project.cloud,
+                "error": str(exc),
+            },
+        )
         raise HTTPException(status_code=500, detail=f"Failed to save project snapshot: {exc}") from exc
 
 
@@ -2303,8 +2619,25 @@ def _generate_project_iac_payload(
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(app_settings)
 
-    foundry_agent_id = str(app_settings.get("foundryDefaultAgentId") or "").strip() or None
+    foundry_agent_id = _resolve_foundry_iac_agent_id(app_settings) or None
     foundry_thread_id = resolve_project_foundry_thread_id(entry, app_settings)
+
+    if is_azure_foundry_provider(app_settings):
+        if not foundry_thread_id:
+            raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured for IaC generation.")
+        if not foundry_agent_id:
+            raise HTTPException(status_code=400, detail="Azure AI Foundry IaC agent is not configured.")
+
+    _record_orchestration_event(
+        app_settings,
+        thread_id=foundry_thread_id,
+        workflow="iac-generation",
+        status="dispatch",
+        project_id=entry["id"],
+        project_name=str(metadata.get("name") or entry["name"]),
+        detail="Dispatching canvas to IaC generation agent.",
+        child_agent_id=foundry_agent_id,
+    )
 
     try:
         iac_dir = entry["projectDir"] / "IaC" / "Bicep"
@@ -2319,11 +2652,41 @@ def _generate_project_iac_payload(
             foundry_thread_id=foundry_thread_id,
             progress_callback=progress_callback,
         )
+        _record_orchestration_event(
+            app_settings,
+            thread_id=foundry_thread_id,
+            workflow="iac-generation",
+            status="completed",
+            project_id=entry["id"],
+            project_name=str(metadata.get("name") or entry["name"]),
+            detail="IaC generation completed successfully.",
+            child_agent_id=foundry_agent_id,
+        )
     except ValueError as exc:
+        _record_orchestration_event(
+            app_settings,
+            thread_id=foundry_thread_id,
+            workflow="iac-generation",
+            status="failed",
+            project_id=entry["id"],
+            project_name=str(metadata.get("name") or entry["name"]),
+            detail=str(exc),
+            child_agent_id=foundry_agent_id,
+        )
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HTTPException:
         raise
     except Exception as exc:
+        _record_orchestration_event(
+            app_settings,
+            thread_id=foundry_thread_id,
+            workflow="iac-generation",
+            status="failed",
+            project_id=entry["id"],
+            project_name=str(metadata.get("name") or entry["name"]),
+            detail=str(exc),
+            child_agent_id=foundry_agent_id,
+        )
         raise HTTPException(status_code=500, detail=f"IaC generation failed: {exc}") from exc
 
     return {
@@ -2503,8 +2866,18 @@ def delete_project_snapshot(project_id: str):
         ).strip()
 
         if thread_id:
+            app_settings = load_app_settings()
+            _record_orchestration_event(
+                app_settings,
+                thread_id=thread_id,
+                workflow="project-lifecycle",
+                status="deleted",
+                project_id=entry["id"],
+                project_name=str(metadata.get("name") or entry["name"]),
+                detail="Project deletion requested.",
+            )
             post_project_deleted_message(
-                load_app_settings(),
+                app_settings,
                 thread_id=thread_id,
                 project_name=str(metadata.get("name") or entry["name"]),
                 project_id=entry["id"],
