@@ -16,6 +16,7 @@ const progressMilestonesEl = document.getElementById("iac-progress-milestones");
 const stageListEl = document.getElementById("iac-stage-list");
 
 const STAGE_TEMPLATE = [
+  { id: "cleanup_output", label: "Clear existing IaC output" },
   { id: "gather_properties", label: "Gather resource properties" },
   { id: "dependency_tree", label: "Build dependency tree" },
   { id: "render_templates", label: "Render Bicep templates" },
@@ -338,6 +339,71 @@ function parseDownloadFilename(contentDisposition, fallback) {
   return safeFallback;
 }
 
+function parseGuardrailCheckTotals(stage) {
+  const detailItems = Array.isArray(stage?.detailItems) ? stage.detailItems : [];
+  const totalsItem = detailItems.find((item) => String(item?.label || "").trim().toLowerCase() === "check totals");
+  if (!totalsItem) {
+    return null;
+  }
+
+  const totalsText = String(totalsItem.value || "");
+  const read = (name) => {
+    const match = new RegExp(`${name}\\s*=\\s*(\\d+)`, "i").exec(totalsText);
+    if (!match) {
+      return 0;
+    }
+    const parsed = Number.parseInt(match[1], 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  return {
+    tested: read("tested"),
+    passed: read("passed"),
+    failed: read("failed"),
+    warning: read("warning"),
+    skipped: read("skipped")
+  };
+}
+
+function isGuardrailStage(stageId) {
+  const id = String(stageId || "").trim().toLowerCase();
+  return id === "guardrails_mcp" || id === "guardrails_model";
+}
+
+function getStageVisualStatus(stage) {
+  const status = String(stage?.status || "pending").trim().toLowerCase() || "pending";
+  if (status !== "completed") {
+    return status;
+  }
+
+  if (!isGuardrailStage(stage?.id)) {
+    return status;
+  }
+
+  const totals = parseGuardrailCheckTotals(stage);
+  if (totals) {
+    const stageId = String(stage?.id || "").trim().toLowerCase();
+    if (totals.failed > 0 || totals.warning > 0 || totals.skipped > 0) {
+      return "error";
+    }
+    if (stageId === "guardrails_model" && totals.tested <= 0) {
+      return "error";
+    }
+    return "completed";
+  }
+
+  const message = String(stage?.message || "").trim().toLowerCase();
+  const stageId = String(stage?.id || "").trim().toLowerCase();
+  if (message.includes("failed") || message.includes("blocked")) {
+    return "error";
+  }
+  if (stageId === "guardrails_model" && message.includes("no checks")) {
+    return "error";
+  }
+
+  return "completed";
+}
+
 function renderProgressMilestones(stages) {
   if (!progressMilestonesEl) {
     return;
@@ -351,12 +417,12 @@ function renderProgressMilestones(stages) {
     const marker = document.createElement("span");
     marker.className = "iac-progress__milestone";
 
-    const status = String(stage?.status || "pending").trim().toLowerCase();
-    if (status === "running") {
+    const visualStatus = getStageVisualStatus(stage);
+    if (visualStatus === "running") {
       marker.classList.add("is-running");
-    } else if (status === "completed") {
+    } else if (visualStatus === "completed") {
       marker.classList.add("is-completed");
-    } else if (status === "error") {
+    } else if (visualStatus === "error") {
       marker.classList.add("is-error");
     }
 
@@ -414,7 +480,8 @@ function renderStageList(stages) {
     const stageId = String(stage?.id || `stage-${index + 1}`).trim() || `stage-${index + 1}`;
     const row = document.createElement("li");
     const status = String(stage.status || "pending").trim().toLowerCase() || "pending";
-    row.className = `iac-stage-item is-${status}`;
+    const visualStatus = getStageVisualStatus(stage);
+    row.className = `iac-stage-item is-${visualStatus}`;
     const isExpanded = state.expandedStageIds.has(stageId);
     if (isExpanded) {
       row.classList.add("is-expanded");
@@ -422,11 +489,11 @@ function renderStageList(stages) {
 
     const badge = document.createElement("span");
     badge.className = "iac-stage-item__badge";
-    if (status === "completed") {
+    if (visualStatus === "completed") {
       badge.textContent = "✓";
-    } else if (status === "running") {
+    } else if (visualStatus === "running") {
       badge.textContent = "…";
-    } else if (status === "error") {
+    } else if (visualStatus === "error") {
       badge.textContent = "!";
     } else {
       badge.textContent = String(index + 1);
@@ -443,11 +510,11 @@ function renderStageList(stages) {
     message.className = "iac-stage-item__message";
     if (stage.message) {
       message.textContent = String(stage.message);
-    } else if (status === "completed") {
+    } else if (visualStatus === "completed") {
       message.textContent = "Completed";
-    } else if (status === "running") {
+    } else if (visualStatus === "running") {
       message.textContent = "In progress";
-    } else if (status === "error") {
+    } else if (visualStatus === "error") {
       message.textContent = "Failed";
     } else {
       message.textContent = "Waiting";

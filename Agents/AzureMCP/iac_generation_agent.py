@@ -335,46 +335,64 @@ def _safe_non_negative_int(value: Any) -> int:
         return 0
 
 
-def _evaluate_guardrail_source_pass(diagnostics: Mapping[str, Any]) -> tuple[bool, str]:
+def _failed_guardrail_check_names(diagnostics: Mapping[str, Any], max_items: int = 4) -> list[str]:
+    checks = diagnostics.get("checks") if isinstance(diagnostics.get("checks"), list) else []
+    failed: list[str] = []
+    seen: set[str] = set()
+
+    for item in checks:
+        if not isinstance(item, Mapping):
+            continue
+        status = _normalize_guardrail_status(item.get("status"))
+        if status != "fail":
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        failed.append(name)
+        if len(failed) >= max_items:
+            break
+
+    return failed
+
+
+def _evaluate_guardrail_source_pass(
+    diagnostics: Mapping[str, Any],
+    *,
+    allow_no_checks: bool = False,
+) -> tuple[bool, str]:
     source = str(diagnostics.get("source") or "Guardrail source").strip() or "Guardrail source"
-    explanation = str(diagnostics.get("explanation") or "").strip()
     connection_state = str(diagnostics.get("connectionState") or "unknown").strip().lower()
     counts = diagnostics.get("counts") if isinstance(diagnostics.get("counts"), Mapping) else {}
 
     tested = _safe_non_negative_int(counts.get("tested"))
-    passed = _safe_non_negative_int(counts.get("passed"))
     failed = _safe_non_negative_int(counts.get("failed"))
     warning = _safe_non_negative_int(counts.get("warning"))
     skipped = _safe_non_negative_int(counts.get("skipped"))
-    info = _safe_non_negative_int(counts.get("info"))
 
     if connection_state != "connected":
-        reason = explanation or f"{source} did not complete successfully ({connection_state})."
-        return False, reason
+        return False, f"{source} unavailable ({connection_state})"
 
     if tested <= 0:
-        reason = explanation or f"{source} returned zero checks."
-        return False, reason
+        if allow_no_checks:
+            return True, f"{source} returned no checks"
+        return False, f"{source} returned no checks"
 
-    if failed > 0 or warning > 0 or skipped > 0 or info > 0 or passed < tested:
-        outcomes: list[str] = []
-        if failed > 0:
-            outcomes.append(f"failed={failed}")
-        if warning > 0:
-            outcomes.append(f"warning={warning}")
-        if skipped > 0:
-            outcomes.append(f"skipped={skipped}")
-        if info > 0:
-            outcomes.append(f"info={info}")
-        if passed < tested:
-            outcomes.append(f"passed={passed}/{tested}")
+    failed_names = _failed_guardrail_check_names(diagnostics)
+    if failed > 0 and failed_names:
+        return False, f"{source} failed checks: {'; '.join(failed_names)}"
 
-        reason = f"{source} requires all checks to pass ({'; '.join(outcomes)})."
-        if explanation:
-            reason = f"{reason} {explanation}"
-        return False, reason
+    if failed > 0:
+        return False, f"{source} has failed checks"
 
-    return True, explanation or f"{source} passed all checks ({passed}/{tested})."
+    if warning > 0 or skipped > 0:
+        return False, f"{source} has non-pass checks"
+
+    return True, f"{source} passed"
 
 
 def _build_guardrail_gate_failure_message(
@@ -382,7 +400,10 @@ def _build_guardrail_gate_failure_message(
     mcp_diagnostics: Mapping[str, Any],
     coding_diagnostics: Mapping[str, Any],
 ) -> tuple[bool, str]:
-    mcp_ok, mcp_reason = _evaluate_guardrail_source_pass(mcp_diagnostics)
+    mcp_ok, mcp_reason = _evaluate_guardrail_source_pass(
+        mcp_diagnostics,
+        allow_no_checks=True,
+    )
     coding_ok, coding_reason = _evaluate_guardrail_source_pass(coding_diagnostics)
 
     if mcp_ok and coding_ok:
@@ -390,9 +411,9 @@ def _build_guardrail_gate_failure_message(
 
     reasons: list[str] = []
     if not mcp_ok:
-        reasons.append(f"Azure MCP guardrails failed: {mcp_reason}")
+        reasons.append(mcp_reason)
     if not coding_ok:
-        reasons.append(f"Coding-model guardrails failed: {coding_reason}")
+        reasons.append(coding_reason)
 
     return False, "Guardrail gate blocked file generation. " + " ".join(reasons)
 

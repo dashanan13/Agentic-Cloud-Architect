@@ -80,6 +80,7 @@ DEFAULT_APP_SETTINGS = {
 }
 
 IAC_STAGE_DEFINITIONS = [
+    {"id": "cleanup_output", "label": "Clear existing IaC output"},
     {"id": "gather_properties", "label": "Gather resource properties"},
     {"id": "dependency_tree", "label": "Build dependency tree"},
     {"id": "render_templates", "label": "Render live Bicep templates"},
@@ -3126,6 +3127,33 @@ def _prepare_iac_generation_context(project_id: str, requested_parameter_format:
     return entry, metadata, project_settings, iac_language, parameter_format
 
 
+def _resolve_iac_language_folder_name(iac_language: str) -> str:
+    normalized = str(iac_language or "bicep").strip().lower()
+    if normalized == "bicep":
+        return "Bicep"
+    if normalized == "terraform":
+        return "Terraform"
+    if normalized in {"opentofu", "tofu"}:
+        return "OpenTofu"
+    if not normalized:
+        return "Bicep"
+    return normalized[:1].upper() + normalized[1:]
+
+
+def _reset_iac_language_output_dir(project_dir: Path, iac_language: str) -> Path:
+    iac_root = project_dir / "IaC"
+    iac_root.mkdir(parents=True, exist_ok=True)
+
+    language_folder = _resolve_iac_language_folder_name(iac_language)
+    target_dir = iac_root / language_folder
+
+    if target_dir.exists():
+        shutil.rmtree(target_dir)
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    return target_dir
+
+
 def _generate_project_iac_payload(
     project_id: str,
     requested_parameter_format: str | None = None,
@@ -3135,6 +3163,76 @@ def _generate_project_iac_payload(
         project_id,
         requested_parameter_format=requested_parameter_format,
     )
+
+    if callable(progress_callback):
+        try:
+            progress_callback(
+                {
+                    "stage": "cleanup_output",
+                    "status": "running",
+                    "message": "Removing existing IaC output folder",
+                    "progress": 1,
+                }
+            )
+        except Exception:
+            pass
+
+    try:
+        iac_dir = _reset_iac_language_output_dir(entry["projectDir"], iac_language)
+    except Exception as exc:
+        if callable(progress_callback):
+            try:
+                progress_callback(
+                    {
+                        "stage": "cleanup_output",
+                        "status": "error",
+                        "message": f"Failed to reset IaC output folder: {exc}",
+                        "progress": 1,
+                    }
+                )
+            except Exception:
+                pass
+        _append_app_activity(
+            "codegen.cleanup",
+            status="error",
+            project_id=entry["id"],
+            category="codegen",
+            step="failed",
+            source="backend.codegen",
+            details={
+                "projectName": str(metadata.get("name") or entry["name"]),
+                "iacLanguage": iac_language,
+                "error": str(exc),
+            },
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to reset IaC output folder: {exc}") from exc
+
+    _append_app_activity(
+        "codegen.cleanup",
+        status="info",
+        project_id=entry["id"],
+        category="codegen",
+        step="completed",
+        source="backend.codegen",
+        details={
+            "projectName": str(metadata.get("name") or entry["name"]),
+            "iacLanguage": iac_language,
+            "outputDir": str(iac_dir.relative_to(WORKSPACE_ROOT)),
+        },
+    )
+
+    if callable(progress_callback):
+        try:
+            progress_callback(
+                {
+                    "stage": "cleanup_output",
+                    "status": "completed",
+                    "message": "Cleared existing IaC output folder",
+                    "progress": 4,
+                }
+            )
+        except Exception:
+            pass
 
     canvas_state = read_json_file(entry["statePath"], {})
     if not isinstance(canvas_state, dict):
@@ -3184,7 +3282,6 @@ def _generate_project_iac_payload(
     )
 
     try:
-        iac_dir = entry["projectDir"] / "IaC" / "Bicep"
         result = generate_bicep_iac_from_canvas(
             app_settings=app_settings,
             canvas_state=canvas_state,

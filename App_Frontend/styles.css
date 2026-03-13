@@ -380,7 +380,10 @@
 }
 
 .iac-file-list {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
   gap: 4px;
   padding: 12px;
   overflow: auto;
