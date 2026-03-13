@@ -4698,6 +4698,8 @@ function buildProjectSnapshot() {
       cloud: state.currentProject.cloud,
       applicationType: String(state.currentProject.applicationType || "").trim(),
       applicationDescription: String(state.currentProject.applicationDescription || "").trim(),
+      iacLanguage: String(state.currentProject.iacLanguage || "bicep").trim().toLowerCase(),
+      iacParameterFormat: String(state.currentProject.iacParameterFormat || "bicepparam").trim().toLowerCase(),
       lastSaved: state.currentProject.lastSaved
     },
     baseStateHash: String(state.currentProject.canvasStateHash || "").trim(),
@@ -5279,6 +5281,21 @@ btnGenerateCode?.addEventListener("click", async () => {
     return;
   }
 
+  const projectId = String(state.currentProject.id || "").trim();
+  if (!projectId) {
+    setSaveStatus("Unable to start IaC generation: missing project ID.", true);
+    return;
+  }
+
+  const parameterFormat = String(state.currentProject.iacParameterFormat || "bicepparam").trim().toLowerCase() === "json"
+    ? "json"
+    : "bicepparam";
+
+  const params = new URLSearchParams();
+  params.set("projectId", projectId);
+  params.set("autostart", "1");
+  params.set("parameterFormat", parameterFormat);
+
   try {
     updateTimestamp();
     await saveProjectFiles({ silent: true });
@@ -5286,8 +5303,19 @@ btnGenerateCode?.addEventListener("click", async () => {
     // Continue navigation even if file save fails.
   }
 
-  const params = new URLSearchParams();
-  params.set("projectId", state.currentProject.id);
+  try {
+    sessionStorage.setItem(
+      `iac-autostart:${projectId}`,
+      JSON.stringify({
+        parameterFormat,
+        createdAt: Date.now(),
+      }),
+    );
+  } catch {
+    // Best-effort helper for robust handoff.
+  }
+
+  setSaveStatus("Opening IaC generation...");
   window.location.href = `./iac.html?${params.toString()}`;
 });
 

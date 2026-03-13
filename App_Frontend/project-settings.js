@@ -8,6 +8,7 @@ const projectIdInput = document.getElementById("ps-project-id");
 const projectCloudInput = document.getElementById("ps-project-cloud");
 const projectTypeInput = document.getElementById("ps-project-type");
 const projectIacLanguageInputs = Array.from(document.querySelectorAll('input[name="ps-iac-language"]'));
+const projectIacParameterFormatInputs = Array.from(document.querySelectorAll('input[name="ps-iac-params"]'));
 const projectDescriptionInput = document.getElementById("ps-project-description");
 const projectDescriptionQualityMeter = document.getElementById("ps-description-quality-meter");
 const projectDescriptionQualityFill = document.getElementById("ps-description-quality-fill");
@@ -30,6 +31,7 @@ const state = {
     githubRepoUrl: "",
     projectThreadId: "",
     iacLanguage: "bicep",
+    iacParameterFormat: "bicepparam",
     projectDescription: "",
     projectDescriptionQuality: "",
     projectDescriptionQualityIndex: 0,
@@ -49,6 +51,7 @@ const state = {
 const DESCRIPTION_LEVELS = ["Poor", "Minimal", "Adequate", "Informative", "Rich", "Perfect"];
 const DESCRIPTION_EVAL_DELAY_MS = 4000;
 const DEFAULT_IAC_LANGUAGE = "bicep";
+const DEFAULT_IAC_PARAMETER_FORMAT = "bicepparam";
 
 function getParams() {
   const params = new URLSearchParams(window.location.search);
@@ -159,6 +162,35 @@ function setSelectedIacLanguage(inputs, value = DEFAULT_IAC_LANGUAGE) {
   }
 
   const target = String(value || DEFAULT_IAC_LANGUAGE).trim().toLowerCase() || DEFAULT_IAC_LANGUAGE;
+  let matched = false;
+
+  inputs.forEach((input) => {
+    const normalized = String(input.value || "").trim().toLowerCase();
+    input.checked = normalized === target;
+    if (input.checked) {
+      matched = true;
+    }
+  });
+
+  if (!matched) {
+    inputs[0].checked = true;
+  }
+}
+
+function getSelectedParameterFormat(inputs, fallback = DEFAULT_IAC_PARAMETER_FORMAT) {
+  const selected = (inputs || []).find((input) => input.checked)?.value;
+  const normalized = String(selected || fallback).trim().toLowerCase();
+  return normalized === "json" ? "json" : "bicepparam";
+}
+
+function setSelectedParameterFormat(inputs, value = DEFAULT_IAC_PARAMETER_FORMAT) {
+  if (!inputs || !inputs.length) {
+    return;
+  }
+
+  const target = String(value || DEFAULT_IAC_PARAMETER_FORMAT).trim().toLowerCase() === "json"
+    ? "json"
+    : "bicepparam";
   let matched = false;
 
   inputs.forEach((input) => {
@@ -322,6 +354,7 @@ async function loadProjectSettings(projectId) {
     githubRepoUrl: String(incoming.githubRepoUrl || "").trim(),
     projectThreadId: String(incoming.projectThreadId || incoming.foundryThreadId || "").trim(),
     iacLanguage: String(incoming.iacLanguage || incoming.projectIacLanguage || "").trim(),
+    iacParameterFormat: String(incoming.iacParameterFormat || incoming.parameterFormat || "").trim(),
     projectDescription: String(incoming.projectDescription || "").trim(),
     projectDescriptionQuality: String(incoming.projectDescriptionQuality || "").trim(),
     projectDescriptionQualityIndex: Number(incoming.projectDescriptionQualityIndex) || 0,
@@ -361,6 +394,10 @@ function populateForm() {
     projectIacLanguageInputs,
     state.settings.iacLanguage || DEFAULT_IAC_LANGUAGE,
   );
+  setSelectedParameterFormat(
+    projectIacParameterFormatInputs,
+    state.settings.iacParameterFormat || DEFAULT_IAC_PARAMETER_FORMAT,
+  );
   if (projectDescriptionInput) {
     projectDescriptionInput.value = String(
       state.settings.projectDescription
@@ -398,6 +435,7 @@ function collectSettings() {
     githubRepoUrl: String(githubRepoUrlInput?.value || "").trim(),
     projectThreadId: String(projectThreadInput?.value || "").trim(),
     iacLanguage: getSelectedIacLanguage(projectIacLanguageInputs),
+    iacParameterFormat: getSelectedParameterFormat(projectIacParameterFormatInputs),
     projectApplicationType: applicationType,
     projectDescription: description,
     projectDescriptionQuality: String(quality.level || "").trim(),

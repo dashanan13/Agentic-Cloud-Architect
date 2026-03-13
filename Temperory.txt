@@ -8,6 +8,7 @@ Virtual Networks
 Public IP Addresses
 Subnet
 DNS Private Resolver
+Azure Bastion
 Web Application Firewall Policies
 Azure Firewall Policy
 Load Balancers

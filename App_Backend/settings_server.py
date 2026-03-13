@@ -5,10 +5,13 @@ import json
 import os
 import re
 import shutil
+import time
 from datetime import datetime
+from threading import Lock, Thread
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
 from urllib import request as urllib_request
+from uuid import uuid4
 from azure.identity import ClientSecretCredential
 from azure.ai.projects import AIProjectClient
 from Agents.AzureAIFoundry.foundry_bootstrap import (
@@ -32,6 +35,7 @@ from Agents.AzureMCP.cloudarchitect_chat_agent import (
     get_cloudarchitect_chat_status,
     run_cloudarchitect_chat_agent,
 )
+from Agents.AzureMCP.iac_generation_agent import generate_bicep_iac_from_canvas
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -66,6 +70,22 @@ DEFAULT_APP_SETTINGS = {
     "ollamaModelPathFast": "",
 }
 
+IAC_STAGE_DEFINITIONS = [
+    {"id": "gather_properties", "label": "Gather resource properties"},
+    {"id": "dependency_tree", "label": "Build dependency tree"},
+    {"id": "render_templates", "label": "Render Bicep templates"},
+    {"id": "generate_parameters", "label": "Generate parameters and pipeline"},
+    {"id": "guardrails_mcp", "label": "Run MCP guardrails"},
+    {"id": "guardrails_model", "label": "Run coding-model guardrails"},
+    {"id": "write_files", "label": "Write generated files"},
+]
+IAC_TASK_RETENTION_SECONDS = 60 * 60
+IAC_TASK_STALE_RUNNING_SECONDS = 8 * 60
+IAC_TASK_STALE_QUEUED_SECONDS = 2 * 60
+IAC_TASKS: dict[str, dict] = {}
+IAC_PROJECT_TASKS: dict[str, str] = {}
+IAC_TASK_LOCK = Lock()
+
 
 class AppSettingsPayload(BaseModel):
     settings: dict
@@ -85,6 +105,7 @@ class ProjectMeta(BaseModel):
     applicationDescriptionQualityIndex: int | None = None
     applicationDescriptionQualityScore: int | None = None
     iacLanguage: str | None = None
+    iacParameterFormat: str | None = None
     foundryThreadId: str | None = None
     lastSaved: int | None = None
 
@@ -133,6 +154,10 @@ class ArchitectureChatPayload(BaseModel):
     agentState: dict | None = None
 
 
+class IacGeneratePayload(BaseModel):
+    parameterFormat: str | None = None
+
+
 def read_json_file(path: Path, default):
     try:
         if not path.exists():
@@ -151,6 +176,297 @@ def compute_canvas_state_hash(canvas_state: dict | None) -> str:
         separators=(",", ":"),
     )
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def normalize_parameter_format(value: str | None) -> str:
+    candidate = str(value or "bicepparam").strip().lower()
+    if candidate in {"bicepparam", "json"}:
+        return candidate
+    return "bicepparam"
+
+
+def _timestamp_ms() -> int:
+    return int(time.time() * 1000)
+
+
+def _new_iac_stage_payload() -> list[dict]:
+    return [
+        {
+            "id": stage["id"],
+            "label": stage["label"],
+            "status": "pending",
+            "message": "",
+            "startedAt": None,
+            "completedAt": None,
+        }
+        for stage in IAC_STAGE_DEFINITIONS
+    ]
+
+
+def _clamp_progress(value: int | float | str | None, fallback: int = 0) -> int:
+    try:
+        numeric = int(float(value))
+    except Exception:
+        numeric = int(fallback)
+    if numeric < 0:
+        return 0
+    if numeric > 100:
+        return 100
+    return numeric
+
+
+def _cleanup_iac_tasks() -> None:
+    now_seconds = time.time()
+    now_ms = int(now_seconds * 1000)
+    removable: list[str] = []
+    for task_id, task in IAC_TASKS.items():
+        status = str(task.get("status") or "").strip().lower()
+        if status in {"queued", "running"}:
+            updated_at = task.get("updatedAt")
+            updated_seconds = float(updated_at) / 1000.0 if isinstance(updated_at, (int, float)) else None
+            if updated_seconds is not None:
+                age_seconds = now_seconds - updated_seconds
+                if status == "running" and age_seconds > IAC_TASK_STALE_RUNNING_SECONDS:
+                    task["status"] = "error"
+                    task["message"] = "Generation task timed out. Start generation again."
+                    task["error"] = task["message"]
+                    task["updatedAt"] = now_ms
+                    task["finishedAt"] = now_ms
+                elif status == "queued" and age_seconds > IAC_TASK_STALE_QUEUED_SECONDS:
+                    task["status"] = "error"
+                    task["message"] = "Queued generation task expired. Start generation again."
+                    task["error"] = task["message"]
+                    task["updatedAt"] = now_ms
+                    task["finishedAt"] = now_ms
+            continue
+        finished_at = task.get("finishedAt")
+        if isinstance(finished_at, (int, float)):
+            age_seconds = now_seconds - (float(finished_at) / 1000.0)
+            if age_seconds > IAC_TASK_RETENTION_SECONDS:
+                removable.append(task_id)
+
+    for task_id in removable:
+        IAC_TASKS.pop(task_id, None)
+
+    stale_project_keys: list[str] = []
+    for project_id, task_id in IAC_PROJECT_TASKS.items():
+        if task_id not in IAC_TASKS:
+            stale_project_keys.append(project_id)
+
+    for project_id in stale_project_keys:
+        IAC_PROJECT_TASKS.pop(project_id, None)
+
+
+def _serialize_iac_task(task: dict) -> dict:
+    response = {
+        "taskId": str(task.get("taskId") or "").strip(),
+        "projectId": str(task.get("projectId") or "").strip(),
+        "status": str(task.get("status") or "queued").strip().lower(),
+        "message": str(task.get("message") or "").strip(),
+        "progress": _clamp_progress(task.get("progress"), 0),
+        "parameterFormat": normalize_parameter_format(task.get("parameterFormat") or "bicepparam"),
+        "createdAt": task.get("createdAt"),
+        "updatedAt": task.get("updatedAt"),
+        "startedAt": task.get("startedAt"),
+        "finishedAt": task.get("finishedAt"),
+        "stages": [],
+    }
+
+    for stage in task.get("stages") if isinstance(task.get("stages"), list) else []:
+        if not isinstance(stage, dict):
+            continue
+        response["stages"].append(
+            {
+                "id": str(stage.get("id") or "").strip(),
+                "label": str(stage.get("label") or "").strip(),
+                "status": str(stage.get("status") or "pending").strip().lower(),
+                "message": str(stage.get("message") or "").strip(),
+                "startedAt": stage.get("startedAt"),
+                "completedAt": stage.get("completedAt"),
+            }
+        )
+
+    if task.get("result") is not None:
+        response["result"] = task.get("result")
+    if task.get("error"):
+        response["error"] = str(task.get("error") or "").strip()
+
+    return response
+
+
+def _create_iac_task(project_id: str, parameter_format: str) -> dict:
+    now = _timestamp_ms()
+    task_id = uuid4().hex
+    payload = {
+        "taskId": task_id,
+        "projectId": str(project_id or "").strip(),
+        "status": "queued",
+        "message": "Generation queued",
+        "progress": 1,
+        "parameterFormat": normalize_parameter_format(parameter_format),
+        "createdAt": now,
+        "updatedAt": now,
+        "startedAt": None,
+        "finishedAt": None,
+        "stages": _new_iac_stage_payload(),
+        "result": None,
+        "error": None,
+    }
+    IAC_TASKS[task_id] = payload
+    IAC_PROJECT_TASKS[payload["projectId"]] = task_id
+    return payload
+
+
+def _mark_iac_task_running(task_id: str, message: str = "IaC generation started") -> None:
+    now = _timestamp_ms()
+    task = IAC_TASKS.get(task_id)
+    if not task:
+        return
+
+    task["status"] = "running"
+    task["message"] = str(message or "IaC generation started").strip()
+    task["updatedAt"] = now
+    if not isinstance(task.get("startedAt"), (int, float)):
+        task["startedAt"] = now
+    task["progress"] = max(1, _clamp_progress(task.get("progress"), 1))
+
+
+def _update_iac_task_stage(
+    task_id: str,
+    stage_id: str,
+    *,
+    status: str,
+    message: str = "",
+    progress: int | float | str | None = None,
+) -> None:
+    now = _timestamp_ms()
+    task = IAC_TASKS.get(task_id)
+    if not task:
+        return
+
+    normalized_status = str(status or "pending").strip().lower()
+    if normalized_status not in {"pending", "running", "completed", "error"}:
+        normalized_status = "running"
+
+    stages = task.get("stages") if isinstance(task.get("stages"), list) else []
+    stage = None
+    for candidate in stages:
+        if isinstance(candidate, dict) and str(candidate.get("id") or "").strip() == stage_id:
+            stage = candidate
+            break
+
+    if not stage:
+        return
+
+    stage["status"] = normalized_status
+    stage["message"] = str(message or "").strip()
+    if normalized_status == "running":
+        if not isinstance(stage.get("startedAt"), (int, float)):
+            stage["startedAt"] = now
+        stage["completedAt"] = None
+    elif normalized_status in {"completed", "error"}:
+        if not isinstance(stage.get("startedAt"), (int, float)):
+            stage["startedAt"] = now
+        stage["completedAt"] = now
+
+    task["updatedAt"] = now
+    if normalized_status == "error":
+        task["status"] = "error"
+        task["message"] = stage["message"] or "IaC generation failed"
+        task["error"] = task["message"]
+        task["finishedAt"] = now
+    else:
+        task["status"] = "running"
+        task["message"] = stage["message"] or task.get("message") or "IaC generation in progress"
+
+    if progress is not None:
+        task["progress"] = _clamp_progress(progress, task.get("progress") or 0)
+
+
+def _complete_iac_task(task_id: str, result: dict | None = None) -> None:
+    now = _timestamp_ms()
+    task = IAC_TASKS.get(task_id)
+    if not task:
+        return
+
+    for stage in task.get("stages") if isinstance(task.get("stages"), list) else []:
+        if not isinstance(stage, dict):
+            continue
+        if str(stage.get("status") or "pending").strip().lower() == "running":
+            stage["status"] = "completed"
+            stage["completedAt"] = now
+            if not str(stage.get("message") or "").strip():
+                stage["message"] = "Completed"
+
+    task["status"] = "completed"
+    task["message"] = "IaC generation completed"
+    task["progress"] = 100
+    task["updatedAt"] = now
+    task["finishedAt"] = now
+    task["result"] = result if isinstance(result, dict) else result
+    task["error"] = None
+
+
+def _fail_iac_task(task_id: str, message: str) -> None:
+    now = _timestamp_ms()
+    task = IAC_TASKS.get(task_id)
+    if not task:
+        return
+
+    failure_message = str(message or "IaC generation failed").strip() or "IaC generation failed"
+    marked_stage = False
+    for stage in task.get("stages") if isinstance(task.get("stages"), list) else []:
+        if not isinstance(stage, dict):
+            continue
+        if str(stage.get("status") or "pending").strip().lower() == "running":
+            stage["status"] = "error"
+            stage["message"] = failure_message
+            if not isinstance(stage.get("startedAt"), (int, float)):
+                stage["startedAt"] = now
+            stage["completedAt"] = now
+            marked_stage = True
+            break
+
+    if not marked_stage:
+        stages = task.get("stages") if isinstance(task.get("stages"), list) else []
+        if stages and isinstance(stages[0], dict):
+            stages[0]["status"] = "error"
+            stages[0]["message"] = failure_message
+            stages[0]["startedAt"] = stages[0].get("startedAt") or now
+            stages[0]["completedAt"] = now
+
+    task["status"] = "error"
+    task["message"] = failure_message
+    task["error"] = failure_message
+    task["updatedAt"] = now
+    task["finishedAt"] = now
+
+
+def _record_iac_progress_event(task_id: str, event: dict) -> None:
+    if not isinstance(event, dict):
+        return
+
+    stage_id = str(event.get("stage") or "").strip()
+    if not stage_id:
+        return
+
+    _update_iac_task_stage(
+        task_id,
+        stage_id,
+        status=str(event.get("status") or "running"),
+        message=str(event.get("message") or "").strip(),
+        progress=event.get("progress"),
+    )
+
+
+def _get_latest_project_iac_task(project_id: str) -> dict | None:
+    task_id = IAC_PROJECT_TASKS.get(str(project_id or "").strip())
+    if not task_id:
+        return None
+    task = IAC_TASKS.get(task_id)
+    if not isinstance(task, dict):
+        return None
+    return task
 
 
 def collect_project_entries() -> list[dict]:
@@ -1727,6 +2043,13 @@ def save_project_snapshot(body: ProjectSavePayload):
                 {"iacLanguage": iac_language},
             )
 
+        iac_parameter_format = str(body.project.iacParameterFormat or "").strip()
+        if iac_parameter_format:
+            project_settings = merge_project_settings(
+                project_settings,
+                {"iacParameterFormat": normalize_parameter_format(iac_parameter_format)},
+            )
+
         metadata_payload = {
             "id": body.project.id,
             "name": body.project.name,
@@ -1910,10 +2233,218 @@ def get_project_snapshot(project_id: str):
             "foundryThreadId": str(resolved_thread_id or metadata.get("foundryThreadId") or ""),
             "lastSaved": int(entry["lastSaved"]),
             "iacLanguage": str(project_settings.get("iacLanguage") or "bicep").strip().lower(),
+            "iacParameterFormat": normalize_parameter_format(project_settings.get("iacParameterFormat") or "bicepparam"),
         },
         "canvasState": canvas_state,
         "stateHash": compute_canvas_state_hash(canvas_state),
     }
+
+
+def _prepare_iac_generation_context(project_id: str, requested_parameter_format: str | None = None):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    project_cloud = str(metadata.get("cloud") or entry["cloud"] or "").strip()
+    if project_cloud.lower() != "azure":
+        raise HTTPException(status_code=400, detail="IaC generation is currently supported only for Azure projects.")
+
+    project_settings = load_project_settings_file(entry["projectDir"])
+    iac_language = str(project_settings.get("iacLanguage") or "bicep").strip().lower()
+    if iac_language != "bicep":
+        raise HTTPException(status_code=400, detail="Only Bicep generation is currently supported for Generate Code.")
+
+    requested = str(requested_parameter_format or "").strip()
+    if requested:
+        parameter_format = normalize_parameter_format(requested)
+    else:
+        parameter_format = normalize_parameter_format(project_settings.get("iacParameterFormat") or "bicepparam")
+
+    current_format = normalize_parameter_format(project_settings.get("iacParameterFormat") or "bicepparam")
+    if current_format != parameter_format:
+        project_settings = merge_project_settings(
+            project_settings,
+            {"iacParameterFormat": parameter_format},
+        )
+        persist_project_settings(
+            entry["projectDir"],
+            entry["id"],
+            entry["name"],
+            entry["cloud"],
+            project_settings,
+        )
+
+    return entry, metadata, project_settings, iac_language, parameter_format
+
+
+def _generate_project_iac_payload(
+    project_id: str,
+    requested_parameter_format: str | None = None,
+    progress_callback=None,
+) -> dict:
+    entry, metadata, _project_settings, iac_language, parameter_format = _prepare_iac_generation_context(
+        project_id,
+        requested_parameter_format=requested_parameter_format,
+    )
+
+    canvas_state = read_json_file(entry["statePath"], {})
+    if not isinstance(canvas_state, dict):
+        canvas_state = {}
+
+    app_settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(app_settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(app_settings)
+
+    foundry_agent_id = str(app_settings.get("foundryDefaultAgentId") or "").strip() or None
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, app_settings)
+
+    try:
+        iac_dir = entry["projectDir"] / "IaC" / "Bicep"
+        result = generate_bicep_iac_from_canvas(
+            app_settings=app_settings,
+            canvas_state=canvas_state,
+            output_dir=iac_dir,
+            project_name=str(metadata.get("name") or entry["name"]),
+            project_id=entry["id"],
+            parameter_format=parameter_format,
+            foundry_agent_id=foundry_agent_id,
+            foundry_thread_id=foundry_thread_id,
+            progress_callback=progress_callback,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"IaC generation failed: {exc}") from exc
+
+    return {
+        "ok": True,
+        "projectId": entry["id"],
+        "root": str((entry["projectDir"] / "IaC").relative_to(WORKSPACE_ROOT)),
+        "iacLanguage": iac_language,
+        "parameterFormat": parameter_format,
+        "generation": result,
+    }
+
+
+def _run_iac_generation_task(task_id: str, project_id: str, parameter_format: str) -> None:
+    with IAC_TASK_LOCK:
+        _mark_iac_task_running(task_id)
+
+    def on_progress(event: dict) -> None:
+        with IAC_TASK_LOCK:
+            _record_iac_progress_event(task_id, event)
+
+    try:
+        payload = _generate_project_iac_payload(
+            project_id,
+            requested_parameter_format=parameter_format,
+            progress_callback=on_progress,
+        )
+    except HTTPException as exc:
+        detail = exc.detail
+        if isinstance(detail, (dict, list)):
+            detail_text = json.dumps(detail, ensure_ascii=False)
+        else:
+            detail_text = str(detail or str(exc)).strip()
+        with IAC_TASK_LOCK:
+            _fail_iac_task(task_id, detail_text)
+        return
+    except Exception as exc:
+        with IAC_TASK_LOCK:
+            _fail_iac_task(task_id, f"IaC generation failed: {exc}")
+        return
+
+    with IAC_TASK_LOCK:
+        _complete_iac_task(task_id, result=payload)
+
+
+@app.post("/api/project/{project_id}/iac/task/start")
+def start_project_iac_task(project_id: str, body: IacGeneratePayload | None = None):
+    requested_format_raw = ""
+    if body and body.parameterFormat is not None:
+        requested_format_raw = str(body.parameterFormat or "").strip()
+
+    entry, _metadata, _project_settings, _iac_language, parameter_format = _prepare_iac_generation_context(
+        project_id,
+        requested_parameter_format=requested_format_raw,
+    )
+
+    with IAC_TASK_LOCK:
+        _cleanup_iac_tasks()
+        existing_task = _get_latest_project_iac_task(entry["id"])
+        if existing_task and str(existing_task.get("status") or "").strip().lower() in {"queued", "running"}:
+            return {
+                "ok": True,
+                "existing": True,
+                "task": _serialize_iac_task(existing_task),
+            }
+
+        created_task = _create_iac_task(entry["id"], parameter_format)
+
+    worker = Thread(
+        target=_run_iac_generation_task,
+        args=(created_task["taskId"], entry["id"], parameter_format),
+        daemon=True,
+    )
+    worker.start()
+
+    return {
+        "ok": True,
+        "existing": False,
+        "task": _serialize_iac_task(created_task),
+    }
+
+
+@app.get("/api/project/{project_id}/iac/task/latest")
+def get_latest_project_iac_task(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    with IAC_TASK_LOCK:
+        _cleanup_iac_tasks()
+        task = _get_latest_project_iac_task(entry["id"])
+
+    return {
+        "ok": True,
+        "task": _serialize_iac_task(task) if isinstance(task, dict) else None,
+    }
+
+
+@app.get("/api/project/{project_id}/iac/task/{task_id}")
+def get_project_iac_task(project_id: str, task_id: str):
+    with IAC_TASK_LOCK:
+        _cleanup_iac_tasks()
+        task = IAC_TASKS.get(str(task_id or "").strip())
+        if not isinstance(task, dict) or str(task.get("projectId") or "").strip() != str(project_id or "").strip():
+            raise HTTPException(status_code=404, detail="IaC generation task not found")
+
+        payload = _serialize_iac_task(task)
+
+    return {
+        "ok": True,
+        "task": payload,
+    }
+
+
+@app.post("/api/project/{project_id}/iac/generate")
+def generate_project_iac(project_id: str, body: IacGeneratePayload | None = None):
+    requested_format_raw = ""
+    if body and body.parameterFormat is not None:
+        requested_format_raw = str(body.parameterFormat or "").strip()
+
+    return _generate_project_iac_payload(
+        project_id,
+        requested_parameter_format=requested_format_raw,
+        progress_callback=None,
+    )
 
 
 @app.get("/api/project/{project_id}/iac/files")

@@ -46,6 +46,16 @@
                     </div>
                     <small class="name-hint">Used when generating IaC code for this project.</small>
                   </div>
+                  <div class="form-group">
+                    <label for="ps-param-bicepparam">Bicep parameter file format</label>
+                    <div class="segmented-control" role="radiogroup" aria-label="Bicep parameter file format">
+                      <input type="radio" id="ps-param-bicepparam" name="ps-iac-params" value="bicepparam" checked />
+                      <label for="ps-param-bicepparam">.bicepparam</label>
+                      <input type="radio" id="ps-param-json" name="ps-iac-params" value="json" />
+                      <label for="ps-param-json">.json</label>
+                    </div>
+                    <small class="name-hint">Generator outputs a single main parameter file in the selected format.</small>
+                  </div>
                 </section>
 
                 <section class="settings-section">
