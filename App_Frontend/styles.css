@@ -1204,6 +1204,10 @@ select.property-input {
   align-items: center;
 }
 
+.tag-row--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .tag-row--key-value {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }

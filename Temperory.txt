@@ -1,6 +1,6 @@
 Management Groups
 Subscriptions
-Reservations
+Resource Group
 DNS Zones
 Network Security Groups
 Route Tables

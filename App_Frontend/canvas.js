@@ -138,6 +138,8 @@ const layoutConfig = {
 
 // ===== State =====
 const cloudCatalogs = {};
+const propertyPanelExpansionStateByKey = new Map();
+let propertyPanelRenderedStateKey = "";
 const state = {
   projects: [],
   currentProject: null,
@@ -398,19 +400,43 @@ function sanitizeRouteDefinitions(value) {
   });
 }
 
-function sanitizeSubnetDelegations(value) {
+function buildEditableStringRows(values, options = {}) {
+  const normalizedValues = sanitizeStringList(values, options);
+  return [
+    ...normalizedValues,
+    ""
+  ];
+}
+
+function extractDelegationServiceNames(value) {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  return value.slice(0, 40).map((delegation, index) => {
-    const sanitizedName = String(delegation?.name || `delegation-${index + 1}`).trim().slice(0, 80);
-    const serviceName = String(delegation?.serviceName || "").trim().slice(0, 120);
-    return {
-      name: sanitizedName || `delegation-${index + 1}`,
-      serviceName
-    };
+  const rawServices = value.map((delegation) => {
+    if (delegation && typeof delegation === "object") {
+      return delegation.serviceName || delegation.name || "";
+    }
+    return delegation;
   });
+
+  return sanitizeStringList(rawServices, {
+    maxItems: 40,
+    maxLength: 120,
+    allowCsv: true
+  });
+}
+
+function buildDelegationsFromServiceNames(value) {
+  const serviceNames = extractDelegationServiceNames(Array.isArray(value) ? value : [value]);
+  return serviceNames.map((serviceName, index) => ({
+    name: `delegation-${index + 1}`,
+    serviceName
+  }));
+}
+
+function sanitizeSubnetDelegations(value) {
+  return buildDelegationsFromServiceNames(value);
 }
 
 function sanitizeDnsNameValue(value) {
@@ -1017,15 +1043,6 @@ function sanitizeItemProperties(resourceType, properties, validItemIds = null, i
         allowCsv: true,
         fallback: source.subnetServiceEndpoints
       }),
-      serviceEndpointPolicyNames: sanitizeStringList(
-        source.serviceEndpointPolicyNames,
-        {
-          maxItems: 40,
-          maxLength: 120,
-          allowCsv: true,
-          fallback: source.serviceEndpointPolicies
-        }
-      ),
       delegations: sanitizeSubnetDelegations(source.delegations),
       privateEndpointNetworkPolicies,
       tags
@@ -1287,7 +1304,6 @@ function createDefaultItemProperties(resourceType, parentContainer = null) {
       routeTableRef: "",
       routeTableName: "",
       serviceEndpoints: [],
-      serviceEndpointPolicyNames: [],
       delegations: [],
       privateEndpointNetworkPolicies: "disabled",
       tags: []
@@ -2224,6 +2240,8 @@ async function loadCatalogForCloud(cloudName) {
 
 // ===== Resource Rendering =====
 function updatePropertyPanel(resourceName) {
+  propertyPanelRenderedStateKey = "";
+
   if (!resourceName) {
     setSelectedResourceName("None selected");
     propertyContentEl.textContent = "Select a resource or connection to edit property details.";
@@ -2439,6 +2457,47 @@ function buildStringListEditorMarkup(config) {
   ].join("");
 }
 
+function buildAutoGrowingStringListMarkup(config) {
+  const {
+    label,
+    fieldName,
+    values,
+    placeholder = "",
+    maxLength = 120
+  } = config;
+
+  const editableRows = buildEditableStringRows(values, {
+    maxItems: 40,
+    maxLength,
+    allowCsv: true
+  });
+
+  const rows = editableRows
+    .map((value, index) => [
+      '<div class="tag-row tag-row--single">',
+      `<input class="property-input" type="text" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}" data-subnet-list-field="${escapeHtml(fieldName)}" data-list-index="${index}" maxlength="${Number.parseInt(maxLength, 10) || 120}" />`,
+      '</div>'
+    ].join(""))
+    .join("");
+
+  return [
+    '<div class="property-row property-row--tags">',
+    `<span class="property-label">${escapeHtml(label)}:</span>`,
+    `<div class="tag-list">${rows}</div>`,
+    '</div>'
+  ].join("");
+}
+
+function buildSubnetServiceEndpointsEditorMarkup(serviceEndpoints) {
+  return buildAutoGrowingStringListMarkup({
+    label: "Service Endpoint",
+    fieldName: "serviceEndpoints",
+    values: serviceEndpoints,
+    placeholder: "e.g. Microsoft.Storage",
+    maxLength: 120
+  });
+}
+
 function buildRouteDefinitionsEditorMarkup(routes) {
   const safeRoutes = Array.isArray(routes) ? routes : [];
   const rows = safeRoutes
@@ -2485,28 +2544,14 @@ function buildRouteDefinitionsEditorMarkup(routes) {
 }
 
 function buildSubnetDelegationsEditorMarkup(delegations) {
-  const safeDelegations = Array.isArray(delegations) ? delegations : [];
-  const rows = safeDelegations
-    .map((delegation, index) => [
-      '<div class="tag-row">',
-      `<input class="property-input" type="text" placeholder="Delegation name" value="${escapeHtml(delegation.name || "")}" data-object-list-field="delegations" data-object-key="name" data-list-index="${index}" maxlength="80" />`,
-      `<input class="property-input" type="text" placeholder="Service name (e.g. Microsoft.Web/serverFarms)" value="${escapeHtml(delegation.serviceName || "")}" data-object-list-field="delegations" data-object-key="serviceName" data-list-index="${index}" maxlength="120" />`,
-      `<button class="btn btn--sm btn--danger" type="button" data-list-action="remove-object" data-list-field="delegations" data-list-index="${index}">Remove</button>`,
-      '</div>'
-    ].join(""))
-    .join("");
-
-  return [
-    '<div class="property-row property-row--tags">',
-    '<div class="property-inline-header">',
-    '<span class="property-label">Delegations</span>',
-    '<button class="btn btn--sm btn--secondary" type="button" data-list-action="add-object" data-list-field="delegations">Add Delegation</button>',
-    '</div>',
-    safeDelegations.length
-      ? `<div class="tag-list">${rows}</div>`
-      : '<div class="property-helper">No delegations configured.</div>',
-    '</div>'
-  ].join("");
+  const delegationServices = extractDelegationServiceNames(delegations);
+  return buildAutoGrowingStringListMarkup({
+    label: "Delegation",
+    fieldName: "delegationServices",
+    values: delegationServices,
+    placeholder: "e.g. Microsoft.ContainerInstance/containerGroups",
+    maxLength: 120
+  });
 }
 
 function buildNetworkSecurityRuleMarkup(securityRules) {
@@ -2992,24 +3037,7 @@ function buildSubnetPropertyMarkup(selectedItem) {
   ].join("");
 
   const additionalSectionContent = [
-    buildStringListEditorMarkup({
-      label: "Service Endpoints",
-      fieldName: "serviceEndpoints",
-      values: properties.serviceEndpoints,
-      placeholder: "e.g. Microsoft.Storage",
-      addLabel: "Add Endpoint",
-      emptyMessage: "No service endpoints configured.",
-      maxLength: 120
-    }),
-    buildStringListEditorMarkup({
-      label: "Service Endpoint Policies",
-      fieldName: "serviceEndpointPolicyNames",
-      values: properties.serviceEndpointPolicyNames,
-      placeholder: "Service Endpoint Policy Name",
-      addLabel: "Add Policy",
-      emptyMessage: "No service endpoint policies configured.",
-      maxLength: 120
-    }),
+    buildSubnetServiceEndpointsEditorMarkup(properties.serviceEndpoints),
     buildSubnetDelegationsEditorMarkup(properties.delegations),
     '<label class="property-row">',
     '<span class="property-label">Private Endpoint Network Policies</span>',
@@ -3209,7 +3237,157 @@ function buildSelectedResourcePropertyMarkup(selectedItem) {
   return buildGenericResourcePropertyMarkup(selectedItem);
 }
 
+function getPropertyPanelStateKey() {
+  if (state.selectedConnectionId) {
+    return `connection:${state.selectedConnectionId}`;
+  }
+
+  if (state.selectedResource) {
+    return `resource:${state.selectedResource}`;
+  }
+
+  return "";
+}
+
+function capturePropertyPanelExpansionState() {
+  if (!propertyContentEl) {
+    return null;
+  }
+
+  return {
+    groups: Array.from(propertyContentEl.querySelectorAll(".property-group")).map((sectionEl) => Boolean(sectionEl.open)),
+    subsections: Array.from(propertyContentEl.querySelectorAll(".property-subsection")).map((sectionEl) => Boolean(sectionEl.open))
+  };
+}
+
+function applyPropertyPanelExpansionState(expansionState) {
+  if (!propertyContentEl || !expansionState || typeof expansionState !== "object") {
+    return;
+  }
+
+  const groupStates = Array.isArray(expansionState.groups) ? expansionState.groups : [];
+  const subsectionStates = Array.isArray(expansionState.subsections) ? expansionState.subsections : [];
+
+  propertyContentEl.querySelectorAll(".property-group").forEach((sectionEl, index) => {
+    if (index < groupStates.length) {
+      sectionEl.open = Boolean(groupStates[index]);
+    }
+  });
+
+  propertyContentEl.querySelectorAll(".property-subsection").forEach((sectionEl, index) => {
+    if (index < subsectionStates.length) {
+      sectionEl.open = Boolean(subsectionStates[index]);
+    }
+  });
+}
+
+function escapeSelectorAttributeValue(value) {
+  return String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, "\\\"");
+}
+
+function buildPropertyPanelFocusSelector(element) {
+  if (!(element instanceof HTMLElement)) {
+    return "";
+  }
+
+  const selectorSegments = [element.tagName.toLowerCase()];
+  const identityAttributes = [
+    "data-resource-field",
+    "data-connection-field",
+    "data-resource-tag-field",
+    "data-string-list-field",
+    "data-object-list-field",
+    "data-subnet-list-field"
+  ];
+  const contextAttributes = [
+    "data-list-index",
+    "data-tag-index",
+    "data-object-key",
+    "data-list-field"
+  ];
+
+  identityAttributes.forEach((attributeName) => {
+    const attributeValue = element.getAttribute(attributeName);
+    if (attributeValue != null) {
+      selectorSegments.push(`[${attributeName}="${escapeSelectorAttributeValue(attributeValue)}"]`);
+    }
+  });
+
+  contextAttributes.forEach((attributeName) => {
+    const attributeValue = element.getAttribute(attributeName);
+    if (attributeValue != null) {
+      selectorSegments.push(`[${attributeName}="${escapeSelectorAttributeValue(attributeValue)}"]`);
+    }
+  });
+
+  return selectorSegments.join("");
+}
+
+function capturePropertyPanelFocusState() {
+  if (!propertyContentEl) {
+    return null;
+  }
+
+  const activeElement = document.activeElement;
+  if (!(activeElement instanceof HTMLElement) || !propertyContentEl.contains(activeElement)) {
+    return null;
+  }
+
+  const selector = buildPropertyPanelFocusSelector(activeElement);
+  if (!selector) {
+    return null;
+  }
+
+  const focusState = { selector };
+  if (typeof activeElement.selectionStart === "number" && typeof activeElement.selectionEnd === "number") {
+    focusState.selectionStart = activeElement.selectionStart;
+    focusState.selectionEnd = activeElement.selectionEnd;
+  }
+
+  return focusState;
+}
+
+function restorePropertyPanelFocusState(focusState) {
+  if (!propertyContentEl || !focusState || typeof focusState.selector !== "string" || !focusState.selector) {
+    return;
+  }
+
+  const focusTarget = propertyContentEl.querySelector(focusState.selector);
+  if (!(focusTarget instanceof HTMLElement)) {
+    return;
+  }
+
+  focusTarget.focus({ preventScroll: true });
+
+  if (
+    typeof focusState.selectionStart === "number"
+    && typeof focusState.selectionEnd === "number"
+    && typeof focusTarget.setSelectionRange === "function"
+  ) {
+    try {
+      focusTarget.setSelectionRange(focusState.selectionStart, focusState.selectionEnd);
+    } catch {
+      return;
+    }
+  }
+}
+
 function updatePropertyPanelForSelection() {
+  const previousStateKey = propertyPanelRenderedStateKey;
+  if (previousStateKey) {
+    const currentExpansionState = capturePropertyPanelExpansionState();
+    if (currentExpansionState) {
+      propertyPanelExpansionStateByKey.set(previousStateKey, currentExpansionState);
+    }
+  }
+
+  const nextStateKey = getPropertyPanelStateKey();
+  const focusState = previousStateKey && previousStateKey === nextStateKey
+    ? capturePropertyPanelFocusState()
+    : null;
+
   const selectedConnection = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId) || null;
   if (selectedConnection) {
     const fromItem = getItemById(selectedConnection.fromId);
@@ -3248,6 +3426,12 @@ function updatePropertyPanelForSelection() {
       `<button class=\"btn btn--sm btn--danger\" type=\"button\" data-connection-action=\"remove\">Remove</button>`,
       "</div>"
     ].join("");
+
+    propertyPanelRenderedStateKey = nextStateKey;
+    applyPropertyPanelExpansionState(propertyPanelExpansionStateByKey.get(nextStateKey));
+    if (focusState) {
+      restorePropertyPanelFocusState(focusState);
+    }
     return;
   }
 
@@ -3256,9 +3440,16 @@ function updatePropertyPanelForSelection() {
     ensureItemProperties(selectedItem);
     setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
     propertyContentEl.innerHTML = buildSelectedResourcePropertyMarkup(selectedItem);
+
+    propertyPanelRenderedStateKey = nextStateKey;
+    applyPropertyPanelExpansionState(propertyPanelExpansionStateByKey.get(nextStateKey));
+    if (focusState) {
+      restorePropertyPanelFocusState(focusState);
+    }
     return;
   }
 
+  propertyPanelRenderedStateKey = "";
   setSelectedResourceName("None selected");
   propertyContentEl.textContent = "Select a resource or connection to edit property details.";
 }
@@ -5127,6 +5318,50 @@ propertyContentEl?.addEventListener("input", (event) => {
   const target = event.target;
   const properties = ensureItemProperties(selectedItem);
 
+  if (target.matches("[data-subnet-list-field]")) {
+    const fieldName = String(target.dataset.subnetListField || "");
+    const index = Number.parseInt(target.dataset.listIndex || "-1", 10);
+    if (!fieldName || !Number.isInteger(index) || index < 0) {
+      return;
+    }
+
+    if (fieldName === "serviceEndpoints") {
+      const editableRows = buildEditableStringRows(properties.serviceEndpoints, {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true
+      });
+      if (!Object.prototype.hasOwnProperty.call(editableRows, index)) {
+        return;
+      }
+
+      editableRows[index] = String(target.value || "");
+      properties.serviceEndpoints = sanitizeStringList(editableRows, {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true
+      });
+      persistCanvasLocal();
+      return;
+    }
+
+    if (fieldName === "delegationServices") {
+      const editableRows = buildEditableStringRows(extractDelegationServiceNames(properties.delegations), {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true
+      });
+      if (!Object.prototype.hasOwnProperty.call(editableRows, index)) {
+        return;
+      }
+
+      editableRows[index] = String(target.value || "");
+      properties.delegations = buildDelegationsFromServiceNames(editableRows);
+      persistCanvasLocal();
+      return;
+    }
+  }
+
   if (target.matches("[data-string-list-field]")) {
     const fieldName = String(target.dataset.stringListField || "");
     const index = Number.parseInt(target.dataset.listIndex || "-1", 10);
@@ -5370,7 +5605,7 @@ propertyContentEl?.addEventListener("click", async (event) => {
       properties.delegations = sanitizeSubnetDelegations(properties.delegations);
     }
 
-    if (["addressPrefixes", "dnsServers", "serviceEndpoints", "serviceEndpointPolicyNames"].includes(fieldName)) {
+    if (["addressPrefixes", "dnsServers", "serviceEndpoints"].includes(fieldName)) {
       properties[fieldName] = sanitizeStringList(properties[fieldName], {
         allowCsv: true,
         maxItems: 40,
@@ -5440,6 +5675,56 @@ propertyContentEl?.addEventListener("click", async (event) => {
 
 propertyContentEl?.addEventListener("change", (event) => {
   const target = event.target;
+
+  if (target.matches("[data-subnet-list-field]") && state.selectedResource) {
+    const selectedItem = getItemById(state.selectedResource);
+    if (!selectedItem) {
+      return;
+    }
+
+    const properties = ensureItemProperties(selectedItem);
+    const fieldName = String(target.dataset.subnetListField || "");
+    const index = Number.parseInt(target.dataset.listIndex || "-1", 10);
+    if (!fieldName || !Number.isInteger(index) || index < 0) {
+      return;
+    }
+
+    if (fieldName === "serviceEndpoints") {
+      const editableRows = buildEditableStringRows(properties.serviceEndpoints, {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true
+      });
+      if (Object.prototype.hasOwnProperty.call(editableRows, index)) {
+        editableRows[index] = String(target.value || "");
+      }
+
+      properties.serviceEndpoints = sanitizeStringList(editableRows, {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true
+      });
+      updatePropertyPanelForSelection();
+      persistCanvasLocal();
+      return;
+    }
+
+    if (fieldName === "delegationServices") {
+      const editableRows = buildEditableStringRows(extractDelegationServiceNames(properties.delegations), {
+        maxItems: 40,
+        maxLength: 120,
+        allowCsv: true
+      });
+      if (Object.prototype.hasOwnProperty.call(editableRows, index)) {
+        editableRows[index] = String(target.value || "");
+      }
+
+      properties.delegations = buildDelegationsFromServiceNames(editableRows);
+      updatePropertyPanelForSelection();
+      persistCanvasLocal();
+      return;
+    }
+  }
 
   if (target.matches("[data-resource-tag-field]") && state.selectedResource) {
     const selectedItem = getItemById(state.selectedResource);
