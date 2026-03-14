@@ -57,3 +57,20 @@ Azure SQL → SQL Database
 Log Analytics Workspaces → Application Insights, Container Apps Environments, Kubernetes Services
 Container Registries → Container Instances, Kubernetes Services
 Availability Sets → Virtual Machine
+
+
+
+
+use azure MCP tools
+cloudarchitect_design gives the architecture-level reasoning.
+get_bestpractices_get gives Azure-grounded guidance to keep the review aligned with Azure recommendations.
+
+
+This section needs 2 things:
+
+Make the space big enough to see everything because right now text is overflowing the area.
+There should be a bit of padding between the edges of the collapsible section and the edges of the panel section that has it.
+In summary, the user wants:
+
+The provenance ("How validation was produced") section to expand or have enough height so all text is visible (no overflow/clipping).
+More padding (spacing) inside the collapsible section so the content doesn't touch the edges.
