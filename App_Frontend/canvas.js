@@ -97,6 +97,12 @@ let validationStatusState = null;
 let validationResultState = null;
 let validationExpandedSeverity = null;
 let validationRunInFlight = false;
+// Live runtime status for validation steps
+let validationRuntimeState = {
+  model: 'idle',
+  mcp: 'idle',
+  agent: 'idle',
+};
 const validationFixInFlightFindingIds = new Set();
 const validationFixStatusByFindingId = new Map();
 const tabGroups = Array.from(document.querySelectorAll('[role="tablist"]'))
@@ -5486,6 +5492,12 @@ async function requestArchitectureValidation(canvasStatePayload) {
     throw new Error("Unable to validate architecture: missing project ID.");
   }
 
+  // Set runtime states to running
+  validationRuntimeState.model = 'running';
+  validationRuntimeState.mcp = 'idle';
+  validationRuntimeState.agent = 'idle';
+  renderValidationTipsPanel();
+
   const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/architecture/validation/run`, {
     method: "POST",
     headers: {
@@ -5505,8 +5517,31 @@ async function requestArchitectureValidation(canvasStatePayload) {
 
   if (!response.ok) {
     const detail = payload?.detail ? String(payload.detail) : "Architecture validation request failed.";
+    validationRuntimeState.model = 'failed';
+    validationRuntimeState.mcp = 'failed';
+    validationRuntimeState.agent = 'failed';
+    renderValidationTipsPanel();
     throw new Error(detail);
   }
+
+  // Parse evaluation steps for live status
+  const steps = payload?.evaluation?.steps || [];
+  // Reset all to completed by default
+  validationRuntimeState.model = 'completed';
+  validationRuntimeState.mcp = 'completed';
+  validationRuntimeState.agent = 'completed';
+  for (const step of steps) {
+    if (step.name === 'azure-mcp') {
+      validationRuntimeState.mcp = step.state === 'running' ? 'running' : (step.state === 'failed' ? 'failed' : 'completed');
+    }
+    if (step.name === 'thinking-model') {
+      validationRuntimeState.agent = step.state === 'running' ? 'running' : (step.state === 'failed' ? 'failed' : 'completed');
+    }
+    if (step.name === 'model') {
+      validationRuntimeState.model = step.state === 'running' ? 'running' : (step.state === 'failed' ? 'failed' : 'completed');
+    }
+  }
+  renderValidationTipsPanel();
 
   return payload;
 }
@@ -5621,6 +5656,19 @@ function renderValidationTipsPanel() {
     return;
   }
 
+  // Helper for live status
+  function renderLiveStatus(label, state) {
+    let colorClass = '';
+    let text = '';
+    switch (state) {
+      case 'running': colorClass = 'chat-runtime-value--warn'; text = 'Running'; break;
+      case 'completed': colorClass = 'chat-runtime-value--ok'; text = 'Completed'; break;
+      case 'failed': colorClass = 'chat-runtime-value--error'; text = 'Failed'; break;
+      default: colorClass = ''; text = 'Idle'; break;
+    }
+    return `<div class="validation-runtime__row"><span class="validation-runtime__label">${escapeHtml(label)}</span><span class="status-ai-value ${colorClass}">${text}</span></div>`;
+  }
+
   const status = validationStatusState && typeof validationStatusState === "object"
     ? validationStatusState
     : {};
@@ -5716,12 +5764,35 @@ function renderValidationTipsPanel() {
     ].join("");
   }).join("");
 
+  // Provenance trace (step-by-step)
+  let provenanceMarkup = '';
+  if (result?.evaluation && Array.isArray(result.evaluation.steps)) {
+    provenanceMarkup = [
+      '<details class="validation-provenance" id="validation-provenance-details">',
+      '<summary class="validation-provenance__summary">How validation was produced</summary>',
+      '<ol class="validation-provenance__list">',
+      result.evaluation.steps.map((step, idx) => {
+        const name = escapeHtml(step.name || `Step ${idx+1}`);
+        const state = escapeHtml(step.state || 'unknown');
+        const desc = escapeHtml(step.description || '');
+        let stateClass = '';
+        if (state === 'running') stateClass = 'chat-runtime-value--warn';
+        else if (state === 'failed') stateClass = 'chat-runtime-value--error';
+        else if (state === 'completed') stateClass = 'chat-runtime-value--ok';
+        return `<li class="validation-provenance__item"><span class="validation-provenance__step">${name}</span> <span class="validation-provenance__state ${stateClass}">${state.charAt(0).toUpperCase()+state.slice(1)}</span>${desc ? `<div class="validation-provenance__desc">${desc}</div>` : ''}</li>`;
+      }).join(''),
+      '</ol>',
+      '</details>'
+    ].join('');
+  }
+
   tipsContentEl.innerHTML = [
     '<div class="validation-runtime">',
-    `<div class="validation-runtime__row"><span class="validation-runtime__label">Model</span><span class="status-ai-value">${escapeHtml(modelName)}</span></div>`,
-    `<div class="validation-runtime__row"><span class="validation-runtime__label">Azure MCP</span><span class="status-ai-value ${mcpLabel.tone === "ok" ? "chat-runtime-value--ok" : (mcpLabel.tone === "error" ? "chat-runtime-value--error" : "chat-runtime-value--warn")}">${escapeHtml(mcpLabel.text)}</span></div>`,
-    `<div class="validation-runtime__row"><span class="validation-runtime__label">Validation Agent</span><span class="status-ai-value ${foundryLabel.tone === "ok" ? "chat-runtime-value--ok" : (foundryLabel.tone === "error" ? "chat-runtime-value--error" : "chat-runtime-value--warn")}">${escapeHtml(foundryLabel.text)}</span></div>`,
+    renderLiveStatus('Model', validationRuntimeState.model),
+    renderLiveStatus('Azure MCP', validationRuntimeState.mcp),
+    renderLiveStatus('Validation Agent', validationRuntimeState.agent),
     "</div>",
+    provenanceMarkup,
     '<div class="validation-summary">',
     `<span class="validation-summary__item">Failure <strong class="chat-runtime-value--error">${summary.failure}</strong></span>`,
     `<span class="validation-summary__item">Warning <strong class="chat-runtime-value--warn">${summary.warning}</strong></span>`,

@@ -197,6 +197,7 @@ def _deterministic_findings(
     items: list[dict[str, Any]],
     connections: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
+
     findings: list[dict[str, Any]] = []
     item_by_id = {str(item.get("id") or "").strip(): item for item in items}
 
@@ -207,6 +208,21 @@ def _deterministic_findings(
         if location:
             fallback_location = location
             break
+
+    # Helper: Identify Azure container resources (resource group, vnet, subnet, etc.)
+    def is_azure_container(item):
+        rtype = str(item.get("resourceType") or "").lower()
+        return any(
+            key in rtype
+            for key in ["resource group", "resource_group", "vnet", "virtual network", "subnet", "container group", "container app environment", "aks", "kubernetes", "app service plan"]
+        )
+
+    # Build containment map: parent_id -> set(child_id)
+    containment = {}
+    for item in items:
+        parent_id = str(item.get("parentId") or "").strip()
+        if parent_id:
+            containment.setdefault(parent_id, set()).add(str(item.get("id") or "").strip())
 
     for index, item in enumerate(items):
         item_id = str(item.get("id") or "").strip()
@@ -263,6 +279,7 @@ def _deterministic_findings(
                 }
             )
 
+        # Azure-aware: Only flag as isolated if not a container, or container with no children and no links
         linked = False
         for connection in connections:
             from_id = str(connection.get("fromId") or "").strip()
@@ -270,7 +287,9 @@ def _deterministic_findings(
             if from_id == item_id or to_id == item_id:
                 linked = True
                 break
-        if not linked:
+
+        has_children = item_id in containment and len(containment[item_id]) > 0
+        if not linked and not (is_azure_container(item) and has_children):
             findings.append(
                 {
                     "severity": "info",
@@ -679,6 +698,28 @@ def _extract_and_normalize_findings(
     return findings
 
 
+def _serialize_findings_for_reasoning_context(
+    findings: list[dict[str, Any]],
+    *,
+    limit: int = 12,
+) -> list[dict[str, Any]]:
+    serialized: list[dict[str, Any]] = []
+    for finding in findings[:limit]:
+        if not isinstance(finding, Mapping):
+            continue
+        serialized.append(
+            {
+                "id": str(finding.get("id") or "").strip(),
+                "severity": _normalize_severity(finding.get("severity")),
+                "title": str(finding.get("title") or "").strip(),
+                "message": str(finding.get("message") or "").strip(),
+                "target": _trim_value(finding.get("target") if isinstance(finding.get("target"), Mapping) else {}),
+                "fix": _trim_value(finding.get("fix") if isinstance(finding.get("fix"), Mapping) else {}),
+            }
+        )
+    return serialized
+
+
 async def _invoke_mcp_validation(credentials: AzureMcpCredentials, args: dict[str, Any]) -> Any:
     _log_validation_event(
         "mcp.validation",
@@ -861,6 +902,7 @@ def _collect_findings_from_reasoning_model(
     architecture_context: Mapping[str, Any],
     valid_resource_ids: set[str],
     valid_connection_ids: set[str],
+    mcp_findings: list[dict[str, Any]] | None,
     foundry_agent_id: str | None,
     foundry_thread_id: str | None,
 ) -> tuple[list[dict[str, Any]], ValidationDiagnostics]:
@@ -917,15 +959,24 @@ def _collect_findings_from_reasoning_model(
         api_version=base_connection.api_version,
     )
 
+    serialized_mcp_findings = _serialize_findings_for_reasoning_context(
+        mcp_findings if isinstance(mcp_findings, list) else [],
+        limit=12,
+    )
+
     prompt = "\n".join(
         [
-            "You are validating an Azure architecture diagram.",
+            "You are an Azure principal cloud architect validating an Azure architecture diagram.",
             "Return strict JSON only.",
             "Schema:",
-            '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}}],"summary":"..."}',
+            '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}},...],"summary":"...","provenance":[{"step":"mcp","explanation":"..."},{"step":"best-practices","explanation":"..."},{"step":"reasoning","explanation":"..."}]}',
             "Use only IDs present in the architecture context below.",
-            "Focus on Azure Well-Architected guidance and Azure best-practice correctness.",
+            "Use Azure Well-Architected guidance and Azure service-specific best-practice correctness.",
+            "Treat Azure MCP findings as first-class evidence: verify, refine, and augment them. For each finding, include a provenance trace: which step (MCP, best-practices, reasoning) contributed to the finding, and a short explanation for each step.",
+            "Avoid generic graph-only advice; reason using Azure resource properties, containment, and relationships.",
             "Keep findings actionable and concise.",
+            "Azure MCP findings context:",
+            json.dumps(serialized_mcp_findings, ensure_ascii=False),
             "Architecture context:",
             json.dumps(architecture_context, ensure_ascii=False),
         ]
@@ -947,7 +998,7 @@ def _collect_findings_from_reasoning_model(
         )
         return findings, ValidationDiagnostics(
             connection_state="connected",
-            explanation="Reasoning-model validation completed.",
+            explanation=f"Reasoning-model validation completed with MCP context ({len(serialized_mcp_findings)} findings provided).",
             finding_count=len(findings),
         )
     except Exception as exc:
@@ -1014,13 +1065,48 @@ def run_architecture_validation_agent(
         project_id=safe_project_id,
     )
 
+    _log_validation_event(
+        "validation.channel",
+        level="info" if mcp_diagnostics.connection_state == "connected" else "warning",
+        step="azure-mcp",
+        project_id=safe_project_id,
+        details={
+            "projectName": safe_project_name,
+            "validationRunId": run_id,
+            "state": mcp_diagnostics.connection_state,
+            "findingCount": mcp_diagnostics.finding_count,
+            "explanation": mcp_diagnostics.explanation,
+        },
+    )
+
     model_findings, model_diagnostics = _collect_findings_from_reasoning_model(
         app_settings=app_settings,
         architecture_context=architecture_context,
         valid_resource_ids=valid_resource_ids,
         valid_connection_ids=valid_connection_ids,
+        mcp_findings=mcp_findings,
         foundry_agent_id=foundry_agent_id,
         foundry_thread_id=foundry_thread_id,
+    )
+
+    _log_validation_event(
+        "validation.channel",
+        level="info" if model_diagnostics.connection_state == "connected" else "warning",
+        step="thinking-model",
+        project_id=safe_project_id,
+        details={
+            "projectName": safe_project_name,
+            "validationRunId": run_id,
+            "state": model_diagnostics.connection_state,
+            "findingCount": model_diagnostics.finding_count,
+            "explanation": model_diagnostics.explanation,
+            "usedMcpContext": bool(mcp_findings),
+        },
+    )
+
+    dual_pass_complete = (
+        mcp_diagnostics.connection_state == "connected"
+        and model_diagnostics.connection_state == "connected"
     )
 
     normalized: list[dict[str, Any]] = []
@@ -1057,12 +1143,32 @@ def run_architecture_validation_agent(
             "infoCount": summary["info"],
             "mcpState": mcp_diagnostics.connection_state,
             "reasoningState": model_diagnostics.connection_state,
+            "dualPassComplete": dual_pass_complete,
         },
     )
 
     return {
         "ok": True,
         "runId": run_id,
+        "evaluation": {
+            "mode": "azure-dual-pass",
+            "dualPassComplete": dual_pass_complete,
+            "steps": [
+                {
+                    "name": "azure-mcp",
+                    "state": mcp_diagnostics.connection_state,
+                    "findingCount": mcp_diagnostics.finding_count,
+                    "explanation": mcp_diagnostics.explanation,
+                },
+                {
+                    "name": "thinking-model",
+                    "state": model_diagnostics.connection_state,
+                    "findingCount": model_diagnostics.finding_count,
+                    "explanation": model_diagnostics.explanation,
+                    "usedMcpContext": True,
+                },
+            ],
+        },
         "summary": summary,
         "findings": deduped,
         "groups": grouped,
@@ -1081,6 +1187,7 @@ def run_architecture_validation_agent(
                 "connectionState": model_diagnostics.connection_state,
                 "findingCount": model_diagnostics.finding_count,
                 "explanation": model_diagnostics.explanation,
+                "usedMcpContext": True,
             },
         },
     }
