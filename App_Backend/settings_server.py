@@ -322,6 +322,13 @@ def _timestamp_utc_text() -> str:
     return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
 
+def _truncate_log_text(value: Any, *, max_chars: int = 360) -> str:
+    text = str(value or "").strip()
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
+
 def _write_project_validation_text_log(
     project_dir: Path,
     *,
@@ -2852,13 +2859,10 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
             "step": safe_step_name,
             "state": str(raw_step.get("state") or "").strip(),
             "findingCount": int(raw_step.get("findingCount") or 0),
-            "explanation": str(raw_step.get("explanation") or "").strip(),
+            "durationMs": int(raw_step.get("durationMs") or 0),
+            "explanation": _truncate_log_text(raw_step.get("explanation") or ""),
         }
 
-        if isinstance(raw_step.get("tools"), list):
-            step_details["tools"] = raw_step.get("tools")
-        if isinstance(raw_step.get("details"), Mapping):
-            step_details["details"] = raw_step.get("details")
         if "usedMcpContext" in raw_step:
             step_details["usedMcpContext"] = bool(raw_step.get("usedMcpContext"))
 
@@ -2866,6 +2870,61 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
             f"validation.step.{safe_step_name}.completed",
             step_details,
         )
+
+        step_tools = raw_step.get("tools") if isinstance(raw_step.get("tools"), list) else []
+        for tool in step_tools:
+            if not isinstance(tool, Mapping):
+                continue
+
+            tool_label = str(tool.get("label") or tool.get("selectedTool") or "tool").strip()
+            _record_validation_text_event(
+                f"validation.step.{safe_step_name}.tool.completed",
+                {
+                    "projectName": project_name,
+                    "validationRunId": str(result.get("runId") or validation_run_id),
+                    "step": safe_step_name,
+                    "label": tool_label,
+                    "selectedTool": str(tool.get("selectedTool") or "").strip(),
+                    "status": str(tool.get("status") or "").strip(),
+                    "findingCount": int(tool.get("findingCount") or 0),
+                    "attemptCount": int(tool.get("attemptCount") or 0),
+                    "durationMs": int(tool.get("durationMs") or 0),
+                    "error": _truncate_log_text(tool.get("error") or "", max_chars=240),
+                },
+            )
+
+            attempts = tool.get("attempts") if isinstance(tool.get("attempts"), list) else []
+            for attempt in attempts:
+                if not isinstance(attempt, Mapping):
+                    continue
+
+                _record_validation_text_event(
+                    f"validation.step.{safe_step_name}.tool.attempt",
+                    {
+                        "projectName": project_name,
+                        "validationRunId": str(result.get("runId") or validation_run_id),
+                        "step": safe_step_name,
+                        "label": tool_label,
+                        "tool": str(attempt.get("tool") or "").strip(),
+                        "variantIndex": int(attempt.get("variantIndex") or 0),
+                        "status": str(attempt.get("status") or "").strip(),
+                        "durationMs": int(attempt.get("durationMs") or 0),
+                        "argKeys": attempt.get("argKeys") if isinstance(attempt.get("argKeys"), list) else [],
+                        "payloadType": str(attempt.get("payloadType") or "").strip(),
+                        "error": _truncate_log_text(attempt.get("error") or "", max_chars=220),
+                    },
+                )
+
+        if isinstance(raw_step.get("details"), Mapping):
+            _record_validation_text_event(
+                f"validation.step.{safe_step_name}.details",
+                {
+                    "projectName": project_name,
+                    "validationRunId": str(result.get("runId") or validation_run_id),
+                    "step": safe_step_name,
+                    "details": raw_step.get("details"),
+                },
+            )
 
     aggregation_payload = result.get("aggregation") if isinstance(result.get("aggregation"), Mapping) else {}
     if aggregation_payload:
@@ -2875,6 +2934,17 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
                 "projectName": project_name,
                 "validationRunId": str(result.get("runId") or validation_run_id),
                 "counts": aggregation_payload,
+            },
+        )
+
+    timing_payload = result.get("timing") if isinstance(result.get("timing"), Mapping) else {}
+    if timing_payload:
+        _record_validation_text_event(
+            "validation.timing.completed",
+            {
+                "projectName": project_name,
+                "validationRunId": str(result.get("runId") or validation_run_id),
+                "durationsMs": timing_payload,
             },
         )
 

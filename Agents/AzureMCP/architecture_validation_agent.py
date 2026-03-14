@@ -106,6 +106,13 @@ def _truncate_text(value: Any, *, max_chars: int = 900) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
+def _duration_ms(start_perf: float) -> int:
+    elapsed = (time.perf_counter() - float(start_perf)) * 1000.0
+    if elapsed < 0:
+        return 0
+    return int(elapsed)
+
+
 def _is_mcp_guidance_text(value: Any) -> bool:
     text = str(value or "").strip().lower()
     if not text:
@@ -892,6 +899,7 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
     for tool_name in candidates:
         for variant_index, args in enumerate(argument_variants, start=1):
             call_args = dict(args or {})
+            attempt_started_at = time.perf_counter()
             attempt_record: dict[str, Any] = {
                 "tool": tool_name,
                 "variantIndex": variant_index,
@@ -911,6 +919,7 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     last_error = "Tool returned MCP guidance text instead of actionable data."
                     attempt_record["status"] = "guidance"
                     attempt_record["error"] = last_error
+                    attempt_record["durationMs"] = _duration_ms(attempt_started_at)
                     attempts.append(attempt_record)
                     _log_validation_event(
                         "mcp.validation",
@@ -927,6 +936,7 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                 payload = _extract_json_from_text(payload_text)
                 attempt_record["status"] = "success"
                 attempt_record["payloadType"] = "json" if payload is not None else "text"
+                attempt_record["durationMs"] = _duration_ms(attempt_started_at)
                 attempts.append(attempt_record)
                 return McpToolResponse(
                     label=request.label,
@@ -938,6 +948,7 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                 last_error = str(exc)
                 attempt_record["status"] = "error"
                 attempt_record["error"] = _truncate_text(last_error, max_chars=240)
+                attempt_record["durationMs"] = _duration_ms(attempt_started_at)
                 attempts.append(attempt_record)
                 _log_validation_event(
                     "mcp.validation",
@@ -1125,6 +1136,8 @@ def _collect_findings_from_mcp(
             ),
         )
 
+    mcp_started_at = time.perf_counter()
+
     try:
         tool_responses = _run_async(_invoke_mcp_validation(credentials, tool_requests))
 
@@ -1147,13 +1160,21 @@ def _collect_findings_from_mcp(
             )
 
         for response in tool_responses:
+            attempt_rows = response.attempts if isinstance(response.attempts, list) else []
+            tool_duration_ms = 0
+            for row in attempt_rows:
+                if isinstance(row, Mapping):
+                    tool_duration_ms += int(row.get("durationMs") or 0)
+
             step_summary: dict[str, Any] = {
                 "label": response.label,
                 "selectedTool": response.tool_name,
                 "status": "failed" if response.error else "completed",
                 "findingCount": 0,
                 "error": _truncate_text(response.error, max_chars=240) if response.error else "",
-                "attempts": response.attempts if isinstance(response.attempts, list) else [],
+                "attemptCount": len(attempt_rows),
+                "durationMs": tool_duration_ms,
+                "attempts": attempt_rows,
             }
             if response.error:
                 explanation_parts.append(f"{response.label}: failed ({response.error})")
@@ -1185,6 +1206,7 @@ def _collect_findings_from_mcp(
                 details={
                     "tools": tool_summaries,
                     "requestCount": len(tool_requests),
+                    "totalDurationMs": _duration_ms(mcp_started_at),
                 },
             )
 
@@ -1199,6 +1221,7 @@ def _collect_findings_from_mcp(
             details={
                 "tools": tool_summaries,
                 "requestCount": len(tool_requests),
+                "totalDurationMs": _duration_ms(mcp_started_at),
             },
         )
     except Exception as exc:
@@ -1209,6 +1232,7 @@ def _collect_findings_from_mcp(
             details={
                 "tools": [],
                 "requestCount": len(tool_requests),
+                "totalDurationMs": _duration_ms(mcp_started_at),
             },
         )
 
@@ -1223,6 +1247,7 @@ def _collect_findings_from_reasoning_model(
     foundry_agent_id: str | None,
     foundry_thread_id: str | None,
 ) -> tuple[list[dict[str, Any]], ValidationDiagnostics]:
+    reasoning_started_at = time.perf_counter()
     provider = str(app_settings.get("modelProvider") or "").strip().lower()
     if provider != "azure-foundry":
         return [], ValidationDiagnostics(
@@ -1231,6 +1256,7 @@ def _collect_findings_from_reasoning_model(
             finding_count=0,
             details={
                 "provider": provider,
+                "durationMs": 0,
             },
         )
 
@@ -1249,6 +1275,7 @@ def _collect_findings_from_reasoning_model(
             details={
                 "provider": provider,
                 "modelDeployment": "",
+                "durationMs": 0,
             },
         )
 
@@ -1267,6 +1294,7 @@ def _collect_findings_from_reasoning_model(
                 "modelDeployment": model_name,
                 "assistantId": safe_agent_id,
                 "threadId": safe_thread_id,
+                "durationMs": 0,
             },
         )
 
@@ -1281,6 +1309,7 @@ def _collect_findings_from_reasoning_model(
                 "modelDeployment": model_name,
                 "assistantId": safe_agent_id,
                 "threadId": safe_thread_id,
+                "durationMs": 0,
             },
         )
 
@@ -1341,6 +1370,7 @@ def _collect_findings_from_reasoning_model(
                 "assistantId": safe_agent_id,
                 "threadId": safe_thread_id,
                 "mcpContextCount": len(serialized_mcp_findings),
+                "durationMs": _duration_ms(reasoning_started_at),
             },
         )
     except Exception as exc:
@@ -1353,6 +1383,7 @@ def _collect_findings_from_reasoning_model(
                 "assistantId": safe_agent_id,
                 "threadId": safe_thread_id,
                 "mcpContextCount": len(serialized_mcp_findings),
+                "durationMs": _duration_ms(reasoning_started_at),
             },
         )
 
@@ -1367,6 +1398,7 @@ def run_architecture_validation_agent(
     foundry_thread_id: str | None = None,
     validation_run_id: str | None = None,
 ) -> dict[str, Any]:
+    run_started_at = time.perf_counter()
     safe_project_name = _normalize_string(project_name, "Project")
     safe_project_id = _normalize_string(project_id)
     run_id = _normalize_string(validation_run_id)
@@ -1403,8 +1435,11 @@ def run_architecture_validation_agent(
         project_id=safe_project_id,
     )
 
+    deterministic_started_at = time.perf_counter()
     deterministic = _deterministic_findings(items=items, connections=connections)
+    deterministic_duration_ms = _duration_ms(deterministic_started_at)
 
+    mcp_started_at = time.perf_counter()
     mcp_findings, mcp_diagnostics = _collect_findings_from_mcp(
         app_settings=app_settings,
         architecture_context=architecture_context,
@@ -1412,6 +1447,7 @@ def run_architecture_validation_agent(
         valid_connection_ids=valid_connection_ids,
         project_id=safe_project_id,
     )
+    mcp_duration_ms = _duration_ms(mcp_started_at)
 
     _log_validation_event(
         "validation.channel",
@@ -1427,6 +1463,7 @@ def run_architecture_validation_agent(
         },
     )
 
+    model_started_at = time.perf_counter()
     model_findings, model_diagnostics = _collect_findings_from_reasoning_model(
         app_settings=app_settings,
         architecture_context=architecture_context,
@@ -1436,6 +1473,7 @@ def run_architecture_validation_agent(
         foundry_agent_id=foundry_agent_id,
         foundry_thread_id=foundry_thread_id,
     )
+    model_duration_ms = _duration_ms(model_started_at)
 
     _log_validation_event(
         "validation.channel",
@@ -1457,6 +1495,7 @@ def run_architecture_validation_agent(
         and model_diagnostics.connection_state == "connected"
     )
 
+    aggregation_started_at = time.perf_counter()
     normalized: list[dict[str, Any]] = []
     for idx, finding in enumerate(deterministic + mcp_findings + model_findings):
         normalized_finding = _normalize_finding(
@@ -1473,6 +1512,24 @@ def run_architecture_validation_agent(
     mcp_details = mcp_diagnostics.details if isinstance(mcp_diagnostics.details, Mapping) else {}
     model_details = model_diagnostics.details if isinstance(model_diagnostics.details, Mapping) else {}
     mcp_tools = mcp_details.get("tools") if isinstance(mcp_details.get("tools"), list) else []
+    effective_mcp_duration_ms = int(mcp_details.get("totalDurationMs") or 0) if isinstance(mcp_details, Mapping) else 0
+    if effective_mcp_duration_ms <= 0:
+        effective_mcp_duration_ms = mcp_duration_ms
+
+    effective_model_duration_ms = int(model_details.get("durationMs") or 0) if isinstance(model_details, Mapping) else 0
+    if effective_model_duration_ms <= 0:
+        effective_model_duration_ms = model_duration_ms
+
+    aggregation_duration_ms = _duration_ms(aggregation_started_at)
+    total_duration_ms = _duration_ms(run_started_at)
+
+    timing = {
+        "deterministicMs": deterministic_duration_ms,
+        "mcpMs": effective_mcp_duration_ms,
+        "reasoningMs": effective_model_duration_ms,
+        "aggregationMs": aggregation_duration_ms,
+        "totalMs": total_duration_ms,
+    }
 
     aggregation = {
         "resourceCount": len(items),
@@ -1521,6 +1578,7 @@ def run_architecture_validation_agent(
                     "state": mcp_diagnostics.connection_state,
                     "findingCount": mcp_diagnostics.finding_count,
                     "explanation": mcp_diagnostics.explanation,
+                    "durationMs": effective_mcp_duration_ms,
                     "tools": mcp_tools,
                 },
                 {
@@ -1528,12 +1586,14 @@ def run_architecture_validation_agent(
                     "state": model_diagnostics.connection_state,
                     "findingCount": model_diagnostics.finding_count,
                     "explanation": model_diagnostics.explanation,
+                    "durationMs": effective_model_duration_ms,
                     "usedMcpContext": bool(mcp_findings),
                     "details": model_details,
                 },
             ],
         },
         "aggregation": aggregation,
+        "timing": timing,
         "summary": summary,
         "findings": deduped,
         "groups": grouped,
@@ -1542,17 +1602,20 @@ def run_architecture_validation_agent(
                 "connectionState": "connected",
                 "findingCount": len(deterministic),
                 "explanation": "Deterministic architecture checks completed.",
+                "durationMs": deterministic_duration_ms,
             },
             "azureMcp": {
                 "connectionState": mcp_diagnostics.connection_state,
                 "findingCount": mcp_diagnostics.finding_count,
                 "explanation": mcp_diagnostics.explanation,
+                "durationMs": effective_mcp_duration_ms,
                 "tools": mcp_tools,
             },
             "reasoningModel": {
                 "connectionState": model_diagnostics.connection_state,
                 "findingCount": model_diagnostics.finding_count,
                 "explanation": model_diagnostics.explanation,
+                "durationMs": effective_model_duration_ms,
                 "usedMcpContext": bool(mcp_findings),
                 "details": model_details,
             },
