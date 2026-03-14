@@ -5150,20 +5150,6 @@ function normalizeValidationGroups(result) {
   return grouped;
 }
 
-function resolvePreferredValidationSeverity(groups) {
-  if (validationExpandedSeverity && VALIDATION_SEVERITY_ORDER.includes(validationExpandedSeverity)) {
-    return validationExpandedSeverity;
-  }
-
-  for (const severity of VALIDATION_SEVERITY_ORDER) {
-    if (Array.isArray(groups?.[severity]) && groups[severity].length) {
-      return severity;
-    }
-  }
-
-  return "failure";
-}
-
 function summarizeValidationCounts(groups) {
   const failure = Array.isArray(groups?.failure) ? groups.failure.length : 0;
   const warning = Array.isArray(groups?.warning) ? groups.warning.length : 0;
@@ -5692,7 +5678,6 @@ function renderValidationTipsPanel() {
   }
 
   const groups = normalizeValidationGroups(result || {});
-  validationExpandedSeverity = resolvePreferredValidationSeverity(groups);
   const summary = normalizeValidationSummary(result || {}, groups);
 
   const modelConfig = status?.model && typeof status.model === "object"
@@ -5876,6 +5861,8 @@ async function runArchitectureValidation() {
 
   validationRunInFlight = true;
   validationResultState = null;
+  validationExpandedSeverity = null;
+  validationExpandedProvenance = false;
   validationFixStatusByFindingId.clear();
   validationFixInFlightFindingIds.clear();
   setValidateButtonBusy(true);
@@ -5890,7 +5877,6 @@ async function runArchitectureValidation() {
     validationResultState = result && typeof result === "object" ? result : {};
 
     const groups = normalizeValidationGroups(validationResultState || {});
-    validationExpandedSeverity = resolvePreferredValidationSeverity(groups);
     renderValidationTipsPanel();
     setActiveTabByName("tips");
 
