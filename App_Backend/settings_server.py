@@ -318,6 +318,42 @@ def _timestamp_ms() -> int:
     return int(time.time() * 1000)
 
 
+def _timestamp_utc_text() -> str:
+    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+
+def _write_project_validation_text_log(
+    project_dir: Path,
+    *,
+    project_id: str,
+    project_name: str,
+    validation_run_id: str,
+    events: list[dict[str, Any]],
+) -> Path:
+    documentation_dir = project_dir / "Documentation"
+    documentation_dir.mkdir(parents=True, exist_ok=True)
+    target_path = documentation_dir / "validation.log"
+
+    lines: list[str] = [
+        f"timestamp={_timestamp_utc_text()} activity=validation.log.created details={json.dumps({'projectId': project_id, 'projectName': project_name, 'validationRunId': validation_run_id}, ensure_ascii=False)}"
+    ]
+
+    for event in events:
+        if not isinstance(event, Mapping):
+            continue
+        event_timestamp = str(event.get("timestamp") or _timestamp_utc_text()).strip() or _timestamp_utc_text()
+        activity = str(event.get("activity") or "validation.event").strip() or "validation.event"
+        details = event.get("details")
+        if isinstance(details, (Mapping, list)):
+            details_text = json.dumps(details, ensure_ascii=False)
+        else:
+            details_text = str(details or "").strip()
+        lines.append(f"timestamp={event_timestamp} activity={activity} details={details_text}")
+
+    target_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return target_path
+
+
 def _sanitize_iac_stage_detail_items(value: Any) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
@@ -2614,12 +2650,43 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
     if not isinstance(canvas_state, dict):
         canvas_state = {}
 
-    validation_run_id = str(body.validationRunId if body else "").strip() if body else ""
+    validation_run_id = ""
+    if body:
+        validation_run_id = str(body.validationRunId or "").strip()
     if not validation_run_id:
         validation_run_id = f"val-{_timestamp_ms()}-{uuid4().hex[:6]}"
 
     resource_count, connection_count = _canvas_entity_counts(canvas_state)
     state_hash = compute_canvas_state_hash(canvas_state)
+
+    validation_text_events: list[dict[str, Any]] = []
+
+    def _record_validation_text_event(activity: str, details: Any) -> None:
+        safe_activity = str(activity or "validation.event").strip() or "validation.event"
+        if isinstance(details, (Mapping, list)):
+            safe_details: Any = details
+        else:
+            safe_details = {"value": str(details or "").strip()}
+        validation_text_events.append(
+            {
+                "timestamp": _timestamp_utc_text(),
+                "activity": safe_activity,
+                "details": safe_details,
+            }
+        )
+
+    _record_validation_text_event(
+        "validation.run.requested",
+        {
+            "projectName": project_name,
+            "validationRunId": validation_run_id,
+            "resourceCount": resource_count,
+            "connectionCount": connection_count,
+            "stateHash": state_hash,
+            "foundryAgentId": foundry_agent_id or "",
+            "foundryThreadId": foundry_thread_id or "",
+        },
+    )
 
     _append_app_activity(
         "validation.run",
@@ -2648,6 +2715,15 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         project_name=project_name,
         detail="Dispatching current canvas to validation agent.",
         child_agent_id=foundry_agent_id,
+    )
+
+    _record_validation_text_event(
+        "validation.run.dispatch",
+        {
+            "message": "Dispatching current canvas to validation agent.",
+            "foundryThreadId": foundry_thread_id,
+            "foundryAgentId": foundry_agent_id or "",
+        },
     )
 
     _record_validation_thread_payload(
@@ -2704,7 +2780,34 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
                 "error": str(exc),
             },
         )
-        raise HTTPException(status_code=500, detail=f"Architecture validation failed: {exc}") from exc
+
+        _record_validation_text_event(
+            "validation.run.failed",
+            {
+                "projectName": project_name,
+                "validationRunId": validation_run_id,
+                "error": str(exc),
+            },
+        )
+
+        validation_log_path = _write_project_validation_text_log(
+            entry["projectDir"],
+            project_id=entry["id"],
+            project_name=project_name,
+            validation_run_id=validation_run_id,
+            events=validation_text_events,
+        )
+
+        safe_log_ref = str(validation_log_path)
+        try:
+            safe_log_ref = str(validation_log_path.relative_to(WORKSPACE_ROOT))
+        except Exception:
+            safe_log_ref = str(validation_log_path)
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Architecture validation failed: {exc}. Validation log: {safe_log_ref}",
+        ) from exc
 
     _record_validation_thread_payload(
         settings,
@@ -2734,6 +2837,47 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
     )
 
     summary_payload = result.get("summary") if isinstance(result.get("summary"), Mapping) else {}
+    evaluation_payload = result.get("evaluation") if isinstance(result.get("evaluation"), Mapping) else {}
+    evaluation_steps = evaluation_payload.get("steps") if isinstance(evaluation_payload.get("steps"), list) else []
+
+    for raw_step in evaluation_steps:
+        if not isinstance(raw_step, Mapping):
+            continue
+
+        raw_step_name = str(raw_step.get("name") or "step").strip().lower()
+        safe_step_name = re.sub(r"[^a-z0-9_-]+", "-", raw_step_name).strip("-") or "step"
+        step_details: dict[str, Any] = {
+            "projectName": project_name,
+            "validationRunId": str(result.get("runId") or validation_run_id),
+            "step": safe_step_name,
+            "state": str(raw_step.get("state") or "").strip(),
+            "findingCount": int(raw_step.get("findingCount") or 0),
+            "explanation": str(raw_step.get("explanation") or "").strip(),
+        }
+
+        if isinstance(raw_step.get("tools"), list):
+            step_details["tools"] = raw_step.get("tools")
+        if isinstance(raw_step.get("details"), Mapping):
+            step_details["details"] = raw_step.get("details")
+        if "usedMcpContext" in raw_step:
+            step_details["usedMcpContext"] = bool(raw_step.get("usedMcpContext"))
+
+        _record_validation_text_event(
+            f"validation.step.{safe_step_name}.completed",
+            step_details,
+        )
+
+    aggregation_payload = result.get("aggregation") if isinstance(result.get("aggregation"), Mapping) else {}
+    if aggregation_payload:
+        _record_validation_text_event(
+            "validation.aggregation.completed",
+            {
+                "projectName": project_name,
+                "validationRunId": str(result.get("runId") or validation_run_id),
+                "counts": aggregation_payload,
+            },
+        )
+
     _append_app_activity(
         "validation.run",
         status="info",
@@ -2751,12 +2895,62 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         },
     )
 
+    sources_payload = result.get("sources") if isinstance(result.get("sources"), Mapping) else {}
+    deterministic_source = sources_payload.get("deterministic") if isinstance(sources_payload.get("deterministic"), Mapping) else {}
+    azure_mcp_source = sources_payload.get("azureMcp") if isinstance(sources_payload.get("azureMcp"), Mapping) else {}
+    reasoning_source = sources_payload.get("reasoningModel") if isinstance(sources_payload.get("reasoningModel"), Mapping) else {}
+
+    _record_validation_text_event(
+        "validation.run.completed",
+        {
+            "projectName": project_name,
+            "validationRunId": str(result.get("runId") or validation_run_id),
+            "summary": {
+                "failure": int(summary_payload.get("failure") or 0),
+                "warning": int(summary_payload.get("warning") or 0),
+                "info": int(summary_payload.get("info") or 0),
+                "total": int(summary_payload.get("total") or 0),
+            },
+            "channels": {
+                "deterministic": {
+                    "state": str(deterministic_source.get("connectionState") or ""),
+                    "findingCount": int(deterministic_source.get("findingCount") or 0),
+                },
+                "azureMcp": {
+                    "state": str(azure_mcp_source.get("connectionState") or ""),
+                    "findingCount": int(azure_mcp_source.get("findingCount") or 0),
+                    "explanation": str(azure_mcp_source.get("explanation") or ""),
+                },
+                "reasoningModel": {
+                    "state": str(reasoning_source.get("connectionState") or ""),
+                    "findingCount": int(reasoning_source.get("findingCount") or 0),
+                    "explanation": str(reasoning_source.get("explanation") or ""),
+                },
+            },
+        },
+    )
+
+    validation_log_path = _write_project_validation_text_log(
+        entry["projectDir"],
+        project_id=entry["id"],
+        project_name=project_name,
+        validation_run_id=str(result.get("runId") or validation_run_id),
+        events=validation_text_events,
+    )
+
+    validation_log_ref = str(validation_log_path)
+    try:
+        validation_log_ref = str(validation_log_path.relative_to(WORKSPACE_ROOT))
+    except Exception:
+        validation_log_ref = str(validation_log_path)
+
     return {
         **result,
         "projectId": entry["id"],
         "projectName": project_name,
         "threadId": foundry_thread_id,
         "agentId": foundry_agent_id,
+        "validationLogPath": validation_log_ref,
     }
 
 

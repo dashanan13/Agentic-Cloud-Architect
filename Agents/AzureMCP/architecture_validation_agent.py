@@ -106,6 +106,24 @@ def _truncate_text(value: Any, *, max_chars: int = 900) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
+def _is_mcp_guidance_text(value: Any) -> bool:
+    text = str(value or "").strip().lower()
+    if not text:
+        return False
+
+    if re.search(r"^the\s+tool\s+.+\s+was\s+not\s+found\.?$", text):
+        return True
+
+    guidance_markers = (
+        "the \"command\" parameters are required when not learning",
+        "run again with the \"learn\" argument",
+        "use the \"tool\" argument",
+        "here are the available command and their parameters",
+        "unknown tool",
+    )
+    return any(marker in text for marker in guidance_markers)
+
+
 def _extract_json_from_text(payload_text: str) -> Any | None:
     text = str(payload_text or "").strip()
     if not text:
@@ -439,6 +457,8 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
         text = str(payload or "").strip()
         if not text:
             return []
+        if _is_mcp_guidance_text(text):
+            return []
         candidate_lines: list[str] = []
         for raw_line in text.splitlines():
             line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", str(raw_line or "")).strip()
@@ -503,6 +523,8 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
 
     display_hint = str(payload.get("displayHint") or "").strip()
     if display_hint:
+        if _is_mcp_guidance_text(display_hint):
+            return []
         return [line.strip() for line in display_hint.splitlines() if line.strip()]
 
     return []
@@ -801,6 +823,7 @@ class McpToolResponse:
     tool_name: str
     payload: Any | None
     error: str = ""
+    attempts: list[dict[str, Any]] | None = None
 
 
 async def _invoke_mcp_validation(
@@ -864,13 +887,19 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
     last_error = ""
     candidates = [str(name or "").strip() for name in request.tool_candidates if str(name or "").strip()]
     argument_variants = [dict(item) for item in request.argument_variants if isinstance(item, Mapping)] or [{}]
+    attempts: list[dict[str, Any]] = []
 
     for tool_name in candidates:
-        for args in argument_variants:
+        for variant_index, args in enumerate(argument_variants, start=1):
             call_args = dict(args or {})
+            attempt_record: dict[str, Any] = {
+                "tool": tool_name,
+                "variantIndex": variant_index,
+                "argKeys": sorted([str(key) for key in call_args.keys()])[:16],
+            }
             if tool_name == "cloudarchitect_design":
                 command_name = str(call_args.get("command") or "").strip().lower()
-                if command_name in {"cloudarchitect", "cloudarchitect_design"}:
+                if command_name in {"cloudarchitect", "cloudarchitect_design"} and "parameters" not in call_args:
                     call_args.pop("command", None)
             try:
                 result = await asyncio.wait_for(
@@ -878,14 +907,38 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
                 )
                 payload_text = _extract_tool_text(getattr(result, "content", result))
+                if _is_mcp_guidance_text(payload_text):
+                    last_error = "Tool returned MCP guidance text instead of actionable data."
+                    attempt_record["status"] = "guidance"
+                    attempt_record["error"] = last_error
+                    attempts.append(attempt_record)
+                    _log_validation_event(
+                        "mcp.validation",
+                        level="warning",
+                        step="tool-retry",
+                        details={
+                            "label": request.label,
+                            "tool": tool_name,
+                            "error": last_error,
+                            "responsePreview": _truncate_text(payload_text, max_chars=220),
+                        },
+                    )
+                    continue
                 payload = _extract_json_from_text(payload_text)
+                attempt_record["status"] = "success"
+                attempt_record["payloadType"] = "json" if payload is not None else "text"
+                attempts.append(attempt_record)
                 return McpToolResponse(
                     label=request.label,
                     tool_name=tool_name,
                     payload=payload if payload is not None else payload_text,
+                    attempts=attempts,
                 )
             except Exception as exc:
                 last_error = str(exc)
+                attempt_record["status"] = "error"
+                attempt_record["error"] = _truncate_text(last_error, max_chars=240)
+                attempts.append(attempt_record)
                 _log_validation_event(
                     "mcp.validation",
                     level="warning",
@@ -902,6 +955,7 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
         tool_name=candidates[0] if candidates else "",
         payload=None,
         error=last_error or "No MCP tool candidates available.",
+        attempts=attempts,
     )
 
 
@@ -929,6 +983,7 @@ class ValidationDiagnostics:
     connection_state: str
     explanation: str
     finding_count: int
+    details: dict[str, Any] | None = None
 
 
 def _collect_findings_from_mcp(
@@ -978,15 +1033,39 @@ def _collect_findings_from_mcp(
         ]
     )
 
+    cloudarchitect_params = {
+        "question": cloudarchitect_prompt,
+        "answer": architecture_context_json,
+        "question-number": 1,
+        "total-questions": 1,
+        "next-question-needed": False,
+        "state": "{}",
+    }
+
     tool_requests: list[McpToolRequest] = [
         McpToolRequest(
             label="wellarchitectedframework",
             tool_candidates=[
-                "wellarchitectedframework",
-                "wellarchitected_framework",
                 "get_bestpractices_get",
+                "get_bestpractices",
             ],
             argument_variants=[
+                {
+                    "resource": "general",
+                    "action": "all",
+                },
+                {
+                    "command": "get_bestpractices_get",
+                    "parameters": {
+                        "resource": "general",
+                        "action": "all",
+                    },
+                },
+                {
+                    "command": "get_bestpractices_get",
+                    "resource": "general",
+                    "action": "all",
+                },
                 {
                     "question": waf_prompt,
                     "answer": architecture_context_json,
@@ -995,76 +1074,90 @@ def _collect_findings_from_mcp(
                     "next-question-needed": False,
                     "state": "{}",
                 },
-                {
-                    "query": waf_prompt,
-                    "context": architecture_context_json,
-                },
-                {
-                    "resource": "general",
-                    "action": "all",
-                },
-            ],
-        ),
-        McpToolRequest(
-            label="advisor",
-            tool_candidates=[
-                "advisor",
-                "advisor_recommendation_list",
-            ],
-            argument_variants=[
-                {
-                    "subscription": credentials.subscription_id,
-                }
-                if credentials.subscription_id
-                else {},
-                {
-                    "query": advisor_prompt,
-                    "subscription": credentials.subscription_id,
-                    "context": architecture_context_json,
-                }
-                if credentials.subscription_id
-                else {
-                    "query": advisor_prompt,
-                    "context": architecture_context_json,
-                },
-                {},
             ],
         ),
         McpToolRequest(
             label="cloudarchitect",
             tool_candidates=[
-                "cloudarchitect",
                 "cloudarchitect_design",
+                "cloudarchitect",
             ],
             argument_variants=[
+                dict(cloudarchitect_params),
                 {
                     "command": "cloudarchitect_design",
-                    "question": cloudarchitect_prompt,
-                    "answer": architecture_context_json,
-                    "question-number": 1,
-                    "total-questions": 1,
-                    "next-question-needed": False,
-                    "state": "{}",
+                    "parameters": dict(cloudarchitect_params),
                 },
-                {
-                    "question": cloudarchitect_prompt,
-                    "answer": architecture_context_json,
-                    "state": "{}",
-                },
+                dict({"command": "cloudarchitect_design", **cloudarchitect_params}),
             ],
         ),
     ]
+
+    if credentials.subscription_id:
+        tool_requests.insert(
+            1,
+            McpToolRequest(
+                label="advisor",
+                tool_candidates=[
+                    "advisor_recommendation_list",
+                    "advisor",
+                ],
+                argument_variants=[
+                    {
+                        "subscription": credentials.subscription_id,
+                    },
+                    {
+                        "command": "advisor_recommendation_list",
+                        "parameters": {
+                            "subscription": credentials.subscription_id,
+                        },
+                    },
+                    {
+                        "command": "advisor_recommendation_list",
+                        "subscription": credentials.subscription_id,
+                    },
+                    {
+                        "query": advisor_prompt,
+                        "subscription": credentials.subscription_id,
+                        "context": architecture_context_json,
+                    },
+                ],
+            ),
+        )
 
     try:
         tool_responses = _run_async(_invoke_mcp_validation(credentials, tool_requests))
 
         findings: list[dict[str, Any]] = []
         explanation_parts: list[str] = []
+        tool_summaries: list[dict[str, Any]] = []
         successful_tools = 0
 
+        if not credentials.subscription_id:
+            explanation_parts.append("advisor: skipped (subscription not configured)")
+            tool_summaries.append(
+                {
+                    "label": "advisor",
+                    "selectedTool": "",
+                    "status": "skipped",
+                    "findingCount": 0,
+                    "error": "subscription not configured",
+                    "attempts": [],
+                }
+            )
+
         for response in tool_responses:
+            step_summary: dict[str, Any] = {
+                "label": response.label,
+                "selectedTool": response.tool_name,
+                "status": "failed" if response.error else "completed",
+                "findingCount": 0,
+                "error": _truncate_text(response.error, max_chars=240) if response.error else "",
+                "attempts": response.attempts if isinstance(response.attempts, list) else [],
+            }
             if response.error:
                 explanation_parts.append(f"{response.label}: failed ({response.error})")
+                tool_summaries.append(step_summary)
                 continue
 
             successful_tools += 1
@@ -1078,6 +1171,8 @@ def _collect_findings_from_mcp(
                     finding.setdefault("source", response.label)
             findings.extend(normalized)
             explanation_parts.append(f"{response.label}: {len(normalized)} findings")
+            step_summary["findingCount"] = len(normalized)
+            tool_summaries.append(step_summary)
 
         if successful_tools <= 0:
             explanation_text = "Azure MCP validation failed for all tools."
@@ -1087,6 +1182,10 @@ def _collect_findings_from_mcp(
                 connection_state="failed",
                 explanation=explanation_text,
                 finding_count=0,
+                details={
+                    "tools": tool_summaries,
+                    "requestCount": len(tool_requests),
+                },
             )
 
         explanation_text = "Azure MCP validation completed."
@@ -1097,12 +1196,20 @@ def _collect_findings_from_mcp(
             connection_state="connected",
             explanation=explanation_text,
             finding_count=len(findings),
+            details={
+                "tools": tool_summaries,
+                "requestCount": len(tool_requests),
+            },
         )
     except Exception as exc:
         return [], ValidationDiagnostics(
             connection_state="failed",
             explanation=f"Azure MCP validation failed: {exc}",
             finding_count=0,
+            details={
+                "tools": [],
+                "requestCount": len(tool_requests),
+            },
         )
 
 
@@ -1122,6 +1229,9 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="Model provider is not Azure Foundry.",
             finding_count=0,
+            details={
+                "provider": provider,
+            },
         )
 
     model_name = _first_non_empty(
@@ -1136,6 +1246,10 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="No reasoning model is configured.",
             finding_count=0,
+            details={
+                "provider": provider,
+                "modelDeployment": "",
+            },
         )
 
     safe_agent_id = str(
@@ -1149,6 +1263,11 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="Foundry validation agent or project thread is missing.",
             finding_count=0,
+            details={
+                "modelDeployment": model_name,
+                "assistantId": safe_agent_id,
+                "threadId": safe_thread_id,
+            },
         )
 
     try:
@@ -1158,6 +1277,11 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation=f"Foundry configuration is incomplete: {exc}",
             finding_count=0,
+            details={
+                "modelDeployment": model_name,
+                "assistantId": safe_agent_id,
+                "threadId": safe_thread_id,
+            },
         )
 
     connection = FoundryConnectionSettings(
@@ -1212,12 +1336,24 @@ def _collect_findings_from_reasoning_model(
             connection_state="connected",
             explanation=f"Reasoning-model validation completed with MCP context ({len(serialized_mcp_findings)} findings provided).",
             finding_count=len(findings),
+            details={
+                "modelDeployment": model_name,
+                "assistantId": safe_agent_id,
+                "threadId": safe_thread_id,
+                "mcpContextCount": len(serialized_mcp_findings),
+            },
         )
     except Exception as exc:
         return [], ValidationDiagnostics(
             connection_state="failed",
             explanation=f"Reasoning-model validation failed: {exc}",
             finding_count=0,
+            details={
+                "modelDeployment": model_name,
+                "assistantId": safe_agent_id,
+                "threadId": safe_thread_id,
+                "mcpContextCount": len(serialized_mcp_findings),
+            },
         )
 
 
@@ -1334,6 +1470,20 @@ def run_architecture_validation_agent(
 
     deduped = _dedupe_findings(normalized)
     grouped = _group_findings(deduped)
+    mcp_details = mcp_diagnostics.details if isinstance(mcp_diagnostics.details, Mapping) else {}
+    model_details = model_diagnostics.details if isinstance(model_diagnostics.details, Mapping) else {}
+    mcp_tools = mcp_details.get("tools") if isinstance(mcp_details.get("tools"), list) else []
+
+    aggregation = {
+        "resourceCount": len(items),
+        "connectionCount": len(connections),
+        "deterministicFindingCount": len(deterministic),
+        "mcpFindingCount": len(mcp_findings),
+        "reasoningFindingCount": len(model_findings),
+        "combinedInputFindingCount": len(deterministic) + len(mcp_findings) + len(model_findings),
+        "normalizedFindingCount": len(normalized),
+        "dedupedFindingCount": len(deduped),
+    }
 
     summary = {
         "failure": len(grouped["failure"]),
@@ -1371,6 +1521,7 @@ def run_architecture_validation_agent(
                     "state": mcp_diagnostics.connection_state,
                     "findingCount": mcp_diagnostics.finding_count,
                     "explanation": mcp_diagnostics.explanation,
+                    "tools": mcp_tools,
                 },
                 {
                     "name": "thinking-model",
@@ -1378,9 +1529,11 @@ def run_architecture_validation_agent(
                     "findingCount": model_diagnostics.finding_count,
                     "explanation": model_diagnostics.explanation,
                     "usedMcpContext": bool(mcp_findings),
+                    "details": model_details,
                 },
             ],
         },
+        "aggregation": aggregation,
         "summary": summary,
         "findings": deduped,
         "groups": grouped,
@@ -1394,12 +1547,14 @@ def run_architecture_validation_agent(
                 "connectionState": mcp_diagnostics.connection_state,
                 "findingCount": mcp_diagnostics.finding_count,
                 "explanation": mcp_diagnostics.explanation,
+                "tools": mcp_tools,
             },
             "reasoningModel": {
                 "connectionState": model_diagnostics.connection_state,
                 "findingCount": model_diagnostics.finding_count,
                 "explanation": model_diagnostics.explanation,
                 "usedMcpContext": bool(mcp_findings),
+                "details": model_details,
             },
         },
     }
