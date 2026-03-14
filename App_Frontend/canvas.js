@@ -5707,39 +5707,15 @@ function renderValidationTipsPanel() {
     const expanded = validationExpandedSeverity === severity;
     const findingMarkup = findings.length
       ? findings.map((finding, index) => {
-        const findingId = String(finding?.id || `${severity}-${index + 1}`);
         const title = String(finding?.title || "Recommendation");
         const message = String(finding?.message || "No details provided.");
         const targetLabel = resolveValidationTargetLabel(finding?.target);
-        const fix = finding?.fix && typeof finding.fix === "object" ? finding.fix : null;
-        const hasOperations = Array.isArray(fix?.operations) && fix.operations.length > 0;
-        const fixLabel = String(fix?.label || "Apply fix").trim() || "Apply fix";
-        const fixState = validationFixStatusByFindingId.get(findingId) || "";
-        const fixRunning = validationFixInFlightFindingIds.has(findingId);
-
-        let buttonText = fixLabel;
-        if (fixRunning) {
-          buttonText = "Applying...";
-        } else if (fixState === "applied") {
-          buttonText = "Applied";
-        }
-
-        const isDisabled = fixRunning || fixState === "applied";
-        const helperText = fixState === "failed"
-          ? '<div class="validation-finding__hint validation-finding__hint--error">Last fix attempt failed.</div>'
-          : (fixState === "applied"
-            ? '<div class="validation-finding__hint validation-finding__hint--ok">Fix applied to canvas.</div>'
-            : "");
 
         return [
           '<article class="validation-finding">',
           `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
           `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
           targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
-          hasOperations
-            ? `<div class="validation-finding__actions"><button type="button" class="btn btn--sm btn--primary" data-validation-fix="${escapeHtml(findingId)}" ${isDisabled ? "disabled" : ""}>${escapeHtml(buttonText)}</button></div>`
-            : "",
-          helperText,
           "</article>"
         ].join("");
       }).join("")
@@ -5870,15 +5846,6 @@ tipsContentEl?.addEventListener("click", async (event) => {
     return;
   }
 
-  const fixButton = event.target.closest("[data-validation-fix]");
-  if (fixButton) {
-    const findingId = String(fixButton.dataset.validationFix || "").trim();
-    if (!findingId) {
-      return;
-    }
-
-    await applyValidationFixForFinding(findingId);
-  }
 });
 
 function appendChatMessage(message, autoScroll = true) {

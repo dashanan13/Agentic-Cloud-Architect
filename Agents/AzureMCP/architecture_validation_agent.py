@@ -99,6 +99,13 @@ def _normalize_string(value: Any, fallback: str = "") -> str:
     return text or fallback
 
 
+def _truncate_text(value: Any, *, max_chars: int = 900) -> str:
+    text = str(value or "").strip()
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
+
 def _extract_json_from_text(payload_text: str) -> Any | None:
     text = str(payload_text or "").strip()
     if not text:
@@ -428,6 +435,24 @@ def _build_architecture_context(
 
 
 def _extract_candidate_findings(payload: Any) -> list[Any]:
+    if isinstance(payload, str):
+        text = str(payload or "").strip()
+        if not text:
+            return []
+        candidate_lines: list[str] = []
+        for raw_line in text.splitlines():
+            line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", str(raw_line or "")).strip()
+            if len(line) < 24:
+                continue
+            if line.lower().startswith(("schema", "architecture context", "azure mcp findings context")):
+                continue
+            candidate_lines.append(_truncate_text(line, max_chars=500))
+            if len(candidate_lines) >= 20:
+                break
+        if candidate_lines:
+            return candidate_lines
+        return [_truncate_text(text, max_chars=800)]
+
     if isinstance(payload, list):
         return payload
 
@@ -440,6 +465,9 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
         "recommendations",
         "checks",
         "issues",
+        "value",
+        "items",
+        "data",
     ):
         value = payload.get(key)
         if isinstance(value, list):
@@ -460,6 +488,15 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
                 value = response_object.get(key)
                 if isinstance(value, list):
                     candidates.extend(value)
+
+    result_list = payload.get("results") if isinstance(payload.get("results"), list) else None
+    if result_list:
+        for item in result_list:
+            if isinstance(item, Mapping):
+                for key in ("findings", "recommendations", "checks", "issues", "value", "items"):
+                    value = item.get(key)
+                    if isinstance(value, list):
+                        candidates.extend(value)
 
     if candidates:
         return candidates
@@ -578,12 +615,42 @@ def _normalize_finding(
     if not isinstance(finding, Mapping):
         return None
 
-    severity = _normalize_severity(finding.get("severity") or finding.get("level") or finding.get("status"))
-    title = _normalize_string(finding.get("title") or finding.get("name"), "Recommendation")
-    message = _normalize_string(finding.get("message") or finding.get("reason") or finding.get("description"))
+    short_description = finding.get("shortDescription") if isinstance(finding.get("shortDescription"), Mapping) else {}
+    short_problem = _normalize_string(short_description.get("problem"))
+    short_solution = _normalize_string(short_description.get("solution"))
+    remediation = finding.get("remediation") if isinstance(finding.get("remediation"), Mapping) else {}
+    remediation_desc = _normalize_string(remediation.get("description") if isinstance(remediation, Mapping) else "")
+
+    severity = _normalize_severity(
+        finding.get("severity")
+        or finding.get("level")
+        or finding.get("status")
+        or finding.get("impact")
+        or finding.get("riskLevel")
+        or finding.get("priority")
+    )
+    title = _normalize_string(
+        finding.get("title")
+        or finding.get("name")
+        or finding.get("recommendationType")
+        or finding.get("category")
+        or short_problem,
+        "Recommendation",
+    )
+    message = _normalize_string(
+        finding.get("message")
+        or finding.get("reason")
+        or finding.get("description")
+        or remediation_desc
+        or short_solution
+        or short_problem,
+    )
 
     if not message and title:
         message = title
+    if short_problem and short_solution and short_solution not in message:
+        message = f"{short_problem} Suggested action: {short_solution}"
+    message = _truncate_text(message, max_chars=900)
 
     target_input = finding.get("target") if isinstance(finding.get("target"), Mapping) else {}
     resource_id = _normalize_string(
@@ -713,6 +780,7 @@ def _serialize_findings_for_reasoning_context(
                 "severity": _normalize_severity(finding.get("severity")),
                 "title": str(finding.get("title") or "").strip(),
                 "message": str(finding.get("message") or "").strip(),
+                "source": str(finding.get("source") or "").strip(),
                 "target": _trim_value(finding.get("target") if isinstance(finding.get("target"), Mapping) else {}),
                 "fix": _trim_value(finding.get("fix") if isinstance(finding.get("fix"), Mapping) else {}),
             }
@@ -720,7 +788,25 @@ def _serialize_findings_for_reasoning_context(
     return serialized
 
 
-async def _invoke_mcp_validation(credentials: AzureMcpCredentials, args: dict[str, Any]) -> Any:
+@dataclass
+class McpToolRequest:
+    label: str
+    tool_candidates: list[str]
+    argument_variants: list[dict[str, Any]]
+
+
+@dataclass
+class McpToolResponse:
+    label: str
+    tool_name: str
+    payload: Any | None
+    error: str = ""
+
+
+async def _invoke_mcp_validation(
+    credentials: AzureMcpCredentials,
+    requests: list[McpToolRequest],
+) -> list[McpToolResponse]:
     _log_validation_event(
         "mcp.validation",
         level="info",
@@ -758,58 +844,65 @@ async def _invoke_mcp_validation(credentials: AzureMcpCredentials, args: dict[st
         env=mcp_env,
     )
 
+    responses: list[McpToolResponse] = []
+
     async with stdio_client(server_params) as (read_stream, write_stream):
         async with client_session_cls(read_stream, write_stream) as session:
             await session.initialize()
-            payload_text = await _call_mcp_cloudarchitect_tool(session, args)
+            for request in requests:
+                responses.append(await _call_mcp_tool_with_fallbacks(session, request))
 
     _log_validation_event(
         "mcp.validation",
         level="info",
         step="session-completed",
     )
-
-    parsed = _extract_json_from_text(payload_text)
-    if parsed is not None:
-        return parsed
-    return payload_text
+    return responses
 
 
-async def _call_mcp_cloudarchitect_tool(session: Any, args: dict[str, Any]) -> str:
-    tool_candidates = ["cloudarchitect", "cloudarchitect_design"]
+async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -> McpToolResponse:
     last_error = ""
+    candidates = [str(name or "").strip() for name in request.tool_candidates if str(name or "").strip()]
+    argument_variants = [dict(item) for item in request.argument_variants if isinstance(item, Mapping)] or [{}]
 
-    for tool_name in tool_candidates:
-        call_args = dict(args or {})
-        if tool_name == "cloudarchitect_design":
-            command_name = str(call_args.get("command") or "").strip().lower()
-            if command_name in {"cloudarchitect", "cloudarchitect_design"}:
-                call_args.pop("command", None)
-        try:
-            result = await asyncio.wait_for(
-                session.call_tool(tool_name, call_args),
-                timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
-            )
-            return _extract_tool_text(getattr(result, "content", result))
-        except Exception as exc:
-            last_error = str(exc)
-            _log_validation_event(
-                "mcp.validation",
-                level="warning",
-                step="tool-retry",
-                details={
-                    "tool": tool_name,
-                    "error": last_error,
-                },
-            )
+    for tool_name in candidates:
+        for args in argument_variants:
+            call_args = dict(args or {})
+            if tool_name == "cloudarchitect_design":
+                command_name = str(call_args.get("command") or "").strip().lower()
+                if command_name in {"cloudarchitect", "cloudarchitect_design"}:
+                    call_args.pop("command", None)
+            try:
+                result = await asyncio.wait_for(
+                    session.call_tool(tool_name, call_args),
+                    timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
+                )
+                payload_text = _extract_tool_text(getattr(result, "content", result))
+                payload = _extract_json_from_text(payload_text)
+                return McpToolResponse(
+                    label=request.label,
+                    tool_name=tool_name,
+                    payload=payload if payload is not None else payload_text,
+                )
+            except Exception as exc:
+                last_error = str(exc)
+                _log_validation_event(
+                    "mcp.validation",
+                    level="warning",
+                    step="tool-retry",
+                    details={
+                        "label": request.label,
+                        "tool": tool_name,
+                        "error": last_error,
+                    },
+                )
 
-    _log_validation_event(
-        "mcp.validation",
-        level="error",
-        step="failed",
-        details={"error": last_error},
+    return McpToolResponse(
+        label=request.label,
+        tool_name=candidates[0] if candidates else "",
+        payload=None,
+        error=last_error or "No MCP tool candidates available.",
     )
-    raise RuntimeError(f"Unable to call Azure MCP validation tool: {last_error}")
 
 
 def _extract_tool_text(content: Any) -> str:
@@ -855,37 +948,154 @@ def _collect_findings_from_mcp(
             finding_count=0,
         )
 
-    prompt = "\n".join(
+    architecture_context_json = json.dumps(architecture_context, ensure_ascii=False)
+
+    waf_prompt = "\n".join(
+        [
+            "Act as a principal Azure architect and evaluate this architecture against the five Azure Well-Architected pillars.",
+            "Focus on architecture optimization, managed-service fit, resiliency, security boundaries, performance scalability, cost efficiency, and operational excellence.",
+            "Return actionable recommendations and avoid generic filler.",
+            "When possible, include concrete Azure-native alternatives and brief rationale.",
+        ]
+    )
+
+    cloudarchitect_prompt = "\n".join(
         [
             "Validate this Azure architecture.",
             "Return strict JSON only with this shape:",
             '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}}],"summary":"..."}',
             "Use only resourceId/connectionId values present in the provided architecture context.",
-            "Limit to 20 findings focused on Azure Well-Architected and Azure best-practice violations.",
+            "Prioritize architecture-quality findings over simple field-completion suggestions.",
+            "Cover the five Azure Well-Architected pillars with concrete recommendations where concerns exist.",
             "If no safe fix is available for a finding, omit the fix object.",
         ]
     )
 
-    args = {
-        "command": "cloudarchitect_design",
-        "question": prompt,
-        "answer": json.dumps(architecture_context, ensure_ascii=False),
-        "question-number": 1,
-        "total-questions": 1,
-        "next-question-needed": False,
-        "state": "{}",
-    }
+    advisor_prompt = "\n".join(
+        [
+            "List Azure Advisor recommendations that are most relevant to this architecture and summarize them into concise architecture actions.",
+            "Prioritize high-impact items for reliability, security, performance, operational excellence, and cost.",
+        ]
+    )
+
+    tool_requests: list[McpToolRequest] = [
+        McpToolRequest(
+            label="wellarchitectedframework",
+            tool_candidates=[
+                "wellarchitectedframework",
+                "wellarchitected_framework",
+                "get_bestpractices_get",
+            ],
+            argument_variants=[
+                {
+                    "question": waf_prompt,
+                    "answer": architecture_context_json,
+                    "question-number": 1,
+                    "total-questions": 1,
+                    "next-question-needed": False,
+                    "state": "{}",
+                },
+                {
+                    "query": waf_prompt,
+                    "context": architecture_context_json,
+                },
+                {
+                    "resource": "general",
+                    "action": "all",
+                },
+            ],
+        ),
+        McpToolRequest(
+            label="advisor",
+            tool_candidates=[
+                "advisor",
+                "advisor_recommendation_list",
+            ],
+            argument_variants=[
+                {
+                    "subscription": credentials.subscription_id,
+                }
+                if credentials.subscription_id
+                else {},
+                {
+                    "query": advisor_prompt,
+                    "subscription": credentials.subscription_id,
+                    "context": architecture_context_json,
+                }
+                if credentials.subscription_id
+                else {
+                    "query": advisor_prompt,
+                    "context": architecture_context_json,
+                },
+                {},
+            ],
+        ),
+        McpToolRequest(
+            label="cloudarchitect",
+            tool_candidates=[
+                "cloudarchitect",
+                "cloudarchitect_design",
+            ],
+            argument_variants=[
+                {
+                    "command": "cloudarchitect_design",
+                    "question": cloudarchitect_prompt,
+                    "answer": architecture_context_json,
+                    "question-number": 1,
+                    "total-questions": 1,
+                    "next-question-needed": False,
+                    "state": "{}",
+                },
+                {
+                    "question": cloudarchitect_prompt,
+                    "answer": architecture_context_json,
+                    "state": "{}",
+                },
+            ],
+        ),
+    ]
 
     try:
-        payload = _run_async(_invoke_mcp_validation(credentials, args))
-        findings = _extract_and_normalize_findings(
-            payload,
-            valid_resource_ids=valid_resource_ids,
-            valid_connection_ids=valid_connection_ids,
-        )
+        tool_responses = _run_async(_invoke_mcp_validation(credentials, tool_requests))
+
+        findings: list[dict[str, Any]] = []
+        explanation_parts: list[str] = []
+        successful_tools = 0
+
+        for response in tool_responses:
+            if response.error:
+                explanation_parts.append(f"{response.label}: failed ({response.error})")
+                continue
+
+            successful_tools += 1
+            normalized = _extract_and_normalize_findings(
+                response.payload,
+                valid_resource_ids=valid_resource_ids,
+                valid_connection_ids=valid_connection_ids,
+            )
+            for finding in normalized:
+                if isinstance(finding, dict):
+                    finding.setdefault("source", response.label)
+            findings.extend(normalized)
+            explanation_parts.append(f"{response.label}: {len(normalized)} findings")
+
+        if successful_tools <= 0:
+            explanation_text = "Azure MCP validation failed for all tools."
+            if explanation_parts:
+                explanation_text = f"{explanation_text} {'; '.join(explanation_parts)}"
+            return [], ValidationDiagnostics(
+                connection_state="failed",
+                explanation=explanation_text,
+                finding_count=0,
+            )
+
+        explanation_text = "Azure MCP validation completed."
+        if explanation_parts:
+            explanation_text = f"{explanation_text} {'; '.join(explanation_parts)}"
+
         return findings, ValidationDiagnostics(
             connection_state="connected",
-            explanation="Azure MCP validation completed.",
+            explanation=explanation_text,
             finding_count=len(findings),
         )
     except Exception as exc:
@@ -966,15 +1176,17 @@ def _collect_findings_from_reasoning_model(
 
     prompt = "\n".join(
         [
-            "You are an Azure principal cloud architect validating an Azure architecture diagram.",
+            "You are a Principal Azure Cloud Architect reviewing an Azure architecture for enterprise quality.",
             "Return strict JSON only.",
             "Schema:",
-            '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}},...],"summary":"...","provenance":[{"step":"mcp","explanation":"..."},{"step":"best-practices","explanation":"..."},{"step":"reasoning","explanation":"..."}]}',
+            '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}},...],"summary":"...","pillarAssessment":{"costOptimization":"...","operationalExcellence":"...","performanceEfficiency":"...","reliability":"...","security":"..."}}',
             "Use only IDs present in the architecture context below.",
             "Use Azure Well-Architected guidance and Azure service-specific best-practice correctness.",
-            "Treat Azure MCP findings as first-class evidence: verify, refine, and augment them. For each finding, include a provenance trace: which step (MCP, best-practices, reasoning) contributed to the finding, and a short explanation for each step.",
-            "Avoid generic graph-only advice; reason using Azure resource properties, containment, and relationships.",
-            "Keep findings actionable and concise.",
+            "Think like an enterprise Azure architect: challenge unnecessary complexity, recommend managed service alternatives, and identify missing resiliency/security/observability controls.",
+            "Prioritize architecture-quality recommendations. Do not focus only on missing field values unless they materially affect deployability or architecture correctness.",
+            "For suboptimal service choices, recommend Azure-native alternatives and explain why they are better.",
+            "Treat Azure MCP findings as first-class evidence: verify, refine, and augment them.",
+            "Keep findings actionable and concise, mapped to the five pillars.",
             "Azure MCP findings context:",
             json.dumps(serialized_mcp_findings, ensure_ascii=False),
             "Architecture context:",
@@ -1165,7 +1377,7 @@ def run_architecture_validation_agent(
                     "state": model_diagnostics.connection_state,
                     "findingCount": model_diagnostics.finding_count,
                     "explanation": model_diagnostics.explanation,
-                    "usedMcpContext": True,
+                    "usedMcpContext": bool(mcp_findings),
                 },
             ],
         },
@@ -1187,7 +1399,7 @@ def run_architecture_validation_agent(
                 "connectionState": model_diagnostics.connection_state,
                 "findingCount": model_diagnostics.finding_count,
                 "explanation": model_diagnostics.explanation,
-                "usedMcpContext": True,
+                "usedMcpContext": bool(mcp_findings),
             },
         },
     }
