@@ -212,6 +212,7 @@ class ArchitectureChatPayload(BaseModel):
 class ArchitectureValidatePayload(BaseModel):
     canvasState: dict = {}
     validationRunId: str | None = None
+    projectDescription: str | None = None
 
 
 class ArchitectureValidationFixAuditPayload(BaseModel):
@@ -2641,6 +2642,9 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
     if not isinstance(metadata, dict):
         metadata = {}
     project_name = str(metadata.get("name") or entry["name"] or "").strip() or entry["id"]
+    project_description = str(body.projectDescription or "").strip() if body else ""
+    if not project_description:
+        project_description = str(metadata.get("applicationDescription") or "").strip()
 
     settings = load_app_settings()
     bootstrap_result = bootstrap_default_foundry_resources(settings)
@@ -2686,6 +2690,7 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         "validation.run.requested",
         {
             "projectName": project_name,
+            "projectDescriptionLength": len(project_description),
             "validationRunId": validation_run_id,
             "resourceCount": resource_count,
             "connectionCount": connection_count,
@@ -2704,6 +2709,7 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         source="backend.validation",
         details={
             "projectName": project_name,
+            "projectDescriptionLength": len(project_description),
             "validationRunId": validation_run_id,
             "resourceCount": resource_count,
             "connectionCount": connection_count,
@@ -2743,6 +2749,7 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
             "validationRunId": validation_run_id,
             "projectId": entry["id"],
             "projectName": project_name,
+            "projectDescription": project_description,
             "stateHash": state_hash,
             "resourceCount": resource_count,
             "connectionCount": connection_count,
@@ -2759,6 +2766,7 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
             canvas_state=canvas_state,
             project_name=project_name,
             project_id=entry["id"],
+            project_description=project_description,
             foundry_agent_id=foundry_agent_id,
             foundry_thread_id=foundry_thread_id,
             validation_run_id=validation_run_id,

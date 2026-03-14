@@ -5473,7 +5473,7 @@ function applyValidationFixOperations(operations) {
   };
 }
 
-async function requestArchitectureValidation(canvasStatePayload) {
+async function requestArchitectureValidation(canvasStatePayload, projectDescription = "") {
   const projectId = String(state.currentProject?.id || "").trim();
   if (!projectId) {
     throw new Error("Unable to validate architecture: missing project ID.");
@@ -5492,6 +5492,7 @@ async function requestArchitectureValidation(canvasStatePayload) {
     },
     body: JSON.stringify({
       canvasState: canvasStatePayload,
+      projectDescription: String(projectDescription || "").trim(),
     })
   });
 
@@ -5812,7 +5813,8 @@ async function runArchitectureValidation() {
 
     setSaveStatus("Running architecture validation...");
     const canvasStatePayload = buildCurrentCanvasStatePayload();
-    const result = await requestArchitectureValidation(canvasStatePayload);
+    const projectDescription = String(state.currentProject?.applicationDescription || "").trim();
+    const result = await requestArchitectureValidation(canvasStatePayload, projectDescription);
     validationResultState = result && typeof result === "object" ? result : {};
 
     const groups = normalizeValidationGroups(validationResultState || {});

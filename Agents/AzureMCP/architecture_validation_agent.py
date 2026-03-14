@@ -106,31 +106,6 @@ def _truncate_text(value: Any, *, max_chars: int = 900) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
-def _duration_ms(start_perf: float) -> int:
-    elapsed = (time.perf_counter() - float(start_perf)) * 1000.0
-    if elapsed < 0:
-        return 0
-    return int(elapsed)
-
-
-def _is_mcp_guidance_text(value: Any) -> bool:
-    text = str(value or "").strip().lower()
-    if not text:
-        return False
-
-    if re.search(r"^the\s+tool\s+.+\s+was\s+not\s+found\.?$", text):
-        return True
-
-    guidance_markers = (
-        "the \"command\" parameters are required when not learning",
-        "run again with the \"learn\" argument",
-        "use the \"tool\" argument",
-        "here are the available command and their parameters",
-        "unknown tool",
-    )
-    return any(marker in text for marker in guidance_markers)
-
-
 def _extract_json_from_text(payload_text: str) -> Any | None:
     text = str(payload_text or "").strip()
     if not text:
@@ -421,6 +396,7 @@ def _build_architecture_context(
     connections: list[dict[str, Any]],
     project_name: str,
     project_id: str,
+    project_description: str,
 ) -> dict[str, Any]:
     resources: list[dict[str, Any]] = []
     for item in items[:150]:
@@ -453,6 +429,7 @@ def _build_architecture_context(
         "project": {
             "id": project_id,
             "name": project_name,
+            "description": project_description,
         },
         "resources": resources,
         "connections": edges,
@@ -463,8 +440,6 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
     if isinstance(payload, str):
         text = str(payload or "").strip()
         if not text:
-            return []
-        if _is_mcp_guidance_text(text):
             return []
         candidate_lines: list[str] = []
         for raw_line in text.splitlines():
@@ -530,8 +505,6 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
 
     display_hint = str(payload.get("displayHint") or "").strip()
     if display_hint:
-        if _is_mcp_guidance_text(display_hint):
-            return []
         return [line.strip() for line in display_hint.splitlines() if line.strip()]
 
     return []
@@ -830,7 +803,6 @@ class McpToolResponse:
     tool_name: str
     payload: Any | None
     error: str = ""
-    attempts: list[dict[str, Any]] | None = None
 
 
 async def _invoke_mcp_validation(
@@ -894,20 +866,13 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
     last_error = ""
     candidates = [str(name or "").strip() for name in request.tool_candidates if str(name or "").strip()]
     argument_variants = [dict(item) for item in request.argument_variants if isinstance(item, Mapping)] or [{}]
-    attempts: list[dict[str, Any]] = []
 
     for tool_name in candidates:
-        for variant_index, args in enumerate(argument_variants, start=1):
+        for args in argument_variants:
             call_args = dict(args or {})
-            attempt_started_at = time.perf_counter()
-            attempt_record: dict[str, Any] = {
-                "tool": tool_name,
-                "variantIndex": variant_index,
-                "argKeys": sorted([str(key) for key in call_args.keys()])[:16],
-            }
             if tool_name == "cloudarchitect_design":
                 command_name = str(call_args.get("command") or "").strip().lower()
-                if command_name in {"cloudarchitect", "cloudarchitect_design"} and "parameters" not in call_args:
+                if command_name in {"cloudarchitect", "cloudarchitect_design"}:
                     call_args.pop("command", None)
             try:
                 result = await asyncio.wait_for(
@@ -915,41 +880,14 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
                 )
                 payload_text = _extract_tool_text(getattr(result, "content", result))
-                if _is_mcp_guidance_text(payload_text):
-                    last_error = "Tool returned MCP guidance text instead of actionable data."
-                    attempt_record["status"] = "guidance"
-                    attempt_record["error"] = last_error
-                    attempt_record["durationMs"] = _duration_ms(attempt_started_at)
-                    attempts.append(attempt_record)
-                    _log_validation_event(
-                        "mcp.validation",
-                        level="warning",
-                        step="tool-retry",
-                        details={
-                            "label": request.label,
-                            "tool": tool_name,
-                            "error": last_error,
-                            "responsePreview": _truncate_text(payload_text, max_chars=220),
-                        },
-                    )
-                    continue
                 payload = _extract_json_from_text(payload_text)
-                attempt_record["status"] = "success"
-                attempt_record["payloadType"] = "json" if payload is not None else "text"
-                attempt_record["durationMs"] = _duration_ms(attempt_started_at)
-                attempts.append(attempt_record)
                 return McpToolResponse(
                     label=request.label,
                     tool_name=tool_name,
                     payload=payload if payload is not None else payload_text,
-                    attempts=attempts,
                 )
             except Exception as exc:
                 last_error = str(exc)
-                attempt_record["status"] = "error"
-                attempt_record["error"] = _truncate_text(last_error, max_chars=240)
-                attempt_record["durationMs"] = _duration_ms(attempt_started_at)
-                attempts.append(attempt_record)
                 _log_validation_event(
                     "mcp.validation",
                     level="warning",
@@ -966,7 +904,6 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
         tool_name=candidates[0] if candidates else "",
         payload=None,
         error=last_error or "No MCP tool candidates available.",
-        attempts=attempts,
     )
 
 
@@ -994,7 +931,6 @@ class ValidationDiagnostics:
     connection_state: str
     explanation: str
     finding_count: int
-    details: dict[str, Any] | None = None
 
 
 def _collect_findings_from_mcp(
@@ -1044,39 +980,15 @@ def _collect_findings_from_mcp(
         ]
     )
 
-    cloudarchitect_params = {
-        "question": cloudarchitect_prompt,
-        "answer": architecture_context_json,
-        "question-number": 1,
-        "total-questions": 1,
-        "next-question-needed": False,
-        "state": "{}",
-    }
-
     tool_requests: list[McpToolRequest] = [
         McpToolRequest(
             label="wellarchitectedframework",
             tool_candidates=[
+                "wellarchitectedframework",
+                "wellarchitected_framework",
                 "get_bestpractices_get",
-                "get_bestpractices",
             ],
             argument_variants=[
-                {
-                    "resource": "general",
-                    "action": "all",
-                },
-                {
-                    "command": "get_bestpractices_get",
-                    "parameters": {
-                        "resource": "general",
-                        "action": "all",
-                    },
-                },
-                {
-                    "command": "get_bestpractices_get",
-                    "resource": "general",
-                    "action": "all",
-                },
                 {
                     "question": waf_prompt,
                     "answer": architecture_context_json,
@@ -1085,100 +997,76 @@ def _collect_findings_from_mcp(
                     "next-question-needed": False,
                     "state": "{}",
                 },
+                {
+                    "query": waf_prompt,
+                    "context": architecture_context_json,
+                },
+                {
+                    "resource": "general",
+                    "action": "all",
+                },
+            ],
+        ),
+        McpToolRequest(
+            label="advisor",
+            tool_candidates=[
+                "advisor",
+                "advisor_recommendation_list",
+            ],
+            argument_variants=[
+                {
+                    "subscription": credentials.subscription_id,
+                }
+                if credentials.subscription_id
+                else {},
+                {
+                    "query": advisor_prompt,
+                    "subscription": credentials.subscription_id,
+                    "context": architecture_context_json,
+                }
+                if credentials.subscription_id
+                else {
+                    "query": advisor_prompt,
+                    "context": architecture_context_json,
+                },
+                {},
             ],
         ),
         McpToolRequest(
             label="cloudarchitect",
             tool_candidates=[
-                "cloudarchitect_design",
                 "cloudarchitect",
+                "cloudarchitect_design",
             ],
             argument_variants=[
-                dict(cloudarchitect_params),
                 {
                     "command": "cloudarchitect_design",
-                    "parameters": dict(cloudarchitect_params),
+                    "question": cloudarchitect_prompt,
+                    "answer": architecture_context_json,
+                    "question-number": 1,
+                    "total-questions": 1,
+                    "next-question-needed": False,
+                    "state": "{}",
                 },
-                dict({"command": "cloudarchitect_design", **cloudarchitect_params}),
+                {
+                    "question": cloudarchitect_prompt,
+                    "answer": architecture_context_json,
+                    "state": "{}",
+                },
             ],
         ),
     ]
-
-    if credentials.subscription_id:
-        tool_requests.insert(
-            1,
-            McpToolRequest(
-                label="advisor",
-                tool_candidates=[
-                    "advisor_recommendation_list",
-                    "advisor",
-                ],
-                argument_variants=[
-                    {
-                        "subscription": credentials.subscription_id,
-                    },
-                    {
-                        "command": "advisor_recommendation_list",
-                        "parameters": {
-                            "subscription": credentials.subscription_id,
-                        },
-                    },
-                    {
-                        "command": "advisor_recommendation_list",
-                        "subscription": credentials.subscription_id,
-                    },
-                    {
-                        "query": advisor_prompt,
-                        "subscription": credentials.subscription_id,
-                        "context": architecture_context_json,
-                    },
-                ],
-            ),
-        )
-
-    mcp_started_at = time.perf_counter()
 
     try:
         tool_responses = _run_async(_invoke_mcp_validation(credentials, tool_requests))
 
         findings: list[dict[str, Any]] = []
         explanation_parts: list[str] = []
-        tool_summaries: list[dict[str, Any]] = []
         successful_tools = 0
 
-        if not credentials.subscription_id:
-            explanation_parts.append("advisor: skipped (subscription not configured)")
-            tool_summaries.append(
-                {
-                    "label": "advisor",
-                    "selectedTool": "",
-                    "status": "skipped",
-                    "findingCount": 0,
-                    "error": "subscription not configured",
-                    "attempts": [],
-                }
-            )
-
         for response in tool_responses:
-            attempt_rows = response.attempts if isinstance(response.attempts, list) else []
-            tool_duration_ms = 0
-            for row in attempt_rows:
-                if isinstance(row, Mapping):
-                    tool_duration_ms += int(row.get("durationMs") or 0)
-
-            step_summary: dict[str, Any] = {
-                "label": response.label,
-                "selectedTool": response.tool_name,
-                "status": "failed" if response.error else "completed",
-                "findingCount": 0,
-                "error": _truncate_text(response.error, max_chars=240) if response.error else "",
-                "attemptCount": len(attempt_rows),
-                "durationMs": tool_duration_ms,
-                "attempts": attempt_rows,
-            }
             if response.error:
                 explanation_parts.append(f"{response.label}: failed ({response.error})")
-                tool_summaries.append(step_summary)
                 continue
 
             successful_tools += 1
@@ -1192,8 +1080,6 @@ def _collect_findings_from_mcp(
                     finding.setdefault("source", response.label)
             findings.extend(normalized)
             explanation_parts.append(f"{response.label}: {len(normalized)} findings")
-            step_summary["findingCount"] = len(normalized)
-            tool_summaries.append(step_summary)
 
         if successful_tools <= 0:
             explanation_text = "Azure MCP validation failed for all tools."
@@ -1203,11 +1089,6 @@ def _collect_findings_from_mcp(
                 connection_state="failed",
                 explanation=explanation_text,
                 finding_count=0,
-                details={
-                    "tools": tool_summaries,
-                    "requestCount": len(tool_requests),
-                    "totalDurationMs": _duration_ms(mcp_started_at),
-                },
             )
 
         explanation_text = "Azure MCP validation completed."
@@ -1218,22 +1099,12 @@ def _collect_findings_from_mcp(
             connection_state="connected",
             explanation=explanation_text,
             finding_count=len(findings),
-            details={
-                "tools": tool_summaries,
-                "requestCount": len(tool_requests),
-                "totalDurationMs": _duration_ms(mcp_started_at),
-            },
         )
     except Exception as exc:
         return [], ValidationDiagnostics(
             connection_state="failed",
             explanation=f"Azure MCP validation failed: {exc}",
             finding_count=0,
-            details={
-                "tools": [],
-                "requestCount": len(tool_requests),
-                "totalDurationMs": _duration_ms(mcp_started_at),
-            },
         )
 
 
@@ -1247,17 +1118,12 @@ def _collect_findings_from_reasoning_model(
     foundry_agent_id: str | None,
     foundry_thread_id: str | None,
 ) -> tuple[list[dict[str, Any]], ValidationDiagnostics]:
-    reasoning_started_at = time.perf_counter()
     provider = str(app_settings.get("modelProvider") or "").strip().lower()
     if provider != "azure-foundry":
         return [], ValidationDiagnostics(
             connection_state="skipped",
             explanation="Model provider is not Azure Foundry.",
             finding_count=0,
-            details={
-                "provider": provider,
-                "durationMs": 0,
-            },
         )
 
     model_name = _first_non_empty(
@@ -1272,11 +1138,6 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="No reasoning model is configured.",
             finding_count=0,
-            details={
-                "provider": provider,
-                "modelDeployment": "",
-                "durationMs": 0,
-            },
         )
 
     safe_agent_id = str(
@@ -1290,12 +1151,6 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="Foundry validation agent or project thread is missing.",
             finding_count=0,
-            details={
-                "modelDeployment": model_name,
-                "assistantId": safe_agent_id,
-                "threadId": safe_thread_id,
-                "durationMs": 0,
-            },
         )
 
     try:
@@ -1305,12 +1160,6 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation=f"Foundry configuration is incomplete: {exc}",
             finding_count=0,
-            details={
-                "modelDeployment": model_name,
-                "assistantId": safe_agent_id,
-                "threadId": safe_thread_id,
-                "durationMs": 0,
-            },
         )
 
     connection = FoundryConnectionSettings(
@@ -1365,26 +1214,12 @@ def _collect_findings_from_reasoning_model(
             connection_state="connected",
             explanation=f"Reasoning-model validation completed with MCP context ({len(serialized_mcp_findings)} findings provided).",
             finding_count=len(findings),
-            details={
-                "modelDeployment": model_name,
-                "assistantId": safe_agent_id,
-                "threadId": safe_thread_id,
-                "mcpContextCount": len(serialized_mcp_findings),
-                "durationMs": _duration_ms(reasoning_started_at),
-            },
         )
     except Exception as exc:
         return [], ValidationDiagnostics(
             connection_state="failed",
             explanation=f"Reasoning-model validation failed: {exc}",
             finding_count=0,
-            details={
-                "modelDeployment": model_name,
-                "assistantId": safe_agent_id,
-                "threadId": safe_thread_id,
-                "mcpContextCount": len(serialized_mcp_findings),
-                "durationMs": _duration_ms(reasoning_started_at),
-            },
         )
 
 
@@ -1394,13 +1229,14 @@ def run_architecture_validation_agent(
     canvas_state: Mapping[str, Any],
     project_name: str,
     project_id: str,
+    project_description: str | None = None,
     foundry_agent_id: str | None = None,
     foundry_thread_id: str | None = None,
     validation_run_id: str | None = None,
 ) -> dict[str, Any]:
-    run_started_at = time.perf_counter()
     safe_project_name = _normalize_string(project_name, "Project")
     safe_project_id = _normalize_string(project_id)
+    safe_project_description = _normalize_string(project_description)
     run_id = _normalize_string(validation_run_id)
     if not run_id:
         run_id = f"val-{int(time.time() * 1000)}-{uuid4().hex[:6]}"
@@ -1422,6 +1258,7 @@ def run_architecture_validation_agent(
         project_id=safe_project_id,
         details={
             "projectName": safe_project_name,
+            "projectDescription": safe_project_description,
             "validationRunId": run_id,
             "resourceCount": len(items),
             "connectionCount": len(connections),
@@ -1433,13 +1270,11 @@ def run_architecture_validation_agent(
         connections=connections,
         project_name=safe_project_name,
         project_id=safe_project_id,
+        project_description=safe_project_description,
     )
 
-    deterministic_started_at = time.perf_counter()
     deterministic = _deterministic_findings(items=items, connections=connections)
-    deterministic_duration_ms = _duration_ms(deterministic_started_at)
 
-    mcp_started_at = time.perf_counter()
     mcp_findings, mcp_diagnostics = _collect_findings_from_mcp(
         app_settings=app_settings,
         architecture_context=architecture_context,
@@ -1447,7 +1282,6 @@ def run_architecture_validation_agent(
         valid_connection_ids=valid_connection_ids,
         project_id=safe_project_id,
     )
-    mcp_duration_ms = _duration_ms(mcp_started_at)
 
     _log_validation_event(
         "validation.channel",
@@ -1463,7 +1297,6 @@ def run_architecture_validation_agent(
         },
     )
 
-    model_started_at = time.perf_counter()
     model_findings, model_diagnostics = _collect_findings_from_reasoning_model(
         app_settings=app_settings,
         architecture_context=architecture_context,
@@ -1473,7 +1306,6 @@ def run_architecture_validation_agent(
         foundry_agent_id=foundry_agent_id,
         foundry_thread_id=foundry_thread_id,
     )
-    model_duration_ms = _duration_ms(model_started_at)
 
     _log_validation_event(
         "validation.channel",
@@ -1495,7 +1327,6 @@ def run_architecture_validation_agent(
         and model_diagnostics.connection_state == "connected"
     )
 
-    aggregation_started_at = time.perf_counter()
     normalized: list[dict[str, Any]] = []
     for idx, finding in enumerate(deterministic + mcp_findings + model_findings):
         normalized_finding = _normalize_finding(
@@ -1509,38 +1340,6 @@ def run_architecture_validation_agent(
 
     deduped = _dedupe_findings(normalized)
     grouped = _group_findings(deduped)
-    mcp_details = mcp_diagnostics.details if isinstance(mcp_diagnostics.details, Mapping) else {}
-    model_details = model_diagnostics.details if isinstance(model_diagnostics.details, Mapping) else {}
-    mcp_tools = mcp_details.get("tools") if isinstance(mcp_details.get("tools"), list) else []
-    effective_mcp_duration_ms = int(mcp_details.get("totalDurationMs") or 0) if isinstance(mcp_details, Mapping) else 0
-    if effective_mcp_duration_ms <= 0:
-        effective_mcp_duration_ms = mcp_duration_ms
-
-    effective_model_duration_ms = int(model_details.get("durationMs") or 0) if isinstance(model_details, Mapping) else 0
-    if effective_model_duration_ms <= 0:
-        effective_model_duration_ms = model_duration_ms
-
-    aggregation_duration_ms = _duration_ms(aggregation_started_at)
-    total_duration_ms = _duration_ms(run_started_at)
-
-    timing = {
-        "deterministicMs": deterministic_duration_ms,
-        "mcpMs": effective_mcp_duration_ms,
-        "reasoningMs": effective_model_duration_ms,
-        "aggregationMs": aggregation_duration_ms,
-        "totalMs": total_duration_ms,
-    }
-
-    aggregation = {
-        "resourceCount": len(items),
-        "connectionCount": len(connections),
-        "deterministicFindingCount": len(deterministic),
-        "mcpFindingCount": len(mcp_findings),
-        "reasoningFindingCount": len(model_findings),
-        "combinedInputFindingCount": len(deterministic) + len(mcp_findings) + len(model_findings),
-        "normalizedFindingCount": len(normalized),
-        "dedupedFindingCount": len(deduped),
-    }
 
     summary = {
         "failure": len(grouped["failure"]),
@@ -1578,22 +1377,16 @@ def run_architecture_validation_agent(
                     "state": mcp_diagnostics.connection_state,
                     "findingCount": mcp_diagnostics.finding_count,
                     "explanation": mcp_diagnostics.explanation,
-                    "durationMs": effective_mcp_duration_ms,
-                    "tools": mcp_tools,
                 },
                 {
                     "name": "thinking-model",
                     "state": model_diagnostics.connection_state,
                     "findingCount": model_diagnostics.finding_count,
                     "explanation": model_diagnostics.explanation,
-                    "durationMs": effective_model_duration_ms,
                     "usedMcpContext": bool(mcp_findings),
-                    "details": model_details,
                 },
             ],
         },
-        "aggregation": aggregation,
-        "timing": timing,
         "summary": summary,
         "findings": deduped,
         "groups": grouped,
@@ -1602,22 +1395,17 @@ def run_architecture_validation_agent(
                 "connectionState": "connected",
                 "findingCount": len(deterministic),
                 "explanation": "Deterministic architecture checks completed.",
-                "durationMs": deterministic_duration_ms,
             },
             "azureMcp": {
                 "connectionState": mcp_diagnostics.connection_state,
                 "findingCount": mcp_diagnostics.finding_count,
                 "explanation": mcp_diagnostics.explanation,
-                "durationMs": effective_mcp_duration_ms,
-                "tools": mcp_tools,
             },
             "reasoningModel": {
                 "connectionState": model_diagnostics.connection_state,
                 "findingCount": model_diagnostics.finding_count,
                 "explanation": model_diagnostics.explanation,
-                "durationMs": effective_model_duration_ms,
                 "usedMcpContext": bool(mcp_findings),
-                "details": model_details,
             },
         },
     }
