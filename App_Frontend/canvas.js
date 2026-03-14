@@ -1658,6 +1658,19 @@ function getCloudIconRoot(cloudName) {
   return "";
 }
 
+function getCloudFallbackIcon(cloudName) {
+  if (cloudName === "Azure") {
+    return "/icons/azure-icon.png";
+  }
+  if (cloudName === "AWS") {
+    return "/icons/aws-icon.png";
+  }
+  if (cloudName === "GCP") {
+    return "/icons/gcp-icon.png";
+  }
+  return "";
+}
+
 function getProjectPrefix(cloud) {
   return `${cloud}-`;
 }
@@ -1767,11 +1780,12 @@ function sanitizeProject(project) {
   const sanitizedItems = incomingItems
     .map((item, index) => {
       const resourceType = String(item.resourceType || item.type || item.name || "Resource");
+      const iconSrc = String(item.iconSrc || "").trim() || getCloudFallbackIcon(cloud);
       return {
         id: String(item.id || `item-${Date.now()}`),
         name: String(item.name || `Resource ${index + 1}`),
         resourceType,
-        iconSrc: String(item.iconSrc || ""),
+        iconSrc,
         category: String(item.category || ""),
         isContainer: Boolean(item.isContainer),
         parentId: item.parentId ? String(item.parentId) : null,
@@ -1782,7 +1796,7 @@ function sanitizeProject(project) {
         properties: sanitizeItemProperties(resourceType, item.properties, null, item.name)
       };
     })
-    .filter((item) => item.iconSrc);
+    .filter((item) => Boolean(String(item.id || "").trim()));
 
   const validItemIds = new Set(sanitizedItems.map((item) => item.id));
   sanitizedItems.forEach((item) => {
@@ -2237,19 +2251,24 @@ async function loadCurrentProject(projectId) {
 
 // ===== Catalog Loading =====
 async function loadCatalogForCloud(cloudName) {
-  if (Object.hasOwn(cloudCatalogs, cloudName)) {
+  const safeCloudName = String(cloudName || "").trim();
+  if (!safeCloudName) {
+    return;
+  }
+
+  if (Object.hasOwn(cloudCatalogs, safeCloudName) && cloudCatalogs[safeCloudName]) {
     return;
   }
 
   try {
-    const response = await fetch(`./catalogs/${cloudName.toLowerCase()}.json`, { cache: "no-store" });
+    const response = await fetch(`./catalogs/${safeCloudName.toLowerCase()}.json`, { cache: "no-store" });
     if (!response.ok) {
-      throw new Error(`Failed to load ${cloudName} catalog: ${response.status}`);
+      throw new Error(`Failed to load ${safeCloudName} catalog: ${response.status}`);
     }
 
-    cloudCatalogs[cloudName] = await response.json();
+    cloudCatalogs[safeCloudName] = await response.json();
   } catch {
-    cloudCatalogs[cloudName] = null;
+    cloudCatalogs[safeCloudName] = null;
   }
 }
 

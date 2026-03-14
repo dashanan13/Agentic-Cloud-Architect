@@ -106,6 +106,37 @@ def _truncate_text(value: Any, *, max_chars: int = 900) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
+def _is_mcp_guidance_text(value: Any) -> bool:
+    text = re.sub(r"\s+", " ", str(value or "").strip().lower())
+    if not text:
+        return False
+
+    if re.search(r"^the tool .+ was not found", text):
+        return True
+
+    guidance_markers = (
+        "when not learning",
+        "run again with the \"learn\" argument",
+        "run again with the 'learn' argument",
+        "to learn about a specific tool",
+        "use the \"tool\" argument",
+        "use the 'tool' argument",
+        "list of available tools and their parameters",
+        "learn=true",
+        "hierarchical mcp command router",
+        "to invoke a command, set \"command\"",
+        "supported child tools and parameters",
+        "learn about this tool and its supported child tools",
+    )
+    if any(marker in text for marker in guidance_markers):
+        return True
+
+    if "available tools" in text and "parameters" in text and "learn" in text:
+        return True
+
+    return False
+
+
 def _extract_json_from_text(payload_text: str) -> Any | None:
     text = str(payload_text or "").strip()
     if not text:
@@ -441,10 +472,14 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
         text = str(payload or "").strip()
         if not text:
             return []
+        if _is_mcp_guidance_text(text):
+            return []
         candidate_lines: list[str] = []
         for raw_line in text.splitlines():
             line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", str(raw_line or "")).strip()
             if len(line) < 24:
+                continue
+            if _is_mcp_guidance_text(line):
                 continue
             if line.lower().startswith(("schema", "architecture context", "azure mcp findings context")):
                 continue
@@ -505,7 +540,13 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
 
     display_hint = str(payload.get("displayHint") or "").strip()
     if display_hint:
-        return [line.strip() for line in display_hint.splitlines() if line.strip()]
+        if _is_mcp_guidance_text(display_hint):
+            return []
+        return [
+            line.strip()
+            for line in display_hint.splitlines()
+            if line.strip() and not _is_mcp_guidance_text(line)
+        ]
 
     return []
 
@@ -606,6 +647,8 @@ def _normalize_finding(
         text = _normalize_string(finding)
         if not text:
             return None
+        if _is_mcp_guidance_text(text):
+            return None
         return {
             "id": _normalize_finding_id("", index),
             "severity": "info",
@@ -653,6 +696,17 @@ def _normalize_finding(
     if short_problem and short_solution and short_solution not in message:
         message = f"{short_problem} Suggested action: {short_solution}"
     message = _truncate_text(message, max_chars=900)
+
+    guidance_text_probe = " ".join(
+        [
+            _normalize_string(title),
+            _normalize_string(message),
+            _normalize_string(finding.get("recommendationType")),
+            _normalize_string(finding.get("category")),
+        ]
+    ).strip()
+    if _is_mcp_guidance_text(guidance_text_probe):
+        return None
 
     target_input = finding.get("target") if isinstance(finding.get("target"), Mapping) else {}
     resource_id = _normalize_string(
@@ -880,6 +934,19 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
                 )
                 payload_text = _extract_tool_text(getattr(result, "content", result))
+                if _is_mcp_guidance_text(payload_text):
+                    last_error = f"MCP guidance response from tool '{tool_name}'"
+                    _log_validation_event(
+                        "mcp.validation",
+                        level="warning",
+                        step="tool-retry",
+                        details={
+                            "label": request.label,
+                            "tool": tool_name,
+                            "error": last_error,
+                        },
+                    )
+                    continue
                 payload = _extract_json_from_text(payload_text)
                 return McpToolResponse(
                     label=request.label,
