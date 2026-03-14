@@ -1784,6 +1784,45 @@ select.property-input {
   gap: 8px;
 }
 
+.validation-group--provenance .validation-group__body {
+  display: grid;
+  gap: 8px;
+}
+
+.validation-provenance__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.validation-provenance__item {
+  font-size: 0.66rem;
+  color: var(--muted);
+  line-height: 1.4;
+  display: grid;
+  gap: 4px;
+}
+
+.validation-provenance__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.validation-provenance__step {
+  font-size: 0.68rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.validation-provenance__desc {
+  font-size: 0.64rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .validation-finding {
   border: 1px solid var(--border);
   border-radius: 6px;

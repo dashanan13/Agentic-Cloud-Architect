@@ -96,6 +96,7 @@ let activeSavePromise = Promise.resolve();
 let validationStatusState = null;
 let validationResultState = null;
 let validationExpandedSeverity = null;
+let validationExpandedProvenance = false;
 let validationRunInFlight = false;
 // Live runtime status for validation steps
 let validationRuntimeState = {
@@ -5764,27 +5765,46 @@ function renderValidationTipsPanel() {
     ].join("");
   }).join("");
 
-  // Provenance trace (step-by-step)
-  let provenanceMarkup = '';
-  if (result?.evaluation && Array.isArray(result.evaluation.steps)) {
-    provenanceMarkup = [
-      '<details class="validation-provenance" id="validation-provenance-details">',
-      '<summary class="validation-provenance__summary">How validation was produced</summary>',
+  const provenanceSteps = Array.isArray(result?.evaluation?.steps) ? result.evaluation.steps : [];
+  const provenanceBodyMarkup = provenanceSteps.length
+    ? [
       '<ol class="validation-provenance__list">',
-      result.evaluation.steps.map((step, idx) => {
-        const name = escapeHtml(step.name || `Step ${idx+1}`);
-        const state = escapeHtml(step.state || 'unknown');
-        const desc = escapeHtml(step.description || '');
-        let stateClass = '';
-        if (state === 'running') stateClass = 'chat-runtime-value--warn';
-        else if (state === 'failed') stateClass = 'chat-runtime-value--error';
-        else if (state === 'completed') stateClass = 'chat-runtime-value--ok';
-        return `<li class="validation-provenance__item"><span class="validation-provenance__step">${name}</span> <span class="validation-provenance__state ${stateClass}">${state.charAt(0).toUpperCase()+state.slice(1)}</span>${desc ? `<div class="validation-provenance__desc">${desc}</div>` : ''}</li>`;
-      }).join(''),
-      '</ol>',
-      '</details>'
-    ].join('');
-  }
+      provenanceSteps.map((step, index) => {
+        const name = escapeHtml(String(step?.name || `Step ${index + 1}`));
+        const stateValue = String(step?.state || "unknown").trim().toLowerCase();
+        const stateLabel = stateValue
+          ? `${stateValue.charAt(0).toUpperCase()}${stateValue.slice(1)}`
+          : "Unknown";
+        const stateClass = stateValue === "running"
+          ? "chat-runtime-value--warn"
+          : (stateValue === "failed"
+            ? "chat-runtime-value--error"
+            : (stateValue === "completed" ? "chat-runtime-value--ok" : ""));
+        const description = escapeHtml(String(step?.description || "").trim());
+
+        return [
+          '<li class="validation-provenance__item">',
+          '<div class="validation-provenance__head">',
+          `<span class="validation-provenance__step">${name}</span>`,
+          `<span class="status-ai-value ${stateClass}">${escapeHtml(stateLabel)}</span>`,
+          '</div>',
+          description ? `<div class="validation-provenance__desc">${description}</div>` : "",
+          '</li>'
+        ].join("");
+      }).join(""),
+      '</ol>'
+    ].join("")
+    : '<div class="validation-empty">No validation run yet.</div>';
+
+  const provenanceMarkup = [
+    '<section class="validation-group validation-group--provenance">',
+    `<button type="button" class="validation-group__toggle" data-validation-provenance-toggle="true" aria-expanded="${validationExpandedProvenance ? "true" : "false"}">`,
+    `<span class="validation-group__title">How validation was produced (${provenanceSteps.length})</span>`,
+    `<span class="validation-group__chevron" aria-hidden="true">${validationExpandedProvenance ? "▾" : "▸"}</span>`,
+    '</button>',
+    `<div class="validation-group__body${validationExpandedProvenance ? "" : " is-hidden"}" ${validationExpandedProvenance ? "" : "hidden"}>${provenanceBodyMarkup}</div>`,
+    '</section>'
+  ].join("");
 
   tipsContentEl.innerHTML = [
     '<div class="validation-runtime">',
@@ -5792,13 +5812,13 @@ function renderValidationTipsPanel() {
     renderLiveStatus('Azure MCP', validationRuntimeState.mcp),
     renderLiveStatus('Validation Agent', validationRuntimeState.agent),
     "</div>",
-    provenanceMarkup,
     '<div class="validation-summary">',
     `<span class="validation-summary__item">Failure <strong class="chat-runtime-value--error">${summary.failure}</strong></span>`,
     `<span class="validation-summary__item">Warning <strong class="chat-runtime-value--warn">${summary.warning}</strong></span>`,
     `<span class="validation-summary__item">Info <strong class="chat-runtime-value--ok">${summary.info}</strong></span>`,
     "</div>",
     '<div class="validation-groups">',
+    provenanceMarkup,
     sectionsMarkup,
     "</div>"
   ].join("");
@@ -5891,6 +5911,13 @@ async function runArchitectureValidation() {
 }
 
 tipsContentEl?.addEventListener("click", async (event) => {
+  const provenanceToggleButton = event.target.closest("[data-validation-provenance-toggle]");
+  if (provenanceToggleButton) {
+    validationExpandedProvenance = !validationExpandedProvenance;
+    renderValidationTipsPanel();
+    return;
+  }
+
   const toggleButton = event.target.closest("[data-validation-group-toggle]");
   if (toggleButton) {
     const severity = String(toggleButton.dataset.validationGroupToggle || "").trim().toLowerCase();
