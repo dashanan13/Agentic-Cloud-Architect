@@ -5784,7 +5784,7 @@ function renderValidationTipsPanel() {
   const provenanceMarkup = [
     '<section class="validation-group validation-group--provenance">',
     `<button type="button" class="validation-group__toggle" data-validation-provenance-toggle="true" aria-expanded="${validationExpandedProvenance ? "true" : "false"}">`,
-    `<span class="validation-group__title">How validation was produced (${provenanceSteps.length})</span>`,
+    '<span class="validation-group__title">How validation was produced</span>',
     `<span class="validation-group__chevron" aria-hidden="true">${validationExpandedProvenance ? "▾" : "▸"}</span>`,
     '</button>',
     `<div class="validation-group__body${validationExpandedProvenance ? "" : " is-hidden"}" ${validationExpandedProvenance ? "" : "hidden"}>${provenanceBodyMarkup}</div>`,
