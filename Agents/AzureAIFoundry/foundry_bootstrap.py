@@ -15,8 +15,10 @@ DEFAULT_FOUNDRY_API_VERSION = "2025-05-01"
 DEFAULT_AGENT_DEFINITION_FILE = "architect"
 DEFAULT_CHAT_AGENT_NAME = "architect-chat-agent"
 DEFAULT_IAC_AGENT_NAME = "iac-generation-agent"
+DEFAULT_VALIDATION_AGENT_NAME = "architecture-validation-agent"
 DEFAULT_CHAT_AGENT_DEFINITION_FILE = "cloudarchitect_chat_agent.md"
 DEFAULT_IAC_AGENT_DEFINITION_FILE = "iac_generation_agent.md"
+DEFAULT_VALIDATION_AGENT_DEFINITION_FILE = "architecture_validation_agent.md"
 
 
 class FoundryConfigurationError(ValueError):
@@ -109,9 +111,11 @@ class ThreadResult:
 class AppFoundryResourcesResult:
     chat_agent_id: str
     iac_agent_id: str
+    validation_agent_id: str
     thread_id: str
     created_chat_agent: bool
     created_iac_agent: bool
+    created_validation_agent: bool
     created_thread: bool
 
     @property
@@ -119,6 +123,7 @@ class AppFoundryResourcesResult:
         return {
             "foundryChatAgentId": self.chat_agent_id,
             "foundryIacAgentId": self.iac_agent_id,
+            "foundryValidationAgentId": self.validation_agent_id,
             "foundryDefaultAgentId": self.chat_agent_id,
             "foundryDefaultThreadId": self.thread_id,
         }
@@ -134,31 +139,40 @@ class FoundryBootstrapClient:
         *,
         chat_agent_name: str = DEFAULT_CHAT_AGENT_NAME,
         iac_agent_name: str = DEFAULT_IAC_AGENT_NAME,
+        validation_agent_name: str = DEFAULT_VALIDATION_AGENT_NAME,
         app_thread_name: str = DEFAULT_THREAD_NAME,
         chat_agent_definition: str = DEFAULT_CHAT_AGENT_DEFINITION_FILE,
         iac_agent_definition: str = DEFAULT_IAC_AGENT_DEFINITION_FILE,
+        validation_agent_definition: str = DEFAULT_VALIDATION_AGENT_DEFINITION_FILE,
         known_chat_agent_id: str | None = None,
         known_iac_agent_id: str | None = None,
+        known_validation_agent_id: str | None = None,
         known_thread_id: str | None = None,
     ) -> AppFoundryResourcesResult:
         chat_instructions = _load_agent_instructions(chat_agent_definition)
         iac_instructions = _load_agent_instructions(iac_agent_definition)
+        validation_instructions = _load_agent_instructions(validation_agent_definition)
 
         (
             chat_agent_id,
             created_chat_agent,
             iac_agent_id,
             created_iac_agent,
+            validation_agent_id,
+            created_validation_agent,
             thread_result,
         ) = _run_sync(
             self._ensure_app_agents_and_thread_async(
                 chat_agent_name=str(chat_agent_name or DEFAULT_CHAT_AGENT_NAME).strip() or DEFAULT_CHAT_AGENT_NAME,
                 iac_agent_name=str(iac_agent_name or DEFAULT_IAC_AGENT_NAME).strip() or DEFAULT_IAC_AGENT_NAME,
+                validation_agent_name=str(validation_agent_name or DEFAULT_VALIDATION_AGENT_NAME).strip() or DEFAULT_VALIDATION_AGENT_NAME,
                 app_thread_name=str(app_thread_name or DEFAULT_THREAD_NAME).strip() or DEFAULT_THREAD_NAME,
                 chat_instructions=chat_instructions,
                 iac_instructions=iac_instructions,
+                validation_instructions=validation_instructions,
                 known_chat_agent_id=known_chat_agent_id,
                 known_iac_agent_id=known_iac_agent_id,
+                known_validation_agent_id=known_validation_agent_id,
                 known_thread_id=known_thread_id,
             )
         )
@@ -166,9 +180,11 @@ class FoundryBootstrapClient:
         return AppFoundryResourcesResult(
             chat_agent_id=chat_agent_id,
             iac_agent_id=iac_agent_id,
+            validation_agent_id=validation_agent_id,
             thread_id=thread_result.thread_id,
             created_chat_agent=created_chat_agent,
             created_iac_agent=created_iac_agent,
+            created_validation_agent=created_validation_agent,
             created_thread=thread_result.created,
         )
 
@@ -241,13 +257,16 @@ class FoundryBootstrapClient:
         *,
         chat_agent_name: str,
         iac_agent_name: str,
+        validation_agent_name: str,
         app_thread_name: str,
         chat_instructions: str,
         iac_instructions: str,
+        validation_instructions: str,
         known_chat_agent_id: str | None,
         known_iac_agent_id: str | None,
+        known_validation_agent_id: str | None,
         known_thread_id: str | None,
-    ) -> tuple[str, bool, str, bool, ThreadResult]:
+    ) -> tuple[str, bool, str, bool, str, bool, ThreadResult]:
         async with self._agents_client_context() as agents_client:
             chat_agent_id, created_chat_agent = await self._ensure_agent_async(
                 agents_client=agents_client,
@@ -261,6 +280,12 @@ class FoundryBootstrapClient:
                 instructions=iac_instructions,
                 known_agent_id=known_iac_agent_id,
             )
+            validation_agent_id, created_validation_agent = await self._ensure_agent_async(
+                agents_client=agents_client,
+                name=validation_agent_name,
+                instructions=validation_instructions,
+                known_agent_id=known_validation_agent_id,
+            )
             thread_result = await self._ensure_named_thread_async(
                 thread_name=app_thread_name,
                 known_thread_id=known_thread_id,
@@ -271,6 +296,8 @@ class FoundryBootstrapClient:
                 created_chat_agent,
                 iac_agent_id,
                 created_iac_agent,
+                validation_agent_id,
+                created_validation_agent,
                 thread_result,
             )
 
@@ -579,6 +606,7 @@ def ensure_app_agents_and_thread(
     *,
     known_chat_agent_id: str | None = None,
     known_iac_agent_id: str | None = None,
+    known_validation_agent_id: str | None = None,
     known_thread_id: str | None = None,
 ) -> AppFoundryResourcesResult:
     connection = FoundryConnectionSettings.from_app_settings(app_settings)
@@ -586,6 +614,7 @@ def ensure_app_agents_and_thread(
     return client.ensure_app_agents_and_thread(
         known_chat_agent_id=known_chat_agent_id,
         known_iac_agent_id=known_iac_agent_id,
+        known_validation_agent_id=known_validation_agent_id,
         known_thread_id=known_thread_id,
     )
 

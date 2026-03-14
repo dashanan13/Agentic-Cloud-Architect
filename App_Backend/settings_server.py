@@ -39,6 +39,10 @@ from Agents.AzureMCP.cloudarchitect_chat_agent import (
     get_cloudarchitect_chat_status,
     run_cloudarchitect_chat_agent,
 )
+from Agents.AzureMCP.architecture_validation_agent import (
+    get_architecture_validation_status,
+    run_architecture_validation_agent,
+)
 from Agents.AzureMCP.iac_generation_agent import generate_bicep_iac_from_canvas
 from Agents.common.activity_log import log_activity as write_activity_log
 from Agents.common.activity_log import resolve_logs_dir as resolve_activity_logs_dir
@@ -71,6 +75,7 @@ DEFAULT_APP_SETTINGS = {
     "foundryModelFast": "",
     "foundryChatAgentId": "",
     "foundryIacAgentId": "",
+    "foundryValidationAgentId": "",
     "foundryDefaultAgentId": "",
     "foundryDefaultThreadId": "",
     "ollamaModelPathCoding": "",
@@ -202,6 +207,23 @@ class ArchitectureChatPayload(BaseModel):
     message: str
     projectId: str | None = None
     agentState: dict | None = None
+
+
+class ArchitectureValidatePayload(BaseModel):
+    canvasState: dict = {}
+    validationRunId: str | None = None
+
+
+class ArchitectureValidationFixAuditPayload(BaseModel):
+    validationRunId: str
+    findingId: str
+    status: str
+    suggestionTitle: str | None = None
+    severity: str | None = None
+    attemptedOperations: list[dict] | None = None
+    beforeStateHash: str | None = None
+    afterStateHash: str | None = None
+    resultSummary: str | None = None
 
 
 class IacGeneratePayload(BaseModel):
@@ -1062,6 +1084,7 @@ def build_persistable_app_settings(settings: dict) -> dict:
             "foundryModelFast",
             "foundryChatAgentId",
             "foundryIacAgentId",
+            "foundryValidationAgentId",
             "foundryDefaultAgentId",
             "foundryDefaultThreadId",
             "iacLiveTemplateStrict",
@@ -1099,6 +1122,10 @@ def _resolve_foundry_iac_agent_id(settings: Mapping[str, Any]) -> str:
     ).strip()
 
 
+def _resolve_foundry_validation_agent_id(settings: Mapping[str, Any]) -> str:
+    return str(settings.get("foundryValidationAgentId") or "").strip()
+
+
 def write_app_settings_file(settings: dict) -> Path:
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
     target = APP_STATE_DIR / "app.settings.env"
@@ -1125,6 +1152,32 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
 
     known_chat_agent_id = _resolve_foundry_chat_agent_id(settings) or None
     known_iac_agent_id = str(settings.get("foundryIacAgentId") or "").strip() or None
+    known_default_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
+    known_validation_agent_id = str(settings.get("foundryValidationAgentId") or "").strip() or None
+
+    shared_validation_agent_id = bool(
+        known_validation_agent_id
+        and (
+            known_validation_agent_id == known_chat_agent_id
+            or known_validation_agent_id == known_default_agent_id
+        )
+    )
+    if shared_validation_agent_id:
+        known_validation_agent_id = None
+        settings["foundryValidationAgentId"] = ""
+
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="info",
+            category="foundry",
+            step="migration-reset-validation-agent",
+            source="backend.foundry",
+            details={
+                "reason": "validation-agent-shared-with-chat",
+                "chatAgentId": known_chat_agent_id,
+                "defaultAgentId": known_default_agent_id,
+            },
+        )
     known_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
 
     try:
@@ -1132,6 +1185,7 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
             settings,
             known_chat_agent_id=known_chat_agent_id,
             known_iac_agent_id=known_iac_agent_id,
+            known_validation_agent_id=known_validation_agent_id,
             known_thread_id=known_thread_id,
         )
     except FoundryConfigurationError as exc:
@@ -1189,9 +1243,11 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
         details={
             "chatAgentId": result.chat_agent_id,
             "iacAgentId": result.iac_agent_id,
+            "validationAgentId": result.validation_agent_id,
             "threadId": result.thread_id,
             "createdChatAgent": result.created_chat_agent,
             "createdIacAgent": result.created_iac_agent,
+            "createdValidationAgent": result.created_validation_agent,
             "createdThread": result.created_thread,
             "settingsUpdated": changed,
         },
@@ -1203,10 +1259,12 @@ def bootstrap_default_foundry_resources(settings: dict) -> dict:
         "agentId": result.chat_agent_id,
         "chatAgentId": result.chat_agent_id,
         "iacAgentId": result.iac_agent_id,
+        "validationAgentId": result.validation_agent_id,
         "threadId": result.thread_id,
         "createdAgent": result.created_chat_agent,
         "createdChatAgent": result.created_chat_agent,
         "createdIacAgent": result.created_iac_agent,
+        "createdValidationAgent": result.created_validation_agent,
         "createdThread": result.created_thread,
         "settingsUpdated": changed,
     }
@@ -1290,6 +1348,70 @@ def _record_orchestration_event(
                 "detail": safe_detail,
             },
         )
+
+
+def _record_validation_thread_payload(
+    settings: Mapping[str, Any],
+    *,
+    thread_id: str | None,
+    activity_type: str,
+    payload: Mapping[str, Any],
+    project_id: str | None = None,
+    project_name: str | None = None,
+) -> None:
+    if not is_azure_foundry_provider(dict(settings)):
+        return
+
+    safe_thread_id = str(thread_id or "").strip()
+    safe_project_id = str(project_id or "").strip()
+    safe_project_name = str(project_name or "").strip()
+    safe_activity_type = str(activity_type or "validation.event").strip() or "validation.event"
+    serialized_payload = json.dumps(payload if isinstance(payload, Mapping) else {}, ensure_ascii=False)
+
+    if not safe_thread_id:
+        _append_app_activity(
+            "validation.audit",
+            status="warning",
+            project_id=safe_project_id,
+            category="validation",
+            step="thread-missing",
+            source="backend.validation",
+            details={
+                "projectName": safe_project_name,
+                "activityType": safe_activity_type,
+                "reason": "thread-missing",
+            },
+        )
+        return
+
+    result = post_thread_activity_message(
+        settings,
+        thread_id=safe_thread_id,
+        actor="validation-agent",
+        activity_type=safe_activity_type,
+        content=serialized_payload,
+    )
+
+    status_text = "error"
+    if bool(result.get("ok")) and not bool(result.get("skipped")):
+        status_text = "info"
+    elif bool(result.get("ok")) and bool(result.get("skipped")):
+        status_text = "warning"
+
+    _append_app_activity(
+        "validation.audit",
+        status=status_text,
+        project_id=safe_project_id,
+        category="validation",
+        step=safe_activity_type,
+        source="backend.validation",
+        details={
+            "projectName": safe_project_name,
+            "threadId": safe_thread_id,
+            "activityType": safe_activity_type,
+            "threadPost": result,
+        },
+    )
 
 
 def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_id: str | None = None) -> dict:
@@ -2439,6 +2561,275 @@ def architecture_chat_history(projectId: str, limit: int = 300):
         "projectId": entry["id"],
         "threadId": thread_id,
         "messages": [],
+    }
+
+
+@app.get("/api/validation/architecture/status")
+def architecture_validation_status(projectId: str | None = None):
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    foundry_agent_id = _resolve_foundry_validation_agent_id(settings) or None
+    foundry_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
+
+    if projectId:
+        entry = find_project_entry(projectId)
+        if entry:
+            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
+            if resolved_thread_id:
+                foundry_thread_id = resolved_thread_id
+
+    return get_architecture_validation_status(
+        settings,
+        foundry_thread_id=foundry_thread_id,
+        foundry_agent_id=foundry_agent_id,
+    )
+
+
+@app.post("/api/project/{project_id}/architecture/validation/run")
+def run_project_architecture_validation(project_id: str, body: ArchitectureValidatePayload | None = None):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+    project_name = str(metadata.get("name") or entry["name"] or "").strip() or entry["id"]
+
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    foundry_agent_id = _resolve_foundry_validation_agent_id(settings) or None
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings)
+    if not foundry_thread_id:
+        raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured for validation.")
+
+    payload_canvas_state = body.canvasState if body and isinstance(body.canvasState, dict) else {}
+    canvas_state = payload_canvas_state if payload_canvas_state else read_json_file(entry["statePath"], {})
+    if not isinstance(canvas_state, dict):
+        canvas_state = {}
+
+    validation_run_id = str(body.validationRunId if body else "").strip() if body else ""
+    if not validation_run_id:
+        validation_run_id = f"val-{_timestamp_ms()}-{uuid4().hex[:6]}"
+
+    resource_count, connection_count = _canvas_entity_counts(canvas_state)
+    state_hash = compute_canvas_state_hash(canvas_state)
+
+    _append_app_activity(
+        "validation.run",
+        status="info",
+        project_id=entry["id"],
+        category="validation",
+        step="requested",
+        source="backend.validation",
+        details={
+            "projectName": project_name,
+            "validationRunId": validation_run_id,
+            "resourceCount": resource_count,
+            "connectionCount": connection_count,
+            "stateHash": state_hash,
+            "foundryAgentId": foundry_agent_id or "",
+            "foundryThreadId": foundry_thread_id or "",
+        },
+    )
+
+    _record_orchestration_event(
+        settings,
+        thread_id=foundry_thread_id,
+        workflow="architecture-validation",
+        status="dispatch",
+        project_id=entry["id"],
+        project_name=project_name,
+        detail="Dispatching current canvas to validation agent.",
+        child_agent_id=foundry_agent_id,
+    )
+
+    _record_validation_thread_payload(
+        settings,
+        thread_id=foundry_thread_id,
+        activity_type="validation.input",
+        project_id=entry["id"],
+        project_name=project_name,
+        payload={
+            "validationRunId": validation_run_id,
+            "projectId": entry["id"],
+            "projectName": project_name,
+            "stateHash": state_hash,
+            "resourceCount": resource_count,
+            "connectionCount": connection_count,
+            "canvas": {
+                "canvasItems": canvas_state.get("canvasItems") if isinstance(canvas_state.get("canvasItems"), list) else [],
+                "canvasConnections": canvas_state.get("canvasConnections") if isinstance(canvas_state.get("canvasConnections"), list) else [],
+            },
+        },
+    )
+
+    try:
+        result = run_architecture_validation_agent(
+            app_settings=settings,
+            canvas_state=canvas_state,
+            project_name=project_name,
+            project_id=entry["id"],
+            foundry_agent_id=foundry_agent_id,
+            foundry_thread_id=foundry_thread_id,
+            validation_run_id=validation_run_id,
+        )
+    except Exception as exc:
+        _record_orchestration_event(
+            settings,
+            thread_id=foundry_thread_id,
+            workflow="architecture-validation",
+            status="failed",
+            project_id=entry["id"],
+            project_name=project_name,
+            detail=str(exc),
+            child_agent_id=foundry_agent_id,
+        )
+        _append_app_activity(
+            "validation.run",
+            status="error",
+            project_id=entry["id"],
+            category="validation",
+            step="failed",
+            source="backend.validation",
+            details={
+                "projectName": project_name,
+                "validationRunId": validation_run_id,
+                "error": str(exc),
+            },
+        )
+        raise HTTPException(status_code=500, detail=f"Architecture validation failed: {exc}") from exc
+
+    _record_validation_thread_payload(
+        settings,
+        thread_id=foundry_thread_id,
+        activity_type="validation.output",
+        project_id=entry["id"],
+        project_name=project_name,
+        payload={
+            "validationRunId": str(result.get("runId") or validation_run_id),
+            "projectId": entry["id"],
+            "projectName": project_name,
+            "summary": result.get("summary") if isinstance(result.get("summary"), Mapping) else {},
+            "sources": result.get("sources") if isinstance(result.get("sources"), Mapping) else {},
+            "findings": result.get("findings") if isinstance(result.get("findings"), list) else [],
+        },
+    )
+
+    _record_orchestration_event(
+        settings,
+        thread_id=foundry_thread_id,
+        workflow="architecture-validation",
+        status="completed",
+        project_id=entry["id"],
+        project_name=project_name,
+        detail="Architecture validation completed.",
+        child_agent_id=foundry_agent_id,
+    )
+
+    summary_payload = result.get("summary") if isinstance(result.get("summary"), Mapping) else {}
+    _append_app_activity(
+        "validation.run",
+        status="info",
+        project_id=entry["id"],
+        category="validation",
+        step="completed",
+        source="backend.validation",
+        details={
+            "projectName": project_name,
+            "validationRunId": str(result.get("runId") or validation_run_id),
+            "failureCount": int(summary_payload.get("failure") or 0),
+            "warningCount": int(summary_payload.get("warning") or 0),
+            "infoCount": int(summary_payload.get("info") or 0),
+            "total": int(summary_payload.get("total") or 0),
+        },
+    )
+
+    return {
+        **result,
+        "projectId": entry["id"],
+        "projectName": project_name,
+        "threadId": foundry_thread_id,
+        "agentId": foundry_agent_id,
+    }
+
+
+@app.post("/api/project/{project_id}/architecture/validation/fix-audit")
+def audit_project_architecture_validation_fix(project_id: str, body: ArchitectureValidationFixAuditPayload):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+    project_name = str(metadata.get("name") or entry["name"] or "").strip() or entry["id"]
+
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings)
+    if not foundry_thread_id:
+        raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured for fix audit.")
+
+    safe_status = str(body.status or "").strip().lower()
+    if safe_status not in {"attempted", "applied", "failed"}:
+        safe_status = "attempted"
+
+    attempted_operations = body.attemptedOperations if isinstance(body.attemptedOperations, list) else []
+
+    audit_payload = {
+        "validationRunId": str(body.validationRunId or "").strip(),
+        "findingId": str(body.findingId or "").strip(),
+        "status": safe_status,
+        "suggestionTitle": str(body.suggestionTitle or "").strip(),
+        "severity": str(body.severity or "").strip(),
+        "attemptedOperations": attempted_operations,
+        "beforeStateHash": str(body.beforeStateHash or "").strip(),
+        "afterStateHash": str(body.afterStateHash or "").strip(),
+        "resultSummary": str(body.resultSummary or "").strip(),
+        "timestampUtc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+    }
+
+    _record_validation_thread_payload(
+        settings,
+        thread_id=foundry_thread_id,
+        activity_type=f"validation.fix.{safe_status}",
+        project_id=entry["id"],
+        project_name=project_name,
+        payload=audit_payload,
+    )
+
+    _append_app_activity(
+        "validation.fix",
+        status="warning" if safe_status == "failed" else "info",
+        project_id=entry["id"],
+        category="validation",
+        step=safe_status,
+        source="backend.validation",
+        details={
+            "projectName": project_name,
+            "validationRunId": audit_payload["validationRunId"],
+            "findingId": audit_payload["findingId"],
+            "severity": audit_payload["severity"],
+            "operationCount": len(attempted_operations),
+            "threadId": foundry_thread_id,
+        },
+    )
+
+    return {
+        "ok": True,
+        "projectId": entry["id"],
+        "threadId": foundry_thread_id,
+        "status": safe_status,
     }
 
 

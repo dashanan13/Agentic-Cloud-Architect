@@ -32,6 +32,7 @@ const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
 const chatRuntimeCtxEl = document.getElementById("chat-runtime-ctx");
 const projectIacIconEl = document.getElementById("project-iac-icon");
+const tipsContentEl = document.getElementById("tips-content");
 
 function setSelectedResourceName(value) {
   if (selectedResourceNameEl) {
@@ -86,11 +87,18 @@ function formatContextWindow(modelName) {
   return null;
 }
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
+const tipsInitialMarkup = tipsContentEl ? tipsContentEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
 let saveRequestInFlight = false;
 let queuedSaveOptions = null;
 let activeSavePromise = Promise.resolve();
+let validationStatusState = null;
+let validationResultState = null;
+let validationExpandedSeverity = null;
+let validationRunInFlight = false;
+const validationFixInFlightFindingIds = new Set();
+const validationFixStatusByFindingId = new Map();
 const tabGroups = Array.from(document.querySelectorAll('[role="tablist"]'))
   .map((tabListEl) => {
     const groupTabs = Array.from(tabListEl.querySelectorAll('.tab[role="tab"]'));
@@ -4689,6 +4697,17 @@ function setSaveStatus(message, isError = false) {
   projectSaveStatus.style.color = isError ? "#b91c1c" : "";
 }
 
+function setValidateButtonBusy(isBusy) {
+  if (!btnValidate) {
+    return;
+  }
+
+  const busy = Boolean(isBusy);
+  btnValidate.disabled = busy;
+  btnValidate.setAttribute("aria-busy", busy ? "true" : "false");
+  btnValidate.textContent = busy ? "Validating..." : "Validate";
+}
+
 
 function normalizeSaveTrigger(value) {
   const normalized = String(value || "").trim().toLowerCase();
@@ -4950,6 +4969,33 @@ tabGroups.forEach((group) => {
   });
 });
 
+function setActiveTabByName(tabName) {
+  const targetName = String(tabName || "").trim();
+  if (!targetName) {
+    return;
+  }
+
+  tabGroups.forEach((group) => {
+    const targetTab = group.tabs.find((item) => item.dataset.tab === targetName);
+    if (!targetTab) {
+      return;
+    }
+
+    group.tabs.forEach((item) => {
+      const active = item === targetTab;
+      item.classList.toggle("is-active", active);
+      item.setAttribute("aria-selected", String(active));
+      item.setAttribute("tabindex", active ? "0" : "-1");
+    });
+
+    group.panels.forEach((panelEl, panelName) => {
+      const hidden = panelName !== targetName;
+      panelEl.classList.toggle("is-hidden", hidden);
+      panelEl.toggleAttribute("hidden", hidden);
+    });
+  });
+}
+
 function setChatRuntimeValue(targetEl, text, tone = "") {
   if (!targetEl) {
     return;
@@ -5043,6 +5089,757 @@ async function loadArchitectureChatStatus() {
     setChatRuntimeValue(chatRuntimeCtxEl, "—", "");
   }
 }
+
+const VALIDATION_SEVERITY_ORDER = ["failure", "warning", "info"];
+const VALIDATION_SEVERITY_LABELS = {
+  failure: "Failures",
+  warning: "Warnings",
+  info: "Info"
+};
+
+function normalizeValidationSeverity(value) {
+  const severity = String(value || "").trim().toLowerCase();
+  if (severity === "failure" || severity === "error" || severity === "critical" || severity === "high") {
+    return "failure";
+  }
+  if (severity === "warning" || severity === "warn" || severity === "medium") {
+    return "warning";
+  }
+  return "info";
+}
+
+function normalizeValidationGroups(result) {
+  const grouped = {
+    failure: [],
+    warning: [],
+    info: []
+  };
+
+  const addFinding = (finding) => {
+    if (!finding || typeof finding !== "object") {
+      return;
+    }
+    const severity = normalizeValidationSeverity(finding.severity);
+    grouped[severity].push(finding);
+  };
+
+  const rawGroups = result && typeof result === "object" && result.groups && typeof result.groups === "object"
+    ? result.groups
+    : null;
+
+  if (rawGroups) {
+    VALIDATION_SEVERITY_ORDER.forEach((severity) => {
+      const entries = Array.isArray(rawGroups[severity]) ? rawGroups[severity] : [];
+      entries.forEach(addFinding);
+    });
+  }
+
+  if (grouped.failure.length || grouped.warning.length || grouped.info.length) {
+    return grouped;
+  }
+
+  const findings = Array.isArray(result?.findings) ? result.findings : [];
+  findings.forEach(addFinding);
+  return grouped;
+}
+
+function resolvePreferredValidationSeverity(groups) {
+  if (validationExpandedSeverity && VALIDATION_SEVERITY_ORDER.includes(validationExpandedSeverity)) {
+    return validationExpandedSeverity;
+  }
+
+  for (const severity of VALIDATION_SEVERITY_ORDER) {
+    if (Array.isArray(groups?.[severity]) && groups[severity].length) {
+      return severity;
+    }
+  }
+
+  return "failure";
+}
+
+function summarizeValidationCounts(groups) {
+  const failure = Array.isArray(groups?.failure) ? groups.failure.length : 0;
+  const warning = Array.isArray(groups?.warning) ? groups.warning.length : 0;
+  const info = Array.isArray(groups?.info) ? groups.info.length : 0;
+  return {
+    failure,
+    warning,
+    info,
+    total: failure + warning + info
+  };
+}
+
+function normalizeValidationSummary(result, groups) {
+  const fallback = summarizeValidationCounts(groups);
+  const summary = result && typeof result === "object" && result.summary && typeof result.summary === "object"
+    ? result.summary
+    : {};
+
+  const parseCount = (value, fallbackValue) => {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) && numericValue >= 0
+      ? Math.floor(numericValue)
+      : fallbackValue;
+  };
+
+  const failure = parseCount(summary.failure, fallback.failure);
+  const warning = parseCount(summary.warning, fallback.warning);
+  const info = parseCount(summary.info, fallback.info);
+  const total = parseCount(summary.total, failure + warning + info);
+
+  return { failure, warning, info, total };
+}
+
+function getValidationConnectionLabel(connection, sourceState = "") {
+  if (connection && typeof connection === "object") {
+    return formatConnectionLabel(connection);
+  }
+
+  const stateText = String(sourceState || "").trim().toLowerCase();
+  if (stateText === "connected") {
+    return { text: "Connected", tone: "ok" };
+  }
+  if (stateText === "failed" || stateText === "unavailable") {
+    return { text: "Failed", tone: "error" };
+  }
+  if (stateText === "skipped") {
+    return { text: "Skipped", tone: "warn" };
+  }
+  return { text: "Unknown", tone: "warn" };
+}
+
+function resolveValidationTargetLabel(target) {
+  if (!target || typeof target !== "object") {
+    return "";
+  }
+
+  const parts = [];
+
+  if (target.resourceId) {
+    const resource = getItemById(String(target.resourceId));
+    const resourceLabel = resource?.name || String(target.resourceId);
+    parts.push(`Resource: ${resourceLabel}`);
+  }
+
+  if (target.connectionId) {
+    const connectionId = String(target.connectionId);
+    const connection = state.canvasConnections.find((item) => item.id === connectionId);
+    const connectionLabel = connection?.name || connectionId;
+    parts.push(`Connection: ${connectionLabel}`);
+  }
+
+  if (target.field) {
+    parts.push(`Field: ${String(target.field)}`);
+  }
+
+  return parts.join(" · ");
+}
+
+function findValidationFindingById(findingId) {
+  const safeFindingId = String(findingId || "").trim();
+  if (!safeFindingId || !validationResultState) {
+    return null;
+  }
+
+  const findings = Array.isArray(validationResultState.findings) ? validationResultState.findings : [];
+  return findings.find((finding) => String(finding?.id || "").trim() === safeFindingId) || null;
+}
+
+function buildCurrentCanvasStatePayload() {
+  return {
+    leftWidth: state.leftWidth,
+    rightWidth: state.rightWidth,
+    bottomHeight: state.bottomHeight,
+    bottomRightWidth: state.bottomRightWidth,
+    selectedResource: state.selectedResource,
+    searchTerm: state.searchTerm,
+    canvasView: {
+      x: state.canvasView.x,
+      y: state.canvasView.y,
+      zoom: state.canvasView.zoom,
+    },
+    canvasItems: state.canvasItems.map((item) => ({ ...item })),
+    canvasConnections: state.canvasConnections.map((connection) => ({ ...connection }))
+  };
+}
+
+function applyObjectPathValue(target, pathSegments, value) {
+  if (!target || typeof target !== "object" || !Array.isArray(pathSegments) || !pathSegments.length) {
+    return false;
+  }
+
+  let cursor = target;
+  for (let index = 0; index < pathSegments.length - 1; index += 1) {
+    const segment = String(pathSegments[index] || "").trim();
+    if (!segment) {
+      return false;
+    }
+
+    const nextValue = cursor[segment];
+    if (!nextValue || typeof nextValue !== "object" || Array.isArray(nextValue)) {
+      cursor[segment] = {};
+    }
+    cursor = cursor[segment];
+  }
+
+  const lastSegment = String(pathSegments[pathSegments.length - 1] || "").trim();
+  if (!lastSegment) {
+    return false;
+  }
+
+  cursor[lastSegment] = value;
+  return true;
+}
+
+function applyValidationFixOperations(operations) {
+  const attempted = Array.isArray(operations)
+    ? operations
+      .filter((operation) => operation && typeof operation === "object")
+      .map((operation) => ({ ...operation }))
+    : [];
+
+  const applied = [];
+  const failed = [];
+  let changed = false;
+
+  attempted.forEach((operation) => {
+    const op = String(operation.op || "").trim().toLowerCase();
+
+    if (!op) {
+      failed.push({ operation, reason: "Missing operation type." });
+      return;
+    }
+
+    try {
+      if (op === "set_resource_name") {
+        const resourceId = String(operation.resourceId || "").trim();
+        const value = String(operation.value || "").trim();
+        const resource = getItemById(resourceId);
+        if (!resource || !value) {
+          failed.push({ operation, reason: "Resource or value not found." });
+          return;
+        }
+
+        if (resource.name !== value) {
+          resource.name = value;
+          changed = true;
+        }
+
+        applied.push(operation);
+        return;
+      }
+
+      if (op === "set_resource_property") {
+        const resourceId = String(operation.resourceId || "").trim();
+        const resource = getItemById(resourceId);
+        const rawField = String(operation.field || "").trim();
+        if (!resource || !rawField) {
+          failed.push({ operation, reason: "Resource or property field not found." });
+          return;
+        }
+
+        if (rawField === "name") {
+          const nextName = String(operation.value || "").trim();
+          if (!nextName) {
+            failed.push({ operation, reason: "Name value cannot be empty." });
+            return;
+          }
+
+          if (resource.name !== nextName) {
+            resource.name = nextName;
+            changed = true;
+          }
+
+          applied.push(operation);
+          return;
+        }
+
+        const properties = ensureItemProperties(resource);
+        const normalizedField = rawField.startsWith("properties.")
+          ? rawField.slice("properties.".length)
+          : rawField;
+        const pathSegments = normalizedField
+          .split(".")
+          .map((segment) => String(segment || "").trim())
+          .filter(Boolean);
+
+        if (!pathSegments.length) {
+          failed.push({ operation, reason: "Property field is invalid." });
+          return;
+        }
+
+        const assigned = applyObjectPathValue(properties, pathSegments, operation.value);
+        if (!assigned) {
+          failed.push({ operation, reason: "Unable to assign property path." });
+          return;
+        }
+
+        changed = true;
+        applied.push(operation);
+        return;
+      }
+
+      if (op === "remove_connection") {
+        const connectionId = String(operation.connectionId || "").trim();
+        if (!connectionId) {
+          failed.push({ operation, reason: "Connection ID is missing." });
+          return;
+        }
+
+        const previousLength = state.canvasConnections.length;
+        state.canvasConnections = state.canvasConnections.filter((connection) => connection.id !== connectionId);
+        if (state.canvasConnections.length === previousLength) {
+          failed.push({ operation, reason: "Connection not found." });
+          return;
+        }
+
+        if (state.selectedConnectionId === connectionId) {
+          state.selectedConnectionId = null;
+        }
+
+        changed = true;
+        applied.push(operation);
+        return;
+      }
+
+      if (op === "set_connection_direction") {
+        const connectionId = String(operation.connectionId || "").trim();
+        const direction = String(operation.direction || "one-way").trim().toLowerCase() === "bi" ? "bi" : "one-way";
+        const connection = state.canvasConnections.find((item) => item.id === connectionId);
+        if (!connection) {
+          failed.push({ operation, reason: "Connection not found." });
+          return;
+        }
+
+        if (connection.direction !== direction) {
+          connection.direction = direction;
+          changed = true;
+        }
+
+        applied.push(operation);
+        return;
+      }
+
+      if (op === "add_connection") {
+        const fromId = String(operation.fromId || "").trim();
+        const toId = String(operation.toId || "").trim();
+        const direction = String(operation.direction || "one-way").trim().toLowerCase() === "bi" ? "bi" : "one-way";
+        const fromItem = getItemById(fromId);
+        const toItem = getItemById(toId);
+
+        if (!fromItem || !toItem || fromId === toId) {
+          failed.push({ operation, reason: "Connection endpoints are invalid." });
+          return;
+        }
+
+        const existingConnection = state.canvasConnections.find((connection) => connection.fromId === fromId && connection.toId === toId) || null;
+        const previousDirection = existingConnection?.direction || "";
+        const previousLength = state.canvasConnections.length;
+        upsertConnection(fromId, toId, direction, "right", "left");
+        if (state.canvasConnections.length !== previousLength || previousDirection !== direction) {
+          changed = true;
+        }
+
+        applied.push(operation);
+        return;
+      }
+
+      if (op === "remove_resource") {
+        const resourceId = String(operation.resourceId || "").trim();
+        const resource = getItemById(resourceId);
+        if (!resource) {
+          failed.push({ operation, reason: "Resource not found." });
+          return;
+        }
+
+        removeCanvasItem(resourceId);
+        changed = true;
+        applied.push(operation);
+        return;
+      }
+
+      failed.push({ operation, reason: `Unsupported operation '${op}'.` });
+    } catch (error) {
+      failed.push({ operation, reason: error?.message || "Unexpected operation failure." });
+    }
+  });
+
+  if (changed) {
+    updatePropertyPanelForSelection();
+    renderCanvasItems();
+    renderCanvasConnections();
+    updateCanvasStatus();
+    persistCanvasLocal();
+  }
+
+  return {
+    attempted,
+    applied,
+    failed,
+    changed,
+  };
+}
+
+async function requestArchitectureValidation(canvasStatePayload) {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Unable to validate architecture: missing project ID.");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/architecture/validation/run`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      canvasState: canvasStatePayload,
+    })
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = payload?.detail ? String(payload.detail) : "Architecture validation request failed.";
+    throw new Error(detail);
+  }
+
+  return payload;
+}
+
+async function postArchitectureValidationFixAudit(payload) {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    return;
+  }
+
+  try {
+    await fetch(`/api/project/${encodeURIComponent(projectId)}/architecture/validation/fix-audit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    // Best-effort audit logging only.
+  }
+}
+
+async function applyValidationFixForFinding(findingId) {
+  const safeFindingId = String(findingId || "").trim();
+  if (!safeFindingId || validationFixInFlightFindingIds.has(safeFindingId) || validationRunInFlight) {
+    return;
+  }
+
+  const finding = findValidationFindingById(safeFindingId);
+  const fix = finding?.fix && typeof finding.fix === "object" ? finding.fix : null;
+  const operations = Array.isArray(fix?.operations) ? fix.operations : [];
+
+  if (!finding || !operations.length) {
+    return;
+  }
+
+  const beforeStateHash = String(state.currentProject?.canvasStateHash || "").trim();
+  const validationRunId = String(validationResultState?.runId || "").trim();
+
+  validationFixInFlightFindingIds.add(safeFindingId);
+  validationFixStatusByFindingId.delete(safeFindingId);
+  renderValidationTipsPanel();
+
+  await postArchitectureValidationFixAudit({
+    validationRunId,
+    findingId: safeFindingId,
+    status: "attempted",
+    suggestionTitle: String(finding.title || "").trim(),
+    severity: String(finding.severity || "").trim(),
+    attemptedOperations: operations,
+    beforeStateHash,
+    afterStateHash: beforeStateHash,
+    resultSummary: "Fix attempt started."
+  });
+
+  try {
+    const operationResult = applyValidationFixOperations(operations);
+
+    if (operationResult.changed) {
+      updateTimestamp();
+      await saveProjectFiles({ silent: true, saveTrigger: "manual" });
+    }
+
+    const afterStateHash = String(state.currentProject?.canvasStateHash || beforeStateHash).trim();
+    const appliedCount = operationResult.applied.length;
+    const failedCount = operationResult.failed.length;
+    const attemptedCount = operationResult.attempted.length;
+
+    const finalStatus = appliedCount > 0 ? "applied" : "failed";
+    validationFixStatusByFindingId.set(safeFindingId, finalStatus);
+
+    const resultSummary = `Applied ${appliedCount}/${attemptedCount} operation${attemptedCount === 1 ? "" : "s"}${failedCount ? ` (${failedCount} failed).` : "."}`;
+
+    await postArchitectureValidationFixAudit({
+      validationRunId,
+      findingId: safeFindingId,
+      status: finalStatus,
+      suggestionTitle: String(finding.title || "").trim(),
+      severity: String(finding.severity || "").trim(),
+      attemptedOperations: operationResult.attempted,
+      beforeStateHash,
+      afterStateHash,
+      resultSummary,
+    });
+
+    setSaveStatus(resultSummary, finalStatus !== "applied");
+  } catch (error) {
+    validationFixStatusByFindingId.set(safeFindingId, "failed");
+
+    await postArchitectureValidationFixAudit({
+      validationRunId,
+      findingId: safeFindingId,
+      status: "failed",
+      suggestionTitle: String(finding.title || "").trim(),
+      severity: String(finding.severity || "").trim(),
+      attemptedOperations: operations,
+      beforeStateHash,
+      afterStateHash: String(state.currentProject?.canvasStateHash || beforeStateHash).trim(),
+      resultSummary: String(error?.message || "Fix application failed."),
+    });
+
+    setSaveStatus(error?.message || "Fix application failed.", true);
+  } finally {
+    validationFixInFlightFindingIds.delete(safeFindingId);
+    renderValidationTipsPanel();
+  }
+}
+
+function renderValidationTipsPanel() {
+  if (!tipsContentEl) {
+    return;
+  }
+
+  const status = validationStatusState && typeof validationStatusState === "object"
+    ? validationStatusState
+    : {};
+  const result = validationResultState && typeof validationResultState === "object"
+    ? validationResultState
+    : null;
+
+  if (result?.errorMessage) {
+    tipsContentEl.innerHTML = `<div class="validation-empty validation-empty--error">${escapeHtml(String(result.errorMessage))}</div>`;
+    return;
+  }
+
+  if (!result && !status?.connections) {
+    if (tipsInitialMarkup) {
+      tipsContentEl.innerHTML = tipsInitialMarkup;
+    } else {
+      tipsContentEl.textContent = "Run Validate to see architecture recommendations.";
+    }
+    return;
+  }
+
+  const groups = normalizeValidationGroups(result || {});
+  validationExpandedSeverity = resolvePreferredValidationSeverity(groups);
+  const summary = normalizeValidationSummary(result || {}, groups);
+
+  const modelConfig = status?.model && typeof status.model === "object"
+    ? status.model
+    : {};
+  const modelName = String(modelConfig.configuredModel || modelConfig.activeModel || "Rule checks + Azure MCP").trim() || "Rule checks + Azure MCP";
+
+  const mcpConnection = status?.connections && typeof status.connections === "object"
+    ? status.connections.azureMcp
+    : null;
+  const foundryConnection = status?.connections && typeof status.connections === "object"
+    ? status.connections.azureFoundry
+    : null;
+  const mcpSourceState = result?.sources?.azureMcp?.connectionState;
+  const foundrySourceState = result?.sources?.reasoningModel?.connectionState;
+  const mcpLabel = getValidationConnectionLabel(mcpConnection, mcpSourceState);
+  const foundryLabel = getValidationConnectionLabel(foundryConnection, foundrySourceState);
+
+  const sectionsMarkup = VALIDATION_SEVERITY_ORDER.map((severity) => {
+    const findings = Array.isArray(groups[severity]) ? groups[severity] : [];
+    const expanded = validationExpandedSeverity === severity;
+    const findingMarkup = findings.length
+      ? findings.map((finding, index) => {
+        const findingId = String(finding?.id || `${severity}-${index + 1}`);
+        const title = String(finding?.title || "Recommendation");
+        const message = String(finding?.message || "No details provided.");
+        const targetLabel = resolveValidationTargetLabel(finding?.target);
+        const fix = finding?.fix && typeof finding.fix === "object" ? finding.fix : null;
+        const hasOperations = Array.isArray(fix?.operations) && fix.operations.length > 0;
+        const fixLabel = String(fix?.label || "Apply fix").trim() || "Apply fix";
+        const fixState = validationFixStatusByFindingId.get(findingId) || "";
+        const fixRunning = validationFixInFlightFindingIds.has(findingId);
+
+        let buttonText = fixLabel;
+        if (fixRunning) {
+          buttonText = "Applying...";
+        } else if (fixState === "applied") {
+          buttonText = "Applied";
+        }
+
+        const isDisabled = fixRunning || fixState === "applied";
+        const helperText = fixState === "failed"
+          ? '<div class="validation-finding__hint validation-finding__hint--error">Last fix attempt failed.</div>'
+          : (fixState === "applied"
+            ? '<div class="validation-finding__hint validation-finding__hint--ok">Fix applied to canvas.</div>'
+            : "");
+
+        return [
+          '<article class="validation-finding">',
+          `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
+          `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
+          targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
+          hasOperations
+            ? `<div class="validation-finding__actions"><button type="button" class="btn btn--sm btn--primary" data-validation-fix="${escapeHtml(findingId)}" ${isDisabled ? "disabled" : ""}>${escapeHtml(buttonText)}</button></div>`
+            : "",
+          helperText,
+          "</article>"
+        ].join("");
+      }).join("")
+      : '<div class="validation-empty">No items in this severity.</div>';
+
+    return [
+      `<section class="validation-group validation-group--${severity}">`,
+      `<button type="button" class="validation-group__toggle" data-validation-group-toggle="${severity}" aria-expanded="${expanded ? "true" : "false"}">`,
+      `<span class="validation-group__title">${VALIDATION_SEVERITY_LABELS[severity]} (${findings.length})</span>`,
+      `<span class="validation-group__chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
+      "</button>",
+      `<div class="validation-group__body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>${findingMarkup}</div>`,
+      "</section>"
+    ].join("");
+  }).join("");
+
+  tipsContentEl.innerHTML = [
+    '<div class="validation-runtime">',
+    `<div class="validation-runtime__row"><span class="validation-runtime__label">Model</span><span class="status-ai-value">${escapeHtml(modelName)}</span></div>`,
+    `<div class="validation-runtime__row"><span class="validation-runtime__label">Azure MCP</span><span class="status-ai-value ${mcpLabel.tone === "ok" ? "chat-runtime-value--ok" : (mcpLabel.tone === "error" ? "chat-runtime-value--error" : "chat-runtime-value--warn")}">${escapeHtml(mcpLabel.text)}</span></div>`,
+    `<div class="validation-runtime__row"><span class="validation-runtime__label">Validation Agent</span><span class="status-ai-value ${foundryLabel.tone === "ok" ? "chat-runtime-value--ok" : (foundryLabel.tone === "error" ? "chat-runtime-value--error" : "chat-runtime-value--warn")}">${escapeHtml(foundryLabel.text)}</span></div>`,
+    "</div>",
+    '<div class="validation-summary">',
+    `<span class="validation-summary__item">Failure <strong class="chat-runtime-value--error">${summary.failure}</strong></span>`,
+    `<span class="validation-summary__item">Warning <strong class="chat-runtime-value--warn">${summary.warning}</strong></span>`,
+    `<span class="validation-summary__item">Info <strong class="chat-runtime-value--ok">${summary.info}</strong></span>`,
+    "</div>",
+    '<div class="validation-groups">',
+    sectionsMarkup,
+    "</div>"
+  ].join("");
+}
+
+async function loadArchitectureValidationStatus(options = {}) {
+  const silent = Boolean(options.silent);
+  try {
+    const projectId = state.currentProject?.id ? String(state.currentProject.id) : "";
+    const query = projectId ? `?projectId=${encodeURIComponent(projectId)}` : "";
+    const response = await fetch(`/api/validation/architecture/status${query}`, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to load architecture validation status.");
+    }
+
+    const payload = await response.json();
+    validationStatusState = payload && typeof payload === "object" ? payload : null;
+  } catch (error) {
+    if (!silent) {
+      setSaveStatus(error?.message || "Unable to load architecture validation status.", true);
+    }
+    if (!validationStatusState) {
+      validationStatusState = {
+        model: {
+          configuredModel: "",
+          activeModel: "",
+        },
+        connections: {
+          azureMcp: {
+            configured: false,
+            connected: false,
+          },
+          azureFoundry: {
+            configured: false,
+            connected: false,
+          }
+        }
+      };
+    }
+  }
+
+  renderValidationTipsPanel();
+}
+
+async function runArchitectureValidation() {
+  if (!state.currentProject || validationRunInFlight) {
+    return;
+  }
+
+  validationRunInFlight = true;
+  validationResultState = null;
+  validationFixStatusByFindingId.clear();
+  validationFixInFlightFindingIds.clear();
+  setValidateButtonBusy(true);
+
+  try {
+    setSaveStatus("Saving current architecture before validation...");
+    await saveProjectFiles({ silent: true, saveTrigger: "manual" });
+
+    setSaveStatus("Running architecture validation...");
+    const canvasStatePayload = buildCurrentCanvasStatePayload();
+    const result = await requestArchitectureValidation(canvasStatePayload);
+    validationResultState = result && typeof result === "object" ? result : {};
+
+    const groups = normalizeValidationGroups(validationResultState || {});
+    validationExpandedSeverity = resolvePreferredValidationSeverity(groups);
+    renderValidationTipsPanel();
+    setActiveTabByName("tips");
+
+    const summary = normalizeValidationSummary(validationResultState || {}, groups);
+    setSaveStatus(`Validation complete: ${summary.failure} failure, ${summary.warning} warning, ${summary.info} info.`);
+    await loadArchitectureValidationStatus({ silent: true });
+  } catch (error) {
+    validationResultState = {
+      errorMessage: error?.message || "Architecture validation failed."
+    };
+    renderValidationTipsPanel();
+    setActiveTabByName("tips");
+    setSaveStatus(error?.message || "Architecture validation failed.", true);
+  } finally {
+    validationRunInFlight = false;
+    setValidateButtonBusy(false);
+  }
+}
+
+tipsContentEl?.addEventListener("click", async (event) => {
+  const toggleButton = event.target.closest("[data-validation-group-toggle]");
+  if (toggleButton) {
+    const severity = String(toggleButton.dataset.validationGroupToggle || "").trim().toLowerCase();
+    if (VALIDATION_SEVERITY_ORDER.includes(severity)) {
+      validationExpandedSeverity = validationExpandedSeverity === severity ? null : severity;
+      renderValidationTipsPanel();
+    }
+    return;
+  }
+
+  const fixButton = event.target.closest("[data-validation-fix]");
+  if (fixButton) {
+    const findingId = String(fixButton.dataset.validationFix || "").trim();
+    if (!findingId) {
+      return;
+    }
+
+    await applyValidationFixForFinding(findingId);
+  }
+});
 
 function appendChatMessage(message, autoScroll = true) {
   if (!chatHistoryEl) {
@@ -5306,6 +6103,10 @@ btnBackProjects.addEventListener("click", async () => {
 btnProjectSave?.addEventListener("click", async () => {
   updateTimestamp();
   await saveProjectFiles({ saveTrigger: "manual" });
+});
+
+btnValidate?.addEventListener("click", async () => {
+  await runArchitectureValidation();
 });
 
 btnProjectSettings?.addEventListener("click", () => {
@@ -6506,7 +7307,10 @@ async function initialize() {
     return;
   }
 
-  await resetChatPanel();
+  await Promise.allSettled([
+    resetChatPanel(),
+    loadArchitectureValidationStatus({ silent: true })
+  ]);
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;
@@ -6554,11 +7358,18 @@ async function initialize() {
   // Property-content skeleton self-clears when updatePropertyPanel() runs below.
   appEl.classList.remove("is-canvas-loading");
   window.setInterval(async () => {
+    updateTimestamp();
+
     try {
-      updateTimestamp();
       await saveProjectFiles({ silent: true, saveTrigger: "autosave" });
     } catch {
       // Keep autosave non-blocking.
+    }
+
+    try {
+      await loadArchitectureValidationStatus({ silent: true });
+    } catch {
+      // Keep status refresh non-blocking.
     }
   }, AUTOSAVE_INTERVAL_MS);
 
