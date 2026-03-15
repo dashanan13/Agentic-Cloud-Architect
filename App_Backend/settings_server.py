@@ -111,6 +111,8 @@ FOUNDRY_RESOURCE_CACHE_KEYS = (
     "foundryDefaultThreadId",
 )
 FOUNDRY_RESOURCE_ID_CACHE: dict[str, str] = {}
+FOUNDRY_THREAD_RUN_LOCK_GUARD = RLock()
+FOUNDRY_THREAD_RUN_LOCKS: dict[str, RLock] = {}
 
 
 def _derive_log_category(event_type: str) -> str:
@@ -1223,6 +1225,21 @@ def _update_cached_foundry_resource_ids(settings: Mapping[str, Any]) -> None:
             FOUNDRY_RESOURCE_ID_CACHE[key] = value
         elif key in settings:
             FOUNDRY_RESOURCE_ID_CACHE.pop(key, None)
+
+
+def _resolve_foundry_thread_run_lock(thread_id: str | None) -> RLock:
+    safe_thread_id = _non_empty_text(thread_id)
+    if not safe_thread_id:
+        return FOUNDRY_RESOURCE_LOCK
+
+    with FOUNDRY_THREAD_RUN_LOCK_GUARD:
+        existing = FOUNDRY_THREAD_RUN_LOCKS.get(safe_thread_id)
+        if existing is not None:
+            return existing
+
+        created = RLock()
+        FOUNDRY_THREAD_RUN_LOCKS[safe_thread_id] = created
+        return created
 
 
 def _resolve_foundry_chat_agent_id(settings: Mapping[str, Any]) -> str:
@@ -2653,6 +2670,8 @@ def architecture_chat(body: ArchitectureChatPayload):
     if not foundry_thread_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured.")
 
+    thread_run_lock = _resolve_foundry_thread_run_lock(foundry_thread_id)
+
     project_name_for_log = ""
     project_id_for_log = ""
     if isinstance(project_context, dict):
@@ -2671,14 +2690,15 @@ def architecture_chat(body: ArchitectureChatPayload):
             child_agent_id=foundry_agent_id,
         )
 
-        response = run_cloudarchitect_chat_agent(
-            app_settings=settings,
-            user_message=message,
-            agent_state=body.agentState if isinstance(body.agentState, dict) else None,
-            project_context=project_context,
-            foundry_thread_id=foundry_thread_id,
-            foundry_agent_id=foundry_agent_id,
-        )
+        with thread_run_lock:
+            response = run_cloudarchitect_chat_agent(
+                app_settings=settings,
+                user_message=message,
+                agent_state=body.agentState if isinstance(body.agentState, dict) else None,
+                project_context=project_context,
+                foundry_thread_id=foundry_thread_id,
+                foundry_agent_id=foundry_agent_id,
+            )
 
         _record_orchestration_event(
             settings,
@@ -2844,6 +2864,8 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
     if not foundry_thread_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured for validation.")
 
+    thread_run_lock = _resolve_foundry_thread_run_lock(foundry_thread_id)
+
     payload_canvas_state = body.canvasState if body and isinstance(body.canvasState, dict) else {}
     canvas_state = payload_canvas_state if payload_canvas_state else read_json_file(entry["statePath"], {})
     if not isinstance(canvas_state, dict):
@@ -2946,38 +2968,55 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         },
     )
 
-    _record_validation_thread_payload(
-        settings,
-        thread_id=foundry_thread_id,
-        activity_type="validation.input",
-        project_id=entry["id"],
-        project_name=project_name,
-        payload={
-            "validationRunId": validation_run_id,
-            "projectId": entry["id"],
-            "projectName": project_name,
-            "projectDescription": project_description,
-            "stateHash": state_hash,
-            "resourceCount": resource_count,
-            "connectionCount": connection_count,
-            "canvas": {
-                "canvasItems": canvas_state.get("canvasItems") if isinstance(canvas_state.get("canvasItems"), list) else [],
-                "canvasConnections": canvas_state.get("canvasConnections") if isinstance(canvas_state.get("canvasConnections"), list) else [],
-            },
-        },
-    )
-
     try:
-        result = run_architecture_validation_agent(
-            app_settings=settings,
-            canvas_state=canvas_state,
-            project_name=project_name,
-            project_id=entry["id"],
-            project_description=project_description,
-            foundry_agent_id=foundry_agent_id,
-            foundry_thread_id=foundry_thread_id,
-            validation_run_id=validation_run_id,
-        )
+        with thread_run_lock:
+            _record_validation_thread_payload(
+                settings,
+                thread_id=foundry_thread_id,
+                activity_type="validation.input",
+                project_id=entry["id"],
+                project_name=project_name,
+                payload={
+                    "validationRunId": validation_run_id,
+                    "projectId": entry["id"],
+                    "projectName": project_name,
+                    "projectDescription": project_description,
+                    "stateHash": state_hash,
+                    "resourceCount": resource_count,
+                    "connectionCount": connection_count,
+                    "canvas": {
+                        "canvasItems": canvas_state.get("canvasItems") if isinstance(canvas_state.get("canvasItems"), list) else [],
+                        "canvasConnections": canvas_state.get("canvasConnections") if isinstance(canvas_state.get("canvasConnections"), list) else [],
+                    },
+                },
+            )
+
+            result = run_architecture_validation_agent(
+                app_settings=settings,
+                canvas_state=canvas_state,
+                project_name=project_name,
+                project_id=entry["id"],
+                project_description=project_description,
+                foundry_agent_id=foundry_agent_id,
+                foundry_thread_id=foundry_thread_id,
+                validation_run_id=validation_run_id,
+            )
+
+            _record_validation_thread_payload(
+                settings,
+                thread_id=foundry_thread_id,
+                activity_type="validation.output",
+                project_id=entry["id"],
+                project_name=project_name,
+                payload={
+                    "validationRunId": str(result.get("runId") or validation_run_id),
+                    "projectId": entry["id"],
+                    "projectName": project_name,
+                    "summary": result.get("summary") if isinstance(result.get("summary"), Mapping) else {},
+                    "sources": result.get("sources") if isinstance(result.get("sources"), Mapping) else {},
+                    "findings": result.get("findings") if isinstance(result.get("findings"), list) else [],
+                },
+            )
     except Exception as exc:
         _record_orchestration_event(
             settings,
@@ -3030,22 +3069,6 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
             status_code=500,
             detail=f"Architecture validation failed: {exc}. Validation log: {safe_log_ref}",
         ) from exc
-
-    _record_validation_thread_payload(
-        settings,
-        thread_id=foundry_thread_id,
-        activity_type="validation.output",
-        project_id=entry["id"],
-        project_name=project_name,
-        payload={
-            "validationRunId": str(result.get("runId") or validation_run_id),
-            "projectId": entry["id"],
-            "projectName": project_name,
-            "summary": result.get("summary") if isinstance(result.get("summary"), Mapping) else {},
-            "sources": result.get("sources") if isinstance(result.get("sources"), Mapping) else {},
-            "findings": result.get("findings") if isinstance(result.get("findings"), list) else [],
-        },
-    )
 
     _record_orchestration_event(
         settings,

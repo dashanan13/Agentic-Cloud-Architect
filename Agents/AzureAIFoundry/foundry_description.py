@@ -275,6 +275,9 @@ class FoundryAssistantRunner:
             "context",
             "conversation",
             "rate limit",
+            "already has an active run",
+            "while a run",
+            "can't add messages to",
         )
         return any(marker in text for marker in retry_markers)
 
