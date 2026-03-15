@@ -6210,6 +6210,49 @@ function renderValidationTipsPanel() {
     return renderLineList(lines, "No categorized actions are available for this pillar.");
   };
 
+  const dedupeActionItems = (items, limit = 8) => {
+    const seen = new Set();
+    const deduped = [];
+    const safeItems = Array.isArray(items) ? items : [];
+    safeItems.forEach((item) => {
+      const normalized = String(item || "").trim().replace(/\s+/g, " ");
+      if (!normalized) {
+        return;
+      }
+      const key = normalized.toLowerCase();
+      if (seen.has(key)) {
+        return;
+      }
+      seen.add(key);
+      deduped.push(normalized);
+    });
+    return deduped.slice(0, Math.max(1, Number(limit) || 8));
+  };
+
+  const formatActionLine = (title, message = "") => {
+    const safeTitle = String(title || "").trim();
+    const safeMessage = String(message || "").trim();
+    if (!safeTitle && !safeMessage) {
+      return "";
+    }
+    if (!safeTitle) {
+      return safeMessage;
+    }
+    if (!safeMessage) {
+      return safeTitle;
+    }
+    return `${safeTitle} — ${safeMessage}`;
+  };
+
+  const renderChecklist = (items, startAt = 1, emptyMessage = "No actions identified.") => {
+    const safeItems = Array.isArray(items) ? items.filter((entry) => String(entry || "").trim()) : [];
+    if (!safeItems.length) {
+      return `<div class="validation-empty">${escapeHtml(emptyMessage)}</div>`;
+    }
+    const safeStart = Math.max(1, Number(startAt) || 1);
+    return `<ol class="validation-action-list" start="${safeStart}">${safeItems.map((entry) => `<li>✅ ${escapeHtml(String(entry))}</li>`).join("")}</ol>`;
+  };
+
   const section1Body = [
     '<article class="validation-finding">',
     '<h4 class="validation-finding__title">WELL-ARCHITECTED FRAMEWORK ANALYSIS</h4>',
@@ -6359,10 +6402,177 @@ function renderValidationTipsPanel() {
     pillarSectionsMarkup,
   ].join("");
 
-  const section5Body = [
+  const section5Body = renderLineList(openQuestions, "No additional open questions identified.");
+
+  const scoreLabelByPillar = {
+    reliability: "Reliability",
+    security: "Security",
+    cost_optimization: "Cost",
+    operational_excellence: "Operations",
+    performance_efficiency: "Performance",
+  };
+
+  const scoreRows = VALIDATION_PILLARS.map((pillar) => {
+    const detail = pillarDetails[pillar] && typeof pillarDetails[pillar] === "object"
+      ? pillarDetails[pillar]
+      : {};
+    const recommendationsReceived = Array.isArray(detail.recommendations_received)
+      ? detail.recommendations_received
+      : (Array.isArray(recommendations[pillar]) ? recommendations[pillar] : []);
+
+    let failureCount = 0;
+    let warningCount = 0;
+    let infoCount = 0;
+    recommendationsReceived.forEach((item) => {
+      const severity = normalizeValidationSeverity(item?.severity);
+      if (severity === "failure") {
+        failureCount += 1;
+      } else if (severity === "warning") {
+        warningCount += 1;
+      } else {
+        infoCount += 1;
+      }
+    });
+
+    const scoreRaw = 10 - (failureCount * 3.0) - (warningCount * 1.8) - (infoCount * 0.6);
+    const score = Math.max(0, Math.min(10, Number(scoreRaw.toFixed(1))));
+    const statusIcon = score >= 7 ? "✅" : score >= 4 ? "⚠️" : "🔴";
+
+    let statusText = "No major recommendations identified.";
+    if (recommendationsReceived.length) {
+      const topIssues = recommendationsReceived
+        .slice(0, 3)
+        .map((item) => String(item?.title || "").trim())
+        .filter(Boolean);
+      statusText = topIssues.length
+        ? topIssues.join(", ")
+        : `${recommendationsReceived.length} recommendation(s) identified.`;
+    }
+
+    return {
+      pillar,
+      label: scoreLabelByPillar[pillar] || formatValidationPillarLabel(pillar),
+      score,
+      statusIcon,
+      statusText,
+    };
+  });
+
+  const overallScoreRaw = scoreRows.length
+    ? scoreRows.reduce((sum, row) => sum + Number(row.score || 0), 0) / scoreRows.length
+    : 0;
+  const overallScore = Number(overallScoreRaw.toFixed(1));
+  const overallIcon = overallScore >= 7 ? "✅" : overallScore >= 4 ? "⚠️" : "🔴";
+  const overallStatusText = overallScore >= 7
+    ? "GOOD BASELINE - Continue hardening before production scale."
+    : overallScore >= 4
+      ? "NEEDS IMPROVEMENT - Address key architecture gaps."
+      : "CRITICAL ISSUES - Not production-ready.";
+
+  const section6Body = [
     '<article class="validation-finding">',
-    '<h4 class="validation-finding__title">Recommendations Needed</h4>',
-    renderLineList(openQuestions, "No additional open questions identified."),
+    '<h4 class="validation-finding__title">Overall WAF Score for Your Architecture</h4>',
+    '<div class="validation-score-table-wrap">',
+    '<table class="validation-score-table">',
+    '<thead><tr><th>Pillar</th><th>Score</th><th>Status</th></tr></thead>',
+    '<tbody>',
+    scoreRows.map((row) => [
+      '<tr>',
+      `<td><strong>${escapeHtml(row.label)}</strong></td>`,
+      `<td>${escapeHtml(`${row.statusIcon} ${row.score}/10`)}</td>`,
+      `<td>${escapeHtml(row.statusText)}</td>`,
+      '</tr>',
+    ].join("")).join(""),
+    '<tr class="validation-score-table__overall">',
+    '<td><strong>Overall</strong></td>',
+    `<td><strong>${escapeHtml(`${overallIcon} ${overallScore}/10`)}</strong></td>`,
+    `<td><strong>${escapeHtml(overallStatusText)}</strong></td>`,
+    '</tr>',
+    '</tbody>',
+    '</table>',
+    '</div>',
+    '</article>',
+  ].join("");
+
+  const immediateCandidates = [];
+  const shortTermCandidates = [];
+  const mediumTermCandidates = [];
+
+  quickFixesPriority.forEach((item) => {
+    immediateCandidates.push(formatActionLine(item?.title, item?.message));
+  });
+
+  quickFixesConfig.forEach((item) => {
+    shortTermCandidates.push(formatActionLine(item?.title, item?.message));
+  });
+
+  VALIDATION_PILLARS.forEach((pillar) => {
+    const detail = pillarDetails[pillar] && typeof pillarDetails[pillar] === "object"
+      ? pillarDetails[pillar]
+      : {};
+    const recommendationsReceived = Array.isArray(detail.recommendations_received)
+      ? detail.recommendations_received
+      : (Array.isArray(recommendations[pillar]) ? recommendations[pillar] : []);
+
+    recommendationsReceived.forEach((item) => {
+      const actionLine = formatActionLine(item?.title, item?.message);
+      const severity = normalizeValidationSeverity(item?.severity);
+      if (severity === "failure") {
+        immediateCandidates.push(actionLine);
+      } else if (severity === "warning") {
+        shortTermCandidates.push(actionLine);
+      } else {
+        mediumTermCandidates.push(actionLine);
+      }
+    });
+
+    const actionPlan = Array.isArray(detail.action_plan) ? detail.action_plan : [];
+    actionPlan.forEach((group) => {
+      const category = String(group?.category || "").trim().toLowerCase();
+      const items = Array.isArray(group?.items) ? group.items : [];
+      items.forEach((entry) => {
+        const normalized = String(entry || "").trim();
+        if (!normalized) {
+          return;
+        }
+        if (category.includes("should")) {
+          shortTermCandidates.push(normalized);
+        } else {
+          mediumTermCandidates.push(normalized);
+        }
+      });
+    });
+  });
+
+  const immediateActions = dedupeActionItems(immediateCandidates, 5);
+  const shortTermActions = dedupeActionItems(shortTermCandidates, 5);
+  const mediumTermActions = dedupeActionItems(mediumTermCandidates, 5);
+
+  if (!immediateActions.length) {
+    immediateActions.push("Validate critical security and networking controls before deployment.");
+  }
+  if (!shortTermActions.length) {
+    shortTermActions.push("Prioritize reliability, observability, and backup controls for week 1 hardening.");
+  }
+  if (!mediumTermActions.length) {
+    mediumTermActions.push("Plan phased optimization for performance, compliance, and cost efficiency.");
+  }
+
+  const shortTermStart = immediateActions.length + 1;
+  const mediumTermStart = shortTermStart + shortTermActions.length;
+
+  const section7Body = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Immediate (Before any deployment)</h4>',
+    renderChecklist(immediateActions, 1),
+    '</article>',
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Short-term (Week 1)</h4>',
+    renderChecklist(shortTermActions, shortTermStart),
+    '</article>',
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Medium-term (Week 2)</h4>',
+    renderChecklist(mediumTermActions, mediumTermStart),
     '</article>',
   ].join("");
 
@@ -6448,7 +6658,7 @@ function renderValidationTipsPanel() {
     '</article>',
   ].join("");
 
-  const section6Body = [
+  const section8Body = [
     renderValidationCollapsibleSection({
       sectionKey: "section-6-mcp",
       title: "Azure MCP Tool Output",
@@ -6494,15 +6704,27 @@ function renderValidationTipsPanel() {
     }),
     renderValidationCollapsibleSection({
       sectionKey: "section-5-recommendations-needed",
-      title: "Section 5: Recommendations Needed",
+      title: "Section 5: Questions to Think About Next",
       summary: "Open architecture questions that require project-specific decisions.",
       bodyMarkup: section5Body,
     }),
     renderValidationCollapsibleSection({
-      sectionKey: "section-6-feedback",
-      title: "Section 6: Feedback from Well-Architected Framework",
-      summary: "Detailed MCP and Cloud Architect AI output breakdowns.",
+      sectionKey: "section-6-overall-score",
+      title: "Section 6: Overall WAF Score of Your Architecture",
+      summary: "Scorecard view across the five Well-Architected pillars and overall readiness.",
       bodyMarkup: section6Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-7-what-next",
+      title: "Section 7: What to Do Next",
+      summary: "Prioritized action plan grouped by immediate, short-term, and medium-term execution.",
+      bodyMarkup: section7Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-8-feedback",
+      title: "Section 8: Feedback from Well-Architected Framework",
+      summary: "Detailed MCP and Cloud Architect AI output breakdowns.",
+      bodyMarkup: section8Body,
     }),
   ].join("");
 

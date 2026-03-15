@@ -1911,6 +1911,51 @@ select.property-input {
   word-break: break-word;
 }
 
+.validation-score-table-wrap {
+  overflow-x: auto;
+}
+
+.validation-score-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.validation-score-table th,
+.validation-score-table td {
+  border: 1px solid var(--border);
+  padding: 7px 8px;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.66rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.validation-score-table th {
+  color: var(--text);
+  background: var(--panel);
+  font-weight: 600;
+}
+
+.validation-score-table__overall td {
+  background: var(--panel);
+}
+
+.validation-action-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+}
+
+.validation-action-list li {
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 #panel-chat.right-tab-panel {
   grid-template-rows: auto 1fr auto;
   min-height: 0;
