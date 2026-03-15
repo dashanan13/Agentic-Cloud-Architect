@@ -5,6 +5,7 @@ import importlib
 import json
 import re
 import time
+import urllib.request as _urllib_request
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Mapping
@@ -28,6 +29,87 @@ WELL_ARCHITECTED_PILLARS = [
     "operational_excellence",
     "performance_efficiency",
 ]
+
+WAF_SUPPORTED_SERVICE_SLUGS = {
+    "application-insights",
+    "app-service-web-apps",
+    "azure-api-management",
+    "azure-application-gateway",
+    "azure-blob-storage",
+    "azure-container-apps",
+    "azure-databricks",
+    "azure-database-for-mysql",
+    "azure-disk-storage",
+    "azure-event-grid",
+    "azure-event-hubs",
+    "azure-expressroute",
+    "azure-files",
+    "azure-firewall",
+    "azure-front-door",
+    "azure-functions",
+    "azure-kubernetes-service",
+    "azure-load-balancer",
+    "azure-local",
+    "azure-log-analytics",
+    "azure-machine-learning",
+    "azure-netapp-files",
+    "azure-service-bus",
+    "azure-service-fabric",
+    "azure-sql-database",
+    "azure-traffic-manager",
+    "azure-virtual-wan",
+    "cosmos-db",
+    "postgresql",
+    "virtual-machines",
+    "virtual-network",
+}
+
+WAF_SERVICE_PATTERN_MAP: list[tuple[str, tuple[str, ...]]] = [
+    ("virtual-network", ("virtual network", "virtualnetworks", "vnet", "subnet", "network security group", "networksecuritygroups", "nsg", "route table", "routetables", "public ip", "publicipaddresses", "private endpoint", "privateendpoints", "network interface", "networkinterfaces", "nic")),
+    ("virtual-machines", ("virtual machine", "virtualmachines", "microsoft.compute/virtualmachines", "vmss", "virtual machine scale set")),
+    ("azure-kubernetes-service", ("azure kubernetes service", "managedclusters", "kubernetes", "aks")),
+    ("azure-functions", ("azure functions", "function app", "functionapp", "microsoft.web/sites/functions", "function")),
+    ("app-service-web-apps", ("app service", "web app", "webapp", "microsoft.web/sites")),
+    ("azure-application-gateway", ("application gateway", "applicationgateways")),
+    ("azure-api-management", ("api management", "apimanagement", "microsoft.apimanagement/service")),
+    ("azure-load-balancer", ("load balancer", "loadbalancer", "loadbalancers")),
+    ("azure-front-door", ("front door", "frontdoor")),
+    ("azure-traffic-manager", ("traffic manager", "trafficmanagerprofiles")),
+    ("azure-firewall", ("azure firewall", "azurefirewalls", "firewall")),
+    ("azure-expressroute", ("express route", "expressroute", "expressroutecircuits")),
+    ("azure-virtual-wan", ("virtual wan", "virtualwans", "vwan")),
+    ("azure-service-bus", ("service bus", "servicebus", "microsoft.servicebus")),
+    ("azure-event-hubs", ("event hubs", "eventhubs", "microsoft.eventhub")),
+    ("azure-event-grid", ("event grid", "eventgrid", "microsoft.eventgrid")),
+    ("azure-blob-storage", ("blob storage", "blobservice", "storage account", "storageaccounts", "microsoft.storage/storageaccounts")),
+    ("azure-files", ("azure files", "fileshare", "file share", "microsoft.storage/storageaccounts/fileservices")),
+    ("azure-disk-storage", ("managed disk", "manageddisks", "disk storage", "microsoft.compute/disks")),
+    ("azure-netapp-files", ("netapp", "net app files", "microsoft.netapp/netappaccounts")),
+    ("azure-sql-database", ("sql database", "azuresql", "microsoft.sql/servers/databases")),
+    ("azure-database-for-mysql", ("mysql", "database for mysql", "microsoft.dbformysql")),
+    ("postgresql", ("postgres", "postgresql", "database for postgresql", "microsoft.dbforpostgresql")),
+    ("cosmos-db", ("cosmos", "cosmos db", "documentdb", "microsoft.documentdb/databaseaccounts")),
+    ("azure-databricks", ("databricks", "microsoft.databricks/workspaces")),
+    ("azure-machine-learning", ("machine learning", "ml workspace", "microsoft.machinelearningservices/workspaces")),
+    ("azure-log-analytics", ("log analytics", "operationalinsights", "workspace", "microsoft.operationalinsights/workspaces")),
+    ("application-insights", ("application insights", "app insights", "microsoft.insights/components")),
+    ("azure-container-apps", ("container app", "containerapp", "container apps", "microsoft.app/containerapps")),
+    ("azure-local", ("azure local",)),
+]
+
+# Map lowercase section header text in WAF service-guide markdown to canonical pillar names.
+_WAF_PILLAR_HEADERS: dict[str, str] = {
+    "reliability": "reliability",
+    "security": "security",
+    "cost optimization": "cost_optimization",
+    "cost optimisation": "cost_optimization",
+    "operational excellence": "operational_excellence",
+    "performance efficiency": "performance_efficiency",
+}
+
+# Session-level cache: guide_url → parsed findings list.
+# Avoids redundant HTTP fetches when the same service is queried multiple times.
+_WAF_GUIDE_CACHE: dict[str, list[dict[str, Any]]] = {}
 
 
 def _timestamp_utc() -> str:
@@ -583,6 +665,176 @@ def _build_architecture_context(
     }
 
 
+def _slugify_waf_service_name(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+
+    text = text.replace("_", "-").replace("/", "-")
+    text = re.sub(r"[^a-z0-9-]+", "-", text)
+    text = re.sub(r"-{2,}", "-", text).strip("-")
+    return text
+
+
+def _map_resource_to_waf_service(resource_type: Any, resource_name: Any = "") -> str:
+    probe_parts = [str(resource_type or "").strip().lower(), str(resource_name or "").strip().lower()]
+    probe = " ".join(part for part in probe_parts if part).strip()
+    if not probe:
+        return ""
+
+    probe_flat = re.sub(r"[^a-z0-9]+", "", probe)
+    for service_slug, patterns in WAF_SERVICE_PATTERN_MAP:
+        for pattern in patterns:
+            pattern_flat = re.sub(r"[^a-z0-9]+", "", str(pattern or "").lower())
+            if not pattern_flat:
+                continue
+            if pattern_flat in probe_flat:
+                return service_slug
+
+    # Fallback: if input already looks like a supported service slug or alias.
+    if probe_parts[0]:
+        type_tail = probe_parts[0].split("/")[-1]
+        candidate_slug = _slugify_waf_service_name(type_tail)
+        if candidate_slug in WAF_SUPPORTED_SERVICE_SLUGS:
+            return candidate_slug
+
+    candidate_slug = _slugify_waf_service_name(probe)
+    if candidate_slug in WAF_SUPPORTED_SERVICE_SLUGS:
+        return candidate_slug
+
+    return ""
+
+
+def _extract_waf_services_from_architecture_context(architecture_context: Mapping[str, Any]) -> list[str]:
+    resources = architecture_context.get("resources") if isinstance(architecture_context.get("resources"), list) else []
+    detected: list[str] = []
+    seen: set[str] = set()
+
+    for resource in resources:
+        if not isinstance(resource, Mapping):
+            continue
+
+        raw_type = str(resource.get("resourceType") or "").strip()
+        raw_name = str(resource.get("name") or "").strip()
+        if not raw_type and not raw_name:
+            continue
+
+        mapped_service = _map_resource_to_waf_service(raw_type, raw_name)
+        if not mapped_service:
+            continue
+
+        if mapped_service in seen:
+            continue
+        seen.add(mapped_service)
+        detected.append(mapped_service)
+
+        if len(detected) >= 12:
+            break
+
+    return detected
+
+
+def _parse_waf_markdown_to_findings(markdown_text: str, service_slug: str = "") -> list[dict[str, Any]]:
+    """Parse a WAF service-guide markdown into structured per-pillar findings.
+
+    The markdown is structured as H2 pillar sections (## Reliability, ## Security, etc.)
+    each containing checklist items that start with ``> -`` or ``- ``.
+
+    Returns a list of finding dicts, one per checklist item, tagged with the
+    matching WAF pillar and ``source='azure_mcp'``.
+    """
+    findings: list[dict[str, Any]] = []
+    current_pillar = ""
+
+    for raw_line in markdown_text.splitlines():
+        line = raw_line.strip()
+
+        # Detect H2 pillar section headers (## Reliability, ## Security, …)
+        h2_match = re.match(r"^##\s+(.+)$", line)
+        if h2_match:
+            section_title = h2_match.group(1).strip().lower()
+            # Strip optional anchor ids like {#reliability}
+            section_title = re.sub(r"\{#[^}]+\}", "", section_title).strip()
+            current_pillar = _WAF_PILLAR_HEADERS.get(section_title, "")
+            continue
+
+        if not current_pillar:
+            continue
+
+        # Detect checklist bullets: "> - text", "- text", "* text"
+        item_match = re.match(r"^>?\s*[-*]\s+(.+)$", line)
+        if not item_match:
+            continue
+
+        raw = item_match.group(1).strip()
+        # Strip markdown bold/italic markers
+        raw = re.sub(r"\*{1,3}(.+?)\*{1,3}", r"\1", raw)
+        # Convert markdown links [label](url) → label
+        raw = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", raw)
+        raw = raw.strip()
+        if len(raw) < 20:
+            continue
+
+        title = raw[:120] + ("..." if len(raw) > 120 else "")
+        finding: dict[str, Any] = {
+            "title": title,
+            "message": raw,
+            "severity": "warning",
+            "pillar": current_pillar,
+            "source": "azure_mcp",
+            "tool": "wellarchitectedframework",
+        }
+        if service_slug:
+            finding["service"] = service_slug
+        findings.append(finding)
+
+    return findings
+
+
+def _fetch_waf_service_guide(guide_url: str, service_slug: str = "") -> list[dict[str, Any]]:
+    """Fetch a WAF service-guide markdown and parse it into per-pillar findings.
+
+    Results are cached in ``_WAF_GUIDE_CACHE`` so repeated calls for the same URL
+    (e.g. multiple validation passes) do not re-fetch from GitHub.
+
+    Falls back to a single informational URL finding when the HTTP fetch fails.
+    """
+    if guide_url in _WAF_GUIDE_CACHE:
+        return _WAF_GUIDE_CACHE[guide_url]
+
+    fallback: list[dict[str, Any]] = [
+        {
+            "title": "Review Azure Well-Architected service guide",
+            "message": (
+                f"See the Microsoft Well-Architected service guide for"
+                f" {service_slug or 'this service'}: {guide_url}"
+            ),
+            "severity": "info",
+            "pillar": "operational_excellence",
+            "source": "azure_mcp",
+            "tool": "wellarchitectedframework",
+        }
+    ]
+    if service_slug:
+        fallback[0]["service"] = service_slug
+
+    try:
+        req = _urllib_request.Request(
+            guide_url,
+            headers={"User-Agent": "agentic-cloud-architect/1.0"},
+        )
+        with _urllib_request.urlopen(req, timeout=20) as resp:
+            markdown_text = resp.read().decode("utf-8", errors="replace")
+
+        parsed = _parse_waf_markdown_to_findings(markdown_text, service_slug=service_slug)
+        result: list[dict[str, Any]] = parsed if parsed else fallback
+    except Exception:
+        result = fallback
+
+    _WAF_GUIDE_CACHE[guide_url] = result
+    return result
+
+
 def _extract_candidate_findings(payload: Any) -> list[Any]:
     if isinstance(payload, str):
         text = str(payload or "").strip()
@@ -614,6 +866,65 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
     structured = _extract_structured_findings(payload)
     if structured:
         return structured
+
+    # Handle Well-Architected tool envelope payloads that return answer/question fields
+    # instead of a direct findings array.
+    waf_envelope_keys = {
+        "answer",
+        "question",
+        "question-number",
+        "total-questions",
+        "next-question-needed",
+        "state",
+    }
+    has_waf_envelope = any(key in payload for key in waf_envelope_keys)
+    if has_waf_envelope:
+        answer_text = _normalize_string(payload.get("answer"))
+        question_text = _normalize_string(payload.get("question"))
+        source_text = answer_text or question_text
+
+        if not source_text and isinstance(payload.get("state"), str):
+            parsed_state = _try_json(str(payload.get("state") or "").strip())
+            if isinstance(parsed_state, Mapping):
+                source_text = _normalize_string(parsed_state.get("answer") or parsed_state.get("question"))
+
+        if source_text:
+            candidate_items: list[dict[str, Any]] = []
+            for raw_line in source_text.splitlines():
+                line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", str(raw_line or "")).strip()
+                if len(line) < 24:
+                    continue
+                if _is_mcp_guidance_text(line):
+                    continue
+
+                pillar = _infer_pillar_from_text(line)
+                item: dict[str, Any] = {
+                    "title": "Well-Architected recommendation",
+                    "message": _truncate_text(line, max_chars=500),
+                    "severity": "warning" if pillar else "info",
+                    "source": "azure_mcp",
+                    "tool": "wellarchitectedframework",
+                }
+                if pillar:
+                    item["pillar"] = pillar
+                candidate_items.append(item)
+                if len(candidate_items) >= 20:
+                    break
+
+            if candidate_items:
+                return candidate_items
+
+            fallback_pillar = _infer_pillar_from_text(source_text)
+            fallback_item: dict[str, Any] = {
+                "title": "Well-Architected recommendation",
+                "message": _truncate_text(source_text, max_chars=800),
+                "severity": "info",
+                "source": "azure_mcp",
+                "tool": "wellarchitectedframework",
+            }
+            if fallback_pillar:
+                fallback_item["pillar"] = fallback_pillar
+            return [fallback_item]
 
     # Handle guidance dict from MCP tools
     if "guidance" in payload and isinstance(payload.get("guidance"), str):
@@ -663,12 +974,39 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
 
     result_list = payload.get("results") if isinstance(payload.get("results"), list) else None
     if result_list:
+        textual_results: list[Any] = []
         for item in result_list:
             if isinstance(item, Mapping):
                 for key in ("findings", "recommendations", "checks", "issues", "value", "items"):
                     value = item.get(key)
                     if isinstance(value, list):
                         candidates.extend(value)
+                continue
+
+            if isinstance(item, str):
+                text = _normalize_string(item)
+                if not text:
+                    continue
+                if _is_mcp_guidance_text(text):
+                    continue
+
+                lower_text = text.lower()
+                if "service is not available" in lower_text and "supported services include" in lower_text:
+                    continue
+
+                url_match = re.search(r"https?://\S+", text)
+                if url_match:
+                    guide_url = url_match.group(0).rstrip(").,;")
+                    # Derive service slug from URL path (e.g. "virtual-network" from
+                    # "…/service-guides/virtual-network.md")
+                    _slug = re.sub(r"\.md$", "", guide_url.rstrip("/").rsplit("/", 1)[-1])
+                    fetched = _fetch_waf_service_guide(guide_url, service_slug=_slug)
+                    textual_results.extend(fetched)
+                else:
+                    textual_results.append(_truncate_text(text, max_chars=800))
+
+        if textual_results:
+            candidates.extend(textual_results)
 
     if candidates:
         return candidates
@@ -705,6 +1043,83 @@ def _normalize_pillar_name(value: Any) -> str:
     candidate = alias_map.get(normalized, normalized)
     if candidate in WELL_ARCHITECTED_PILLARS:
         return candidate
+    return ""
+
+
+def _infer_pillar_from_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+
+    keyword_map: list[tuple[str, tuple[str, ...]]] = [
+        (
+            "reliability",
+            (
+                "reliability",
+                "availability",
+                "resilien",
+                "redundan",
+                "failover",
+                "disaster recovery",
+                "rto",
+                "rpo",
+            ),
+        ),
+        (
+            "security",
+            (
+                "security",
+                "identity",
+                "rbac",
+                "encryption",
+                "key vault",
+                "compliance",
+                "threat",
+                "vulnerability",
+            ),
+        ),
+        (
+            "cost_optimization",
+            (
+                "cost",
+                "finops",
+                "rightsizing",
+                "reserved",
+                "savings",
+                "budget",
+                "waste",
+            ),
+        ),
+        (
+            "operational_excellence",
+            (
+                "operational",
+                "ops",
+                "monitoring",
+                "logging",
+                "observability",
+                "runbook",
+                "automation",
+                "incident",
+            ),
+        ),
+        (
+            "performance_efficiency",
+            (
+                "performance",
+                "latency",
+                "throughput",
+                "scale",
+                "scalability",
+                "caching",
+                "capacity",
+            ),
+        ),
+    ]
+
+    for pillar, keywords in keyword_map:
+        if any(keyword in text for keyword in keywords):
+            return pillar
     return ""
 
 
@@ -912,13 +1327,17 @@ def _normalize_finding(
             return None
         if _is_mcp_guidance_text(text):
             return None
-        return {
+        normalized: dict[str, Any] = {
             "id": _normalize_finding_id("", index),
             "severity": "info",
             "title": "Recommendation",
             "message": text,
             "target": {},
         }
+        pillar = _infer_pillar_from_text(text)
+        if pillar:
+            normalized["pillar"] = pillar
+        return normalized
 
     if not isinstance(finding, Mapping):
         return None
@@ -1437,11 +1856,18 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
                 )
                 payload_text = _extract_tool_text(getattr(result, "content", result))
-                # Guidance from MCP tools IS the recommendation - accept it!
+                # Guidance from MCP tools can be valid recommendation text, but
+                # "tool not found" guidance should trigger fallback to next alias.
                 if _is_mcp_guidance_text(payload_text):
+                    guidance_text = str(payload_text or "").strip()
+                    if re.search(r"^the tool\s+.+\s+was not found", guidance_text, flags=re.IGNORECASE):
+                        attempt_status = "failed"
+                        attempt_error = guidance_text or f"Tool {tool_name} was not found"
+                        last_error = attempt_error
+                        continue
+
                     attempt_status = "guidance_recommendation"
-                    # Parse guidance text as structured findings
-                    payload = {"guidance": payload_text, "source": tool_name}
+                    payload = {"guidance": guidance_text, "source": tool_name}
                 else:
                     # Try to extract JSON payload
                     payload = _extract_json_from_text(payload_text)
@@ -1503,15 +1929,61 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
 
 
 def _extract_tool_text(content: Any) -> str:
+    def _extract_item_text(item: Any) -> str:
+        if item is None:
+            return ""
+
+        if isinstance(item, str):
+            return item
+
+        if isinstance(item, Mapping):
+            text_block = item.get("text")
+            if isinstance(text_block, Mapping):
+                value = text_block.get("value")
+                if value is not None:
+                    return str(value)
+            if text_block is not None:
+                return str(text_block)
+
+            for key in ("value", "content", "message", "output"):
+                value = item.get(key)
+                if value is not None:
+                    return str(value)
+
+            return str(item)
+
+        text_attr = getattr(item, "text", None)
+        if text_attr is not None:
+            if isinstance(text_attr, Mapping):
+                value = text_attr.get("value")
+                if value is not None:
+                    return str(value)
+
+            value_attr = getattr(text_attr, "value", None)
+            if value_attr is not None:
+                return str(value_attr)
+
+            return str(text_attr)
+
+        value_attr = getattr(item, "value", None)
+        if value_attr is not None:
+            return str(value_attr)
+
+        content_attr = getattr(item, "content", None)
+        if content_attr is not None and content_attr is not item:
+            return _extract_tool_text(content_attr)
+
+        return str(item)
+
     if isinstance(content, list):
         lines: list[str] = []
         for item in content:
-            text = getattr(item, "text", None)
-            if text is None:
-                text = str(item)
-            lines.append(str(text))
-        return "\n".join(lines)
-    return str(content)
+            extracted = _extract_item_text(item).strip()
+            if extracted:
+                lines.append(extracted)
+        return "\n".join(lines).strip()
+
+    return _extract_item_text(content).strip()
 
 
 def _describe_payload_type(payload_text: Any) -> str:
@@ -1557,133 +2029,45 @@ def _collect_findings_from_mcp(
             finding_count=0,
         )
 
-    architecture_context_json = json.dumps(architecture_context, ensure_ascii=False)
+    detected_services = _extract_waf_services_from_architecture_context(architecture_context)
+    if not detected_services:
+        return [], ValidationDiagnostics(
+            connection_state="partial",
+            explanation="Azure MCP Well-Architected validation skipped: no service types were detected from architecture resources.",
+            finding_count=0,
+            tools=[],
+        )
 
-    waf_prompt = "\n".join(
-        [
-            "Act as a principal Azure architect and evaluate this architecture against the five Azure Well-Architected pillars.",
-            "Focus on architecture optimization, managed-service fit, resiliency, security boundaries, performance scalability, cost efficiency, and operational excellence.",
-            "Return actionable recommendations and avoid generic filler.",
-            "When possible, include concrete Azure-native alternatives and brief rationale.",
-        ]
-    )
-
-    cloudarchitect_prompt = "\n".join(
-        [
-            "You are Azure architecture advisor. Analyze this Azure architecture design and identify ALL improvement opportunities.",
-            "",
-            "REQUIRED: Return ONLY valid JSON with this exact structure:",
-            '{"findings":[{"id":"<pillar>-<N>","severity":"failure|warning|info","title":"<short title>","message":"<detailed explanation>","target":{"resourceId":"<id or null>","connectionId":"<id or null>","field":"<name or null>"},"pillar":"reliability|security|cost_optimization|operational_excellence|performance_efficiency"}],"summary":"<1-2 sentence summary>"}',
-            "",
-            "CRITICAL REQUIREMENTS:",
-            "1. Return MINIMUM 5 findings (across ALL pillars)",
-            "2. Span ALL 5 Azure Well-Architected Framework pillars:",
-            "   - reliability: redundancy, failover, availability, recovery",
-            "   - security: identity, data protection, compliance, access control",
-            "   - cost_optimization: rightsizing, automation, usage patterns",
-            "   - operational_excellence: monitoring, logging, automation, runbooks",
-            "   - performance_efficiency: scalability, throughput, latency, regions",
-            "3. If design is minimal/empty, suggest guardrails:",
-            "   - Reliability: Add redundancy, disaster recovery, health monitoring",
-            "   - Security: Add identity management, encryption, network isolation",
-            "   - Cost: Add monitoring, scaling policies, cleanup schedules",
-            "   - Ops: Add observability, alerting, incident response",
-            "   - Perf: Add caching, content delivery, geographic distribution",
-            "4. Use ONLY resourceIds/connectionIds from architecture context",
-            "5. If no targetis identifiable, set target.resourceId to null",
-            "",
-            "Return ONLY the JSON. No markdown, no explanations, no code blocks.",
-        ]
-    )
-
-    advisor_prompt = "\n".join(
-        [
-            "List Azure Advisor recommendations that are most relevant to this architecture and summarize them into concise architecture actions.",
-            "Prioritize high-impact items for reliability, security, performance, operational excellence, and cost.",
-        ]
-    )
-
-    tool_requests: list[McpToolRequest] = [
-        McpToolRequest(
-            label="wellarchitectedframework",
-            tool_candidates=[
-                "wellarchitected_framework",
-                "wellarchitectedframework",
-            ],
-            argument_variants=[
-                {
-                    "question": waf_prompt,
-                    "answer": architecture_context_json,
-                    "question-number": 1,
-                    "total-questions": 1,
-                    "next-question-needed": False,
-                    "state": "{}",
-                },
-                {
-                    "query": waf_prompt,
-                    "context": architecture_context_json,
-                },
-                {
-                    "resource": "azure-well-architected",
-                    "action": "all",
-                    "context": architecture_context_json,
-                },
-                {},
-            ],
-        ),
-        McpToolRequest(
-            label="advisor",
-            tool_candidates=[
-                "advisor_recommendation_list",
-                "advisor",
-            ],
-            argument_variants=[
-                {
-                    "subscription": credentials.subscription_id,
-                }
-                if credentials.subscription_id
-                else {},
-                {
-                    "query": advisor_prompt,
-                    "subscription": credentials.subscription_id,
-                    "context": architecture_context_json,
-                }
-                if credentials.subscription_id
-                else {
-                    "query": advisor_prompt,
-                    "context": architecture_context_json,
-                },
-                {},
-            ],
-        ),
-        McpToolRequest(
-            label="cloudarchitect",
-            tool_candidates=[
-                "cloudarchitect_design",
-                "cloudarchitect",
-            ],
-            argument_variants=[
-                {
-                    "command": "cloudarchitect_design",
-                    "question": cloudarchitect_prompt,
-                    "answer": architecture_context_json,
-                    "question-number": 1,
-                    "total-questions": 1,
-                    "next-question-needed": False,
-                    "state": "{}",
-                },
-                {
-                    "question": cloudarchitect_prompt,
-                    "answer": architecture_context_json,
-                    "state": "{}",
-                },
-                {
-                    "query": cloudarchitect_prompt,
-                    "context": architecture_context_json,
-                },
-            ],
-        ),
-    ]
+    tool_requests: list[McpToolRequest] = []
+    for service_name in detected_services:
+        tool_requests.append(
+            McpToolRequest(
+                label=f"wellarchitectedframework:{service_name}",
+                tool_candidates=[
+                    "wellarchitectedframework",
+                    "wellarchitected_framework",
+                ],
+                argument_variants=[
+                    {
+                        "intent": f"Get Azure Well-Architected guidance for service: {service_name}",
+                        "command": "wellarchitectedframework_serviceguide_get",
+                        "parameters": {
+                            "service": service_name,
+                        },
+                    },
+                    {
+                        "command": "wellarchitectedframework_serviceguide_get",
+                        "parameters": {
+                            "service": service_name,
+                        },
+                    },
+                    {
+                        "command": "wellarchitectedframework_serviceguide_get",
+                        "service": service_name,
+                    },
+                ],
+            )
+        )
 
     try:
         tool_responses = _run_async(_invoke_mcp_validation(credentials, tool_requests))
@@ -1694,11 +2078,16 @@ def _collect_findings_from_mcp(
         tool_details: list[dict[str, Any]] = []
 
         for response in tool_responses:
+            response_label = str(response.label or "").strip()
+            service_name = response_label.split(":", 1)[1].strip() if ":" in response_label else ""
+
             if response.error:
-                explanation_parts.append(f"{response.label}: failed ({response.error})")
+                failed_label = response_label or "wellarchitectedframework"
+                explanation_parts.append(f"{failed_label}: failed ({response.error})")
                 tool_details.append(
                     {
-                        "label": response.label,
+                        "label": response_label or "wellarchitectedframework",
+                        "service": service_name,
                         "selectedTool": response.tool_name,
                         "status": "failed",
                         "findingCount": 0,
@@ -1719,13 +2108,16 @@ def _collect_findings_from_mcp(
             for finding in normalized:
                 if isinstance(finding, dict):
                     finding.setdefault("source", "azure_mcp")
-                    # Also preserve the tool label for tracking
-                    finding.setdefault("tool", response.label)
+                    finding.setdefault("tool", "wellarchitectedframework")
+                    if service_name and not finding.get("service"):
+                        finding["service"] = service_name
             findings.extend(normalized)
-            explanation_parts.append(f"{response.label}: {len(normalized)} findings")
+            success_label = response_label or "wellarchitectedframework"
+            explanation_parts.append(f"{success_label}: {len(normalized)} findings")
             tool_details.append(
                 {
-                    "label": response.label,
+                    "label": response_label or "wellarchitectedframework",
+                    "service": service_name,
                     "selectedTool": response.tool_name,
                     "status": "success",
                     "findingCount": len(normalized),
