@@ -9,7 +9,7 @@ import shutil
 import time
 import zipfile
 from datetime import datetime
-from threading import Lock, Thread
+from threading import Lock, RLock, Thread
 from typing import Any, Mapping
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
@@ -101,6 +101,16 @@ IAC_TASKS: dict[str, dict] = {}
 IAC_PROJECT_TASKS: dict[str, str] = {}
 IAC_TASK_LOCK = Lock()
 APP_LOG_DEFAULT_SOURCE = "backend.api"
+
+FOUNDRY_RESOURCE_LOCK = RLock()
+FOUNDRY_RESOURCE_CACHE_KEYS = (
+    "foundryChatAgentId",
+    "foundryIacAgentId",
+    "foundryValidationAgentId",
+    "foundryDefaultAgentId",
+    "foundryDefaultThreadId",
+)
+FOUNDRY_RESOURCE_ID_CACHE: dict[str, str] = {}
 
 
 def _derive_log_category(event_type: str) -> str:
@@ -1188,6 +1198,33 @@ def is_azure_foundry_provider(settings: dict) -> bool:
     return str(settings.get("modelProvider") or "ollama-local").strip().lower() == "azure-foundry"
 
 
+def _non_empty_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _merge_cached_foundry_resource_ids(settings: dict) -> None:
+    if not isinstance(settings, dict):
+        return
+    for key in FOUNDRY_RESOURCE_CACHE_KEYS:
+        current_value = _non_empty_text(settings.get(key))
+        if current_value:
+            continue
+        cached_value = _non_empty_text(FOUNDRY_RESOURCE_ID_CACHE.get(key))
+        if cached_value:
+            settings[key] = cached_value
+
+
+def _update_cached_foundry_resource_ids(settings: Mapping[str, Any]) -> None:
+    if not isinstance(settings, Mapping):
+        return
+    for key in FOUNDRY_RESOURCE_CACHE_KEYS:
+        value = _non_empty_text(settings.get(key))
+        if value:
+            FOUNDRY_RESOURCE_ID_CACHE[key] = value
+        elif key in settings:
+            FOUNDRY_RESOURCE_ID_CACHE.pop(key, None)
+
+
 def _resolve_foundry_chat_agent_id(settings: Mapping[str, Any]) -> str:
     return str(settings.get("foundryChatAgentId") or settings.get("foundryDefaultAgentId") or "").strip()
 
@@ -1214,139 +1251,144 @@ def write_app_settings_file(settings: dict) -> Path:
 
 
 def bootstrap_default_foundry_resources(settings: dict) -> dict:
-    if not is_azure_foundry_provider(settings):
-        _append_app_activity(
-            "foundry.bootstrap",
-            status="info",
-            category="foundry",
-            step="skipped",
-            source="backend.foundry",
-            details={"reason": "provider-not-azure-foundry"},
-        )
-        return {
-            "ok": True,
-            "skipped": True,
-            "reason": "provider-not-azure-foundry",
-        }
+    with FOUNDRY_RESOURCE_LOCK:
+        if not is_azure_foundry_provider(settings):
+            _append_app_activity(
+                "foundry.bootstrap",
+                status="info",
+                category="foundry",
+                step="skipped",
+                source="backend.foundry",
+                details={"reason": "provider-not-azure-foundry"},
+            )
+            return {
+                "ok": True,
+                "skipped": True,
+                "reason": "provider-not-azure-foundry",
+            }
 
-    known_chat_agent_id = _resolve_foundry_chat_agent_id(settings) or None
-    known_iac_agent_id = str(settings.get("foundryIacAgentId") or "").strip() or None
-    known_default_agent_id = str(settings.get("foundryDefaultAgentId") or "").strip() or None
-    known_validation_agent_id = str(settings.get("foundryValidationAgentId") or "").strip() or None
+        _merge_cached_foundry_resource_ids(settings)
 
-    shared_validation_agent_id = bool(
-        known_validation_agent_id
-        and (
-            known_validation_agent_id == known_chat_agent_id
-            or known_validation_agent_id == known_default_agent_id
-        )
-    )
-    if shared_validation_agent_id:
-        known_validation_agent_id = None
-        settings["foundryValidationAgentId"] = ""
+        known_chat_agent_id = _resolve_foundry_chat_agent_id(settings) or None
+        known_iac_agent_id = _non_empty_text(settings.get("foundryIacAgentId")) or None
+        known_default_agent_id = _non_empty_text(settings.get("foundryDefaultAgentId")) or None
+        known_validation_agent_id = _non_empty_text(settings.get("foundryValidationAgentId")) or None
 
-        _append_app_activity(
-            "foundry.bootstrap",
-            status="info",
-            category="foundry",
-            step="migration-reset-validation-agent",
-            source="backend.foundry",
-            details={
-                "reason": "validation-agent-shared-with-chat",
-                "chatAgentId": known_chat_agent_id,
-                "defaultAgentId": known_default_agent_id,
-            },
+        shared_validation_agent_id = bool(
+            known_validation_agent_id
+            and (
+                known_validation_agent_id == known_chat_agent_id
+                or known_validation_agent_id == known_default_agent_id
+            )
         )
-    known_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
+        if shared_validation_agent_id:
+            known_validation_agent_id = None
+            settings["foundryValidationAgentId"] = ""
 
-    try:
-        result = ensure_app_agents_and_thread(
-            settings,
-            known_chat_agent_id=known_chat_agent_id,
-            known_iac_agent_id=known_iac_agent_id,
-            known_validation_agent_id=known_validation_agent_id,
-            known_thread_id=known_thread_id,
-        )
-    except FoundryConfigurationError as exc:
-        _append_app_activity(
-            "foundry.bootstrap",
-            status="warning",
-            category="foundry",
-            step="skipped",
-            source="backend.foundry",
-            details={
+            _append_app_activity(
+                "foundry.bootstrap",
+                status="info",
+                category="foundry",
+                step="migration-reset-validation-agent",
+                source="backend.foundry",
+                details={
+                    "reason": "validation-agent-shared-with-chat",
+                    "chatAgentId": known_chat_agent_id,
+                    "defaultAgentId": known_default_agent_id,
+                },
+            )
+        known_thread_id = _non_empty_text(settings.get("foundryDefaultThreadId")) or None
+
+        try:
+            result = ensure_app_agents_and_thread(
+                settings,
+                known_chat_agent_id=known_chat_agent_id,
+                known_iac_agent_id=known_iac_agent_id,
+                known_validation_agent_id=known_validation_agent_id,
+                known_thread_id=known_thread_id,
+            )
+        except FoundryConfigurationError as exc:
+            _append_app_activity(
+                "foundry.bootstrap",
+                status="warning",
+                category="foundry",
+                step="skipped",
+                source="backend.foundry",
+                details={
+                    "reason": "configuration-incomplete",
+                    "detail": str(exc),
+                },
+            )
+            return {
+                "ok": True,
+                "skipped": True,
                 "reason": "configuration-incomplete",
                 "detail": str(exc),
-            },
-        )
-        return {
-            "ok": True,
-            "skipped": True,
-            "reason": "configuration-incomplete",
-            "detail": str(exc),
-        }
-    except FoundryRequestError as exc:
-        _append_app_activity(
-            "foundry.bootstrap",
-            status="error",
-            category="foundry",
-            step="failed",
-            source="backend.foundry",
-            details={
+            }
+        except FoundryRequestError as exc:
+            _append_app_activity(
+                "foundry.bootstrap",
+                status="error",
+                category="foundry",
+                step="failed",
+                source="backend.foundry",
+                details={
+                    "reason": "request-failed",
+                    "statusCode": exc.status_code,
+                    "detail": f"{exc} {str(exc.detail or '')[:400]}".strip(),
+                },
+            )
+            return {
+                "ok": False,
+                "skipped": False,
                 "reason": "request-failed",
                 "statusCode": exc.status_code,
-                "detail": f"{exc} {str(exc.detail or '')[:400]}".strip(),
+                "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
+            }
+
+        settings_patch = result.settings_patch
+        changed = False
+        for key, value in settings_patch.items():
+            if str(settings.get(key) or "") != str(value or ""):
+                changed = True
+                settings[key] = value
+
+        _update_cached_foundry_resource_ids(settings)
+
+        _append_app_activity(
+            "foundry.bootstrap",
+            status="info",
+            category="foundry",
+            step="completed",
+            source="backend.foundry",
+            details={
+                "chatAgentId": result.chat_agent_id,
+                "iacAgentId": result.iac_agent_id,
+                "validationAgentId": result.validation_agent_id,
+                "threadId": result.thread_id,
+                "createdChatAgent": result.created_chat_agent,
+                "createdIacAgent": result.created_iac_agent,
+                "createdValidationAgent": result.created_validation_agent,
+                "createdThread": result.created_thread,
+                "settingsUpdated": changed,
             },
         )
+
         return {
-            "ok": False,
+            "ok": True,
             "skipped": False,
-            "reason": "request-failed",
-            "statusCode": exc.status_code,
-            "detail": f"{exc} {str(exc.detail or '')[:800]}".strip(),
-        }
-
-    settings_patch = result.settings_patch
-    changed = False
-    for key, value in settings_patch.items():
-        if str(settings.get(key) or "") != str(value or ""):
-            changed = True
-            settings[key] = value
-
-    _append_app_activity(
-        "foundry.bootstrap",
-        status="info",
-        category="foundry",
-        step="completed",
-        source="backend.foundry",
-        details={
+            "agentId": result.chat_agent_id,
             "chatAgentId": result.chat_agent_id,
             "iacAgentId": result.iac_agent_id,
             "validationAgentId": result.validation_agent_id,
             "threadId": result.thread_id,
+            "createdAgent": result.created_chat_agent,
             "createdChatAgent": result.created_chat_agent,
             "createdIacAgent": result.created_iac_agent,
             "createdValidationAgent": result.created_validation_agent,
             "createdThread": result.created_thread,
             "settingsUpdated": changed,
-        },
-    )
-
-    return {
-        "ok": True,
-        "skipped": False,
-        "agentId": result.chat_agent_id,
-        "chatAgentId": result.chat_agent_id,
-        "iacAgentId": result.iac_agent_id,
-        "validationAgentId": result.validation_agent_id,
-        "threadId": result.thread_id,
-        "createdAgent": result.created_chat_agent,
-        "createdChatAgent": result.created_chat_agent,
-        "createdIacAgent": result.created_iac_agent,
-        "createdValidationAgent": result.created_validation_agent,
-        "createdThread": result.created_thread,
-        "settingsUpdated": changed,
-    }
+        }
 
 
 def _record_orchestration_event(
@@ -1530,11 +1572,12 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
         }
 
     try:
-        thread_result = ensure_project_thread_for_project(
-            settings,
-            project_id=safe_project_id,
-            known_thread_id=known_thread_id,
-        )
+        with FOUNDRY_RESOURCE_LOCK:
+            thread_result = ensure_project_thread_for_project(
+                settings,
+                project_id=safe_project_id,
+                known_thread_id=known_thread_id,
+            )
     except FoundryConfigurationError as exc:
         _append_app_activity(
             "foundry.thread",
@@ -2186,14 +2229,15 @@ def verify_agents_and_threads_endpoint():
     try:
         from Agents.AzureAIFoundry.foundry_bootstrap import verify_agents_and_threads
         
-        settings = load_app_settings()
+        with FOUNDRY_RESOURCE_LOCK:
+            settings = load_app_settings()
 
-        # Ensure agents/thread exist on every verification cycle.
-        bootstrap_result = bootstrap_default_foundry_resources(settings)
-        if bootstrap_result.get("settingsUpdated"):
-            write_app_settings_file(settings)
+            # Ensure agents/thread exist on every verification cycle.
+            bootstrap_result = bootstrap_default_foundry_resources(settings)
+            if bootstrap_result.get("settingsUpdated"):
+                write_app_settings_file(settings)
 
-        result = verify_agents_and_threads(settings)
+            result = verify_agents_and_threads(settings)
         
         # Log only if there are issues (agents missing or errors) or agents were updated
         agents_updated = any([

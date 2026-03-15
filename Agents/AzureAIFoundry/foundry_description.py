@@ -56,6 +56,7 @@ class FoundryAssistantRunner:
         content: str,
         role: str = "user",
         poll_interval: float = 0.6,
+        allow_stateless_retry: bool = False,
     ) -> AssistantRunResult:
         safe_assistant_id = str(assistant_id or "").strip()
         safe_thread_id = str(thread_id or "").strip()
@@ -75,6 +76,7 @@ class FoundryAssistantRunner:
                 content=message_text,
                 role=str(role or "user").strip() or "user",
                 poll_interval=float(poll_interval or 0.6),
+                allow_stateless_retry=bool(allow_stateless_retry),
             )
         )
 
@@ -85,6 +87,7 @@ class FoundryAssistantRunner:
         content: str,
         role: str,
         poll_interval: float,
+        allow_stateless_retry: bool,
     ) -> AssistantRunResult:
         del role
         del poll_interval
@@ -117,7 +120,13 @@ class FoundryAssistantRunner:
                     agent = self._build_framework_agent(Agent, chat_client)
                     async with agent:
                         response = await asyncio.wait_for(
-                            self._run_framework_agent(agent, AgentSession, content, thread_id),
+                            self._run_framework_agent(
+                                agent,
+                                AgentSession,
+                                content,
+                                thread_id,
+                                allow_stateless_retry=allow_stateless_retry,
+                            ),
                             timeout=float(self.timeout_seconds),
                         )
                 finally:
@@ -174,12 +183,100 @@ class FoundryAssistantRunner:
 
         raise FoundryConfigurationError("Unable to initialize Agent Framework agent for Foundry.")
 
-    async def _run_framework_agent(self, agent: Any, session_type: Any, content: str, thread_id: str) -> Any:
+    async def _run_framework_agent(
+        self,
+        agent: Any,
+        session_type: Any,
+        content: str,
+        thread_id: str,
+        *,
+        allow_stateless_retry: bool = False,
+    ) -> Any:
+        thread_error: Exception | None = None
+
+        try:
+            return await self._run_framework_agent_with_thread(agent, session_type, content, thread_id)
+        except Exception as exc:
+            thread_error = exc
+
+        if allow_stateless_retry and thread_error and self._should_retry_without_thread(thread_error):
+            try:
+                return await self._run_framework_agent_without_thread(agent, session_type, content)
+            except Exception:
+                pass
+
+        if thread_error is not None:
+            raise thread_error
+
+        raise FoundryRequestError("Foundry run failed before executing the agent")
+
+    async def _run_framework_agent_with_thread(self, agent: Any, session_type: Any, content: str, thread_id: str) -> Any:
         try:
             return await agent.run(content, conversation_id=thread_id)
         except TypeError:
-            session = session_type(service_session_id=thread_id)
+            session = self._build_agent_session(session_type, thread_id=thread_id, allow_empty=False)
+            if session is None:
+                raise
             return await agent.run(content, session=session)
+
+    async def _run_framework_agent_without_thread(self, agent: Any, session_type: Any, content: str) -> Any:
+        try:
+            return await agent.run(content)
+        except TypeError:
+            session = self._build_agent_session(session_type, thread_id=None, allow_empty=True)
+            if session is None:
+                raise
+            return await agent.run(content, session=session)
+
+    def _build_agent_session(self, session_type: Any, *, thread_id: str | None, allow_empty: bool) -> Any | None:
+        if thread_id:
+            for kwargs in (
+                {"service_session_id": thread_id},
+                {"conversation_id": thread_id},
+                {"id": thread_id},
+            ):
+                try:
+                    return session_type(**kwargs)
+                except TypeError:
+                    continue
+
+        if allow_empty:
+            try:
+                return session_type()
+            except TypeError:
+                return None
+
+        return None
+
+    def _should_retry_without_thread(self, error: Exception) -> bool:
+        text = str(error or "").strip().lower()
+        if not text:
+            return True
+
+        terminal_markers = (
+            "unauthorized",
+            "forbidden",
+            "authentication",
+            "permission",
+            "invalid credential",
+            "assistant_id is required",
+            "thread_id is required",
+        )
+        if any(marker in text for marker in terminal_markers):
+            return False
+
+        retry_markers = (
+            "sorry, something went wrong",
+            "internal server error",
+            "service unavailable",
+            "gateway",
+            "timeout",
+            "timed out",
+            "context",
+            "conversation",
+            "rate limit",
+        )
+        return any(marker in text for marker in retry_markers)
 
     def _extract_response_text(self, response: Any) -> str:
         direct_text = str(getattr(response, "text", "") or "").strip()

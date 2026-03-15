@@ -611,6 +611,10 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
     if not isinstance(payload, Mapping):
         return []
 
+    structured = _extract_structured_findings(payload)
+    if structured:
+        return structured
+
     # Handle guidance dict from MCP tools
     if "guidance" in payload and isinstance(payload.get("guidance"), str):
         guidance_text = str(payload.get("guidance")).strip()
@@ -680,6 +684,134 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
         ]
 
     return []
+
+
+def _normalize_pillar_name(value: Any) -> str:
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return ""
+
+    normalized = raw.replace("-", "_").replace(" ", "_")
+    alias_map = {
+        "cost": "cost_optimization",
+        "costoptimization": "cost_optimization",
+        "cost_optimisation": "cost_optimization",
+        "operations": "operational_excellence",
+        "operation": "operational_excellence",
+        "operational": "operational_excellence",
+        "performance": "performance_efficiency",
+        "perf": "performance_efficiency",
+    }
+    candidate = alias_map.get(normalized, normalized)
+    if candidate in WELL_ARCHITECTED_PILLARS:
+        return candidate
+    return ""
+
+
+def _coerce_structured_recommendation_item(
+    item: Any,
+    *,
+    classification: str,
+    default_pillar: str,
+) -> dict[str, Any] | None:
+    if not isinstance(item, Mapping):
+        return None
+
+    normalized = dict(item)
+
+    title = _normalize_string(
+        normalized.get("title")
+        or normalized.get("name")
+        or normalized.get("issue")
+        or normalized.get("recommendation")
+        or normalized.get("action")
+    )
+    message = _normalize_string(
+        normalized.get("message")
+        or normalized.get("description")
+        or normalized.get("details")
+        or normalized.get("rationale")
+        or normalized.get("guidance")
+    )
+
+    if not title and not message:
+        return None
+
+    if not title:
+        title = "Recommendation"
+    if not message:
+        message = title
+
+    normalized["title"] = title
+    normalized["message"] = _truncate_text(message, max_chars=900)
+    normalized["classification"] = classification
+    normalized["source"] = _normalize_string(normalized.get("source"), "reasoning_model")
+
+    pillar = _normalize_pillar_name(
+        normalized.get("pillar")
+        or normalized.get("category")
+        or default_pillar
+    )
+    if pillar:
+        normalized["pillar"] = pillar
+
+    if not _normalize_string(normalized.get("severity")):
+        normalized["severity"] = "warning" if classification == "priority_improvement" else "info"
+
+    if not isinstance(normalized.get("target"), Mapping):
+        normalized["target"] = {}
+
+    return normalized
+
+
+def _extract_structured_findings(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
+    extracted: list[dict[str, Any]] = []
+
+    def append_items(raw_items: Any, *, classification: str, default_pillar: str) -> None:
+        if not isinstance(raw_items, list):
+            return
+        for raw_item in raw_items:
+            normalized = _coerce_structured_recommendation_item(
+                raw_item,
+                classification=classification,
+                default_pillar=default_pillar,
+            )
+            if normalized:
+                extracted.append(normalized)
+
+    append_items(
+        payload.get("priority_improvements"),
+        classification="priority_improvement",
+        default_pillar="operational_excellence",
+    )
+    append_items(
+        payload.get("quick_configuration_fixes"),
+        classification="quick_configuration_fix",
+        default_pillar="operational_excellence",
+    )
+    append_items(
+        payload.get("configuration_issues"),
+        classification="quick_configuration_fix",
+        default_pillar="operational_excellence",
+    )
+
+    recommendations = payload.get("recommendations")
+    if isinstance(recommendations, Mapping):
+        for pillar_key, items in recommendations.items():
+            normalized_pillar = _normalize_pillar_name(pillar_key)
+            append_items(
+                items,
+                classification="recommendation",
+                default_pillar=normalized_pillar or "operational_excellence",
+            )
+    elif isinstance(recommendations, list):
+        append_items(
+            recommendations,
+            classification="recommendation",
+            default_pillar="operational_excellence",
+        )
+
+    return extracted
 
 
 def _normalize_operation(
@@ -895,6 +1027,10 @@ def _normalize_finding(
         normalized_finding["source"] = finding["source"]
     if "pillar" in finding:
         normalized_finding["pillar"] = finding["pillar"]
+    if "classification" in finding:
+        classification = _normalize_string(finding.get("classification")).lower()
+        if classification:
+            normalized_finding["classification"] = classification
     if "tool" in finding:
         normalized_finding["tool"] = finding["tool"]
     
@@ -1040,11 +1176,15 @@ def _organize_into_recommendations_and_quick_fixes(
         pillar = str(finding.get("pillar") or "").strip().lower()
         title = str(finding.get("title") or "").strip()
         severity = _normalize_severity(finding.get("severity"))
+        classification = str(finding.get("classification") or "").strip().lower()
 
         # Determine if finding is a recommendation or quick fix
         # Quick fixes are canvas configuration issues (deterministic source)
         # Recommendations are well-architected assessments (MCP and reasoning models)
-        is_quick_fix = source == "deterministic"
+        is_quick_fix = source == "deterministic" or classification in {
+            "priority_improvement",
+            "quick_configuration_fix",
+        }
 
         if is_quick_fix:
             # Categorize quick fixes
@@ -1058,7 +1198,11 @@ def _organize_into_recommendations_and_quick_fixes(
             }
 
             # Determine if it's a priority improvement or quick config fix
-            if severity in {"failure", "warning"}:
+            if classification == "quick_configuration_fix":
+                quick_fixes["quick_configuration_fixes"].append(quick_fix_item)
+            elif classification == "priority_improvement":
+                quick_fixes["priority_improvements"].append(quick_fix_item)
+            elif severity in {"failure", "warning"}:
                 quick_fixes["priority_improvements"].append(quick_fix_item)
             else:
                 quick_fixes["quick_configuration_fixes"].append(quick_fix_item)
@@ -1126,6 +1270,48 @@ def _extract_and_normalize_findings(
         if normalized:
             findings.append(normalized)
     return findings
+
+
+def _build_architecture_summary_text(
+    *,
+    summary: Mapping[str, Any],
+    dual_pass_complete: bool,
+) -> str:
+    failures = int(summary.get("failure") or 0)
+    warnings = int(summary.get("warning") or 0)
+    info = int(summary.get("info") or 0)
+    total = int(summary.get("total") or 0)
+    run_mode = "dual-pass" if dual_pass_complete else "partial"
+    return (
+        f"Validation ({run_mode}) identified {total} findings: "
+        f"{failures} failure, {warnings} warning, {info} info."
+    )
+
+
+def _build_pillar_assessment(recommendations: Mapping[str, Any]) -> dict[str, str]:
+    assessment: dict[str, str] = {}
+    for pillar in WELL_ARCHITECTED_PILLARS:
+        items = recommendations.get(pillar) if isinstance(recommendations, Mapping) else []
+        findings = items if isinstance(items, list) else []
+        if not findings:
+            assessment[pillar] = "No major recommendations identified."
+            continue
+
+        severities = {
+            _normalize_severity(item.get("severity"))
+            for item in findings
+            if isinstance(item, Mapping)
+        }
+        if "failure" in severities:
+            status_text = "High-priority improvements required."
+        elif "warning" in severities:
+            status_text = "Moderate improvements recommended."
+        else:
+            status_text = "Minor optimizations available."
+
+        assessment[pillar] = f"{status_text} {len(findings)} recommendation(s)."
+
+    return assessment
 
 
 def _serialize_findings_for_reasoning_context(
@@ -1646,7 +1832,7 @@ def _collect_findings_from_reasoning_model(
             "You are a Principal Azure Cloud Architect reviewing an Azure architecture for enterprise quality.",
             "Return strict JSON only.",
             "Schema:",
-            '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}},...],"summary":"...","pillarAssessment":{"costOptimization":"...","operationalExcellence":"...","performanceEfficiency":"...","reliability":"...","security":"..."}}',
+            '{"architecture_summary":"...","pillar_assessment":{"reliability":"...","security":"...","cost_optimization":"...","operational_excellence":"...","performance_efficiency":"..."},"priority_improvements":[{"id":"...","severity":"warning|failure","title":"...","message":"...","pillar":"reliability|security|cost_optimization|operational_excellence|performance_efficiency","target":{"resourceId":"...","connectionId":"...","field":"..."}}],"quick_configuration_fixes":[{"id":"...","severity":"info|warning","title":"...","message":"...","pillar":"operational_excellence","target":{"resourceId":"...","connectionId":"...","field":"..."}}],"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","pillar":"reliability|security|cost_optimization|operational_excellence|performance_efficiency","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}}]}',
             "Use only IDs present in the architecture context below.",
             "Use Azure Well-Architected guidance and Azure service-specific best-practice correctness.",
             "Think like an enterprise Azure architect: challenge unnecessary complexity, recommend managed service alternatives, and identify missing resiliency/security/observability controls.",
@@ -1654,6 +1840,8 @@ def _collect_findings_from_reasoning_model(
             "For suboptimal service choices, recommend Azure-native alternatives and explain why they are better.",
             "Treat Azure MCP findings as first-class evidence: verify, refine, and augment them.",
             "Keep findings actionable and concise, mapped to the five pillars.",
+            "Populate priority_improvements and quick_configuration_fixes when possible.",
+            "Include findings as a complete normalized list even when additional structured fields are returned.",
             "Azure MCP findings context:",
             json.dumps(serialized_mcp_findings, ensure_ascii=False),
             "Architecture context:",
@@ -1662,11 +1850,12 @@ def _collect_findings_from_reasoning_model(
     )
 
     try:
-        runner = FoundryAssistantRunner(connection, timeout_seconds=60, agent_name="architecture-validation-agent")
+        runner = FoundryAssistantRunner(connection, timeout_seconds=120, agent_name="architecture-validation-agent")
         result = runner.run_assistant(
             assistant_id=safe_agent_id,
             thread_id=safe_thread_id,
             content=prompt,
+            allow_stateless_retry=True,
         )
         parsed = _extract_json_from_text(str(result.response_text or ""))
         payload = parsed if parsed is not None else str(result.response_text or "")
@@ -1828,6 +2017,12 @@ def run_architecture_validation_agent(
         "total": len(deduped),
     }
 
+    architecture_summary_text = _build_architecture_summary_text(
+        summary=summary,
+        dual_pass_complete=dual_pass_complete,
+    )
+    pillar_assessment = _build_pillar_assessment(organized["recommendations"])
+
     _log_validation_event(
         "validation.run",
         level="info",
@@ -1872,6 +2067,10 @@ def run_architecture_validation_agent(
         "summary": summary,
         "findings": deduped,
         "groups": grouped,
+        "architecture_summary": architecture_summary_text,
+        "pillar_assessment": pillar_assessment,
+        "priority_improvements": organized["quick_fixes"]["priority_improvements"],
+        "quick_configuration_fixes": organized["quick_fixes"]["quick_configuration_fixes"],
         "recommendations": organized["recommendations"],
         "quick_fixes": organized["quick_fixes"],
         "sources": {
