@@ -119,30 +119,89 @@ Describe -> Draw -> Validate -> Improve -> Generate
 
 ## Architecture at a glance
 
-```mermaid
-flowchart TB
-    subgraph BuildTime[Build-time acceleration]
-        Engineer[Engineer] --> Copilot[GitHub Copilot]
-        Copilot --> Codebase[A3 codebase]
-    end
+```text
++--------------------------------------------------------------------------------------------------+
+|                 Agentic Cloud Architect - Technology Integration Architecture                    |
++--------------------------------------------------------------------------------------------------+
 
-    subgraph Runtime[Runtime]
-        User[User] --> UI[Web UI<br/>Canvas • Tips • AI Chat • IaC]
-        UI --> API[FastAPI backend]
-        API <--> State[Project canvas state<br/>single source of truth]
+BUILD / EVOLUTION LANE
++---------------------+         designs / prompts / code help         +---------------------------+
+| Product Engineer    | <-------------------------------------------> | GitHub Copilot            |
++----------+----------+                                               +-------------+-------------+
+           |                                                                          |
+           +--------------------------------------------------------------------------+
+                                              improves
+                                                 |
+                                                 v
+                                    +------------+-------------+
+                                    | A3 Codebase              |
+                                    | UI + API + agent logic   |
+                                    +--------------------------+
 
-        API --> Chat[Chat agent]
-        API --> Validate[Validation agent]
-        API --> IAC[IaC generation agent]
 
-        Chat --> Foundry[Azure AI Foundry<br/>+ Agent Framework]
-        Validate --> MCP[Azure MCP]
-        Validate --> Foundry
-        IAC --> MCP
-
-        API --> Logs[Artifacts • logs • provenance]
-        IAC --> Bicep[Generated modular Bicep]
-    end
+RUNTIME LANE
+User
+ |
+ v
++--------------------------------------------------------------------------------------------------+
+| Web App                                                                                          |
+| - Canvas designer                                                                                |
+| - AI chat                                                                                        |
+| - Validate architecture                                                                          |
+| - Generate IaC                                                                                   |
++---------------------------------------------+----------------------------------------------------+
+                                              |
+                                              v
++--------------------------------------------------------------------------------------------------+
+| Backend API / Orchestration                                                                      |
+| - project APIs                                                                                   |
+| - settings + status                                                                              |
+| - logging + provenance                                                                           |
+| - request routing                                                                                |
++-----------------------------+-------------------------------+------------------------------------+
+                              |                               |
+                              | reads / writes                | invokes
+                              v                               v
+                    +-------------------------+   +------------------------------------------------+
+                    | Project Canvas State    |   | Agent Layer / Workflow Orchestration          |
+                    | single source of truth  |   | - Chat agent                                   |
+                    | nodes / edges / props   |   | - Validation agent                             |
+                    +------------+------------+   | - IaC generation agent                         |
+                                 ^                +----------------------+-------------------------+
+                                 |                                       |
+                                 | architecture context                  |
+                                 |                                       |
+                                 |                        +--------------+---------------+
+                                 |                        | Azure MCP Server              |
+                                 |                        | - cloudarchitect_design       |
+                                 |                        | - Azure best practices        |
+                                 |                        | - schema/template guidance    |
+                                 |                        +--------------+---------------+
+                                 |                                       |
+                                 |                        +--------------v---------------+
+                                 |                        | Azure AI Foundry             |
+                                 |                        | - model deployments          |
+                                 |                        | - agent definitions          |
+                                 |                        | - threads / runs             |
+                                 |                        +--------------+---------------+
+                                 |                                       |
+                                 +---------------------------------------+
+                                                         |
+                                                         v
++--------------------------------------------------------------------------------------------------+
+| Outputs                                                                                          |
+| - architecture recommendations                                                                   |
+| - validation findings + provenance                                                               |
+| - generated Bicep / IaC                                                                          |
+| - updated project artifacts                                                                      |
++------------------------------------------------+-------------------------------------------------+
+                                                 |
+                                                 v
++--------------------------------------------------------------------------------------------------+
+| Azure Services Designed / Generated                                                              |
+| Resource Groups | VNets | Subnets | App Gateway | Firewall | App Service | Functions | SQL      |
+| Storage | Key Vault | Container Apps | AKS | Log Analytics | Application Insights | etc.        |
++--------------------------------------------------------------------------------------------------+
 ```
 
 For full ASCII versions, see [ARCHITECTURE_DIAGRAMS.md](ARCHITECTURE_DIAGRAMS.md).
