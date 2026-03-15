@@ -17,6 +17,9 @@ App_State/portal_observer/
 .DS_Store
 **/.DS_Store
 
+# ── Binary / generated assets ────────────────────────────────────────────────
+Clouds/Azure/Icons.zip
+
 # ── Project data (user workspaces) ────────────────────────────────────────────
 Projects/*
 !Projects/**/project.settings.env
