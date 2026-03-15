@@ -4854,6 +4854,23 @@ async function bootstrapFoundryDefaultsOnLoad() {
   }
 }
 
+async function verifyFoundryAgentsAndThreads() {
+  try {
+    const response = await fetch("/api/foundry/verify-agents-and-threads", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    if (!response.ok) {
+      return;
+    }
+    await response.json();
+  } catch {
+    // Verification errors are non-blocking
+  }
+}
+
 async function saveProjectFiles(options = {}) {
   if (!state.currentProject) {
     return;
@@ -7401,6 +7418,12 @@ async function initialize() {
 
   await bootstrapFoundryDefaultsOnLoad();
 
+  try {
+    await verifyFoundryAgentsAndThreads();
+  } catch {
+    // Keep startup verification non-blocking.
+  }
+
   // Load this specific project from backend files
   if (!await loadCurrentProject(projectId)) {
     console.error("Project not found");
@@ -7471,6 +7494,12 @@ async function initialize() {
       await loadArchitectureValidationStatus({ silent: true });
     } catch {
       // Keep status refresh non-blocking.
+    }
+
+    try {
+      await verifyFoundryAgentsAndThreads();
+    } catch {
+      // Keep verification non-blocking.
     }
   }, AUTOSAVE_INTERVAL_MS);
 

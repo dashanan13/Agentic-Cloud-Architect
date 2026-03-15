@@ -369,10 +369,8 @@ class FoundryBootstrapClient:
             return bool(self._as_text(self._model_get(agent, "id")))
         except HttpResponseError as exc:
             status = self._status_code(exc)
-            if status in {401, 403}:
+            if status in {400, 401, 403, 404}:
                 return False
-            if status in {400, 404}:
-                return await self._assistant_exists_in_list_async(agents_client, safe_id)
             self._raise_request_error(exc, "get_agent")
         except Exception as exc:
             raise FoundryRequestError(f"Foundry request failed for get_agent: {exc}") from exc
@@ -389,7 +387,7 @@ class FoundryBootstrapClient:
         for agent in agents:
             if self._as_text(self._model_get(agent, "name")) == assistant_name:
                 candidate = self._as_text(self._model_get(agent, "id"))
-                if candidate:
+                if candidate and await self._assistant_exists_async(agents_client, candidate):
                     return candidate
         return None
 
@@ -570,6 +568,49 @@ class FoundryBootstrapClient:
         ) from exc
 
 
+    async def _get_agent_description_async(self, agent_id: str) -> tuple[bool, str | None]:
+        """Get agent description from Azure AI Foundry. Returns (exists, description)."""
+        safe_id = str(agent_id or "").strip()
+        if not safe_id:
+            return False, None
+
+        async with self._agents_client_context() as agents_client:
+            try:
+                agent = await agents_client.get_agent(safe_id)
+                description = self._as_text(self._model_get(agent, "instructions"))
+                return True, description
+            except HttpResponseError as exc:
+                status = self._status_code(exc)
+                if status in {401, 403}:
+                    return False, None
+                if status in {400, 404}:
+                    return False, None
+                self._raise_request_error(exc, "get_agent")
+            except Exception as exc:
+                raise FoundryRequestError(f"Foundry request failed for get_agent: {exc}") from exc
+
+    async def _update_agent_description_async(self, agent_id: str, new_instructions: str) -> bool:
+        """Update agent description on Azure AI Foundry."""
+        safe_id = str(agent_id or "").strip()
+        if not safe_id:
+            return False
+
+        async with self._agents_client_context() as agents_client:
+            try:
+                await agents_client.update_agent(
+                    agent_id=safe_id,
+                    instructions=new_instructions,
+                )
+                return True
+            except HttpResponseError as exc:
+                status = self._status_code(exc)
+                if status in {401, 403, 404}:
+                    return False
+                self._raise_request_error(exc, "update_agent")
+            except Exception as exc:
+                raise FoundryRequestError(f"Foundry request failed for update_agent: {exc}") from exc
+
+
 def _run_sync(coro):
     try:
         asyncio.get_running_loop()
@@ -617,6 +658,170 @@ def ensure_app_agents_and_thread(
         known_validation_agent_id=known_validation_agent_id,
         known_thread_id=known_thread_id,
     )
+
+
+@dataclass(frozen=True)
+class AgentStatusResult:
+    is_present: bool
+    description_matches: bool | None = None
+    was_updated: bool = False
+
+
+@dataclass(frozen=True)
+class VerifyAgentsAndThreadsResult:
+    chat_agent: AgentStatusResult
+    iac_agent: AgentStatusResult
+    validation_agent: AgentStatusResult
+    chat_thread: bool | None
+    iac_thread: bool | None
+    validation_thread: bool | None
+    has_errors: bool
+
+
+def verify_agents_and_threads(app_settings: Mapping[str, Any]) -> VerifyAgentsAndThreadsResult:
+    """
+    Verification and update: check if agents and threads exist in Azure AI Foundry.
+    If agents exist but descriptions don't match .md files, update them on Azure Foundry.
+    Returns overall status with detection of changes.
+    """
+    try:
+        connection = FoundryConnectionSettings.from_app_settings(app_settings)
+    except FoundryConfigurationError:
+        return VerifyAgentsAndThreadsResult(
+            chat_agent=AgentStatusResult(is_present=False),
+            iac_agent=AgentStatusResult(is_present=False),
+            validation_agent=AgentStatusResult(is_present=False),
+            chat_thread=None,
+            iac_thread=None,
+            validation_thread=None,
+            has_errors=True,
+        )
+
+    client = FoundryBootstrapClient(connection)
+
+    chat_agent_id = str(app_settings.get("foundryChatAgentId") or "").strip() or None
+    iac_agent_id = str(app_settings.get("foundryIacAgentId") or "").strip() or None
+    validation_agent_id = str(app_settings.get("foundryValidationAgentId") or "").strip() or None
+    chat_thread_id = str(app_settings.get("foundryDefaultThreadId") or "").strip() or None
+
+    chat_agent_status = _verify_and_update_agent_async(client, chat_agent_id, DEFAULT_CHAT_AGENT_DEFINITION_FILE)
+    iac_agent_status = _verify_and_update_agent_async(client, iac_agent_id, DEFAULT_IAC_AGENT_DEFINITION_FILE)
+    validation_agent_status = _verify_and_update_agent_async(client, validation_agent_id, DEFAULT_VALIDATION_AGENT_DEFINITION_FILE)
+    chat_thread_exists = _verify_thread_async(client, chat_thread_id)
+
+    return VerifyAgentsAndThreadsResult(
+        chat_agent=chat_agent_status,
+        iac_agent=iac_agent_status,
+        validation_agent=validation_agent_status,
+        chat_thread=chat_thread_exists,
+        iac_thread=chat_thread_exists,
+        validation_thread=chat_thread_exists,
+        has_errors=False,
+    )
+
+
+def _definition_file_to_agent_name(definition_file: str) -> str:
+    """Convert definition file name to agent name."""
+    base = str(definition_file or "").strip()
+    if base.endswith(".md"):
+        base = base[:-3]
+    return base.replace("_", "-")
+
+
+def _verify_and_update_agent_async(client: FoundryBootstrapClient, agent_id: str | None, definition_file: str) -> AgentStatusResult:
+    """Check if agent exists and verify/update description matches .md file."""
+    try:
+        current_instructions = _load_agent_instructions(definition_file)
+    except Exception:
+        return AgentStatusResult(is_present=False)
+
+    try:
+        resolved_agent_id = _run_sync(
+            _ensure_agent_id_for_verification_async(
+                client=client,
+                known_agent_id=agent_id,
+                definition_file=definition_file,
+                instructions=current_instructions,
+            )
+        )
+    except Exception:
+        resolved_agent_id = None
+
+    if not resolved_agent_id:
+        return AgentStatusResult(is_present=False)
+
+    try:
+        agent_exists_with_desc, current_description = _run_sync(client._get_agent_description_async(resolved_agent_id))
+    except Exception:
+        agent_exists_with_desc, current_description = False, None
+
+    if not agent_exists_with_desc or current_description is None:
+        try:
+            update_success = _run_sync(client._update_agent_description_async(resolved_agent_id, current_instructions))
+        except Exception:
+            update_success = False
+        if update_success:
+            return AgentStatusResult(is_present=True, description_matches=True, was_updated=True)
+        return AgentStatusResult(is_present=True, description_matches=None)
+
+    description_matches = str(current_description or "").strip() == str(current_instructions).strip()
+    if description_matches:
+        return AgentStatusResult(is_present=True, description_matches=True)
+
+    try:
+        update_success = _run_sync(client._update_agent_description_async(resolved_agent_id, current_instructions))
+    except Exception:
+        update_success = False
+    if update_success:
+        return AgentStatusResult(is_present=True, description_matches=True, was_updated=True)
+    return AgentStatusResult(is_present=True, description_matches=False)
+
+
+def _agent_name_for_definition_file(definition_file: str) -> str:
+    normalized = str(definition_file or "").strip()
+    if normalized == DEFAULT_CHAT_AGENT_DEFINITION_FILE:
+        return DEFAULT_CHAT_AGENT_NAME
+    if normalized == DEFAULT_IAC_AGENT_DEFINITION_FILE:
+        return DEFAULT_IAC_AGENT_NAME
+    if normalized == DEFAULT_VALIDATION_AGENT_DEFINITION_FILE:
+        return DEFAULT_VALIDATION_AGENT_NAME
+    return _definition_file_to_agent_name(normalized)
+
+
+async def _ensure_agent_id_for_verification_async(
+    client: FoundryBootstrapClient,
+    known_agent_id: str | None,
+    definition_file: str,
+    instructions: str,
+) -> str | None:
+    known_id = str(known_agent_id or "").strip() or None
+    expected_name = _agent_name_for_definition_file(definition_file)
+
+    async with client._agents_client_context() as agents_client:
+        resolved_id, _ = await client._ensure_agent_async(
+            agents_client=agents_client,
+            name=expected_name,
+            instructions=instructions,
+            known_agent_id=known_id,
+        )
+        return resolved_id
+
+
+def _verify_thread_async(client: FoundryBootstrapClient, thread_id: str | None) -> bool | None:
+    """Check if thread exists."""
+    if not thread_id:
+        return None
+
+    try:
+        thread_exists = _run_sync(_verify_thread_exists_async(client, thread_id))
+        return thread_exists
+    except Exception:
+        return None
+
+
+async def _verify_thread_exists_async(client: FoundryBootstrapClient, thread_id: str) -> bool | None:
+    async with client._agents_client_context() as agents_client:
+        return await client._thread_exists_async(agents_client, thread_id)
 
 
 def _load_agent_instructions(agent_definition: str = DEFAULT_AGENT_DEFINITION_FILE) -> str:

@@ -2177,6 +2177,115 @@ def bootstrap_foundry_defaults():
         raise HTTPException(status_code=500, detail=f"Failed to bootstrap Foundry defaults: {exc}") from exc
 
 
+@app.post("/api/foundry/verify-agents-and-threads")
+def verify_agents_and_threads_endpoint():
+    """
+    Periodic verification (called every 30s) to check if agents and threads exist.
+    Returns simple status: agent presence and thread presence.
+    """
+    try:
+        from Agents.AzureAIFoundry.foundry_bootstrap import verify_agents_and_threads
+        
+        settings = load_app_settings()
+
+        # Ensure agents/thread exist on every verification cycle.
+        bootstrap_result = bootstrap_default_foundry_resources(settings)
+        if bootstrap_result.get("settingsUpdated"):
+            write_app_settings_file(settings)
+
+        result = verify_agents_and_threads(settings)
+        
+        # Log only if there are issues (agents missing or errors) or agents were updated
+        agents_updated = any([
+            getattr(result.chat_agent, 'was_updated', False),
+            getattr(result.iac_agent, 'was_updated', False),
+            getattr(result.validation_agent, 'was_updated', False),
+        ])
+        
+        if result.has_errors or not all([
+            result.chat_agent.is_present,
+            result.iac_agent.is_present,
+            result.validation_agent.is_present,
+            result.chat_thread,
+        ]) or agents_updated:
+            _append_app_activity(
+                "foundry.verify",
+                status="info" if agents_updated else ("warning" if result.has_errors else "info"),
+                category="foundry",
+                step="agents-updated" if agents_updated else ("issues-detected" if not result.has_errors else "failed"),
+                source="backend.api",
+                details={
+                    "chatAgentPresent": result.chat_agent.is_present,
+                    "iacAgentPresent": result.iac_agent.is_present,
+                    "validationAgentPresent": result.validation_agent.is_present,
+                    "chatThreadPresent": result.chat_thread,
+                    "hasErrors": result.has_errors,
+                    "agentsUpdated": agents_updated,
+                    "chatAgentUpdated": getattr(result.chat_agent, 'was_updated', False),
+                    "iacAgentUpdated": getattr(result.iac_agent, 'was_updated', False),
+                    "validationAgentUpdated": getattr(result.validation_agent, 'was_updated', False),
+                },
+            )
+        
+        chat_agent_id = str(settings.get("foundryChatAgentId") or "").strip() or None
+        iac_agent_id = str(settings.get("foundryIacAgentId") or "").strip() or None
+        validation_agent_id = str(settings.get("foundryValidationAgentId") or "").strip() or None
+        
+        return {
+            "ok": not result.has_errors,
+            "agentIds": {
+                "chat": chat_agent_id,
+                "iac": iac_agent_id,
+                "validation": validation_agent_id,
+            },
+            "agents": {
+                "chat": {
+                    "present": result.chat_agent.is_present,
+                    "descriptionMatches": result.chat_agent.description_matches,
+                    "wasUpdated": getattr(result.chat_agent, 'was_updated', False),
+                },
+                "iac": {
+                    "present": result.iac_agent.is_present,
+                    "descriptionMatches": result.iac_agent.description_matches,
+                    "wasUpdated": getattr(result.iac_agent, 'was_updated', False),
+                },
+                "validation": {
+                    "present": result.validation_agent.is_present,
+                    "descriptionMatches": result.validation_agent.description_matches,
+                    "wasUpdated": getattr(result.validation_agent, 'was_updated', False),
+                },
+            },
+            "threads": {
+                "chat": result.chat_thread,
+                "iac": result.iac_thread,
+                "validation": result.validation_thread,
+            },
+        }
+    except Exception as exc:
+        _append_app_activity(
+            "foundry.verify",
+            status="error",
+            category="foundry",
+            step="failed",
+            source="backend.api",
+            details={"error": str(exc)[:200]},
+        )
+        return {
+            "ok": False,
+            "error": str(exc)[:200],
+            "agents": {
+                "chat": {"present": False},
+                "iac": {"present": False},
+                "validation": {"present": False},
+            },
+            "threads": {
+                "chat": None,
+                "iac": None,
+                "validation": None,
+            },
+        }
+
+
 @app.post("/api/description/evaluate")
 def evaluate_description(body: DescriptionEvaluatePayload):
     settings = load_app_settings()
