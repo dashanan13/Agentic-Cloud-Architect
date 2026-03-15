@@ -1,8 +1,28 @@
+# ── Runtime state & secrets ──────────────────────────────────────────────────
 App_State/app.settings.env
 App_State/logs/
 App_State/portal_observer/
+
+# All .env files except the example template
+*.env
+!*.env.example
+
+# ── Python bytecode ───────────────────────────────────────────────────────────
 **/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# ── macOS metadata ────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+
+# ── Project data (user workspaces) ────────────────────────────────────────────
 Projects/*
 !Projects/**/project.settings.env
 !Projects/Default
+
+# ── Scratch / temp files ──────────────────────────────────────────────────────
+Temperory.txt
+Tools/_tmp_*.py
+/tmp/
