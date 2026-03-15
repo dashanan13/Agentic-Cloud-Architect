@@ -1538,7 +1538,7 @@ def _try_foundry_architect_response(
     status["threadId"] = thread_id
 
     try:
-        runner = FoundryAssistantRunner(connection, timeout_seconds=90)
+        runner = FoundryAssistantRunner(connection, timeout_seconds=90, agent_name="cloudarchitect-chat-agent")
         result = runner.run_assistant(
             assistant_id=assistant_id,
             thread_id=thread_id,

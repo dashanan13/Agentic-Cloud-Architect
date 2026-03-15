@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import json
 import re
 import time
+from pathlib import Path
 from typing import Any, Mapping
 
 from Agents.AzureAIFoundry.foundry_bootstrap import (
@@ -18,6 +19,22 @@ QUALITY_SIGNALS = ["purpose", "users", "components", "data", "scale", "nonFuncti
 MIN_WORDS_ADEQUATE = 25
 
 
+def _load_agent_description(agent_name: str = "architecture-validation-agent") -> str:
+    """Load agent description from markdown file. Converts hyphens to underscores for filename lookup."""
+    try:
+        # Convert agent name hyphens to underscores for file lookup
+        # e.g., "architecture-validation-agent" -> "architecture_validation_agent.md"
+        filename = str(agent_name or "architecture-validation-agent").replace("-", "_") + ".md"
+        agent_description_file = Path(__file__).parent.parent / filename
+        if agent_description_file.exists():
+            content = agent_description_file.read_text(encoding="utf-8", errors="replace")
+            if content.strip():
+                return content.strip()
+    except Exception:
+        pass
+    return "You are a helpful Azure cloud architecture assistant."
+
+
 @dataclass(frozen=True)
 class AssistantRunResult:
     thread_id: str
@@ -27,9 +44,10 @@ class AssistantRunResult:
 
 
 class FoundryAssistantRunner:
-    def __init__(self, settings: FoundryConnectionSettings, timeout_seconds: int = 20):
+    def __init__(self, settings: FoundryConnectionSettings, timeout_seconds: int = 20, agent_name: str = "architecture-validation-agent"):
         self.settings = settings
         self.timeout_seconds = timeout_seconds
+        self.agent_name = str(agent_name or "architecture-validation-agent").strip() or "architecture-validation-agent"
 
     def run_assistant(
         self,
@@ -135,16 +153,17 @@ class FoundryAssistantRunner:
         )
 
     def _build_framework_agent(self, agent_type: Any, chat_client: Any) -> Any:
+        agent_instructions = _load_agent_description(self.agent_name)
         attempts = [
             {
                 "chat_client": chat_client,
                 "name": "architect-agent",
-                "instructions": "You are a helpful assistant.",
+                "instructions": agent_instructions,
             },
             {
                 "client": chat_client,
                 "name": "architect-agent",
-                "instructions": "You are a helpful assistant.",
+                "instructions": agent_instructions,
             },
         ]
         for kwargs in attempts:

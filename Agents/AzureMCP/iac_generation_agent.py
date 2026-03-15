@@ -2587,7 +2587,7 @@ def _collect_guardrails_from_coding_model_inner(
 
     try:
         diagnostics["connectionState"] = "connected"
-        runner = FoundryAssistantRunner(connection, timeout_seconds=60)
+        runner = FoundryAssistantRunner(connection, timeout_seconds=60, agent_name="iac-generation-agent")
         result = runner.run_assistant(
             assistant_id=safe_agent_id,
             thread_id=safe_thread_id,

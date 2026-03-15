@@ -1662,7 +1662,7 @@ def _collect_findings_from_reasoning_model(
     )
 
     try:
-        runner = FoundryAssistantRunner(connection, timeout_seconds=60)
+        runner = FoundryAssistantRunner(connection, timeout_seconds=60, agent_name="architecture-validation-agent")
         result = runner.run_assistant(
             assistant_id=safe_agent_id,
             thread_id=safe_thread_id,
