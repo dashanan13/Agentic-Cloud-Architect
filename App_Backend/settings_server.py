@@ -330,6 +330,56 @@ def _truncate_log_text(value: Any, *, max_chars: int = 360) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
+def _ensure_validation_log_file(
+    project_dir: Path,
+    *,
+    project_id: str,
+    project_name: str,
+    validation_run_id: str,
+) -> Path:
+    """Initialize validation log file with header. Creates if doesn't exist."""
+    documentation_dir = project_dir / "Documentation"
+    documentation_dir.mkdir(parents=True, exist_ok=True)
+    target_path = documentation_dir / "validation.log"
+
+    header = f"timestamp={_timestamp_utc_text()} activity=validation.log.created details={json.dumps({'projectId': project_id, 'projectName': project_name, 'validationRunId': validation_run_id}, ensure_ascii=False)}\n"
+    
+    # Write header if file doesn't exist, otherwise just return path
+    if not target_path.exists():
+        target_path.write_text(header, encoding="utf-8")
+    
+    return target_path
+
+
+def _append_validation_log_event(
+    log_path: Path,
+    *,
+    activity: str,
+    details: Any,
+) -> None:
+    """Append a single event to validation log file immediately (streaming write)."""
+    if not log_path:
+        return
+    
+    event_timestamp = _timestamp_utc_text()
+    safe_activity = str(activity or "validation.event").strip() or "validation.event"
+    
+    if isinstance(details, (Mapping, list)):
+        details_text = json.dumps(details, ensure_ascii=False)
+    else:
+        details_text = str(details or "").strip()
+    
+    line = f"timestamp={event_timestamp} activity={safe_activity} details={details_text}\n"
+    
+    try:
+        # Append to file immediately for real-time logging
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(line)
+            f.flush()  # Force flush to disk
+    except Exception:
+        pass  # Silently ignore write errors
+
+
 def _write_project_validation_text_log(
     project_dir: Path,
     *,
@@ -338,27 +388,12 @@ def _write_project_validation_text_log(
     validation_run_id: str,
     events: list[dict[str, Any]],
 ) -> Path:
+    """Legacy function for backward compatibility. Now just returns the log path."""
+    # The log is already being written in real-time via _append_validation_log_event
+    # This function is kept for backward compatibility but no longer does bulk writes
     documentation_dir = project_dir / "Documentation"
     documentation_dir.mkdir(parents=True, exist_ok=True)
     target_path = documentation_dir / "validation.log"
-
-    lines: list[str] = [
-        f"timestamp={_timestamp_utc_text()} activity=validation.log.created details={json.dumps({'projectId': project_id, 'projectName': project_name, 'validationRunId': validation_run_id}, ensure_ascii=False)}"
-    ]
-
-    for event in events:
-        if not isinstance(event, Mapping):
-            continue
-        event_timestamp = str(event.get("timestamp") or _timestamp_utc_text()).strip() or _timestamp_utc_text()
-        activity = str(event.get("activity") or "validation.event").strip() or "validation.event"
-        details = event.get("details")
-        if isinstance(details, (Mapping, list)):
-            details_text = json.dumps(details, ensure_ascii=False)
-        else:
-            details_text = str(details or "").strip()
-        lines.append(f"timestamp={event_timestamp} activity={activity} details={details_text}")
-
-    target_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return target_path
 
 
@@ -2670,14 +2705,33 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
     resource_count, connection_count = _canvas_entity_counts(canvas_state)
     state_hash = compute_canvas_state_hash(canvas_state)
 
+    # Initialize validation log file for real-time streaming
+    validation_log_path = _ensure_validation_log_file(
+        entry["projectDir"],
+        project_id=entry["id"],
+        project_name=project_name,
+        validation_run_id=validation_run_id,
+    )
+
+    # For backward compatibility, keep list but don't use it (logging is now real-time)
     validation_text_events: list[dict[str, Any]] = []
 
     def _record_validation_text_event(activity: str, details: Any) -> None:
+        """Record validation event with real-time file streaming."""
         safe_activity = str(activity or "validation.event").strip() or "validation.event"
         if isinstance(details, (Mapping, list)):
             safe_details: Any = details
         else:
             safe_details = {"value": str(details or "").strip()}
+        
+        # Write to log file immediately (streaming)
+        _append_validation_log_event(
+            validation_log_path,
+            activity=safe_activity,
+            details=safe_details,
+        )
+        
+        # Keep in list for backward compatibility (optional)
         validation_text_events.append(
             {
                 "timestamp": _timestamp_utc_text(),

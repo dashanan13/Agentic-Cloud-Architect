@@ -1737,7 +1737,7 @@ select.property-input {
 .validation-groups {
   padding: 10px;
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .validation-group {
@@ -1838,6 +1838,22 @@ select.property-input {
   background: var(--panel);
   padding: 10px;
   color: var(--text);
+}
+
+/* Subgroups for Quick Fixes */
+.validation-subgroup {
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--panel);
+  margin: -2px;
+}
+
+.validation-subgroup h5 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 #panel-chat.right-tab-panel {

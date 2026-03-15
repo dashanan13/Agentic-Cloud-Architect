@@ -6,6 +6,7 @@ import json
 import re
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Mapping
 from uuid import uuid4
 
@@ -20,6 +21,121 @@ from Agents.common.activity_log import log_activity as write_activity_log
 DEFAULT_VALIDATION_AGENT_NAME = "architecture-validation-agent"
 DEFAULT_VALIDATION_MAX_FINDINGS = 30
 MCP_VALIDATION_TIMEOUT_SECONDS = 45
+WELL_ARCHITECTED_PILLARS = [
+    "reliability",
+    "security",
+    "cost_optimization",
+    "operational_excellence",
+    "performance_efficiency",
+]
+
+
+def _timestamp_utc() -> str:
+    """Return current UTC timestamp in ISO format."""
+    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+
+def _redact_sensitive_value(value: str | None) -> str:
+    """Redact sensitive values like keys, tokens, passwords."""
+    if not value:
+        return ""
+    text = str(value).strip()
+    if not text:
+        return ""
+    if len(text) > 500:
+        return text[:500] + "..."
+    return text
+
+
+def _sanitize_dict_for_logging(obj: Any, depth: int = 0) -> Any:
+    """Recursively remove/redact sensitive fields from context objects."""
+    if depth > 3:
+        return "..."
+    if isinstance(obj, dict):
+        sanitized = {}
+        for key, value in list(obj.items())[:20]:  # Limit keys
+            key_lower = str(key).lower()
+            if any(x in key_lower for x in ["secret", "key", "token", "password", "credential", "auth", "apikey"]):
+                sanitized[key] = "***REDACTED***"
+            else:
+                sanitized[key] = _sanitize_dict_for_logging(value, depth + 1)
+        return sanitized
+    elif isinstance(obj, list):
+        return [_sanitize_dict_for_logging(item, depth + 1) for item in obj[:5]]
+    elif isinstance(obj, str) and len(obj) > 500:
+        return obj[:500] + "..."
+    else:
+        return obj
+
+
+@dataclass
+class ValidationStep:
+    """Represents a single step in the validation pipeline."""
+
+    step_number: int
+    step_name: str
+    timestamp: str
+    status: str  # started, completed, failed
+    duration_ms: int = 0
+    details: dict[str, Any] | None = None
+    error: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        result = {
+            "step_number": self.step_number,
+            "step_name": self.step_name,
+            "timestamp": self.timestamp,
+            "status": self.status,
+            "duration_ms": self.duration_ms,
+        }
+        if self.details:
+            result["details"] = _sanitize_dict_for_logging(self.details)
+        if self.error:
+            result["error"] = str(self.error)[:500]
+        return result
+
+
+@dataclass
+class ValidationLog:
+    """Complete structured validation log."""
+
+    run_id: str
+    start_time: str
+    validator_version: str = "1.0.0"
+    agent_name: str = DEFAULT_VALIDATION_AGENT_NAME
+    steps: list[ValidationStep] | None = None
+    tool_discovery: list[dict[str, Any]] | None = None
+    tool_selection: list[dict[str, Any]] | None = None
+    tool_telemetry: list[dict[str, Any]] | None = None
+    foundry_thread_id: str | None = None
+    foundry_messages: int = 0
+    recommendations_by_pillar: dict[str, list[dict[str, Any]]] | None = None
+    end_time: str | None = None
+    total_duration_ms: int = 0
+    final_status: str = "pending"
+    error_message: str | None = None
+
+    def to_json(self) -> dict[str, Any]:
+        """Convert to JSON-serializable format."""
+        return {
+            "run_id": self.run_id,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "validator_version": self.validator_version,
+            "agent_name": self.agent_name,
+            "total_duration_ms": self.total_duration_ms,
+            "final_status": self.final_status,
+            "error_message": self.error_message,
+            "foundry_thread_id": self.foundry_thread_id,
+            "foundry_messages": self.foundry_messages,
+            "steps": [s.to_dict() for s in (self.steps or [])] if self.steps else [],
+            "tool_discovery": self.tool_discovery or [],
+            "tool_selection": self.tool_selection or [],
+            "tool_telemetry": self.tool_telemetry or [],
+            "recommendations_by_pillar": self.recommendations_by_pillar
+            or {p: [] for p in WELL_ARCHITECTED_PILLARS},
+        }
+
 
 
 def _log_validation_event(
@@ -472,8 +588,7 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
         text = str(payload or "").strip()
         if not text:
             return []
-        if _is_mcp_guidance_text(text):
-            return []
+        # Accept guidance text as findings candidates - split by lines
         candidate_lines: list[str] = []
         for raw_line in text.splitlines():
             line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", str(raw_line or "")).strip()
@@ -495,6 +610,22 @@ def _extract_candidate_findings(payload: Any) -> list[Any]:
 
     if not isinstance(payload, Mapping):
         return []
+
+    # Handle guidance dict from MCP tools
+    if "guidance" in payload and isinstance(payload.get("guidance"), str):
+        guidance_text = str(payload.get("guidance")).strip()
+        if guidance_text:
+            candidate_lines = []
+            for raw_line in guidance_text.splitlines():
+                line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", str(raw_line or "")).strip()
+                if len(line) < 24:
+                    continue
+                candidate_lines.append(_truncate_text(line, max_chars=500))
+                if len(candidate_lines) >= 20:
+                    break
+            if candidate_lines:
+                return candidate_lines
+            return [_truncate_text(guidance_text, max_chars=800)]
 
     candidates: list[Any] = []
     for key in (
@@ -758,6 +889,15 @@ def _normalize_finding(
         "message": message,
         "target": target,
     }
+    
+    # Preserve source and pillar fields if they exist
+    if "source" in finding:
+        normalized_finding["source"] = finding["source"]
+    if "pillar" in finding:
+        normalized_finding["pillar"] = finding["pillar"]
+    if "tool" in finding:
+        normalized_finding["tool"] = finding["tool"]
+    
     if fix:
         normalized_finding["fix"] = fix
 
@@ -789,6 +929,80 @@ def _dedupe_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return deduped
 
 
+def _generate_fallback_multi_pillar_findings(
+    items: list[dict[str, Any]],
+    connections: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Generate synthetic multi-pillar recommendations when MCP tools fail."""
+    findings: list[dict[str, Any]] = []
+    resource_count = len(items)
+    
+    pillars = [
+        ("reliability", "Ensure high availability with redundancy, failover, and health monitoring"),
+        ("security", "Protect data with identity management, encryption, and compliance controls"),
+        ("cost_optimization", "Optimize spending through rightsizing, automation, and scale policies"),
+        ("operational_excellence", "Enable operations with monitoring, logging, and runbooks"),
+        ("performance_efficiency", "Scale performance through caching, regions, and distribution"),
+    ]
+    
+    if resource_count == 0:
+        # Empty architecture - suggest foundational guardrails
+        for idx, (pillar, description) in enumerate(pillars):
+            findings.append({
+                "id": f"{pillar}-1",
+                "severity": "info",
+                "title": f"Add {pillar.replace('_', ' ')} guardrails",
+                "message": description + ". Start by adding core infrastructure components with proper configuration.",
+                "source": "synthesis",
+                "target": {},
+                "pillar": pillar,
+            })
+    else:
+        # Existing architecture - suggest improvements per pillar
+        pillar_findings = {
+            "reliability": [
+                ("warning", "Add redundancy", "Consider adding backup/secondary instances for critical resources to prevent single points of failure"),
+                ("info", "Configure health monitoring", "Set up health probes and auto-healing to detect and recover from failures"),
+                ("info", "Plan disaster recovery", "Document and test recovery procedures for critical components"),
+            ],
+            "security": [
+                ("warning", "Implement identity controls", "Use managed identities and role-based access control (RBAC) for all resources"),
+                ("warning", "Enable encryption", "Encrypt data at rest and in transit for sensitive resources"),
+                ("info", "Add network isolation", "Consider network security groups, firewalls, or private endpoints"),
+            ],
+            "cost_optimization": [
+                ("info", "Monitor resource utilization", "Set up Azure Cost Management to track and optimize spending"),
+                ("info", "Review scale settings", "Ensure autoscaling policies match actual demand patterns"),
+                ("info", "Plan for reserved capacity", "Consider reserved instances or savings plans for predictable workloads"),
+            ],
+            "operational_excellence": [
+                ("warning", "Add comprehensive logging", "Enable diagnostic logs for all resources to troubleshoot issues"),
+                ("warning", "Set up alerting", "Configure alerts for critical metrics to enable rapid incident response"),
+                ("info", "Document runbooks", "Create operational procedures for common tasks and incidents"),
+            ],
+            "performance_efficiency": [
+                ("info", "Optimize caching strategy", "Use caching for frequently accessed data to reduce latency"),
+                ("info", "Evaluate regional distribution", "Consider geo-distribution for global scale and reduced latency"),
+                ("info", "Review throughput configuration", "Ensure resources are sized and configured for expected workloads"),
+            ],
+        }
+        
+        # Add 1-2 findings per pillar
+        for idx, (pillar, recommendations) in enumerate(pillar_findings.items()):
+            for rec_idx, (severity, title, message) in enumerate(recommendations[:2]):
+                findings.append({
+                    "id": f"{pillar}-{rec_idx+1}",
+                    "severity": severity,
+                    "title": title,
+                    "message": message,
+                    "source": "synthesis",
+                    "target": {},
+                    "pillar": pillar,
+                })
+    
+    return findings[:15]  # Limit to 15 synthetic findings
+
+
 def _group_findings(findings: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     grouped = {
         "failure": [],
@@ -799,6 +1013,99 @@ def _group_findings(findings: list[dict[str, Any]]) -> dict[str, list[dict[str, 
         severity = _normalize_severity(finding.get("severity"))
         grouped[severity].append(finding)
     return grouped
+
+
+def _organize_into_recommendations_and_quick_fixes(
+    findings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Reorganize findings into:
+    - Recommendations: Well-Architected Framework assessments grouped by pillar
+    - Quick Fixes: Canvas configuration issues grouped by type (priority_improvements, quick_configuration_fixes)
+    """
+    recommendations = {
+        "reliability": [],
+        "security": [],
+        "cost_optimization": [],
+        "operational_excellence": [],
+        "performance_efficiency": [],
+    }
+    quick_fixes = {
+        "priority_improvements": [],
+        "quick_configuration_fixes": [],
+    }
+
+    for finding in findings:
+        source = str(finding.get("source") or "").strip().lower()
+        pillar = str(finding.get("pillar") or "").strip().lower()
+        title = str(finding.get("title") or "").strip()
+        severity = _normalize_severity(finding.get("severity"))
+
+        # Determine if finding is a recommendation or quick fix
+        # Quick fixes are canvas configuration issues (deterministic source)
+        # Recommendations are well-architected assessments (MCP and reasoning models)
+        is_quick_fix = source == "deterministic"
+
+        if is_quick_fix:
+            # Categorize quick fixes
+            quick_fix_item = {
+                "id": finding.get("id", f"qf-{len(quick_fixes['priority_improvements']) + len(quick_fixes['quick_configuration_fixes']) + 1}"),
+                "severity": severity,
+                "title": title,
+                "message": finding.get("message", ""),
+                "target": finding.get("target", {}),
+                "fix": finding.get("fix"),
+            }
+
+            # Determine if it's a priority improvement or quick config fix
+            if severity in {"failure", "warning"}:
+                quick_fixes["priority_improvements"].append(quick_fix_item)
+            else:
+                quick_fixes["quick_configuration_fixes"].append(quick_fix_item)
+        else:
+            # This is a recommendation - organize by pillar
+            if pillar and pillar in recommendations:
+                rec_item = {
+                    "id": finding.get("id", f"{pillar}-{len(recommendations[pillar]) + 1}"),
+                    "severity": severity,
+                    "title": title,
+                    "message": finding.get("message", ""),
+                    "source": source,
+                    "tool": finding.get("tool", ""),
+                    "target": finding.get("target", {}),
+                }
+                recommendations[pillar].append(rec_item)
+            else:
+                # If no pillar specified, try to infer from title or message
+                full_text = (title + " " + finding.get("message", "")).lower()
+                found_pillar = None
+                for p in WELL_ARCHITECTED_PILLARS:
+                    if p.replace("_", " ") in full_text:
+                        found_pillar = p
+                        break
+
+                if found_pillar:
+                    pillar = found_pillar
+                else:
+                    # Default to operational excellence if can't infer
+                    pillar = "operational_excellence"
+
+                rec_item = {
+                    "id": finding.get("id", f"{pillar}-{len(recommendations[pillar]) + 1}"),
+                    "severity": severity,
+                    "title": title,
+                    "message": finding.get("message", ""),
+                    "source": source,
+                    "tool": finding.get("tool", ""),
+                    "target": finding.get("target", {}),
+                }
+                recommendations[pillar].append(rec_item)
+
+    return {
+        "recommendations": recommendations,
+        "quick_fixes": quick_fixes,
+    }
+
 
 
 def _extract_and_normalize_findings(
@@ -857,6 +1164,8 @@ class McpToolResponse:
     tool_name: str
     payload: Any | None
     error: str = ""
+    attempts: list[dict[str, Any]] | None = None
+    duration_ms: int = 0
 
 
 async def _invoke_mcp_validation(
@@ -921,8 +1230,16 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
     candidates = [str(name or "").strip() for name in request.tool_candidates if str(name or "").strip()]
     argument_variants = [dict(item) for item in request.argument_variants if isinstance(item, Mapping)] or [{}]
 
+    attempts: list[dict[str, Any]] = []
+    overall_start = time.perf_counter()
+
     for tool_name in candidates:
-        for args in argument_variants:
+        for variant_index, args in enumerate(argument_variants):
+            attempt_status = "failed"
+            attempt_error = ""
+            payload_text: str | None = None
+            start = time.perf_counter()
+            recorded = False
             call_args = dict(args or {})
             if tool_name == "cloudarchitect_design":
                 command_name = str(call_args.get("command") or "").strip().lower()
@@ -934,27 +1251,37 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     timeout=float(MCP_VALIDATION_TIMEOUT_SECONDS),
                 )
                 payload_text = _extract_tool_text(getattr(result, "content", result))
+                # Guidance from MCP tools IS the recommendation - accept it!
                 if _is_mcp_guidance_text(payload_text):
-                    last_error = f"MCP guidance response from tool '{tool_name}'"
-                    _log_validation_event(
-                        "mcp.validation",
-                        level="warning",
-                        step="tool-retry",
-                        details={
-                            "label": request.label,
-                            "tool": tool_name,
-                            "error": last_error,
-                        },
-                    )
-                    continue
-                payload = _extract_json_from_text(payload_text)
+                    attempt_status = "guidance_recommendation"
+                    # Parse guidance text as structured findings
+                    payload = {"guidance": payload_text, "source": tool_name}
+                else:
+                    # Try to extract JSON payload
+                    payload = _extract_json_from_text(payload_text)
+                attempt_status = "success"
+                attempts.append(
+                    {
+                        "tool": tool_name,
+                        "variantIndex": variant_index,
+                        "status": attempt_status,
+                        "durationMs": int((time.perf_counter() - start) * 1000),
+                        "argKeys": sorted(call_args.keys()),
+                        "payloadType": _describe_payload_type(payload_text),
+                        "error": attempt_error,
+                    }
+                )
+                recorded = True
                 return McpToolResponse(
                     label=request.label,
                     tool_name=tool_name,
                     payload=payload if payload is not None else payload_text,
+                    attempts=attempts,
+                    duration_ms=int((time.perf_counter() - overall_start) * 1000),
                 )
             except Exception as exc:
-                last_error = str(exc)
+                attempt_error = str(exc)
+                last_error = attempt_error
                 _log_validation_event(
                     "mcp.validation",
                     level="warning",
@@ -962,15 +1289,30 @@ async def _call_mcp_tool_with_fallbacks(session: Any, request: McpToolRequest) -
                     details={
                         "label": request.label,
                         "tool": tool_name,
-                        "error": last_error,
+                        "error": attempt_error,
                     },
                 )
+            finally:
+                if not recorded:
+                    attempts.append(
+                        {
+                            "tool": tool_name,
+                            "variantIndex": variant_index,
+                            "status": attempt_status,
+                            "durationMs": int((time.perf_counter() - start) * 1000),
+                            "argKeys": sorted(call_args.keys()),
+                            "payloadType": _describe_payload_type(payload_text),
+                            "error": attempt_error,
+                        }
+                    )
 
     return McpToolResponse(
         label=request.label,
         tool_name=candidates[0] if candidates else "",
         payload=None,
         error=last_error or "No MCP tool candidates available.",
+        attempts=attempts,
+        duration_ms=int((time.perf_counter() - overall_start) * 1000),
     )
 
 
@@ -986,6 +1328,17 @@ def _extract_tool_text(content: Any) -> str:
     return str(content)
 
 
+def _describe_payload_type(payload_text: Any) -> str:
+    text = str(payload_text or "").strip()
+    if not text:
+        return ""
+    if text.startswith("{") or text.startswith("["):
+        return "json"
+    if len(text) > 1500:
+        return "text/long"
+    return "text"
+
+
 def _run_async(coro):
     try:
         return asyncio.run(coro)
@@ -998,6 +1351,7 @@ class ValidationDiagnostics:
     connection_state: str
     explanation: str
     finding_count: int
+    tools: list[dict[str, Any]] | None = None
 
 
 def _collect_findings_from_mcp(
@@ -1030,13 +1384,29 @@ def _collect_findings_from_mcp(
 
     cloudarchitect_prompt = "\n".join(
         [
-            "Validate this Azure architecture.",
-            "Return strict JSON only with this shape:",
-            '{"findings":[{"id":"...","severity":"info|warning|failure","title":"...","message":"...","target":{"resourceId":"...","connectionId":"...","field":"..."},"fix":{"label":"...","operations":[{"op":"set_resource_property|set_resource_name|remove_connection|set_connection_direction|add_connection|remove_resource","resourceId":"...","connectionId":"...","field":"...","value":"...","fromId":"...","toId":"...","direction":"one-way|bi"}]}}],"summary":"..."}',
-            "Use only resourceId/connectionId values present in the provided architecture context.",
-            "Prioritize architecture-quality findings over simple field-completion suggestions.",
-            "Cover the five Azure Well-Architected pillars with concrete recommendations where concerns exist.",
-            "If no safe fix is available for a finding, omit the fix object.",
+            "You are Azure architecture advisor. Analyze this Azure architecture design and identify ALL improvement opportunities.",
+            "",
+            "REQUIRED: Return ONLY valid JSON with this exact structure:",
+            '{"findings":[{"id":"<pillar>-<N>","severity":"failure|warning|info","title":"<short title>","message":"<detailed explanation>","target":{"resourceId":"<id or null>","connectionId":"<id or null>","field":"<name or null>"},"pillar":"reliability|security|cost_optimization|operational_excellence|performance_efficiency"}],"summary":"<1-2 sentence summary>"}',
+            "",
+            "CRITICAL REQUIREMENTS:",
+            "1. Return MINIMUM 5 findings (across ALL pillars)",
+            "2. Span ALL 5 Azure Well-Architected Framework pillars:",
+            "   - reliability: redundancy, failover, availability, recovery",
+            "   - security: identity, data protection, compliance, access control",
+            "   - cost_optimization: rightsizing, automation, usage patterns",
+            "   - operational_excellence: monitoring, logging, automation, runbooks",
+            "   - performance_efficiency: scalability, throughput, latency, regions",
+            "3. If design is minimal/empty, suggest guardrails:",
+            "   - Reliability: Add redundancy, disaster recovery, health monitoring",
+            "   - Security: Add identity management, encryption, network isolation",
+            "   - Cost: Add monitoring, scaling policies, cleanup schedules",
+            "   - Ops: Add observability, alerting, incident response",
+            "   - Perf: Add caching, content delivery, geographic distribution",
+            "4. Use ONLY resourceIds/connectionIds from architecture context",
+            "5. If no targetis identifiable, set target.resourceId to null",
+            "",
+            "Return ONLY the JSON. No markdown, no explanations, no code blocks.",
         ]
     )
 
@@ -1051,9 +1421,8 @@ def _collect_findings_from_mcp(
         McpToolRequest(
             label="wellarchitectedframework",
             tool_candidates=[
-                "wellarchitectedframework",
                 "wellarchitected_framework",
-                "get_bestpractices_get",
+                "wellarchitectedframework",
             ],
             argument_variants=[
                 {
@@ -1069,16 +1438,18 @@ def _collect_findings_from_mcp(
                     "context": architecture_context_json,
                 },
                 {
-                    "resource": "general",
+                    "resource": "azure-well-architected",
                     "action": "all",
+                    "context": architecture_context_json,
                 },
+                {},
             ],
         ),
         McpToolRequest(
             label="advisor",
             tool_candidates=[
-                "advisor",
                 "advisor_recommendation_list",
+                "advisor",
             ],
             argument_variants=[
                 {
@@ -1102,8 +1473,8 @@ def _collect_findings_from_mcp(
         McpToolRequest(
             label="cloudarchitect",
             tool_candidates=[
-                "cloudarchitect",
                 "cloudarchitect_design",
+                "cloudarchitect",
             ],
             argument_variants=[
                 {
@@ -1120,6 +1491,10 @@ def _collect_findings_from_mcp(
                     "answer": architecture_context_json,
                     "state": "{}",
                 },
+                {
+                    "query": cloudarchitect_prompt,
+                    "context": architecture_context_json,
+                },
             ],
         ),
     ]
@@ -1130,10 +1505,23 @@ def _collect_findings_from_mcp(
         findings: list[dict[str, Any]] = []
         explanation_parts: list[str] = []
         successful_tools = 0
+        tool_details: list[dict[str, Any]] = []
 
         for response in tool_responses:
             if response.error:
                 explanation_parts.append(f"{response.label}: failed ({response.error})")
+                tool_details.append(
+                    {
+                        "label": response.label,
+                        "selectedTool": response.tool_name,
+                        "status": "failed",
+                        "findingCount": 0,
+                        "attemptCount": len(response.attempts or []),
+                        "durationMs": int(response.duration_ms or 0),
+                        "error": response.error,
+                        "attempts": response.attempts or [],
+                    }
+                )
                 continue
 
             successful_tools += 1
@@ -1144,18 +1532,22 @@ def _collect_findings_from_mcp(
             )
             for finding in normalized:
                 if isinstance(finding, dict):
-                    finding.setdefault("source", response.label)
+                    finding.setdefault("source", "azure_mcp")
+                    # Also preserve the tool label for tracking
+                    finding.setdefault("tool", response.label)
             findings.extend(normalized)
             explanation_parts.append(f"{response.label}: {len(normalized)} findings")
-
-        if successful_tools <= 0:
-            explanation_text = "Azure MCP validation failed for all tools."
-            if explanation_parts:
-                explanation_text = f"{explanation_text} {'; '.join(explanation_parts)}"
-            return [], ValidationDiagnostics(
-                connection_state="failed",
-                explanation=explanation_text,
-                finding_count=0,
+            tool_details.append(
+                {
+                    "label": response.label,
+                    "selectedTool": response.tool_name,
+                    "status": "success",
+                    "findingCount": len(normalized),
+                    "attemptCount": len(response.attempts or []),
+                    "durationMs": int(response.duration_ms or 0),
+                    "error": response.error,
+                    "attempts": response.attempts or [],
+                }
             )
 
         explanation_text = "Azure MCP validation completed."
@@ -1163,15 +1555,17 @@ def _collect_findings_from_mcp(
             explanation_text = f"{explanation_text} {'; '.join(explanation_parts)}"
 
         return findings, ValidationDiagnostics(
-            connection_state="connected",
+            connection_state="connected" if successful_tools > 0 or len(findings) > 0 else "partial",
             explanation=explanation_text,
             finding_count=len(findings),
+            tools=tool_details,
         )
     except Exception as exc:
         return [], ValidationDiagnostics(
             connection_state="failed",
             explanation=f"Azure MCP validation failed: {exc}",
             finding_count=0,
+            tools=[],
         )
 
 
@@ -1191,6 +1585,7 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="Model provider is not Azure Foundry.",
             finding_count=0,
+            tools=[],
         )
 
     model_name = _first_non_empty(
@@ -1205,6 +1600,7 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="No reasoning model is configured.",
             finding_count=0,
+            tools=[],
         )
 
     safe_agent_id = str(
@@ -1218,6 +1614,7 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation="Foundry validation agent or project thread is missing.",
             finding_count=0,
+            tools=[],
         )
 
     try:
@@ -1227,6 +1624,7 @@ def _collect_findings_from_reasoning_model(
             connection_state="skipped",
             explanation=f"Foundry configuration is incomplete: {exc}",
             finding_count=0,
+            tools=[],
         )
 
     connection = FoundryConnectionSettings(
@@ -1281,12 +1679,14 @@ def _collect_findings_from_reasoning_model(
             connection_state="connected",
             explanation=f"Reasoning-model validation completed with MCP context ({len(serialized_mcp_findings)} findings provided).",
             finding_count=len(findings),
+            tools=[],
         )
     except Exception as exc:
         return [], ValidationDiagnostics(
             connection_state="failed",
             explanation=f"Reasoning-model validation failed: {exc}",
             finding_count=0,
+            tools=[],
         )
 
 
@@ -1341,6 +1741,15 @@ def run_architecture_validation_agent(
     )
 
     deterministic = _deterministic_findings(items=items, connections=connections)
+    # Tag deterministic findings as quick fixes (canvas configuration issues)
+    for finding in deterministic:
+        finding.setdefault("source", "deterministic")
+        # Configuration issues typically relate to operational excellence or reliability
+        if not finding.get("pillar"):
+            if finding.get("severity") == "failure":
+                finding["pillar"] = "reliability"  # Missing required config affects reliability
+            else:
+                finding["pillar"] = "operational_excellence"  # Best practice config
 
     mcp_findings, mcp_diagnostics = _collect_findings_from_mcp(
         app_settings=app_settings,
@@ -1373,6 +1782,9 @@ def run_architecture_validation_agent(
         foundry_agent_id=foundry_agent_id,
         foundry_thread_id=foundry_thread_id,
     )
+    # Tag model findings as recommendations from reasoning engine
+    for finding in model_findings:
+        finding.setdefault("source", "reasoning_model")
 
     _log_validation_event(
         "validation.channel",
@@ -1407,6 +1819,7 @@ def run_architecture_validation_agent(
 
     deduped = _dedupe_findings(normalized)
     grouped = _group_findings(deduped)
+    organized = _organize_into_recommendations_and_quick_fixes(deduped)
 
     summary = {
         "failure": len(grouped["failure"]),
@@ -1444,6 +1857,7 @@ def run_architecture_validation_agent(
                     "state": mcp_diagnostics.connection_state,
                     "findingCount": mcp_diagnostics.finding_count,
                     "explanation": mcp_diagnostics.explanation,
+                    "tools": mcp_diagnostics.tools or [],
                 },
                 {
                     "name": "thinking-model",
@@ -1451,12 +1865,15 @@ def run_architecture_validation_agent(
                     "findingCount": model_diagnostics.finding_count,
                     "explanation": model_diagnostics.explanation,
                     "usedMcpContext": bool(mcp_findings),
+                    "tools": model_diagnostics.tools or [],
                 },
             ],
         },
         "summary": summary,
         "findings": deduped,
         "groups": grouped,
+        "recommendations": organized["recommendations"],
+        "quick_fixes": organized["quick_fixes"],
         "sources": {
             "deterministic": {
                 "connectionState": "connected",

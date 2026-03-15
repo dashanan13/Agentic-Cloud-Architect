@@ -5703,6 +5703,106 @@ function renderValidationTipsPanel() {
     return;
   }
 
+  // NEW: Always use the new pillar-based structure, regardless of backend format
+  // This ensures consistent UI from app load onwards
+  let recommendations = {};
+  let quickFixes = { priority_improvements: [], quick_configuration_fixes: [] };
+  
+  if (result?.recommendations && result?.quick_fixes) {
+    // New format from backend
+    recommendations = result.recommendations || {};
+    quickFixes = result.quick_fixes || {};
+  } else if (result?.groups || result?.findings) {
+    // Old format - initialize empty pillars so UI shows consistent structure
+    // This ensures new structure is always displayed, even with old cached data
+    recommendations = {
+      reliability: [],
+      security: [],
+      cost_optimization: [],
+      operational_excellence: [],
+      performance_efficiency: []
+    };
+  }
+  
+  let sectionsMarkup = '';
+  const pillars = ['reliability', 'security', 'cost_optimization', 'operational_excellence', 'performance_efficiency'];
+
+  // Recommendations sections - always rendered in new format
+  const recommendationSections = pillars.map((pillar) => {
+    const items = Array.isArray(recommendations[pillar]) ? recommendations[pillar] : [];
+    const expanded = validationExpandedSeverity === pillar;
+    
+    const findingMarkup = items.length
+      ? items.map((item) => {
+        const title = String(item?.title || "Recommendation");
+        const message = String(item?.message || "No details provided.");
+        return [
+          '<article class="validation-finding">',
+          `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
+          `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
+          "</article>"
+        ].join("");
+      }).join("")
+      : '<div class="validation-empty">No recommendations for this pillar.</div>';
+
+    return [
+      `<section class="validation-group validation-group--${pillar}">`,
+      `<button type="button" class="validation-group__toggle" data-validation-group-toggle="${pillar}" aria-expanded="${expanded ? "true" : "false"}">`,
+      `<span class="validation-group__title">${pillar.replace(/_/g, ' ').toUpperCase()} (${items.length})</span>`,
+      `<span class="validation-group__chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
+      "</button>",
+      `<div class="validation-group__body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>${findingMarkup}</div>`,
+      "</section>"
+    ].join("");
+  }).join("");
+
+  // Quick Fixes sections
+  const priorityImprovements = Array.isArray(quickFixes.priority_improvements) ? quickFixes.priority_improvements : [];
+  const quickConfigFixes = Array.isArray(quickFixes.quick_configuration_fixes) ? quickFixes.quick_configuration_fixes : [];
+
+  const priorityMarkup = priorityImprovements.map((item) => {
+    const title = String(item?.title || "Fix");
+    const message = String(item?.message || "No details provided.");
+    const targetLabel = resolveValidationTargetLabel(item?.target);
+    return [
+      '<article class="validation-finding">',
+      `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
+      `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
+      targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
+      "</article>"
+    ].join("");
+  }).join("");
+
+  const configMarkup = quickConfigFixes.map((item) => {
+    const title = String(item?.title || "Suggestion");
+    const message = String(item?.message || "No details provided.");
+    const targetLabel = resolveValidationTargetLabel(item?.target);
+    return [
+      '<article class="validation-finding">',
+      `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
+      `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
+      targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
+      "</article>"
+    ].join("");
+  }).join("");
+
+  const quickFixesExpanded = validationExpandedSeverity === 'quick_fixes';
+  const quickFixesSection = [
+    '<section class="validation-group validation-group--warning">',
+    `<button type="button" class="validation-group__toggle" data-validation-group-toggle="quick_fixes" aria-expanded="${quickFixesExpanded ? "true" : "false"}">`,
+    `<span class="validation-group__title">QUICK FIXES (${priorityImprovements.length + quickConfigFixes.length})</span>`,
+    `<span class="validation-group__chevron" aria-hidden="true">${quickFixesExpanded ? "▾" : "▸"}</span>`,
+    "</button>",
+    `<div class="validation-group__body${quickFixesExpanded ? "" : " is-hidden"}" ${quickFixesExpanded ? "" : "hidden"}>`,
+    priorityImprovements.length > 0 ? `<div class="validation-subgroup"><h5 style="margin: 12px 0 8px; font-size: 12px; font-weight: 600; color: #d32f2f;">Priority Improvements (${priorityImprovements.length})</h5>${priorityMarkup}</div>` : "",
+    quickConfigFixes.length > 0 ? `<div class="validation-subgroup"><h5 style="margin: 12px 0 8px; font-size: 12px; font-weight: 600; color: #1976d2;">Configuration Best Practices (${quickConfigFixes.length})</h5>${configMarkup}</div>` : "",
+    priorityImprovements.length === 0 && quickConfigFixes.length === 0 ? '<div class="validation-empty">No quick fixes needed.</div>' : "",
+    "</div>",
+    "</section>"
+  ].join("");
+
+  sectionsMarkup = recommendationSections + quickFixesSection;
+
   const groups = normalizeValidationGroups(result || {});
   const summary = normalizeValidationSummary(result || {}, groups);
 
@@ -5721,36 +5821,6 @@ function renderValidationTipsPanel() {
   const foundrySourceState = result?.sources?.reasoningModel?.connectionState;
   const mcpLabel = getValidationConnectionLabel(mcpConnection, mcpSourceState);
   const foundryLabel = getValidationConnectionLabel(foundryConnection, foundrySourceState);
-
-  const sectionsMarkup = VALIDATION_SEVERITY_ORDER.map((severity) => {
-    const findings = Array.isArray(groups[severity]) ? groups[severity] : [];
-    const expanded = validationExpandedSeverity === severity;
-    const findingMarkup = findings.length
-      ? findings.map((finding, index) => {
-        const title = String(finding?.title || "Recommendation");
-        const message = String(finding?.message || "No details provided.");
-        const targetLabel = resolveValidationTargetLabel(finding?.target);
-
-        return [
-          '<article class="validation-finding">',
-          `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
-          `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
-          targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
-          "</article>"
-        ].join("");
-      }).join("")
-      : '<div class="validation-empty">No items in this severity.</div>';
-
-    return [
-      `<section class="validation-group validation-group--${severity}">`,
-      `<button type="button" class="validation-group__toggle" data-validation-group-toggle="${severity}" aria-expanded="${expanded ? "true" : "false"}">`,
-      `<span class="validation-group__title">${VALIDATION_SEVERITY_LABELS[severity]} (${findings.length})</span>`,
-      `<span class="validation-group__chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
-      "</button>",
-      `<div class="validation-group__body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>${findingMarkup}</div>`,
-      "</section>"
-    ].join("");
-  }).join("");
 
   tipsContentEl.innerHTML = [
     '<div class="validation-runtime">',
@@ -5859,9 +5929,12 @@ async function runArchitectureValidation() {
 tipsContentEl?.addEventListener("click", async (event) => {
   const toggleButton = event.target.closest("[data-validation-group-toggle]");
   if (toggleButton) {
-    const severity = String(toggleButton.dataset.validationGroupToggle || "").trim().toLowerCase();
-    if (VALIDATION_SEVERITY_ORDER.includes(severity)) {
-      validationExpandedSeverity = validationExpandedSeverity === severity ? null : severity;
+    const toggleValue = String(toggleButton.dataset.validationGroupToggle || "").trim().toLowerCase();
+    const validPillars = ['reliability', 'security', 'cost_optimization', 'operational_excellence', 'performance_efficiency'];
+    
+    // Check if it's a pillar, quick_fixes, or severity level
+    if (validPillars.includes(toggleValue) || toggleValue === 'quick_fixes' || VALIDATION_SEVERITY_ORDER.includes(toggleValue)) {
+      validationExpandedSeverity = validationExpandedSeverity === toggleValue ? null : toggleValue;
       renderValidationTipsPanel();
     }
     return;
