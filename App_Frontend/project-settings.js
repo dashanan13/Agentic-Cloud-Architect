@@ -350,9 +350,17 @@ async function loadProjectSettings(projectId) {
 
   const payload = await response.json();
   const incoming = payload?.settings && typeof payload.settings === "object" ? payload.settings : {};
+  const chatThreadId = String(
+    incoming.projectChatThreadId
+      || incoming.projectThreadId
+      || incoming.foundryChatThreadId
+      || incoming.foundryThreadId
+      || ""
+  ).trim();
   state.settings = {
     githubRepoUrl: String(incoming.githubRepoUrl || "").trim(),
-    projectThreadId: String(incoming.projectThreadId || incoming.foundryThreadId || "").trim(),
+    projectThreadId: chatThreadId,
+    projectChatThreadId: chatThreadId,
     iacLanguage: String(incoming.iacLanguage || incoming.projectIacLanguage || "").trim(),
     iacParameterFormat: String(incoming.iacParameterFormat || incoming.parameterFormat || "").trim(),
     projectDescription: String(incoming.projectDescription || "").trim(),
@@ -434,6 +442,7 @@ function collectSettings() {
   return {
     githubRepoUrl: String(githubRepoUrlInput?.value || "").trim(),
     projectThreadId: String(projectThreadInput?.value || "").trim(),
+    projectChatThreadId: String(projectThreadInput?.value || "").trim(),
     iacLanguage: getSelectedIacLanguage(projectIacLanguageInputs),
     iacParameterFormat: getSelectedParameterFormat(projectIacParameterFormatInputs),
     projectApplicationType: applicationType,

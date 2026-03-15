@@ -84,6 +84,30 @@ DEFAULT_APP_SETTINGS = {
     "iacLiveTemplateStrict": True,
 }
 
+PROJECT_FOUNDRY_THREAD_FIELDS = {
+    "chat": {
+        "settingsKey": "projectChatThreadId",
+        "metadataKey": "foundryChatThreadId",
+        "legacySettingsKey": "projectThreadId",
+        "legacyMetadataKey": "foundryThreadId",
+    },
+    "validation": {
+        "settingsKey": "projectValidationThreadId",
+        "metadataKey": "foundryValidationThreadId",
+        "legacySettingsKey": None,
+        "legacyMetadataKey": None,
+    },
+}
+
+CHAT_THREAD_VALIDATION_MARKERS = (
+    "[orchestrator] architecture-validation",
+    "[validation-agent]",
+    '"workflow": "architecture-validation"',
+    "validation.input",
+    "validation.output",
+    "you are a principal azure cloud architect reviewing an azure architecture for enterprise quality",
+)
+
 IAC_STAGE_DEFINITIONS = [
     {"id": "cleanup_output", "label": "Clear existing IaC output"},
     {"id": "gather_properties", "label": "Gather resource properties"},
@@ -173,6 +197,8 @@ class ProjectMeta(BaseModel):
     iacLanguage: str | None = None
     iacParameterFormat: str | None = None
     foundryThreadId: str | None = None
+    foundryChatThreadId: str | None = None
+    foundryValidationThreadId: str | None = None
     lastSaved: int | None = None
 
 
@@ -1007,16 +1033,256 @@ def merge_project_settings(existing: dict, incoming: dict) -> dict:
     incoming = incoming if isinstance(incoming, dict) else {}
     merged = {**existing, **incoming}
 
-    existing_thread = str(existing.get("projectThreadId") or "").strip()
-    incoming_thread = str(incoming.get("projectThreadId") or "").strip()
-    if incoming_thread:
-        merged["projectThreadId"] = incoming_thread
-    elif existing_thread:
-        merged["projectThreadId"] = existing_thread
+    existing_chat_thread = str(existing.get("projectChatThreadId") or existing.get("projectThreadId") or "").strip()
+    incoming_chat_thread = str(incoming.get("projectChatThreadId") or incoming.get("projectThreadId") or "").strip()
+    if incoming_chat_thread:
+        merged["projectChatThreadId"] = incoming_chat_thread
+        merged["projectThreadId"] = incoming_chat_thread
+    elif existing_chat_thread:
+        merged["projectChatThreadId"] = existing_chat_thread
+        merged["projectThreadId"] = existing_chat_thread
     else:
+        merged.pop("projectChatThreadId", None)
         merged.pop("projectThreadId", None)
 
+    existing_validation_thread = str(existing.get("projectValidationThreadId") or "").strip()
+    incoming_validation_thread = str(incoming.get("projectValidationThreadId") or "").strip()
+    if incoming_validation_thread:
+        merged["projectValidationThreadId"] = incoming_validation_thread
+    elif existing_validation_thread:
+        merged["projectValidationThreadId"] = existing_validation_thread
+    else:
+        merged.pop("projectValidationThreadId", None)
+
     return merged
+
+
+def _normalize_project_foundry_thread_purpose(value: str | None) -> str:
+    safe_value = str(value or "chat").strip().lower()
+    if safe_value in PROJECT_FOUNDRY_THREAD_FIELDS:
+        return safe_value
+    return "chat"
+
+
+def _project_foundry_thread_fields(purpose: str | None = None) -> dict[str, str | None]:
+    return PROJECT_FOUNDRY_THREAD_FIELDS[_normalize_project_foundry_thread_purpose(purpose)]
+
+
+def _build_project_foundry_thread_name(project_id: str, purpose: str | None = None) -> str:
+    safe_project_id = str(project_id or "").strip()
+    safe_purpose = _normalize_project_foundry_thread_purpose(purpose)
+    if safe_purpose == "chat":
+        return f"{safe_project_id}-chat"
+    return f"{safe_project_id}-{safe_purpose}"
+
+
+def _thread_contains_validation_history(
+    app_settings: Mapping[str, Any],
+    thread_id: str | None,
+    limit: int = 120,
+) -> bool:
+    safe_thread_id = str(thread_id or "").strip()
+    if not safe_thread_id:
+        return False
+
+    result = list_thread_messages(app_settings, thread_id=safe_thread_id, limit=limit)
+    if not result.get("ok") or result.get("skipped"):
+        return False
+
+    messages = result.get("messages") if isinstance(result.get("messages"), list) else []
+    for message in messages:
+        if not isinstance(message, Mapping):
+            continue
+        content = str(message.get("content") or "").strip().lower()
+        if not content:
+            continue
+        if any(marker in content for marker in CHAT_THREAD_VALIDATION_MARKERS):
+            return True
+
+    return False
+
+
+def _get_known_project_foundry_thread_id(
+    project_settings: Mapping[str, Any] | None,
+    metadata: Mapping[str, Any] | None,
+    purpose: str | None = None,
+) -> str | None:
+    safe_settings = project_settings if isinstance(project_settings, Mapping) else {}
+    safe_metadata = metadata if isinstance(metadata, Mapping) else {}
+    legacy_thread_id = str(
+        safe_settings.get("projectThreadId")
+        or safe_metadata.get("foundryThreadId")
+        or ""
+    ).strip() or None
+    fields = _project_foundry_thread_fields(purpose)
+    purpose_thread_id = str(
+        safe_settings.get(str(fields["settingsKey"]))
+        or safe_metadata.get(str(fields["metadataKey"]))
+        or ""
+    ).strip() or None
+    if purpose_thread_id:
+        return purpose_thread_id
+    if _normalize_project_foundry_thread_purpose(purpose) == "chat":
+        return legacy_thread_id
+    return None
+
+
+def _apply_project_foundry_thread_id(
+    project_settings: dict | None,
+    metadata: dict | None,
+    resolved_thread_id: str | None,
+    purpose: str | None = None,
+) -> tuple[dict, dict, bool, bool]:
+    safe_settings = project_settings if isinstance(project_settings, dict) else {}
+    safe_metadata = dict(metadata) if isinstance(metadata, dict) else {}
+    safe_thread_id = str(resolved_thread_id or "").strip()
+    if not safe_thread_id:
+        return safe_settings, safe_metadata, False, False
+
+    fields = _project_foundry_thread_fields(purpose)
+    settings_updates = {str(fields["settingsKey"]): safe_thread_id}
+    legacy_settings_key = fields.get("legacySettingsKey")
+    if legacy_settings_key:
+        settings_updates[str(legacy_settings_key)] = safe_thread_id
+
+    updated_settings = merge_project_settings(safe_settings, settings_updates)
+    settings_changed = any(
+        str(safe_settings.get(key) or "").strip() != safe_thread_id
+        for key in settings_updates
+    )
+
+    metadata_changed = False
+    metadata_key = str(fields["metadataKey"])
+    if str(safe_metadata.get(metadata_key) or "").strip() != safe_thread_id:
+        safe_metadata[metadata_key] = safe_thread_id
+        metadata_changed = True
+
+    legacy_metadata_key = fields.get("legacyMetadataKey")
+    if legacy_metadata_key and str(safe_metadata.get(str(legacy_metadata_key)) or "").strip() != safe_thread_id:
+        safe_metadata[str(legacy_metadata_key)] = safe_thread_id
+        metadata_changed = True
+
+    return updated_settings, safe_metadata, settings_changed, metadata_changed
+
+
+def ensure_project_foundry_thread_state(
+    entry: dict,
+    app_settings: dict,
+    purpose: str | None = None,
+    project_settings: dict | None = None,
+    metadata: dict | None = None,
+    persist: bool = True,
+) -> dict:
+    project_dir = entry["projectDir"]
+    resolved_settings = project_settings if isinstance(project_settings, dict) else load_project_settings_file(project_dir)
+
+    resolved_metadata = metadata if isinstance(metadata, dict) else read_json_file(entry["metadataPath"], {})
+    if not isinstance(resolved_metadata, dict):
+        resolved_metadata = {}
+
+    safe_purpose = _normalize_project_foundry_thread_purpose(purpose)
+    known_thread_id = _get_known_project_foundry_thread_id(
+        resolved_settings,
+        resolved_metadata,
+        purpose=safe_purpose,
+    )
+
+    thread_result = ensure_project_foundry_thread(
+        app_settings,
+        project_id=entry["id"],
+        known_thread_id=known_thread_id,
+        purpose=safe_purpose,
+    )
+
+    resolved_thread_id = known_thread_id
+    if thread_result.get("threadId"):
+        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+
+    settings_changed = False
+    metadata_changed = False
+
+    if (
+        safe_purpose == "chat"
+        and resolved_thread_id
+        and _thread_contains_validation_history(app_settings, resolved_thread_id)
+    ):
+        legacy_chat_thread_id = str(resolved_thread_id).strip()
+        known_validation_thread_id = _get_known_project_foundry_thread_id(
+            resolved_settings,
+            resolved_metadata,
+            purpose="validation",
+        )
+
+        if not known_validation_thread_id:
+            resolved_settings, resolved_metadata, validation_settings_changed, validation_metadata_changed = _apply_project_foundry_thread_id(
+                resolved_settings,
+                resolved_metadata,
+                legacy_chat_thread_id,
+                purpose="validation",
+            )
+            settings_changed = settings_changed or validation_settings_changed
+            metadata_changed = metadata_changed or validation_metadata_changed
+
+        replacement_thread_result = ensure_project_foundry_thread(
+            app_settings,
+            project_id=entry["id"],
+            known_thread_id=None,
+            purpose="chat",
+        )
+        replacement_thread_id = str(replacement_thread_result.get("threadId") or "").strip()
+        if replacement_thread_id and replacement_thread_id != legacy_chat_thread_id:
+            _append_app_activity(
+                "foundry.thread",
+                status="info",
+                project_id=entry["id"],
+                category="foundry",
+                step="chat-thread-rotated",
+                source="backend.foundry",
+                details={
+                    "oldThreadId": legacy_chat_thread_id,
+                    "newThreadId": replacement_thread_id,
+                    "validationThreadId": str(
+                        _get_known_project_foundry_thread_id(
+                            resolved_settings,
+                            resolved_metadata,
+                            purpose="validation",
+                        )
+                        or ""
+                    ).strip(),
+                    "reason": "legacy-thread-contained-validation-history",
+                },
+            )
+            resolved_thread_id = replacement_thread_id
+            thread_result = replacement_thread_result
+
+    if resolved_thread_id:
+        resolved_settings, resolved_metadata, current_settings_changed, current_metadata_changed = _apply_project_foundry_thread_id(
+            resolved_settings,
+            resolved_metadata,
+            resolved_thread_id,
+            purpose=safe_purpose,
+        )
+        settings_changed = settings_changed or current_settings_changed
+        metadata_changed = metadata_changed or current_metadata_changed
+
+        if persist and settings_changed:
+            persist_project_settings(
+                project_dir,
+                entry["id"],
+                entry["name"],
+                entry["cloud"],
+                resolved_settings,
+            )
+
+        if persist and metadata_changed:
+            entry["metadataPath"].write_text(json.dumps(resolved_metadata, indent=2), encoding="utf-8")
+
+    return {
+        "threadId": resolved_thread_id,
+        "threadResult": thread_result,
+        "settings": resolved_settings,
+        "metadata": resolved_metadata,
+    }
 
 
 def build_project_settings_payload(
@@ -1552,7 +1818,12 @@ def _record_validation_thread_payload(
     )
 
 
-def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_id: str | None = None) -> dict:
+def ensure_project_foundry_thread(
+    settings: dict,
+    project_id: str,
+    known_thread_id: str | None = None,
+    purpose: str | None = None,
+) -> dict:
     if not is_azure_foundry_provider(settings):
         _append_app_activity(
             "foundry.thread",
@@ -1561,7 +1832,10 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
             category="foundry",
             step="skipped",
             source="backend.foundry",
-            details={"reason": "provider-not-azure-foundry"},
+            details={
+                "reason": "provider-not-azure-foundry",
+                "purpose": _normalize_project_foundry_thread_purpose(purpose),
+            },
         )
         return {
             "ok": True,
@@ -1570,6 +1844,7 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
         }
 
     safe_project_id = str(project_id or "").strip()
+    safe_purpose = _normalize_project_foundry_thread_purpose(purpose)
     if not safe_project_id:
         _append_app_activity(
             "foundry.thread",
@@ -1594,6 +1869,7 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
                 settings,
                 project_id=safe_project_id,
                 known_thread_id=known_thread_id,
+                thread_name=_build_project_foundry_thread_name(safe_project_id, safe_purpose),
             )
     except FoundryConfigurationError as exc:
         _append_app_activity(
@@ -1605,6 +1881,7 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
             source="backend.foundry",
             details={
                 "reason": "configuration-incomplete",
+                "purpose": safe_purpose,
                 "detail": str(exc),
             },
         )
@@ -1624,6 +1901,7 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
             source="backend.foundry",
             details={
                 "reason": "request-failed",
+                "purpose": safe_purpose,
                 "statusCode": exc.status_code,
                 "detail": f"{exc} {str(exc.detail or '')[:400]}".strip(),
             },
@@ -1646,6 +1924,7 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
         details={
             "threadId": thread_result.thread_id,
             "created": bool(thread_result.created),
+            "purpose": safe_purpose,
         },
     )
 
@@ -1654,51 +1933,17 @@ def ensure_project_foundry_thread(settings: dict, project_id: str, known_thread_
         "skipped": False,
         "threadId": thread_result.thread_id,
         "created": thread_result.created,
+        "purpose": safe_purpose,
     }
 
 
-def resolve_project_foundry_thread_id(entry: dict, app_settings: dict) -> str | None:
-    project_dir = entry["projectDir"]
-    project_settings = load_project_settings_file(project_dir)
-
-    metadata = read_json_file(entry["metadataPath"], {})
-    if not isinstance(metadata, dict):
-        metadata = {}
-
-    known_thread_id = str(
-        project_settings.get("projectThreadId")
-        or metadata.get("foundryThreadId")
-        or ""
-    ).strip() or None
-
-    thread_result = ensure_project_foundry_thread(
+def resolve_project_foundry_thread_id(entry: dict, app_settings: dict, purpose: str | None = None) -> str | None:
+    thread_state = ensure_project_foundry_thread_state(
+        entry,
         app_settings,
-        project_id=entry["id"],
-        known_thread_id=known_thread_id,
+        purpose=purpose,
     )
-
-    resolved_thread_id = known_thread_id
-    if thread_result.get("threadId"):
-        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
-
-    if not resolved_thread_id:
-        return None
-
-    if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
-        project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
-        persist_project_settings(
-            project_dir,
-            entry["id"],
-            entry["name"],
-            entry["cloud"],
-            project_settings,
-        )
-
-    if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
-        metadata["foundryThreadId"] = resolved_thread_id
-        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-
-    return resolved_thread_id
+    return str(thread_state.get("threadId") or "").strip() or None
 
 
 def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
@@ -2424,21 +2669,16 @@ def evaluate_project_description(body: ProjectDescriptionPayload):
     if not isinstance(metadata, dict):
         metadata = {}
 
-    known_thread_id = str(
-        project_settings.get("projectThreadId")
-        or metadata.get("foundryThreadId")
-        or ""
-    ).strip() or None
-
-    thread_result = ensure_project_foundry_thread(
+    thread_state = ensure_project_foundry_thread_state(
+        entry,
         settings,
-        project_id=entry["id"],
-        known_thread_id=known_thread_id,
+        purpose="validation",
+        project_settings=project_settings,
+        metadata=metadata,
     )
-
-    resolved_thread_id = known_thread_id
-    if thread_result.get("threadId"):
-        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+    project_settings = thread_state["settings"]
+    metadata = thread_state["metadata"]
+    resolved_thread_id = str(thread_state.get("threadId") or "").strip() or None
 
     if not resolved_thread_id:
         return {
@@ -2446,20 +2686,6 @@ def evaluate_project_description(body: ProjectDescriptionPayload):
             "skipped": True,
             "reason": "project-thread-missing",
         }
-
-    if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
-        project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
-        persist_project_settings(
-            project_dir,
-            entry["id"],
-            entry["name"],
-            entry["cloud"],
-            project_settings,
-        )
-
-    if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
-        metadata["foundryThreadId"] = resolved_thread_id
-        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     result = evaluate_description_with_architect(
         settings,
@@ -2522,21 +2748,14 @@ def improve_project_description(body: ProjectDescriptionPayload):
     if not isinstance(metadata, dict):
         metadata = {}
 
-    known_thread_id = str(
-        project_settings.get("projectThreadId")
-        or metadata.get("foundryThreadId")
-        or ""
-    ).strip() or None
-
-    thread_result = ensure_project_foundry_thread(
+    thread_state = ensure_project_foundry_thread_state(
+        entry,
         settings,
-        project_id=entry["id"],
-        known_thread_id=known_thread_id,
+        purpose="validation",
+        project_settings=project_settings,
+        metadata=metadata,
     )
-
-    resolved_thread_id = known_thread_id
-    if thread_result.get("threadId"):
-        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
+    resolved_thread_id = str(thread_state.get("threadId") or "").strip() or None
 
     if not resolved_thread_id:
         return {
@@ -2544,20 +2763,6 @@ def improve_project_description(body: ProjectDescriptionPayload):
             "skipped": True,
             "reason": "project-thread-missing",
         }
-
-    if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
-        project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
-        persist_project_settings(
-            project_dir,
-            entry["id"],
-            entry["name"],
-            entry["cloud"],
-            project_settings,
-        )
-
-    if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
-        metadata["foundryThreadId"] = resolved_thread_id
-        entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     return improve_description_with_architect(
         settings,
@@ -2661,7 +2866,7 @@ def architecture_chat(body: ArchitectureChatPayload):
                 "canvasContext": canvas_context,
             }
 
-            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
+            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="chat")
             if resolved_thread_id:
                 foundry_thread_id = resolved_thread_id
 
@@ -2762,7 +2967,7 @@ def architecture_chat_status(projectId: str | None = None):
     if projectId:
         entry = find_project_entry(projectId)
         if entry:
-            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
+            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="chat")
             if resolved_thread_id:
                 foundry_thread_id = resolved_thread_id
 
@@ -2788,7 +2993,7 @@ def architecture_chat_history(projectId: str, limit: int = 300):
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    thread_id = resolve_project_foundry_thread_id(entry, settings)
+    thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="chat")
     if not thread_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured.")
 
@@ -2829,7 +3034,7 @@ def architecture_validation_status(projectId: str | None = None):
     if projectId:
         entry = find_project_entry(projectId)
         if entry:
-            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings)
+            resolved_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="validation")
             if resolved_thread_id:
                 foundry_thread_id = resolved_thread_id
 
@@ -2860,7 +3065,7 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         write_app_settings_file(settings)
 
     foundry_agent_id = _resolve_foundry_validation_agent_id(settings) or None
-    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings)
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="validation")
     if not foundry_thread_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured for validation.")
 
@@ -3278,7 +3483,7 @@ def audit_project_architecture_validation_fix(project_id: str, body: Architectur
     if bootstrap_result.get("settingsUpdated"):
         write_app_settings_file(settings)
 
-    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings)
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="validation")
     if not foundry_thread_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry project thread is not configured for fix audit.")
 
@@ -3430,10 +3635,17 @@ def save_project_settings(body: ProjectSettingsPayload):
 
         description_text = str(merged_settings.get("projectDescription") or "").strip()
         application_type = str(merged_settings.get("projectApplicationType") or "").strip()
+        chat_thread_id = str(merged_settings.get("projectChatThreadId") or merged_settings.get("projectThreadId") or "").strip()
+        validation_thread_id = str(merged_settings.get("projectValidationThreadId") or "").strip()
         if description_text:
             metadata["applicationDescription"] = description_text
         if application_type:
             metadata["applicationType"] = application_type
+        if chat_thread_id:
+            metadata["foundryChatThreadId"] = chat_thread_id
+            metadata["foundryThreadId"] = chat_thread_id
+        if validation_thread_id:
+            metadata["foundryValidationThreadId"] = validation_thread_id
         if metadata:
             metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
@@ -3504,36 +3716,25 @@ def get_project_settings(project_id: str):
     if not isinstance(metadata, dict):
         metadata = {}
 
-    known_thread_id = str(
-        settings.get("projectThreadId")
-        or metadata.get("foundryThreadId")
-        or ""
-    ).strip() or None
-
-    thread_result = ensure_project_foundry_thread(
-        load_app_settings(),
-        project_id=entry["id"],
-        known_thread_id=known_thread_id,
+    app_settings = load_app_settings()
+    chat_thread_state = ensure_project_foundry_thread_state(
+        entry,
+        app_settings,
+        purpose="chat",
+        project_settings=settings,
+        metadata=metadata,
     )
+    settings = chat_thread_state["settings"]
+    metadata = chat_thread_state["metadata"]
 
-    resolved_thread_id = known_thread_id
-    if thread_result.get("threadId"):
-        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
-
-    if resolved_thread_id:
-        if str(settings.get("projectThreadId") or "").strip() != resolved_thread_id:
-            settings = merge_project_settings(settings, {"projectThreadId": resolved_thread_id})
-            persist_project_settings(
-                project_dir,
-                entry["id"],
-                entry["name"],
-                entry["cloud"],
-                settings,
-            )
-
-        if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
-            metadata["foundryThreadId"] = resolved_thread_id
-            entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    validation_thread_state = ensure_project_foundry_thread_state(
+        entry,
+        app_settings,
+        purpose="validation",
+        project_settings=settings,
+        metadata=metadata,
+    )
+    settings = validation_thread_state["settings"]
 
     target = project_dir / "project.settings.env"
     return {
@@ -3605,27 +3806,57 @@ def save_project_snapshot(body: ProjectSavePayload):
 
         project_settings = load_project_settings_file(project_dir)
 
-        known_foundry_thread_id = str(
-            project_settings.get("projectThreadId")
-            or body.project.foundryThreadId
-            or existing_metadata.get("foundryThreadId")
-            or ""
-        ).strip() or None
-
         app_settings = load_app_settings()
         bootstrap_result = bootstrap_default_foundry_resources(app_settings)
         if bootstrap_result.get("settingsUpdated"):
             write_app_settings_file(app_settings)
 
-        foundry_thread_result = ensure_project_foundry_thread(
-            app_settings,
-            project_id=body.project.id,
-            known_thread_id=known_foundry_thread_id,
-        )
+        thread_entry = {
+            "id": body.project.id,
+            "name": body.project.name,
+            "cloud": body.project.cloud,
+            "projectDir": project_dir,
+            "metadataPath": metadata_path,
+        }
 
-        foundry_thread_id = known_foundry_thread_id
-        if foundry_thread_result.get("threadId"):
-            foundry_thread_id = str(foundry_thread_result["threadId"]).strip() or foundry_thread_id
+        seeded_metadata = dict(existing_metadata)
+        incoming_chat_thread_id = str(
+            body.project.foundryChatThreadId
+            or body.project.foundryThreadId
+            or ""
+        ).strip()
+        if incoming_chat_thread_id:
+            seeded_metadata["foundryChatThreadId"] = incoming_chat_thread_id
+            seeded_metadata["foundryThreadId"] = incoming_chat_thread_id
+
+        incoming_validation_thread_id = str(body.project.foundryValidationThreadId or "").strip()
+        if incoming_validation_thread_id:
+            seeded_metadata["foundryValidationThreadId"] = incoming_validation_thread_id
+
+        chat_thread_state = ensure_project_foundry_thread_state(
+            thread_entry,
+            app_settings,
+            purpose="chat",
+            project_settings=project_settings,
+            metadata=seeded_metadata,
+            persist=False,
+        )
+        project_settings = chat_thread_state["settings"]
+        seeded_metadata = chat_thread_state["metadata"]
+        foundry_thread_result = chat_thread_state["threadResult"]
+        foundry_thread_id = str(chat_thread_state.get("threadId") or "").strip() or None
+
+        validation_thread_state = ensure_project_foundry_thread_state(
+            thread_entry,
+            app_settings,
+            purpose="validation",
+            project_settings=project_settings,
+            metadata=seeded_metadata,
+            persist=False,
+        )
+        project_settings = validation_thread_state["settings"]
+        foundry_validation_thread_result = validation_thread_state["threadResult"]
+        foundry_validation_thread_id = str(validation_thread_state.get("threadId") or "").strip() or None
 
         project_settings = merge_project_settings(
             project_settings,
@@ -3661,27 +3892,26 @@ def save_project_snapshot(body: ProjectSavePayload):
             "lastSaved": int(body.project.lastSaved) if isinstance(body.project.lastSaved, (int, float)) else 0,
         }
 
-        if foundry_thread_id:
-            metadata_payload["foundryThreadId"] = foundry_thread_id
-            project_settings = merge_project_settings(
-                project_settings,
-                {"projectThreadId": foundry_thread_id},
-            )
-            persist_project_settings(
-                project_dir,
-                body.project.id,
-                body.project.name,
-                body.project.cloud,
-                project_settings,
-            )
-        else:
-            persist_project_settings(
-                project_dir,
-                body.project.id,
-                body.project.name,
-                body.project.cloud,
-                project_settings,
-            )
+        project_settings, metadata_payload, _, _ = _apply_project_foundry_thread_id(
+            project_settings,
+            metadata_payload,
+            foundry_thread_id,
+            purpose="chat",
+        )
+        project_settings, metadata_payload, _, _ = _apply_project_foundry_thread_id(
+            project_settings,
+            metadata_payload,
+            foundry_validation_thread_id,
+            purpose="validation",
+        )
+
+        persist_project_settings(
+            project_dir,
+            body.project.id,
+            body.project.name,
+            body.project.cloud,
+            project_settings,
+        )
 
         if is_create_request and foundry_thread_id:
             _record_orchestration_event(
@@ -3714,6 +3944,8 @@ def save_project_snapshot(body: ProjectSavePayload):
                     "cloud": safe_project_cloud,
                     "threadCreated": bool(foundry_thread_result.get("created")),
                     "threadId": foundry_thread_id or "",
+                    "validationThreadCreated": bool(foundry_validation_thread_result.get("created")),
+                    "validationThreadId": foundry_validation_thread_id or "",
                 },
             )
 
@@ -3747,6 +3979,7 @@ def save_project_snapshot(body: ProjectSavePayload):
                 "stateHash": saved_state_hash,
                 "foundryBootstrap": bootstrap_result,
                 "foundryThread": foundry_thread_result,
+                "foundryValidationThread": foundry_validation_thread_result,
             },
         )
 
@@ -3755,6 +3988,7 @@ def save_project_snapshot(body: ProjectSavePayload):
             "projectPath": str(project_dir.relative_to(WORKSPACE_ROOT)),
             "foundryBootstrap": bootstrap_result,
             "foundryThread": foundry_thread_result,
+            "foundryValidationThread": foundry_validation_thread_result,
             "stateHash": saved_state_hash,
             "files": [
                 str(metadata_path.relative_to(WORKSPACE_ROOT)),
@@ -3931,36 +4165,29 @@ def get_project_snapshot(project_id: str):
         canvas_state = {}
 
     project_settings = load_project_settings_file(entry["projectDir"])
-    known_thread_id = str(
-        project_settings.get("projectThreadId")
-        or metadata.get("foundryThreadId")
-        or ""
-    ).strip() or None
 
-    thread_result = ensure_project_foundry_thread(
-        load_app_settings(),
-        project_id=entry["id"],
-        known_thread_id=known_thread_id,
+    app_settings = load_app_settings()
+    chat_thread_state = ensure_project_foundry_thread_state(
+        entry,
+        app_settings,
+        purpose="chat",
+        project_settings=project_settings,
+        metadata=metadata,
     )
+    project_settings = chat_thread_state["settings"]
+    metadata = chat_thread_state["metadata"]
+    resolved_thread_id = str(chat_thread_state.get("threadId") or "").strip() or None
 
-    resolved_thread_id = known_thread_id
-    if thread_result.get("threadId"):
-        resolved_thread_id = str(thread_result["threadId"]).strip() or resolved_thread_id
-
-    if resolved_thread_id:
-        if str(project_settings.get("projectThreadId") or "").strip() != resolved_thread_id:
-            project_settings = merge_project_settings(project_settings, {"projectThreadId": resolved_thread_id})
-            persist_project_settings(
-                entry["projectDir"],
-                entry["id"],
-                entry["name"],
-                entry["cloud"],
-                project_settings,
-            )
-
-        if str(metadata.get("foundryThreadId") or "").strip() != resolved_thread_id:
-            metadata["foundryThreadId"] = resolved_thread_id
-            entry["metadataPath"].write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    validation_thread_state = ensure_project_foundry_thread_state(
+        entry,
+        app_settings,
+        purpose="validation",
+        project_settings=project_settings,
+        metadata=metadata,
+    )
+    project_settings = validation_thread_state["settings"]
+    metadata = validation_thread_state["metadata"]
+    resolved_validation_thread_id = str(validation_thread_state.get("threadId") or "").strip() or None
 
     return {
         "project": {
@@ -3970,6 +4197,8 @@ def get_project_snapshot(project_id: str):
             "applicationType": str(metadata.get("applicationType") or ""),
             "applicationDescription": str(metadata.get("applicationDescription") or ""),
             "foundryThreadId": str(resolved_thread_id or metadata.get("foundryThreadId") or ""),
+            "foundryChatThreadId": str(resolved_thread_id or metadata.get("foundryChatThreadId") or metadata.get("foundryThreadId") or ""),
+            "foundryValidationThreadId": str(resolved_validation_thread_id or metadata.get("foundryValidationThreadId") or ""),
             "lastSaved": int(entry["lastSaved"]),
             "iacLanguage": str(project_settings.get("iacLanguage") or "bicep").strip().lower(),
             "iacParameterFormat": normalize_parameter_format(project_settings.get("iacParameterFormat") or "bicepparam"),
@@ -4138,7 +4367,7 @@ def _generate_project_iac_payload(
         write_app_settings_file(app_settings)
 
     foundry_agent_id = _resolve_foundry_iac_agent_id(app_settings) or None
-    foundry_thread_id = resolve_project_foundry_thread_id(entry, app_settings)
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, app_settings, purpose="validation")
 
     _append_app_activity(
         "codegen.request",
@@ -4486,30 +4715,36 @@ def delete_project_snapshot(project_id: str):
         if not isinstance(metadata, dict):
             metadata = {}
 
-        thread_id = str(
-            project_settings.get("projectThreadId")
-            or metadata.get("foundryThreadId")
-            or ""
-        ).strip()
+        thread_ids = [
+            _get_known_project_foundry_thread_id(project_settings, metadata, purpose="chat"),
+            _get_known_project_foundry_thread_id(project_settings, metadata, purpose="validation"),
+        ]
 
-        if thread_id:
+        unique_thread_ids: list[str] = []
+        for raw_thread_id in thread_ids:
+            safe_thread_id = str(raw_thread_id or "").strip()
+            if safe_thread_id and safe_thread_id not in unique_thread_ids:
+                unique_thread_ids.append(safe_thread_id)
+
+        if unique_thread_ids:
             app_settings = load_app_settings()
-            _record_orchestration_event(
-                app_settings,
-                thread_id=thread_id,
-                workflow="project-lifecycle",
-                status="deleted",
-                project_id=entry["id"],
-                project_name=str(metadata.get("name") or entry["name"]),
-                detail="Project deletion requested.",
-            )
-            post_project_deleted_message(
-                app_settings,
-                thread_id=thread_id,
-                project_name=str(metadata.get("name") or entry["name"]),
-                project_id=entry["id"],
-                deleted_at=datetime.utcnow(),
-            )
+            for thread_id in unique_thread_ids:
+                _record_orchestration_event(
+                    app_settings,
+                    thread_id=thread_id,
+                    workflow="project-lifecycle",
+                    status="deleted",
+                    project_id=entry["id"],
+                    project_name=str(metadata.get("name") or entry["name"]),
+                    detail="Project deletion requested.",
+                )
+                post_project_deleted_message(
+                    app_settings,
+                    thread_id=thread_id,
+                    project_name=str(metadata.get("name") or entry["name"]),
+                    project_id=entry["id"],
+                    deleted_at=datetime.utcnow(),
+                )
 
         shutil.rmtree(entry["projectDir"])
 

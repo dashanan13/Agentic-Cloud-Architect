@@ -218,6 +218,182 @@ def _build_canvas_summary(canvas_context: Any) -> str:
     return "\n".join(lines)
 
 
+def _extract_canvas_snapshot(project_context: Mapping[str, Any] | None) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if not isinstance(project_context, Mapping):
+        return [], []
+
+    canvas_context = project_context.get("canvasContext")
+    if not isinstance(canvas_context, Mapping):
+        return [], []
+
+    items = canvas_context.get("items") if isinstance(canvas_context.get("items"), list) else []
+    connections = canvas_context.get("connections") if isinstance(canvas_context.get("connections"), list) else []
+    normalized_items = [item for item in items if isinstance(item, Mapping)]
+    normalized_connections = [conn for conn in connections if isinstance(conn, Mapping)]
+    return list(normalized_items), list(normalized_connections)
+
+
+def _canvas_has_keywords(items: list[dict[str, Any]], keywords: tuple[str, ...]) -> bool:
+    for item in items:
+        haystack = " ".join(
+            [
+                str(item.get("name") or ""),
+                str(item.get("resourceType") or ""),
+                str(item.get("category") or ""),
+            ]
+        ).strip().lower()
+        if any(keyword in haystack for keyword in keywords):
+            return True
+    return False
+
+
+def _canvas_item_labels(items: list[dict[str, Any]], limit: int = 6) -> list[str]:
+    labels: list[str] = []
+    for item in items[:limit]:
+        resource_type = str(item.get("resourceType") or "").strip()
+        name = str(item.get("name") or "").strip()
+        label = resource_type or name
+        if not label:
+            continue
+        labels.append(label)
+    return labels
+
+
+def _build_project_improvement_suggestions(project_context: Mapping[str, Any] | None) -> list[str]:
+    if not isinstance(project_context, Mapping):
+        return []
+
+    project_description = str(
+        project_context.get("projectDescription")
+        or project_context.get("applicationDescription")
+        or ""
+    ).strip().lower()
+    items, _connections = _extract_canvas_snapshot(project_context)
+
+    has_compute = _canvas_has_keywords(
+        items,
+        ("app service", "function app", "container app", "kubernetes", "aks", "virtual machine", "vm scale set", "logic app", "container instance", "api management"),
+    )
+    has_edge = _canvas_has_keywords(
+        items,
+        ("front door", "application gateway", "load balancer", "web application firewall", "waf", "api management", "cdn"),
+    )
+    has_data = _canvas_has_keywords(
+        items,
+        ("sql", "cosmos", "storage", "redis", "database", "cache"),
+    )
+    has_observability = _canvas_has_keywords(
+        items,
+        ("application insights", "log analytics", "monitor"),
+    )
+    has_secret_management = _canvas_has_keywords(
+        items,
+        ("key vault", "managed identit", "private endpoint", "firewall"),
+    )
+
+    suggestions: list[str] = []
+
+    if any(token in project_description for token in ("api", "backend", "service", "application")) and not has_compute:
+        suggestions.append("Add an application hosting layer such as App Service, Function Apps, Container Apps, or AKS so the design includes the actual workload, not only networking.")
+
+    if any(token in project_description for token in ("worldwide", "global", "internet", "public", "low latency")) and not has_edge:
+        suggestions.append("Add a proper ingress and edge layer such as Front Door or Application Gateway with WAF instead of relying on Public IP alone.")
+
+    if any(token in project_description for token in ("identity", "personal", "pii", "gdpr", "secure", "compliance")) and not has_secret_management:
+        suggestions.append("Add security controls like Managed Identity and Key Vault, and consider private access patterns for sensitive identity data.")
+
+    if any(token in project_description for token in ("data", "identity", "store", "records", "submit")) and not has_data:
+        suggestions.append("Add a data layer such as Azure SQL, Cosmos DB, or Storage Accounts based on your access pattern and consistency needs.")
+
+    if not has_observability:
+        suggestions.append("Add observability with Application Insights and Log Analytics so you can monitor the solution, trace failures, and validate operational health.")
+
+    if items and not has_compute and not has_data and not has_observability:
+        suggestions.append("Right now the canvas is mostly foundational networking. It still needs application, data, security, and operations layers to match an enterprise-ready Azure architecture.")
+
+    return suggestions[:5]
+
+
+def _render_project_context_fallback(
+    user_message: str,
+    project_context: Mapping[str, Any] | None,
+    mcp_configured: bool,
+    foundry_configured: bool,
+    configured_model: str,
+) -> str:
+    text = str(user_message or "").strip().lower()
+    if not isinstance(project_context, Mapping):
+        return _render_familiarization_response(mcp_configured, foundry_configured, configured_model)
+
+    project_name = str(project_context.get("name") or "this project").strip() or "this project"
+    app_type = str(project_context.get("applicationType") or "").strip()
+    project_description = str(
+        project_context.get("projectDescription")
+        or project_context.get("applicationDescription")
+        or ""
+    ).strip()
+    items, connections = _extract_canvas_snapshot(project_context)
+    labels = _canvas_item_labels(items)
+    suggestions = _build_project_improvement_suggestions(project_context)
+
+    intro_parts = [f"I already have your project context loaded for {project_name}."]
+    if app_type:
+        intro_parts.append(f"Type: {app_type}.")
+
+    description_line = ""
+    if project_description:
+        description_line = f"Project description: {project_description}"
+
+    if items:
+        resources_text = ", ".join(labels)
+        more_count = max(len(items) - len(labels), 0)
+        if more_count > 0:
+            resources_text += f", and {more_count} more"
+        canvas_line = (
+            f"Current canvas: {len(items)} resource{'s' if len(items) != 1 else ''} and "
+            f"{len(connections)} connection{'s' if len(connections) != 1 else ''}; "
+            f"key items include {resources_text}."
+        )
+    else:
+        canvas_line = "Current canvas: no resources are placed yet."
+
+    if _matches_any_pattern(text, GREETING_PATTERNS):
+        lines = [" ".join(intro_parts)]
+        if description_line:
+            lines.append(description_line)
+        lines.append(canvas_line)
+        if suggestions:
+            lines.append(f"First improvement I would make: {suggestions[0]}")
+        else:
+            lines.append("I can review the canvas against the project description and suggest missing Azure components.")
+        return "\n\n".join(lines)
+
+    if (
+        _matches_any_pattern(text, CANVAS_AWARENESS_PATTERNS)
+        or _matches_any_pattern(text, FAMILIARIZATION_PATTERNS)
+        or any(token in text for token in ("improve", "review", "check", "read", "canvas", "project", "description"))
+    ):
+        lines = [" ".join(intro_parts)]
+        if description_line:
+            lines.append(description_line)
+        lines.append(canvas_line)
+        if suggestions:
+            bullet_lines = [f"- {item}" for item in suggestions]
+            lines.append("What I would improve next:\n" + "\n".join(bullet_lines))
+        else:
+            lines.append("The canvas and description are loaded. I can next map each resource to the project requirements or suggest target Azure services.")
+        return "\n\n".join(lines)
+
+    return "\n\n".join(
+        [
+            " ".join(intro_parts),
+            description_line or "Project description is available in context.",
+            canvas_line,
+            "Ask me to review gaps, suggest missing Azure services, or explain how the current canvas maps to your requirements.",
+        ]
+    )
+
+
 class AzureMcpChatConfigurationError(ValueError):
     pass
 
@@ -522,7 +698,13 @@ def run_cloudarchitect_chat_agent(
                 },
             )
         except Exception:
-            assistant_message = "I'm your Azure cloud architect assistant. Share what you're building and I'll help design it."
+            assistant_message = _render_project_context_fallback(
+                user_message=text,
+                project_context=project_context,
+                mcp_configured=mcp_configured,
+                foundry_configured=foundry_configured,
+                configured_model=str(model_info.get("configuredModel") or ""),
+            )
             _log_chat_event(
                 "chat.model.response",
                 level="warning",

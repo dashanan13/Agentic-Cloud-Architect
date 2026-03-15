@@ -19,8 +19,8 @@ RUN python /app/App_Frontend/generate_catalogs.py \
 	&& mkdir -p /app/App_Frontend/icons/azure \
 	&& cp -R /app/Clouds/Azure/Icons/. /app/App_Frontend/icons/azure/ \
 	&& cp /app/Clouds/Azure/Azure-Icon.png /app/App_Frontend/icons/azure-icon.png \
-	&& cp /app/Clouds/AWS/AWS-Icon.png /app/App_Frontend/icons/aws-icon.png \
-	&& cp /app/Clouds/GCP/GCP-Icon.png /app/App_Frontend/icons/gcp-icon.png \
+	&& if [ -f /app/Clouds/AWS/AWS-Icon.png ]; then cp /app/Clouds/AWS/AWS-Icon.png /app/App_Frontend/icons/aws-icon.png; fi \
+	&& if [ -f /app/Clouds/GCP/GCP-Icon.png ]; then cp /app/Clouds/GCP/GCP-Icon.png /app/App_Frontend/icons/gcp-icon.png; fi \
 	&& cp /app/Clouds/azure-bicep-icon.png /app/App_Frontend/icons/azure-bicep-icon.png \
 	&& cp /app/Clouds/terraform-icon.png /app/App_Frontend/icons/terraform-icon.png
 

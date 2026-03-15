@@ -147,7 +147,7 @@ function sanitizeProject(project) {
     return null;
   }
 
-  const cloud = ["Azure", "AWS", "GCP"].includes(project.cloud) ? project.cloud : null;
+  const cloud = ["Azure"].includes(project.cloud) ? project.cloud : null;
   if (!cloud || !project.id) {
     return null;
   }
@@ -393,15 +393,15 @@ async function bootstrapFoundryDefaultsOnLoad() {
 
 // ===== Project List Rendering =====
 function renderProjectsList() {
-  document.getElementById("projects-azure").innerHTML = "";
-  document.getElementById("projects-aws").innerHTML = "";
-  document.getElementById("projects-gcp").innerHTML = "";
-
   const cloudSections = {
-    Azure: document.getElementById("projects-azure"),
-    AWS: document.getElementById("projects-aws"),
-    GCP: document.getElementById("projects-gcp")
+    Azure: document.getElementById("projects-azure")
   };
+
+  Object.values(cloudSections).forEach((container) => {
+    if (container) {
+      container.innerHTML = "";
+    }
+  });
 
   state.projects.forEach((project) => {
     const item = document.createElement("div");
@@ -453,14 +453,18 @@ function renderProjectsList() {
 
   // Show empty messages if no projects
   Object.entries(cloudSections).forEach(([cloud, container]) => {
+    if (!container) {
+      return;
+    }
     if (container.children.length === 0) {
       const empty = document.createElement("div");
       empty.className = "projects-empty";
       empty.textContent = `No ${cloud} projects yet`;
       container.appendChild(empty);
-    } else {
-      container.classList.add("is-expanded");
     }
+
+    const header = document.querySelector(`.cloud-header[data-cloud="${cloud}"]`);
+    setCloudHeaderExpanded(header, true);
   });
 }
 

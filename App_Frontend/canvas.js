@@ -1662,12 +1662,6 @@ function getCloudFallbackIcon(cloudName) {
   if (cloudName === "Azure") {
     return "/icons/azure-icon.png";
   }
-  if (cloudName === "AWS") {
-    return "/icons/aws-icon.png";
-  }
-  if (cloudName === "GCP") {
-    return "/icons/gcp-icon.png";
-  }
   return "";
 }
 
@@ -1680,7 +1674,7 @@ function getMaxSuffixLength(cloud) {
 }
 
 function splitProjectName(cloud, fullName) {
-  const safeCloud = ["Azure", "AWS", "GCP"].includes(cloud) ? cloud : "Azure";
+  const safeCloud = "Azure";
   const prefix = getProjectPrefix(safeCloud);
   let suffix = (fullName || "").trim();
 
@@ -1760,8 +1754,8 @@ function sanitizeProject(project) {
     return null;
   }
 
-  const cloud = ["Azure", "AWS", "GCP"].includes(project.cloud) ? project.cloud : null;
-  if (!cloud || !project.id) {
+  const cloud = "Azure";
+  if (!project.id) {
     return null;
   }
 

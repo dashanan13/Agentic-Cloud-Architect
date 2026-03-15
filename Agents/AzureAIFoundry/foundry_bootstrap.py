@@ -221,11 +221,17 @@ class FoundryBootstrapClient:
             created_thread=thread_result.created,
         )
 
-    def ensure_project_thread(self, project_id: str, known_thread_id: str | None = None) -> ThreadResult:
+    def ensure_project_thread(
+        self,
+        project_id: str,
+        known_thread_id: str | None = None,
+        thread_name: str | None = None,
+    ) -> ThreadResult:
         project_name = str(project_id or "").strip()
         if not project_name:
             raise FoundryConfigurationError("project_id is required")
-        return self.ensure_named_thread(project_name, known_thread_id=known_thread_id)
+        resolved_thread_name = str(thread_name or "").strip() or project_name
+        return self.ensure_named_thread(resolved_thread_name, known_thread_id=known_thread_id)
 
     def ensure_named_thread(self, thread_name: str | None, known_thread_id: str | None = None) -> ThreadResult:
         return _run_sync(self._ensure_named_thread_async(thread_name=thread_name, known_thread_id=known_thread_id))
@@ -636,10 +642,15 @@ def ensure_project_thread_for_project(
     app_settings: Mapping[str, Any],
     project_id: str,
     known_thread_id: str | None = None,
+    thread_name: str | None = None,
 ) -> ThreadResult:
     connection = FoundryConnectionSettings.from_app_settings(app_settings)
     client = FoundryBootstrapClient(connection)
-    return client.ensure_project_thread(project_id=project_id, known_thread_id=known_thread_id)
+    return client.ensure_project_thread(
+        project_id=project_id,
+        known_thread_id=known_thread_id,
+        thread_name=thread_name,
+    )
 
 
 def ensure_app_agents_and_thread(
