@@ -95,7 +95,7 @@ let queuedSaveOptions = null;
 let activeSavePromise = Promise.resolve();
 let validationStatusState = null;
 let validationResultState = null;
-let validationExpandedSeverity = null;
+let validationExpandedSections = new Set();
 let validationExpandedRunId = "";
 let validationRunInFlight = false;
 // Live runtime status for validation steps
@@ -5140,6 +5140,22 @@ const VALIDATION_SEVERITY_LABELS = {
   info: "Info"
 };
 
+const VALIDATION_PILLARS = [
+  "reliability",
+  "security",
+  "cost_optimization",
+  "operational_excellence",
+  "performance_efficiency"
+];
+
+const VALIDATION_PILLAR_LABELS = {
+  reliability: "Reliability",
+  security: "Security",
+  cost_optimization: "Cost Optimization",
+  operational_excellence: "Operational Excellence",
+  performance_efficiency: "Performance Efficiency"
+};
+
 function normalizeValidationSeverity(value) {
   const severity = String(value || "").trim().toLowerCase();
   if (severity === "failure" || severity === "error" || severity === "critical" || severity === "high") {
@@ -5675,6 +5691,363 @@ async function applyValidationFixForFinding(findingId) {
   }
 }
 
+function normalizeValidationPillar(value) {
+  const text = String(value || "").trim().toLowerCase().replace(/[-\s]+/g, "_");
+  if (VALIDATION_PILLARS.includes(text)) {
+    return text;
+  }
+  return "";
+}
+
+function formatValidationPillarLabel(value) {
+  const normalized = normalizeValidationPillar(value);
+  if (normalized && VALIDATION_PILLAR_LABELS[normalized]) {
+    return VALIDATION_PILLAR_LABELS[normalized];
+  }
+
+  const fallback = String(value || "").trim();
+  if (!fallback) {
+    return "Operational Excellence";
+  }
+  return fallback
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function normalizeValidationResourceType(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function isValidationResourceType(item, patterns) {
+  const resourceTypeText = normalizeValidationResourceType(
+    item?.resourceType || item?.resourceName || item?.name || ""
+  );
+  if (!resourceTypeText) {
+    return false;
+  }
+  return patterns.some((pattern) => resourceTypeText.includes(pattern));
+}
+
+function extractValidationProjectRequirements(projectDescription) {
+  const text = String(projectDescription || "").trim();
+  if (!text) {
+    return [];
+  }
+
+  const requirements = [];
+  const seen = new Set();
+  const appendRequirement = (value) => {
+    const normalized = String(value || "").trim().replace(/\s+/g, " ");
+    if (normalized.length < 10) {
+      return;
+    }
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    requirements.push(normalized);
+  };
+
+  text
+    .split(/\r?\n|[.;]+/)
+    .map((line) => line.replace(/^\s*(?:[-*•]+|\d+[.)])\s*/, "").trim())
+    .filter(Boolean)
+    .forEach(appendRequirement);
+
+  const lower = text.toLowerCase();
+  if (/(global|worldwide|international|multi-region|multi region)/.test(lower)) {
+    appendRequirement("Global accessibility and low-latency user experience across regions.");
+  }
+  if (/(identity|pii|personal\s+data|sensitive\s+data)/.test(lower)) {
+    appendRequirement("Secure handling and protection of personal or sensitive identity data.");
+  }
+  if (/(api|backend|service)/.test(lower)) {
+    appendRequirement("API/backend service architecture with secure external and internal connectivity.");
+  }
+  if (/(web\s+application|frontend|portal|website)/.test(lower)) {
+    appendRequirement("Support for a web application frontend and user-facing access patterns.");
+  }
+
+  return requirements.slice(0, 8);
+}
+
+function buildValidationArchitectureSnapshot() {
+  const items = Array.isArray(state.canvasItems) ? state.canvasItems : [];
+  const connections = Array.isArray(state.canvasConnections) ? state.canvasConnections : [];
+  const byId = new Map();
+  items.forEach((item) => {
+    const itemId = String(item?.id || "").trim();
+    if (itemId) {
+      byId.set(itemId, item);
+    }
+  });
+
+  const resolveName = (id, fallback = "") => {
+    const safeId = String(id || "").trim();
+    if (!safeId) {
+      return String(fallback || "").trim();
+    }
+    const item = byId.get(safeId);
+    if (item && String(item.name || "").trim()) {
+      return String(item.name || "").trim();
+    }
+    return String(fallback || safeId).trim();
+  };
+
+  const virtualNetworks = items
+    .filter((item) => isValidationResourceType(item, ["virtual network", "virtualnetworks", "vnet"]))
+    .map((item) => {
+      const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+      return {
+        id: String(item.id || ""),
+        name: String(item.name || "").trim() || "Virtual Network",
+        location: String(properties.location || "").trim(),
+      };
+    });
+
+  const subnets = items
+    .filter((item) => isValidationResourceType(item, ["subnet"]))
+    .map((item) => {
+      const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+      const subnetPrivate = Boolean(properties.subnetPrivate);
+      return {
+        id: String(item.id || ""),
+        name: String(item.name || "").trim() || String(properties.subnetName || "").trim() || "Subnet",
+        purpose: String(properties.subnetPurpose || "default").trim() || "default",
+        private: subnetPrivate,
+        nsgName: resolveName(properties.networkSecurityGroupRef, properties.networkSecurityGroupName),
+        routeTableName: resolveName(properties.routeTableRef, properties.routeTableName),
+        vnetName: resolveName(properties.virtualNetworkRef || item.parentId, properties.virtualNetworkName),
+      };
+    });
+
+  const networkSecurityGroups = items
+    .filter((item) => isValidationResourceType(item, ["network security group", "networksecuritygroups", "nsg"]))
+    .map((item) => {
+      const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+      const securityRules = Array.isArray(properties.securityRules) ? properties.securityRules : [];
+      return {
+        id: String(item.id || ""),
+        name: String(item.name || "").trim() || "Network Security Group",
+        ruleCount: securityRules.length,
+      };
+    });
+
+  const publicIps = items
+    .filter((item) => isValidationResourceType(item, ["public ip", "publicipaddress", "public ip addresses"]))
+    .map((item) => {
+      const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+      return {
+        id: String(item.id || ""),
+        name: String(item.name || "").trim() || "Public IP",
+        allocation: String(properties.publicIPAllocationMethod || "").trim() || "dynamic",
+        sku: String(properties.sku || "").trim() || "basic",
+        zone: String(properties.zone || "").trim() || "none",
+        ddosProtection: String(properties.ddosProtection || "").trim() || "unspecified",
+      };
+    });
+
+  const routeTables = items
+    .filter((item) => isValidationResourceType(item, ["route table", "routetables"]))
+    .map((item) => {
+      const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+      const routes = Array.isArray(properties.routes) ? properties.routes : [];
+      return {
+        id: String(item.id || ""),
+        name: String(item.name || "").trim() || "Route Table",
+        routeCount: routes.length,
+      };
+    });
+
+  const regionSet = new Set();
+  items.forEach((item) => {
+    const properties = item?.properties && typeof item.properties === "object" ? item.properties : {};
+    const location = String(properties.location || "").trim().toLowerCase();
+    if (location) {
+      regionSet.add(location);
+    }
+  });
+
+  const hasCompute = items.some((item) =>
+    isValidationResourceType(item, [
+      "virtual machine",
+      "virtualmachines",
+      "vmss",
+      "app service",
+      "web app",
+      "function",
+      "kubernetes",
+      "managedclusters",
+      "aks",
+      "container app",
+      "container instance"
+    ])
+  );
+
+  const hasData = items.some((item) =>
+    isValidationResourceType(item, [
+      "sql",
+      "database",
+      "cosmos",
+      "storage account",
+      "storageaccounts",
+      "redis",
+      "mysql",
+      "postgres",
+      "data lake"
+    ])
+  );
+
+  const hasMonitoring = items.some((item) =>
+    isValidationResourceType(item, ["application insights", "log analytics", "monitor", "alerts", "insights"])
+  );
+
+  const hasIdentityOrAuth = items.some((item) =>
+    isValidationResourceType(item, [
+      "active directory",
+      "entra",
+      "api management",
+      "key vault",
+      "managed identity",
+      "b2c",
+      "oauth"
+    ])
+  );
+
+  return {
+    totalResources: items.length,
+    totalConnections: connections.length,
+    regions: Array.from(regionSet),
+    virtualNetworks,
+    subnets,
+    networkSecurityGroups,
+    publicIps,
+    routeTables,
+    publicSubnets: subnets.filter((item) => !item.private).length,
+    nsgsWithoutRules: networkSecurityGroups.filter((item) => item.ruleCount === 0).length,
+    routeTablesWithoutRoutes: routeTables.filter((item) => item.routeCount === 0).length,
+    hasCompute,
+    hasData,
+    hasMonitoring,
+    hasIdentityOrAuth,
+  };
+}
+
+function buildValidationOpenQuestions(snapshot, projectDescription) {
+  const questions = [];
+  const seen = new Set();
+  const addQuestion = (id, questionText) => {
+    const safeId = String(id || "").trim().toLowerCase();
+    if (!safeId || seen.has(safeId)) {
+      return;
+    }
+    seen.add(safeId);
+    questions.push(String(questionText || "").trim());
+  };
+
+  const descriptionText = String(projectDescription || "").trim();
+  const descriptionLower = descriptionText.toLowerCase();
+
+  if (!descriptionText) {
+    addQuestion("project-description", "What are the key business requirements, user profile, and data sensitivity for this project?");
+  }
+
+  if (!snapshot.hasCompute) {
+    addQuestion("compute-strategy", "Which Azure compute platform should host the API/backend workload (App Service, Azure Functions, Container Apps, or AKS)?");
+  }
+  if (!snapshot.hasData) {
+    addQuestion("data-layer", "Which data platform stores personal identity information, and how will backups and geo-replication be configured?");
+  }
+  if (!snapshot.hasIdentityOrAuth) {
+    addQuestion("auth-strategy", "What authentication and authorization strategy should be used (Entra ID, Entra B2C, managed identities, API authorization model)?");
+  }
+  if (!snapshot.hasMonitoring) {
+    addQuestion("observability", "What monitoring, logging, alerting, and audit requirements are needed for production operations and compliance?");
+  }
+  if (snapshot.regions.length <= 1) {
+    addQuestion("sla-dr", "What SLA target and disaster-recovery objectives (RTO/RPO) require multi-region design and failover automation?");
+  }
+  if (!/(gdpr|hipaa|soc2|pci|iso\s*27001|compliance)/.test(descriptionLower)) {
+    addQuestion("compliance", "Which compliance and regulatory controls apply (for example GDPR, HIPAA, SOC2), and how will evidence be captured?");
+  }
+  if (!/(users|requests|rps|qps|throughput|scale|concurrent)/.test(descriptionLower)) {
+    addQuestion("scale", "What is the expected scale profile (concurrent users, peak RPS, data growth) so capacity and cost can be sized correctly?");
+  }
+
+  return questions.slice(0, 8);
+}
+
+function countValidationFindingsByPillar(findings) {
+  const counts = {
+    reliability: 0,
+    security: 0,
+    cost_optimization: 0,
+    operational_excellence: 0,
+    performance_efficiency: 0,
+    unassigned: 0,
+  };
+
+  const safeFindings = Array.isArray(findings) ? findings : [];
+  safeFindings.forEach((finding) => {
+    const pillar = normalizeValidationPillar(finding?.pillar);
+    if (pillar && Object.prototype.hasOwnProperty.call(counts, pillar)) {
+      counts[pillar] += 1;
+    } else {
+      counts.unassigned += 1;
+    }
+  });
+
+  return counts;
+}
+
+function isValidationSectionExpanded(sectionKey) {
+  const safeKey = String(sectionKey || "").trim();
+  return Boolean(safeKey && validationExpandedSections.has(safeKey));
+}
+
+function renderValidationCollapsibleSection({
+  sectionKey,
+  title,
+  count = null,
+  summary = "",
+  bodyMarkup = "",
+  nested = false,
+  modifier = "",
+}) {
+  const safeSectionKey = String(sectionKey || "").replace(/[^a-zA-Z0-9:_-]+/g, "").trim();
+  if (!safeSectionKey) {
+    return "";
+  }
+
+  const expanded = isValidationSectionExpanded(safeSectionKey);
+  const titleText = count === null ? String(title || "") : `${String(title || "")} (${Number(count) || 0})`;
+  const classes = ["validation-group"];
+  if (nested) {
+    classes.push("validation-group--nested");
+  }
+  if (modifier) {
+    classes.push(`validation-group--${modifier}`);
+  }
+
+  return [
+    `<section class="${classes.join(" ")}">`,
+    `<button type="button" class="validation-group__toggle" data-validation-group-toggle="${safeSectionKey}" aria-expanded="${expanded ? "true" : "false"}">`,
+    `<span class="validation-group__title">${escapeHtml(titleText)}</span>`,
+    `<span class="validation-group__chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
+    "</button>",
+    `<div class="validation-group__body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>`,
+    summary ? `<p class="validation-section__intro">${escapeHtml(summary)}</p>` : "",
+    bodyMarkup,
+    "</div>",
+    "</section>",
+  ].join("");
+}
+
 function renderValidationTipsPanel() {
   if (!tipsContentEl) {
     return;
@@ -5703,7 +6076,32 @@ function renderValidationTipsPanel() {
   const resultRunId = String(result?.runId || "").trim();
   if (resultRunId !== validationExpandedRunId) {
     validationExpandedRunId = resultRunId;
-    validationExpandedSeverity = null;
+    const defaults = new Set();
+    if (resultRunId) {
+      defaults.add("section-1-header");
+      defaults.add("section-4-concerns");
+
+      const seedPillarDetails = result?.pillar_details && typeof result.pillar_details === "object"
+        ? result.pillar_details
+        : {};
+      const seedRecommendations = result?.recommendations && typeof result.recommendations === "object"
+        ? result.recommendations
+        : {};
+      const firstPillarWithFindings = VALIDATION_PILLARS.find((pillar) => {
+        const detail = seedPillarDetails[pillar] && typeof seedPillarDetails[pillar] === "object"
+          ? seedPillarDetails[pillar]
+          : {};
+        const detailEntries = Array.isArray(detail.recommendations_received) ? detail.recommendations_received : [];
+        if (detailEntries.length > 0) {
+          return true;
+        }
+        const entries = seedRecommendations[pillar];
+        return Array.isArray(entries) && entries.length > 0;
+      });
+
+      defaults.add(`section-4-pillar-${firstPillarWithFindings || "reliability"}`);
+    }
+    validationExpandedSections = defaults;
   }
 
   if (result?.errorMessage) {
@@ -5719,106 +6117,6 @@ function renderValidationTipsPanel() {
     }
     return;
   }
-
-  // NEW: Always use the new pillar-based structure, regardless of backend format
-  // This ensures consistent UI from app load onwards
-  let recommendations = {};
-  let quickFixes = { priority_improvements: [], quick_configuration_fixes: [] };
-  
-  if (result?.recommendations && result?.quick_fixes) {
-    // New format from backend
-    recommendations = result.recommendations || {};
-    quickFixes = result.quick_fixes || {};
-  } else if (result?.groups || result?.findings) {
-    // Old format - initialize empty pillars so UI shows consistent structure
-    // This ensures new structure is always displayed, even with old cached data
-    recommendations = {
-      reliability: [],
-      security: [],
-      cost_optimization: [],
-      operational_excellence: [],
-      performance_efficiency: []
-    };
-  }
-  
-  let sectionsMarkup = '';
-  const pillars = ['reliability', 'security', 'cost_optimization', 'operational_excellence', 'performance_efficiency'];
-
-  // Recommendations sections - always rendered in new format
-  const recommendationSections = pillars.map((pillar) => {
-    const items = Array.isArray(recommendations[pillar]) ? recommendations[pillar] : [];
-    const expanded = validationExpandedSeverity === pillar;
-    
-    const findingMarkup = items.length
-      ? items.map((item) => {
-        const title = String(item?.title || "Recommendation");
-        const message = String(item?.message || "No details provided.");
-        return [
-          '<article class="validation-finding">',
-          `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
-          `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
-          "</article>"
-        ].join("");
-      }).join("")
-      : '<div class="validation-empty">No recommendations for this pillar.</div>';
-
-    return [
-      `<section class="validation-group validation-group--${pillar}">`,
-      `<button type="button" class="validation-group__toggle" data-validation-group-toggle="${pillar}" aria-expanded="${expanded ? "true" : "false"}">`,
-      `<span class="validation-group__title">${pillar.replace(/_/g, ' ').toUpperCase()} (${items.length})</span>`,
-      `<span class="validation-group__chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
-      "</button>",
-      `<div class="validation-group__body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>${findingMarkup}</div>`,
-      "</section>"
-    ].join("");
-  }).join("");
-
-  // Quick Fixes sections
-  const priorityImprovements = Array.isArray(quickFixes.priority_improvements) ? quickFixes.priority_improvements : [];
-  const quickConfigFixes = Array.isArray(quickFixes.quick_configuration_fixes) ? quickFixes.quick_configuration_fixes : [];
-
-  const priorityMarkup = priorityImprovements.map((item) => {
-    const title = String(item?.title || "Fix");
-    const message = String(item?.message || "No details provided.");
-    const targetLabel = resolveValidationTargetLabel(item?.target);
-    return [
-      '<article class="validation-finding">',
-      `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
-      `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
-      targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
-      "</article>"
-    ].join("");
-  }).join("");
-
-  const configMarkup = quickConfigFixes.map((item) => {
-    const title = String(item?.title || "Suggestion");
-    const message = String(item?.message || "No details provided.");
-    const targetLabel = resolveValidationTargetLabel(item?.target);
-    return [
-      '<article class="validation-finding">',
-      `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
-      `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
-      targetLabel ? `<div class="validation-finding__target">${escapeHtml(targetLabel)}</div>` : "",
-      "</article>"
-    ].join("");
-  }).join("");
-
-  const quickFixesExpanded = validationExpandedSeverity === 'quick_fixes';
-  const quickFixesSection = [
-    '<section class="validation-group validation-group--warning">',
-    `<button type="button" class="validation-group__toggle" data-validation-group-toggle="quick_fixes" aria-expanded="${quickFixesExpanded ? "true" : "false"}">`,
-    `<span class="validation-group__title">QUICK FIXES (${priorityImprovements.length + quickConfigFixes.length})</span>`,
-    `<span class="validation-group__chevron" aria-hidden="true">${quickFixesExpanded ? "▾" : "▸"}</span>`,
-    "</button>",
-    `<div class="validation-group__body${quickFixesExpanded ? "" : " is-hidden"}" ${quickFixesExpanded ? "" : "hidden"}>`,
-    priorityImprovements.length > 0 ? `<div class="validation-subgroup"><h5 style="margin: 12px 0 8px; font-size: 12px; font-weight: 600; color: #d32f2f;">Priority Improvements (${priorityImprovements.length})</h5>${priorityMarkup}</div>` : "",
-    quickConfigFixes.length > 0 ? `<div class="validation-subgroup"><h5 style="margin: 12px 0 8px; font-size: 12px; font-weight: 600; color: #1976d2;">Configuration Best Practices (${quickConfigFixes.length})</h5>${configMarkup}</div>` : "",
-    priorityImprovements.length === 0 && quickConfigFixes.length === 0 ? '<div class="validation-empty">No quick fixes needed.</div>' : "",
-    "</div>",
-    "</section>"
-  ].join("");
-
-  sectionsMarkup = recommendationSections + quickFixesSection;
 
   const groups = normalizeValidationGroups(result || {});
   const summary = normalizeValidationSummary(result || {}, groups);
@@ -5839,6 +6137,375 @@ function renderValidationTipsPanel() {
   const mcpLabel = getValidationConnectionLabel(mcpConnection, mcpSourceState);
   const foundryLabel = getValidationConnectionLabel(foundryConnection, foundrySourceState);
 
+  const projectName = String(result?.projectName || state.currentProject?.name || "Current Project").trim() || "Current Project";
+  const projectDescription = String(state.currentProject?.applicationDescription || "").trim();
+  const requirements = extractValidationProjectRequirements(projectDescription);
+  const architectureSnapshot = buildValidationArchitectureSnapshot();
+  const openQuestions = buildValidationOpenQuestions(architectureSnapshot, projectDescription);
+
+  const recommendations = result?.recommendations && typeof result.recommendations === "object"
+    ? result.recommendations
+    : {};
+  const quickFixes = result?.quick_fixes && typeof result.quick_fixes === "object"
+    ? result.quick_fixes
+    : { priority_improvements: [], quick_configuration_fixes: [] };
+  const pillarAssessment = result?.pillar_assessment && typeof result.pillar_assessment === "object"
+    ? result.pillar_assessment
+    : {};
+  const pillarDetails = result?.pillar_details && typeof result.pillar_details === "object"
+    ? result.pillar_details
+    : {};
+
+  const findings = Array.isArray(result?.findings) ? result.findings : [];
+  const mcpFindings = findings.filter((finding) => String(finding?.source || "").trim().toLowerCase() === "azure_mcp");
+  const reasoningFindings = findings.filter((finding) => String(finding?.source || "").trim().toLowerCase() === "reasoning_model");
+
+  const mcpBreakdown = countValidationFindingsByPillar(mcpFindings);
+  const reasoningBreakdown = countValidationFindingsByPillar(reasoningFindings);
+
+  const evaluationSteps = Array.isArray(result?.evaluation?.steps) ? result.evaluation.steps : [];
+  const mcpStep = evaluationSteps.find((step) => String(step?.name || "").trim().toLowerCase() === "azure-mcp") || {};
+  const reasoningStep = evaluationSteps.find((step) => String(step?.name || "").trim().toLowerCase() === "thinking-model") || {};
+  const mcpTools = Array.isArray(mcpStep?.tools) ? mcpStep.tools : [];
+
+  const renderLineList = (entries, emptyMessage = "No details available.") => {
+    const safeEntries = Array.isArray(entries) ? entries.filter((entry) => String(entry || "").trim()) : [];
+    if (!safeEntries.length) {
+      return `<div class="validation-empty">${escapeHtml(emptyMessage)}</div>`;
+    }
+    return `<ul class="validation-list">${safeEntries.map((entry) => `<li>${escapeHtml(String(entry))}</li>`).join("")}</ul>`;
+  };
+
+  const renderRecommendationReceivedList = (entries) => {
+    const safeEntries = Array.isArray(entries) ? entries : [];
+    const lines = safeEntries.map((entry) => {
+      if (!entry || typeof entry !== "object") {
+        const textValue = String(entry || "").trim();
+        return textValue;
+      }
+      const title = String(entry.title || "Recommendation").trim();
+      const message = String(entry.message || "").trim();
+      const severity = String(entry.severity || "").trim().toUpperCase();
+      const source = String(entry.source || "").trim();
+      const prefix = severity ? `[${severity}] ` : "";
+      const suffix = source ? ` (${source})` : "";
+      return `${prefix}${title}${message ? ` — ${message}` : ""}${suffix}`;
+    }).filter((line) => String(line || "").trim());
+    return renderLineList(lines, "No recommendations were received for this pillar.");
+  };
+
+  const renderActionPlanList = (actionPlan) => {
+    const safePlan = Array.isArray(actionPlan) ? actionPlan : [];
+    const lines = [];
+    safePlan.forEach((group) => {
+      const category = String(group?.category || "Action").trim();
+      const items = Array.isArray(group?.items) ? group.items : [];
+      items.forEach((item) => {
+        const itemText = String(item || "").trim();
+        if (itemText) {
+          lines.push(`${category}: ${itemText}`);
+        }
+      });
+    });
+    return renderLineList(lines, "No categorized actions are available for this pillar.");
+  };
+
+  const section1Body = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">WELL-ARCHITECTED FRAMEWORK ANALYSIS</h4>',
+    `<p class="validation-finding__message">Project: ${escapeHtml(projectName)}</p>`,
+    '<ul class="validation-list validation-list--compact">',
+    `<li>Validation Run ID: ${escapeHtml(String(result?.runId || "N/A"))}</li>`,
+    `<li>Generated At: ${escapeHtml(new Date().toLocaleString())}</li>`,
+    `<li>Mode: ${escapeHtml(String(result?.evaluation?.mode || "azure-dual-pass"))}</li>`,
+    `<li>Validation Model: ${escapeHtml(modelName)}</li>`,
+    `<li>Dual Pass Complete: ${result?.evaluation?.dualPassComplete ? "Yes" : "No"}</li>`,
+    `<li>Azure MCP: ${escapeHtml(mcpLabel.text)}</li>`,
+    `<li>Cloud Architect Agent: ${escapeHtml(foundryLabel.text)}</li>`,
+    `<li>Totals: ${summary.total} findings (${summary.failure} failure, ${summary.warning} warning, ${summary.info} info)</li>`,
+    '</ul>',
+    result?.architecture_summary
+      ? `<p class="validation-finding__message">${escapeHtml(String(result.architecture_summary))}</p>`
+      : "",
+    '</article>',
+  ].join("");
+
+  const section2Body = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Key Requirements</h4>',
+    renderLineList(requirements, "No key requirements were extracted from the current project description."),
+    '</article>',
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Project Description Context</h4>',
+    projectDescription
+      ? `<pre class="validation-code">${escapeHtml(projectDescription)}</pre>`
+      : '<div class="validation-empty">No project description is configured for this project.</div>',
+    '</article>',
+  ].join("");
+
+  const vnetLines = architectureSnapshot.virtualNetworks.map((network) =>
+    `${network.name}${network.location ? ` (Region: ${network.location})` : ""}`
+  );
+  const subnetLines = architectureSnapshot.subnets.map((subnet) =>
+    `${subnet.name}${subnet.vnetName ? ` (in ${subnet.vnetName})` : ""} · Purpose: ${subnet.purpose} · Private: ${subnet.private ? "Yes" : "No"}${subnet.nsgName ? ` · NSG: ${subnet.nsgName}` : ""}${subnet.routeTableName ? ` · Route Table: ${subnet.routeTableName}` : ""}`
+  );
+  const nsgLines = architectureSnapshot.networkSecurityGroups.map((nsg) => `${nsg.name} · Security Rules: ${nsg.ruleCount}`);
+  const publicIpLines = architectureSnapshot.publicIps.map((pip) =>
+    `${pip.name} · Allocation: ${pip.allocation} · SKU: ${pip.sku} · Zone: ${pip.zone} · DDoS: ${pip.ddosProtection}`
+  );
+  const routeTableLines = architectureSnapshot.routeTables.map((table) => `${table.name} · Routes: ${table.routeCount}`);
+
+  const architectureSignals = [];
+  architectureSignals.push(`Network regions detected: ${architectureSnapshot.regions.length || 0}${architectureSnapshot.regions.length ? ` (${architectureSnapshot.regions.join(", ")})` : ""}.`);
+  if (architectureSnapshot.regions.length <= 1) {
+    architectureSignals.push("Single-region design detected. Validate multi-region resiliency requirements.");
+  }
+  if (architectureSnapshot.publicSubnets > 0) {
+    architectureSignals.push(`${architectureSnapshot.publicSubnets} public subnet(s) detected. Validate network isolation for sensitive workloads.`);
+  }
+  if (architectureSnapshot.nsgsWithoutRules > 0) {
+    architectureSignals.push(`${architectureSnapshot.nsgsWithoutRules} NSG(s) currently have zero explicit security rules.`);
+  }
+  if (architectureSnapshot.routeTablesWithoutRoutes > 0) {
+    architectureSignals.push(`${architectureSnapshot.routeTablesWithoutRoutes} route table(s) have no configured routes.`);
+  }
+  if (!architectureSignals.length) {
+    architectureSignals.push("No immediate architecture coverage concerns were detected from canvas metadata.");
+  }
+
+  const quickFixesPriority = Array.isArray(quickFixes.priority_improvements) ? quickFixes.priority_improvements : [];
+  const quickFixesConfig = Array.isArray(quickFixes.quick_configuration_fixes) ? quickFixes.quick_configuration_fixes : [];
+
+  const section3Body = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Current Canvas Architecture Snapshot</h4>',
+    `<ul class="validation-list validation-list--compact"><li>Resources: ${architectureSnapshot.totalResources}</li><li>Connections: ${architectureSnapshot.totalConnections}</li><li>Regions: ${architectureSnapshot.regions.length ? escapeHtml(architectureSnapshot.regions.join(", ")) : "None configured"}</li></ul>`,
+    '</article>',
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Virtual Networks</h4>',
+    renderLineList(vnetLines, "No virtual networks detected."),
+    '<h4 class="validation-finding__title">Subnets</h4>',
+    renderLineList(subnetLines, "No subnets detected."),
+    '<h4 class="validation-finding__title">Network Security Groups</h4>',
+    renderLineList(nsgLines, "No network security groups detected."),
+    '<h4 class="validation-finding__title">Public IP Addresses</h4>',
+    renderLineList(publicIpLines, "No public IP resources detected."),
+    '<h4 class="validation-finding__title">Route Tables</h4>',
+    renderLineList(routeTableLines, "No route tables detected."),
+    '</article>',
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Detected Architecture Signals</h4>',
+    renderLineList(architectureSignals),
+    '</article>',
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Canvas Quick Fix Signals</h4>',
+    `<ul class="validation-list validation-list--compact"><li>Priority Improvements: ${quickFixesPriority.length}</li><li>Configuration Fixes: ${quickFixesConfig.length}</li></ul>`,
+    '</article>',
+  ].join("");
+
+  const pillarSectionsMarkup = VALIDATION_PILLARS.map((pillar) => {
+    const pillarItems = Array.isArray(recommendations[pillar]) ? recommendations[pillar] : [];
+    const detail = pillarDetails[pillar] && typeof pillarDetails[pillar] === "object"
+      ? pillarDetails[pillar]
+      : {};
+    const recommendationsReceived = Array.isArray(detail.recommendations_received)
+      ? detail.recommendations_received
+      : pillarItems;
+    const architectureImpact = Array.isArray(detail.architecture_impact)
+      ? detail.architecture_impact
+      : [];
+    const actionPlan = Array.isArray(detail.action_plan)
+      ? detail.action_plan
+      : [];
+    const assessmentText = String(pillarAssessment[pillar] || "").trim();
+    const findingMarkup = [
+      '<article class="validation-finding">',
+      '<h4 class="validation-finding__title">List 1 · Recommendations Received</h4>',
+      renderRecommendationReceivedList(recommendationsReceived),
+      '</article>',
+      '<article class="validation-finding">',
+      '<h4 class="validation-finding__title">List 2 · Impact on Current Architecture</h4>',
+      renderLineList(architectureImpact, "No architecture translation is available for this pillar."),
+      '</article>',
+      '<article class="validation-finding">',
+      '<h4 class="validation-finding__title">List 3 · Categorized Actions (Should/Could)</h4>',
+      renderActionPlanList(actionPlan),
+      '</article>',
+    ].join("");
+
+    return renderValidationCollapsibleSection({
+      sectionKey: `section-4-pillar-${pillar}`,
+      title: formatValidationPillarLabel(pillar),
+      count: recommendationsReceived.length,
+      summary: assessmentText,
+      bodyMarkup: findingMarkup,
+      nested: true,
+    });
+  }).join("");
+
+  const section4Body = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Pillar Concern Summary</h4>',
+    `<ul class="validation-list validation-list--compact">${VALIDATION_PILLARS.map((pillar) => {
+      const detail = pillarDetails[pillar] && typeof pillarDetails[pillar] === "object"
+        ? pillarDetails[pillar]
+        : {};
+      const detailedCount = Array.isArray(detail.recommendations_received) ? detail.recommendations_received.length : 0;
+      const fallbackCount = Array.isArray(recommendations[pillar]) ? recommendations[pillar].length : 0;
+      const count = detailedCount || fallbackCount;
+      return `<li>${escapeHtml(formatValidationPillarLabel(pillar))}: ${count}</li>`;
+    }).join("")}</ul>`,
+    '</article>',
+    pillarSectionsMarkup,
+  ].join("");
+
+  const section5Body = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Recommendations Needed</h4>',
+    renderLineList(openQuestions, "No additional open questions identified."),
+    '</article>',
+  ].join("");
+
+  const mcpToolMarkup = mcpTools.length
+    ? mcpTools.map((tool) => {
+      const attempts = Array.isArray(tool?.attempts) ? tool.attempts : [];
+      const attemptLines = attempts.map((attempt) => {
+        const toolName = String(attempt?.tool || "").trim() || "tool";
+        const statusValue = String(attempt?.status || "").trim() || "unknown";
+        const variantIndex = Number(attempt?.variantIndex || 0);
+        const durationMs = Number(attempt?.durationMs || 0);
+        const payloadType = String(attempt?.payloadType || "").trim() || "unknown";
+        return `${toolName} · variant ${variantIndex} · ${statusValue} · ${durationMs}ms · payload=${payloadType}`;
+      });
+
+      return [
+        '<article class="validation-finding">',
+        `<h4 class="validation-finding__title">${escapeHtml(String(tool?.label || "wellarchitectedframework"))}</h4>`,
+        `<ul class="validation-list validation-list--compact"><li>Status: ${escapeHtml(String(tool?.status || "unknown"))}</li><li>Service: ${escapeHtml(String(tool?.service || "n/a"))}</li><li>Findings: ${Number(tool?.findingCount || 0)}</li><li>Attempts: ${Number(tool?.attemptCount || 0)}</li><li>Duration: ${Number(tool?.durationMs || 0)}ms</li></ul>`,
+        attemptLines.length ? renderLineList(attemptLines) : '<div class="validation-empty">No attempt telemetry recorded.</div>',
+        '</article>',
+      ].join("");
+    }).join("")
+    : '<div class="validation-empty">No MCP tool telemetry was returned for this run.</div>';
+
+  const mcpRawPreview = {
+    step: "azure-mcp",
+    state: String(mcpStep?.state || ""),
+    findingCount: Number(mcpStep?.findingCount || 0),
+    explanation: String(mcpStep?.explanation || ""),
+    tools: mcpTools,
+  };
+
+  const section6McpBody = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Azure MCP Breakdown</h4>',
+    `<ul class="validation-list validation-list--compact"><li>State: ${escapeHtml(String(mcpStep?.state || "unknown"))}</li><li>Findings: ${mcpFindings.length}</li><li>Explanation: ${escapeHtml(String(mcpStep?.explanation || ""))}</li></ul>`,
+    `<ul class="validation-list validation-list--compact">${VALIDATION_PILLARS.map((pillar) => `<li>${escapeHtml(formatValidationPillarLabel(pillar))}: ${mcpBreakdown[pillar]}</li>`).join("")}</ul>`,
+    '</article>',
+    mcpToolMarkup,
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Raw MCP Step Payload</h4>',
+    `<pre class="validation-code">${escapeHtml(JSON.stringify(mcpRawPreview, null, 2))}</pre>`,
+    '</article>',
+  ].join("");
+
+  const reasoningRawPreview = {
+    step: "thinking-model",
+    state: String(reasoningStep?.state || ""),
+    findingCount: Number(reasoningStep?.findingCount || 0),
+    usedMcpContext: Boolean(reasoningStep?.usedMcpContext),
+    explanation: String(reasoningStep?.explanation || ""),
+    architecture_summary: String(result?.architecture_summary || ""),
+    pillar_assessment: pillarAssessment,
+  };
+
+  const reasoningFindingsMarkup = reasoningFindings.length
+    ? reasoningFindings.map((item) => {
+      const title = String(item?.title || "Recommendation");
+      const message = String(item?.message || "No details provided.");
+      const pillar = formatValidationPillarLabel(item?.pillar || "operational_excellence");
+      return [
+        '<article class="validation-finding">',
+        `<h4 class="validation-finding__title">${escapeHtml(title)}</h4>`,
+        `<p class="validation-finding__message">${escapeHtml(message)}</p>`,
+        `<div class="validation-finding__target">Pillar: ${escapeHtml(pillar)}</div>`,
+        '</article>',
+      ].join("");
+    }).join("")
+    : '<div class="validation-empty">No reasoning-model findings were returned for this run.</div>';
+
+  const section6AgentBody = [
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Cloud Architect AI Agent Breakdown</h4>',
+    `<ul class="validation-list validation-list--compact"><li>State: ${escapeHtml(String(reasoningStep?.state || "unknown"))}</li><li>Findings: ${reasoningFindings.length}</li><li>Used MCP Context: ${Boolean(reasoningStep?.usedMcpContext) ? "Yes" : "No"}</li><li>Explanation: ${escapeHtml(String(reasoningStep?.explanation || ""))}</li></ul>`,
+    `<ul class="validation-list validation-list--compact">${VALIDATION_PILLARS.map((pillar) => `<li>${escapeHtml(formatValidationPillarLabel(pillar))}: ${reasoningBreakdown[pillar]}</li>`).join("")}</ul>`,
+    result?.architecture_summary ? `<p class="validation-finding__message">${escapeHtml(String(result.architecture_summary))}</p>` : "",
+    '</article>',
+    reasoningFindingsMarkup,
+    '<article class="validation-finding">',
+    '<h4 class="validation-finding__title">Raw AI Agent Step Payload</h4>',
+    `<pre class="validation-code">${escapeHtml(JSON.stringify(reasoningRawPreview, null, 2))}</pre>`,
+    '</article>',
+  ].join("");
+
+  const section6Body = [
+    renderValidationCollapsibleSection({
+      sectionKey: "section-6-mcp",
+      title: "Azure MCP Tool Output",
+      count: mcpFindings.length,
+      summary: "Service-guidance findings and MCP tool telemetry for this run.",
+      bodyMarkup: section6McpBody,
+      nested: true,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-6-agent",
+      title: "Cloud Architect AI Agent Output",
+      count: reasoningFindings.length,
+      summary: "Reasoning-model output that uses architecture context and MCP findings.",
+      bodyMarkup: section6AgentBody,
+      nested: true,
+    }),
+  ].join("");
+
+  const sectionsMarkup = [
+    renderValidationCollapsibleSection({
+      sectionKey: "section-1-header",
+      title: "Section 1: Header & Metadata",
+      summary: "Metadata confirming the current project, run, and validation channels.",
+      bodyMarkup: section1Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-2-overview",
+      title: "Section 2: Project Overview",
+      summary: "Key requirements extracted from the current project description.",
+      bodyMarkup: section2Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-3-architecture",
+      title: "Section 3: Current Architecture Design",
+      summary: "Current project canvas breakdown (resources, regions, and network layout).",
+      bodyMarkup: section3Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-4-concerns",
+      title: "Section 4: Architecture Concerns to Validate",
+      summary: "Well-Architected pillar concerns with per-pillar expandable details.",
+      bodyMarkup: section4Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-5-recommendations-needed",
+      title: "Section 5: Recommendations Needed",
+      summary: "Open architecture questions that require project-specific decisions.",
+      bodyMarkup: section5Body,
+    }),
+    renderValidationCollapsibleSection({
+      sectionKey: "section-6-feedback",
+      title: "Section 6: Feedback from Well-Architected Framework",
+      summary: "Detailed MCP and Cloud Architect AI output breakdowns.",
+      bodyMarkup: section6Body,
+    }),
+  ].join("");
+
   tipsContentEl.innerHTML = [
     '<div class="validation-runtime">',
     renderLiveStatus('Model', validationRuntimeState.model),
@@ -5850,7 +6517,7 @@ function renderValidationTipsPanel() {
     `<span class="validation-summary__item">Warning <strong class="chat-runtime-value--warn">${summary.warning}</strong></span>`,
     `<span class="validation-summary__item">Info <strong class="chat-runtime-value--ok">${summary.info}</strong></span>`,
     "</div>",
-    '<div class="validation-groups">',
+    '<div class="validation-groups validation-report">',
     sectionsMarkup,
     "</div>"
   ].join("");
@@ -5908,7 +6575,7 @@ async function runArchitectureValidation() {
 
   validationRunInFlight = true;
   validationResultState = null;
-  validationExpandedSeverity = null;
+  validationExpandedSections = new Set();
   validationFixStatusByFindingId.clear();
   validationFixInFlightFindingIds.clear();
   setValidateButtonBusy(true);
@@ -5946,12 +6613,13 @@ async function runArchitectureValidation() {
 tipsContentEl?.addEventListener("click", async (event) => {
   const toggleButton = event.target.closest("[data-validation-group-toggle]");
   if (toggleButton) {
-    const toggleValue = String(toggleButton.dataset.validationGroupToggle || "").trim().toLowerCase();
-    const validPillars = ['reliability', 'security', 'cost_optimization', 'operational_excellence', 'performance_efficiency'];
-    
-    // Check if it's a pillar, quick_fixes, or severity level
-    if (validPillars.includes(toggleValue) || toggleValue === 'quick_fixes' || VALIDATION_SEVERITY_ORDER.includes(toggleValue)) {
-      validationExpandedSeverity = validationExpandedSeverity === toggleValue ? null : toggleValue;
+    const toggleValue = String(toggleButton.dataset.validationGroupToggle || "").trim();
+    if (toggleValue) {
+      if (validationExpandedSections.has(toggleValue)) {
+        validationExpandedSections.delete(toggleValue);
+      } else {
+        validationExpandedSections.add(toggleValue);
+      }
       renderValidationTipsPanel();
     }
     return;

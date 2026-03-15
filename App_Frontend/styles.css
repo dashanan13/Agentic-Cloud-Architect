@@ -1856,6 +1856,61 @@ select.property-input {
   letter-spacing: 0.5px;
 }
 
+.validation-report {
+  align-content: start;
+}
+
+.validation-group--nested {
+  margin-top: 6px;
+  margin-left: 8px;
+}
+
+.validation-group--nested .validation-group__toggle {
+  padding: 7px 8px;
+  font-size: 0.68rem;
+}
+
+.validation-section__intro {
+  margin: 0;
+  font-size: 0.66rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.validation-list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.validation-list li {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.validation-list--compact {
+  gap: 2px;
+}
+
+.validation-list--compact li {
+  font-size: 0.66rem;
+}
+
+.validation-code {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  padding: 8px;
+  font-size: 0.62rem;
+  color: var(--text);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 #panel-chat.right-tab-panel {
   grid-template-rows: auto 1fr auto;
   min-height: 0;

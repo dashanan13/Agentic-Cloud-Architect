@@ -22,6 +22,8 @@ from Agents.common.activity_log import log_activity as write_activity_log
 DEFAULT_VALIDATION_AGENT_NAME = "architecture-validation-agent"
 DEFAULT_VALIDATION_MAX_FINDINGS = 30
 MCP_VALIDATION_TIMEOUT_SECONDS = 45
+PILLAR_HUMANIZATION_TIMEOUT_SECONDS = 45
+MAX_PILLAR_RECOMMENDATIONS_FOR_HUMANIZATION = 10
 WELL_ARCHITECTED_PILLARS = [
     "reliability",
     "security",
@@ -1733,6 +1735,344 @@ def _build_pillar_assessment(recommendations: Mapping[str, Any]) -> dict[str, st
     return assessment
 
 
+def _format_pillar_title(pillar: str) -> str:
+    safe = str(pillar or "").strip().replace("_", " ")
+    if not safe:
+        return "Operational Excellence"
+    return " ".join(part.capitalize() for part in safe.split())
+
+
+def _coerce_recommendations_for_pillar(
+    recommendations: Mapping[str, Any],
+    pillar: str,
+    *,
+    limit: int = MAX_PILLAR_RECOMMENDATIONS_FOR_HUMANIZATION,
+) -> list[dict[str, Any]]:
+    items = recommendations.get(pillar) if isinstance(recommendations, Mapping) else []
+    if not isinstance(items, list):
+        return []
+
+    normalized: list[dict[str, Any]] = []
+    for item in items[: max(1, int(limit))]:
+        if not isinstance(item, Mapping):
+            continue
+        normalized.append(
+            {
+                "id": _normalize_string(item.get("id")),
+                "severity": _normalize_severity(item.get("severity")),
+                "title": _truncate_text(item.get("title"), max_chars=180),
+                "message": _truncate_text(item.get("message"), max_chars=400),
+                "source": _normalize_string(item.get("source"), "unknown"),
+                "tool": _normalize_string(item.get("tool")),
+            }
+        )
+    return normalized
+
+
+def _fallback_pillar_impact_lines(pillar: str, recommendations_received: list[dict[str, Any]]) -> list[str]:
+    if not recommendations_received:
+        return []
+
+    impact_lines: list[str] = []
+    for item in recommendations_received[:6]:
+        title = _normalize_string(item.get("title"), "Recommendation")
+        message = _normalize_string(item.get("message"))
+        severity = _normalize_severity(item.get("severity"))
+
+        if message:
+            prefix = "High risk" if severity == "failure" else "Risk"
+            line = f"{prefix} for {_format_pillar_title(pillar)}: {title}. {message}"
+        else:
+            line = f"Risk for {_format_pillar_title(pillar)}: {title}."
+
+        impact_lines.append(_truncate_text(line, max_chars=280))
+
+    return impact_lines
+
+
+def _fallback_pillar_action_plan(
+    pillar: str,
+    recommendations_received: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if not recommendations_received:
+        return [
+            {
+                "category": "Should Do",
+                "items": [],
+            },
+            {
+                "category": "Could Do",
+                "items": [],
+            },
+        ]
+
+    should_do: list[str] = []
+    could_do: list[str] = []
+
+    for item in recommendations_received:
+        title = _normalize_string(item.get("title"), "Recommendation")
+        message = _normalize_string(item.get("message"))
+        action_text = f"{title}. {message}" if message else title
+        action_text = _truncate_text(action_text, max_chars=220)
+
+        severity = _normalize_severity(item.get("severity"))
+        if severity in {"failure", "warning"}:
+            should_do.append(action_text)
+        else:
+            could_do.append(action_text)
+
+    if not should_do and recommendations_received:
+        should_do.extend(could_do[:2])
+        could_do = could_do[2:]
+
+    if not should_do:
+        should_do.append(
+            f"Define a prioritized {_format_pillar_title(pillar)} implementation plan for the current architecture."
+        )
+
+    if not could_do:
+        could_do.append(
+            f"Add incremental {_format_pillar_title(pillar)} optimizations after critical fixes are completed."
+        )
+
+    return [
+        {
+            "category": "Should Do",
+            "items": should_do[:6],
+        },
+        {
+            "category": "Could Do",
+            "items": could_do[:6],
+        },
+    ]
+
+
+def _normalize_humanized_impact_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    lines: list[str] = []
+    for raw in value:
+        line = _normalize_string(raw)
+        if not line:
+            continue
+        lines.append(_truncate_text(line, max_chars=280))
+    return lines[:8]
+
+
+def _normalize_humanized_action_plan(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+
+    plan: list[dict[str, Any]] = []
+    for raw in value:
+        if not isinstance(raw, Mapping):
+            continue
+        category = _normalize_string(raw.get("category") or raw.get("title"))
+        if not category:
+            continue
+        items = raw.get("items") if isinstance(raw.get("items"), list) else []
+        normalized_items: list[str] = []
+        for raw_item in items:
+            item_text = _normalize_string(raw_item)
+            if not item_text:
+                continue
+            normalized_items.append(_truncate_text(item_text, max_chars=220))
+        plan.append({
+            "category": category,
+            "items": normalized_items[:8],
+        })
+
+    return plan[:6]
+
+
+def _build_pillar_humanization_prompt(
+    *,
+    pillar: str,
+    project_name: str,
+    project_description: str,
+    architecture_context: Mapping[str, Any],
+    recommendations_received: list[dict[str, Any]],
+    mcp_findings: list[dict[str, Any]],
+    model_findings: list[dict[str, Any]],
+) -> str:
+    pillar_title = _format_pillar_title(pillar)
+    context_payload = {
+        "project": {
+            "name": project_name,
+            "description": _truncate_text(project_description, max_chars=1200),
+        },
+        "pillar": pillar,
+        "recommendations_received": recommendations_received,
+        "architecture_context": _trim_value(architecture_context, depth=2),
+        "mcp_findings": _serialize_findings_for_reasoning_context(mcp_findings, limit=8),
+        "reasoning_findings": _serialize_findings_for_reasoning_context(model_findings, limit=8),
+    }
+
+    return "\n".join(
+        [
+            "You are an Azure Principal Architect writing implementation guidance for one Well-Architected pillar.",
+            "Return strict JSON only.",
+            "JSON schema:",
+            '{"architecture_impact":["..."],"action_plan":[{"category":"Should Do","items":["..."]},{"category":"Could Do","items":["..."]}]}',
+            f"Pillar: {pillar_title}",
+            "Rules:",
+            "- architecture_impact: 3-6 bullets that explain how recommendations affect THIS architecture.",
+            "- action_plan: categorized actionable steps with concrete Azure actions.",
+            "- Include both Should Do and Could Do categories whenever possible.",
+            "- Avoid repeating recommendation text verbatim; explain consequences and next actions.",
+            "- Keep each bullet concise and implementation-oriented.",
+            "Context:",
+            json.dumps(context_payload, ensure_ascii=False),
+        ]
+    )
+
+
+def _build_pillar_details(
+    *,
+    app_settings: Mapping[str, Any],
+    architecture_context: Mapping[str, Any],
+    recommendations: Mapping[str, Any],
+    project_name: str,
+    project_description: str,
+    foundry_agent_id: str | None,
+    foundry_thread_id: str | None,
+    mcp_findings: list[dict[str, Any]],
+    model_findings: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    details: dict[str, dict[str, Any]] = {}
+
+    for pillar in WELL_ARCHITECTED_PILLARS:
+        recommendations_received = _coerce_recommendations_for_pillar(recommendations, pillar)
+        details[pillar] = {
+            "recommendations_received": recommendations_received,
+            "architecture_impact": _fallback_pillar_impact_lines(pillar, recommendations_received),
+            "action_plan": _fallback_pillar_action_plan(pillar, recommendations_received),
+            "generation": {
+                "source": "fallback",
+                "status": "ready",
+                "explanation": "Generated from collected findings.",
+            },
+        }
+
+    provider = str(app_settings.get("modelProvider") or "").strip().lower()
+    if provider != "azure-foundry":
+        for pillar in WELL_ARCHITECTED_PILLARS:
+            details[pillar]["generation"] = {
+                "source": "fallback",
+                "status": "skipped",
+                "explanation": "Azure Foundry provider is not active. Used deterministic humanization.",
+            }
+        return details
+
+    model_name = _first_non_empty(
+        app_settings,
+        "foundryModelReasoning",
+        "modelReasoning",
+        "foundryModelFast",
+        "modelFast",
+    )
+    safe_agent_id = str(foundry_agent_id or app_settings.get("foundryValidationAgentId") or "").strip()
+    safe_thread_id = str(foundry_thread_id or app_settings.get("foundryDefaultThreadId") or "").strip()
+    if not model_name or not safe_agent_id or not safe_thread_id:
+        for pillar in WELL_ARCHITECTED_PILLARS:
+            details[pillar]["generation"] = {
+                "source": "fallback",
+                "status": "skipped",
+                "explanation": "Foundry model/agent/thread is not configured. Used deterministic humanization.",
+            }
+        return details
+
+    try:
+        base_connection = FoundryConnectionSettings.from_app_settings(app_settings)
+    except FoundryConfigurationError as exc:
+        for pillar in WELL_ARCHITECTED_PILLARS:
+            details[pillar]["generation"] = {
+                "source": "fallback",
+                "status": "skipped",
+                "explanation": f"Foundry configuration is incomplete: {exc}",
+            }
+        return details
+
+    connection = FoundryConnectionSettings(
+        endpoint=base_connection.endpoint,
+        tenant_id=base_connection.tenant_id,
+        client_id=base_connection.client_id,
+        client_secret=base_connection.client_secret,
+        model_deployment=str(model_name).strip(),
+        api_version=base_connection.api_version,
+    )
+    runner = FoundryAssistantRunner(
+        connection,
+        timeout_seconds=int(PILLAR_HUMANIZATION_TIMEOUT_SECONDS),
+        agent_name="architecture-validation-agent",
+    )
+
+    for pillar in WELL_ARCHITECTED_PILLARS:
+        recommendations_received = details[pillar].get("recommendations_received")
+        if not isinstance(recommendations_received, list) or not recommendations_received:
+            details[pillar]["architecture_impact"] = []
+            details[pillar]["action_plan"] = [
+                {"category": "Should Do", "items": []},
+                {"category": "Could Do", "items": []},
+            ]
+            details[pillar]["generation"] = {
+                "source": "fallback",
+                "status": "skipped",
+                "explanation": "No recommendations were available for this pillar.",
+            }
+            continue
+
+        prompt = _build_pillar_humanization_prompt(
+            pillar=pillar,
+            project_name=project_name,
+            project_description=project_description,
+            architecture_context=architecture_context,
+            recommendations_received=recommendations_received,
+            mcp_findings=mcp_findings,
+            model_findings=model_findings,
+        )
+
+        try:
+            result = runner.run_assistant(
+                assistant_id=safe_agent_id,
+                thread_id=safe_thread_id,
+                content=prompt,
+                allow_stateless_retry=True,
+            )
+            parsed = _extract_json_from_text(str(result.response_text or ""))
+            parsed_mapping = parsed if isinstance(parsed, Mapping) else {}
+
+            impact_lines = _normalize_humanized_impact_list(
+                parsed_mapping.get("architecture_impact")
+                or parsed_mapping.get("impact")
+                or parsed_mapping.get("translation")
+            )
+            action_plan = _normalize_humanized_action_plan(
+                parsed_mapping.get("action_plan")
+                or parsed_mapping.get("actions")
+                or parsed_mapping.get("suggestions")
+            )
+
+            if impact_lines:
+                details[pillar]["architecture_impact"] = impact_lines
+            if action_plan:
+                details[pillar]["action_plan"] = action_plan
+
+            details[pillar]["generation"] = {
+                "source": "reasoning_model",
+                "status": "connected",
+                "explanation": "Humanized through Foundry reasoning model.",
+            }
+        except Exception as exc:
+            details[pillar]["generation"] = {
+                "source": "fallback",
+                "status": "failed",
+                "explanation": f"Reasoning-model humanization failed: {exc}",
+            }
+
+    return details
+
+
 def _serialize_findings_for_reasoning_context(
     findings: list[dict[str, Any]],
     *,
@@ -2414,6 +2754,17 @@ def run_architecture_validation_agent(
         dual_pass_complete=dual_pass_complete,
     )
     pillar_assessment = _build_pillar_assessment(organized["recommendations"])
+    pillar_details = _build_pillar_details(
+        app_settings=app_settings,
+        architecture_context=architecture_context,
+        recommendations=organized["recommendations"],
+        project_name=safe_project_name,
+        project_description=safe_project_description,
+        foundry_agent_id=foundry_agent_id,
+        foundry_thread_id=foundry_thread_id,
+        mcp_findings=mcp_findings,
+        model_findings=model_findings,
+    )
 
     _log_validation_event(
         "validation.run",
@@ -2461,6 +2812,7 @@ def run_architecture_validation_agent(
         "groups": grouped,
         "architecture_summary": architecture_summary_text,
         "pillar_assessment": pillar_assessment,
+        "pillar_details": pillar_details,
         "priority_improvements": organized["quick_fixes"]["priority_improvements"],
         "quick_configuration_fixes": organized["quick_fixes"]["quick_configuration_fixes"],
         "recommendations": organized["recommendations"],
