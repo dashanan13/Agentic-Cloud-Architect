@@ -18,7 +18,7 @@ Design on a canvas, validate with AI guidance, and generate modular Bicep from o
 
 GitHub README files do not support JavaScript-based tabs/slideshows, so this uses a compact collapsible gallery.
 
-<details>
+<details open>
   <summary>Open screenshot gallery (click thumbnail for full image)</summary>
 
 <table>
@@ -111,7 +111,7 @@ Prerequisites:
 1) Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/dashanan13/Agentic-Cloud-Architect.git
 cd Agentic-Cloud-Architect
 ```
 
