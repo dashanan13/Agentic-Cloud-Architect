@@ -1,5 +1,9 @@
 # Agentic-Cloud-Architect (A3)
 
+> [!WARNING]
+> This project is under developement and may misbehave if instructions are not followed.
+> Verify and save **Application Settings** before doing anything else, otherwise silent failures may occur.
+
 Agentic-Cloud-Architect (A3) is a visual Infrastructure-as-Code designer for Azure.
 Design on a canvas, validate with AI guidance, and generate modular Bicep from one source of truth.
 
@@ -86,22 +90,82 @@ GitHub README files do not support JavaScript-based tabs/slideshows, so this use
 - One-click IaC generation (Azure Bicep)
 - Project canvas state as the single source of truth
 
-## Quick Start
+## Supported Resources (Current)
+
+Current resource support (as reflected in the TODO scope and active IaC path):
+
+- Resource Groups
+- Virtual Networks
+- Subnets
+- Network Security Groups
+- Route Tables
+- Public IP Addresses
+
+## Getting Started (Important Order)
 
 Prerequisites:
 
 - Docker
 - Docker Compose
 
-Run locally:
+1) Clone the repository
+
+```bash
+git clone <your-repo-url>
+cd Agentic-Cloud-Architect
+```
+
+2) Start the containerized app
 
 ```bash
 docker-compose up -d --build
 ```
 
-Open: http://localhost:3000
+3) Open the app
 
-Clean rebuild:
+- URL: http://localhost:3000
+
+4) **Before anything else**: open Application Settings, then **Verify** and **Save**
+
+- If you skip this step, chat/validation/codegen may fail silently.
+
+<a href="Videos%20and%20Images/2-Application-Settings.png">
+  <img src="Videos%20and%20Images/2-Application-Settings.png" alt="Application Settings" width="520">
+</a>
+
+5) Create or select a project and enter a detailed project description
+
+- Better descriptions give better AI guidance and validation quality.
+
+6) Build your architecture on canvas
+
+- Drag and drop supported resources to design your diagram.
+
+7) Click **Validate** and review recommendations
+
+- Use validation output to align with Well-Architected guidance and best practices.
+
+<a href="Videos%20and%20Images/8-Validation-Report.png">
+  <img src="Videos%20and%20Images/8-Validation-Report.png" alt="Validation Report" width="520">
+</a>
+
+8) Use **AI Chat** with the cloud architect assistant
+
+- Ask about Azure concepts, architecture documentation, trade-offs, security, and design improvements.
+
+9) Save project and export diagram image
+
+- Use **Save** and **Export** from the canvas toolbar.
+
+10) Generate IaC code
+
+- Click **Generate Code** to produce Bicep output.
+
+<a href="Videos%20and%20Images/9-Generate-Code.png">
+  <img src="Videos%20and%20Images/9-Generate-Code.png" alt="Generate Code" width="520">
+</a>
+
+Optional clean rebuild:
 
 ```bash
 docker-compose down --rmi all --volumes && docker-compose up --build -d
