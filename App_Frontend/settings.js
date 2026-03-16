@@ -538,11 +538,11 @@ async function resetFormState() {
 }
 
 function buildProviderScopedSettings(settings) {
-  const provider = String(settings?.modelProvider || "ollama-local").trim().toLowerCase();
+  const provider = String(settings?.modelProvider || "azure-foundry").trim().toLowerCase();
   const scoped = {
     ...DEFAULT_APP_SETTINGS,
     ...settings,
-    modelProvider: provider === "azure-foundry" ? "azure-foundry" : "ollama-local"
+    modelProvider: provider === "ollama-local" ? "ollama-local" : "azure-foundry"
   };
 
   if (scoped.modelProvider === "azure-foundry") {
