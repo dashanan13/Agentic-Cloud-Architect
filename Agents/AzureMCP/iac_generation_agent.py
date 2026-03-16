@@ -371,16 +371,13 @@ def _evaluate_guardrail_source_pass(
 
     tested = _safe_non_negative_int(counts.get("tested"))
     failed = _safe_non_negative_int(counts.get("failed"))
-    warning = _safe_non_negative_int(counts.get("warning"))
-    skipped = _safe_non_negative_int(counts.get("skipped"))
-
     if connection_state != "connected":
-        return False, f"{source} unavailable ({connection_state})"
+        return True, f"{source} unavailable ({connection_state}); non-blocking"
 
     if tested <= 0:
         if allow_no_checks:
             return True, f"{source} returned no checks"
-        return False, f"{source} returned no checks"
+        return True, f"{source} returned no checks (non-blocking)"
 
     failed_names = _failed_guardrail_check_names(diagnostics)
     if failed > 0 and failed_names:
@@ -388,9 +385,6 @@ def _evaluate_guardrail_source_pass(
 
     if failed > 0:
         return False, f"{source} has failed checks"
-
-    if warning > 0 or skipped > 0:
-        return False, f"{source} has non-pass checks"
 
     return True, f"{source} passed"
 

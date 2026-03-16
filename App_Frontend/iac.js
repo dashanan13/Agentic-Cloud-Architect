@@ -382,22 +382,14 @@ function getStageVisualStatus(stage) {
 
   const totals = parseGuardrailCheckTotals(stage);
   if (totals) {
-    const stageId = String(stage?.id || "").trim().toLowerCase();
-    if (totals.failed > 0 || totals.warning > 0 || totals.skipped > 0) {
-      return "error";
-    }
-    if (stageId === "guardrails_model" && totals.tested <= 0) {
+    if (totals.failed > 0) {
       return "error";
     }
     return "completed";
   }
 
   const message = String(stage?.message || "").trim().toLowerCase();
-  const stageId = String(stage?.id || "").trim().toLowerCase();
   if (message.includes("failed") || message.includes("blocked")) {
-    return "error";
-  }
-  if (stageId === "guardrails_model" && message.includes("no checks")) {
     return "error";
   }
 

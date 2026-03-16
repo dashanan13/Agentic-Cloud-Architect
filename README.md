@@ -4,6 +4,10 @@
 > This project is under developement and may misbehave if instructions are not followed.
 > Verify and save **Application Settings** before doing anything else, otherwise silent failures may occur.
 
+> [!IMPORTANT]
+> **Screen load latency notice:** after you click buttons that open another screen (for example: Projects, Settings, Canvas, Validate, Generate Code), the next screen can take time to load.
+> Please be patient while navigation finishes. Latency improvements are in progress.
+
 Agentic-Cloud-Architect (A3) is a visual Infrastructure-as-Code designer for Azure.
 Design on a canvas, validate with AI guidance, and generate modular Bicep from one source of truth.
 
@@ -128,6 +132,7 @@ docker-compose up -d --build
 4) **Before anything else**: open Application Settings, then **Verify** and **Save**
 
 - If you skip this step, chat/validation/codegen may fail silently.
+- When opening a screen from a button click, allow extra time for the next screen to load. Please wait for navigation to complete.
 
 <a href="Videos%20and%20Images/2-Application-Settings.png">
   <img src="Videos%20and%20Images/2-Application-Settings.png" alt="Application Settings" width="520">
