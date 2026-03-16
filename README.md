@@ -12,7 +12,12 @@
 
 ## MVP Demo
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/_TUYuvJ1Wy0?si=cxSOpg9IG_yDlyZP" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+Watch demo on YouTube: https://www.youtube.com/watch?v=_TUYuvJ1Wy0
+
+<video controls width="900">
+  <source src="Videos%20and%20Images/Agentic-Cloud-Architect-MVP-Demo.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="Videos%20and%20Images/Agentic-Cloud-Architect-MVP-Demo.mp4">Download the MVP demo video</a>.
+</video>
 
 ## Quick Start
 
