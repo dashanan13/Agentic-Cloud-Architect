@@ -28,7 +28,7 @@ const ollamaFastSelect = document.getElementById("as-ollama-model-fast");
 const iacContinueOnMcpFailureCheckbox = document.getElementById("as-iac-continue-on-mcp-failure");
 
 const DEFAULT_APP_SETTINGS = {
-  modelProvider: "ollama-local",
+  modelProvider: "azure-foundry",
   azureTenantId: "",
   azureClientId: "",
   azureClientSecret: "",

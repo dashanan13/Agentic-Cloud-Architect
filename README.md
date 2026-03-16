@@ -78,6 +78,12 @@ GitHub README files do not support JavaScript-based tabs/slideshows, so this use
       Coding Guardrails
     </td>
     <td align="center">
+      <a href="Videos%20and%20Images/11-Successful-CodeGeneration.png"><img src="Videos%20and%20Images/11-Successful-CodeGeneration.png" alt="Successful Code Generation" width="280"></a><br>
+      Successful Code Generation
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
       <a href="Videos%20and%20Images/TechnicalArchitecture.png"><img src="Videos%20and%20Images/TechnicalArchitecture.png" alt="Technical Architecture" width="280"></a><br>
       Technical Architecture
     </td>
