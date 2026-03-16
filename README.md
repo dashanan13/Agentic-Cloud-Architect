@@ -1,407 +1,713 @@
-<div align="center">
+# Azure Agentic Architect (A3)
 
-# Agentic Cloud Architect (A3)
+**Azure Agentic Architect (A3)** is a visual Infrastructure-as-Code (IaC) designer built on a multi-agent architecture. It enables teams to design Azure infrastructure through a drag-and-drop canvas, backed by intelligent agents that validate configurations and generate production-ready, modular Bicep.
 
-### Design Azure architecture visually. Validate it with grounded AI. Generate deployable IaC from a single source of truth.
+## Highlights
 
-<p>
-  <img alt="Azure First" src="https://img.shields.io/badge/Azure-first-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" />
-  <img alt="AI Native" src="https://img.shields.io/badge/AI-native-6B46C1?style=for-the-badge&logo=openai&logoColor=white" />
-  <img alt="Visual to IaC" src="https://img.shields.io/badge/Visual--to--IaC-0F766E?style=for-the-badge&logo=databricks&logoColor=white" />
-  <img alt="Foundry plus MCP" src="https://img.shields.io/badge/Foundry%20%2B%20MCP-grounded-1D4ED8?style=for-the-badge" />
-</p>
+- Visual architecture design with a drag-and-drop canvas
+- Multi-agent guidance for architecture review and best practices
+- One-click validation with actionable recommendations
+- Modular IaC generation using Azure Bicep and Verified Modules
+- **Single source of truth** via the project JSON state
 
-<p>
-  <strong>Agentic Cloud Architect</strong> turns cloud architecture from a slow diagram-and-documentation exercise into an interactive design loop:<br/>
-  <strong>describe</strong> → <strong>design</strong> → <strong>validate</strong> → <strong>generate</strong>.
-</p>
+## MVP Demo
 
-</div>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_TUYuvJ1Wy0?si=cxSOpg9IG_yDlyZP" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-> 🎥 **Competition demo video coming soon.** Add your walkthrough, narrated demo, or product trailer here later.
+## Quick Start
 
----
+**Prereqs:** Docker and Docker Compose
 
-## Why this project matters
-
-Architecting cloud systems usually means bouncing between whiteboards, Azure documentation, best-practice articles, dependency decisions, and hand-written IaC.
-
-That workflow is slow, repetitive, and mentally expensive.
-
-**Agentic Cloud Architect** compresses that entire knowledge-sorting exercise into one workspace by combining:
-
-- a **visual Azure design canvas**
-- **architecture-aware AI assistance**
-- **Azure-grounded validation** through Azure MCP
-- **Azure AI Foundry-powered agent workflows**
-- **production-minded IaC generation** from the architecture itself
-
-The result is a tool that helps teams move from an idea to a reviewed Azure architecture much faster, with better consistency and far less context switching.
-
----
-
-## The one-line pitch
-
-**A3 is a visual, agentic Azure architecture workbench that helps teams think, validate, and generate infrastructure code in one place.**
-
----
-
-## What makes A3 competition-worthy
-
-| Differentiator | Why it stands out |
-|---|---|
-| **Single source of truth** | The canvas state drives chat, validation, and code generation. No drift between the diagram and the implementation path. |
-| **Clever tool composition** | Azure MCP brings architecture reasoning, Azure guidance, and live schema/template context into the workflow instead of relying on generic AI output. |
-| **Foundry + Agent Framework integration** | Azure AI Foundry and Microsoft Agent Framework-style execution power agent conversations, reasoning, and threaded workflows. |
-| **Human-in-the-loop by design** | Users can design visually, review findings, and apply improvements intentionally instead of accepting opaque automation. |
-| **Evidence-backed validation** | Validation is not just “AI said so” — the app tracks provenance, sources, structured steps, and logs for trust and explainability. |
-| **Real productivity value** | It reduces the time spent researching Azure services, sorting best practices, recalling dependencies, and scaffolding first-pass IaC. |
-
----
-
-## What the experience feels like
-
-### 1. Describe the system you want to build
-Users create a project, choose Azure, pick an application type, and write a project description.
-
-The app even helps improve the description with AI, because better context leads to better architecture outcomes.
-
-### 2. Design visually on the canvas
-Drag Azure resources onto the canvas, configure them, and connect them as an architecture graph.
-
-This becomes the project’s **shared source of truth**.
-
-### 3. Ask architecture questions in plain English
-The AI chat understands the project description and the current canvas state, so conversations stay grounded in the actual system being designed.
-
-### 4. Validate the design
-Validation combines deterministic checks, Azure MCP context, and Foundry-powered reasoning to surface:
-
-- missing components
-- weak patterns
-- dependency issues
-- best-practice opportunities
-- Well-Architected style recommendations
-
-### 5. Generate implementation-ready IaC
-Once the architecture is solid, A3 converts the final design into modular infrastructure code.
-
-**Primary generated output today:** modular Azure Bicep.
-
-Project folders are also structured to support broader IaC workflows over time.
-
----
-
-## Why this saves so much time
-
-### Traditional workflow
-
-```text
-Idea -> Research Azure docs -> Sketch diagram -> Re-check dependencies -> Review best practices ->
-Translate architecture into IaC -> Fix mismatches between diagram and code
-```
-
-### Agentic Cloud Architect workflow
-
-```text
-Describe -> Draw -> Validate -> Improve -> Generate
-```
-
-### What gets compressed
-
-- **Documentation hunting** becomes guided, context-aware assistance
-- **Dependency recall** becomes visual modeling plus validation support
-- **Architecture review prep** becomes built-in validation and evidence
-- **First-pass Bicep authoring** becomes automated generation from the final design
-- **Knowledge sorting** becomes a structured interaction instead of a manual research marathon
-
----
-
-## Architecture at a glance
-
-```text
-+--------------------------------------------------------------------------------------------------+
-|                 Agentic Cloud Architect - Technology Integration Architecture                    |
-+--------------------------------------------------------------------------------------------------+
-
-BUILD / EVOLUTION LANE
-+---------------------+         designs / prompts / code help         +---------------------------+
-| Product Engineer    | <-------------------------------------------> | GitHub Copilot            |
-+----------+----------+                                               +-------------+-------------+
-           |                                                                          |
-           +--------------------------------------------------------------------------+
-                                              improves
-                                                 |
-                                                 v
-                                    +------------+-------------+
-                                    | A3 Codebase              |
-                                    | UI + API + agent logic   |
-                                    +--------------------------+
-
-
-RUNTIME LANE
-User
- |
- v
-+--------------------------------------------------------------------------------------------------+
-| Web App                                                                                          |
-| - Canvas designer                                                                                |
-| - AI chat                                                                                        |
-| - Validate architecture                                                                          |
-| - Generate IaC                                                                                   |
-+---------------------------------------------+----------------------------------------------------+
-                                              |
-                                              v
-+--------------------------------------------------------------------------------------------------+
-| Backend API / Orchestration                                                                      |
-| - project APIs                                                                                   |
-| - settings + status                                                                              |
-| - logging + provenance                                                                           |
-| - request routing                                                                                |
-+-----------------------------+-------------------------------+------------------------------------+
-                              |                               |
-                              | reads / writes                | invokes
-                              v                               v
-                    +-------------------------+   +------------------------------------------------+
-                    | Project Canvas State    |   | Agent Layer / Workflow Orchestration          |
-                    | single source of truth  |   | - Chat agent                                   |
-                    | nodes / edges / props   |   | - Validation agent                             |
-                    +------------+------------+   | - IaC generation agent                         |
-                                 ^                +----------------------+-------------------------+
-                                 |                                       |
-                                 | architecture context                  |
-                                 |                                       |
-                                 |                        +--------------+---------------+
-                                 |                        | Azure MCP Server              |
-                                 |                        | - cloudarchitect_design       |
-                                 |                        | - Azure best practices        |
-                                 |                        | - schema/template guidance    |
-                                 |                        +--------------+---------------+
-                                 |                                       |
-                                 |                        +--------------v---------------+
-                                 |                        | Azure AI Foundry             |
-                                 |                        | - model deployments          |
-                                 |                        | - agent definitions          |
-                                 |                        | - threads / runs             |
-                                 |                        +--------------+---------------+
-                                 |                                       |
-                                 +---------------------------------------+
-                                                         |
-                                                         v
-+--------------------------------------------------------------------------------------------------+
-| Outputs                                                                                          |
-| - architecture recommendations                                                                   |
-| - validation findings + provenance                                                               |
-| - generated Bicep / IaC                                                                          |
-| - updated project artifacts                                                                      |
-+------------------------------------------------+-------------------------------------------------+
-                                                 |
-                                                 v
-+--------------------------------------------------------------------------------------------------+
-| Azure Services Designed / Generated                                                              |
-| Resource Groups | VNets | Subnets | App Gateway | Firewall | App Service | Functions | SQL      |
-| Storage | Key Vault | Container Apps | AKS | Log Analytics | Application Insights | etc.        |
-+--------------------------------------------------------------------------------------------------+
-```
-
-For full ASCII versions, see [ARCHITECTURE_DIAGRAMS.md](ARCHITECTURE_DIAGRAMS.md).
-
----
-
-## Innovation highlights
-
-### Visual-first, but not diagram-only
-This is not just a drawing tool.
-
-The canvas becomes executable architecture context that powers:
-
-- AI chat
-- validation
-- code generation
-- persisted project artifacts
-
-### AI where it adds leverage, determinism where it adds trust
-A3 deliberately keeps the core system deterministic where safety and consistency matter most:
-
-- canvas state
-- resource relationships
-- project persistence
-- orchestration flow
-
-AI is used where it provides the highest value:
-
-- architecture reasoning
-- project description improvement
-- validation explanations
-- implementation guidance
-- code generation assistance
-
-### Grounded Azure intelligence instead of generic suggestions
-Azure MCP gives the system Azure-aware reasoning and live guidance instead of vague cloud advice.
-
-This is one of the strongest aspects of the solution:
-
-- architecture-level reasoning
-- Azure best-practice alignment
-- schema/template awareness for code generation
-- more trustworthy Azure recommendations
-
-### Trust through provenance and observability
-The system captures structured validation telemetry and provenance so users can understand how recommendations were produced.
-
-That makes the output more enterprise-ready and more credible in competition judging.
-
----
-
-## Core capabilities
-
-| Capability | What it delivers |
-|---|---|
-| **Project bootstrapping** | Create Azure projects with type selection, naming, description quality scoring, and AI-assisted description improvement. |
-| **Visual architecture canvas** | Model Azure resources, configure properties, and connect services with a clean drag-and-drop workflow. |
-| **Architecture-aware AI chat** | Ask questions about the current design and get guidance grounded in the project description and canvas state. |
-| **Validation and tips** | Run architecture review workflows to surface gaps, design concerns, and improvement opportunities. |
-| **Validation provenance** | Show how findings were produced, including tool-backed context and structured logging. |
-| **IaC generation** | Generate modular Azure Bicep from the final architecture graph. |
-| **Flexible model runtime** | Support Azure AI Foundry for cloud-hosted AI workflows and local Ollama for developer-friendly local setups. |
-
----
-
-## Why the technical design is smart
-
-### Azure AI Foundry
-Used for cloud-hosted reasoning, agent execution, threaded conversations, and model-backed assistance.
-
-### Microsoft Agent Framework
-Used in the Foundry assistant runner path to manage agent-style execution over Foundry-connected AI workflows.
-
-### Azure MCP
-Used as the Azure-grounding layer for architecture guidance, validation context, and IaC-related schema/template guidance.
-
-### GitHub Copilot
-Used as a build-time accelerator for creating and evolving the product itself.
-
-### Azure-first focus
-The current competition version goes deep on Azure instead of being shallow across multiple clouds.
-
-That focus is a strength: it lets the solution be more useful, more grounded, and more implementation-ready.
-
----
-
-## Example user journey
-
-1. A team describes a global identity-enabled web platform with security, compliance, and latency requirements.
-2. They visually compose the Azure architecture on the canvas.
-3. A3 uses the project description and canvas graph to answer design questions.
-4. Validation surfaces missing layers such as ingress, observability, identity controls, or data decisions.
-5. The team iterates quickly and converges on a cleaner architecture.
-6. The final design is turned into modular IaC output, reducing the manual lift required to begin implementation.
-
----
-
-## What judges and teams should notice
-
-- **It solves a real pain point**: architecture work is fragmented and slow.
-- **It uses modern tooling intelligently**: Foundry, Agent Framework, Azure MCP, and GitHub Copilot each have a clear role.
-- **It is practical, not gimmicky**: the output is not just chat — it leads to concrete design improvements and code generation.
-- **It improves trust**: provenance, logging, and deterministic state management make the system easier to believe in.
-- **It shortens the path from idea to implementation**: that is the strongest business and engineering value proposition of the project.
-
----
-
-## Technical stack
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | HTML, CSS, JavaScript |
-| **Backend** | FastAPI, Uvicorn |
-| **AI runtime** | Azure AI Foundry, local Ollama |
-| **Agent execution** | Microsoft Agent Framework via Foundry integration |
-| **Azure grounding** | Azure MCP |
-| **Cloud identity** | Azure Identity |
-| **IaC output** | Modular Azure Bicep |
-| **Packaging** | Docker, Docker Compose |
-| **Artifacts** | Project JSON state, generated IaC, logs, validation output |
-
----
-
-## Demo section placeholder
-
-> Replace this section later with your competition video, GIF walkthrough, or a short narrated product tour.
-
-Suggested flow for the demo:
-
-1. Create a project
-2. Write a rich application description
-3. Drag Azure services onto the canvas
-4. Ask the AI architect for guidance
-5. Run validation and review provenance
-6. Generate modular IaC
-
----
-
-## Quick start
-
-### Prerequisites
-
-- Docker
-- Docker Compose
-
-### Clean rebuild
+**Clean rebuild (from scratch):**
 
 ```bash
 docker-compose down --rmi all --volumes && docker-compose up --build -d
 ```
 
-### Incremental rebuild
+**Incremental rebuild:**
 
 ```bash
 docker-compose up -d --build
 ```
 
-Open the app at:
+Access the app at `http://localhost:3000`
+
+> **Note:** The clean rebuild removes images and volumes.
+
+---
+
+## System Overview
+
+The Agentic Cloud Architect is a visual architecture design platform that lets users build Azure infrastructure with a drag-and-drop canvas and generate Infrastructure-as-Code.
+
+The system combines deterministic architecture modeling with AI-assisted reasoning to provide architecture guidance, validation, and automated IaC generation.
+
+> **Important:** The canvas architecture is stored as a project JSON state, which is the single source of truth for the system.
+
+## Core Components
+
+### 1) Canvas Engine
+
+Manages the visual architecture diagram and updates the project state.
+
+**Responsibilities:**
+
+- Render architecture components
+- Add or remove resources
+- Create connections
+- Manage layout and selection
+- Update resource properties
+- Persist the project JSON state
+
+Canvas operations are deterministic and do not require AI.
+
+### 2) Project Canvas State
+
+Each project maintains a JSON state file containing:
+
+- Canvas layout
+- Resource components
+- Connections between resources
+- UI state
+
+This state is used by:
+
+- AI Chat
+- Architecture Validation
+- IaC Generation
+
+### 3) Architecture Advisor Agent (AI Chat)
+
+Allows users to discuss and improve their architecture using Azure best practices.
+
+**Responsibilities:**
+
+- Interpret user architecture questions
+- Analyze the current canvas architecture
+- Recommend improvements and patterns
+- Propose structured modifications to the canvas
+
+Users can approve suggestions before applying them to the canvas.
+
+### 4) Architecture Planning Agent (Validation & Tips)
+
+Validates the architecture when the user clicks **Validate**.
+
+**Responsibilities:**
+
+- Evaluate the current architecture
+- Detect missing components
+- Identify design conflicts
+- Provide best-practice suggestions
+- Generate implementable improvements
+
+Each suggestion can be applied directly to the canvas.
+
+### 5) IaC Generation Engine
+
+Converts the finalized architecture into Infrastructure-as-Code.
+
+**Supported formats:**
+
+- Azure Bicep
+
+**Code generation is based on:**
+
+- Azure resource schemas
+- Live Azure MCP templates (resolved at generation time)
+- Azure Verified Modules
+
+The system generates modular infrastructure code with a central deployment file.
+
+**Example structure:**
 
 ```text
-http://localhost:3000
+infra/
+  main.bicep
+  modules/
+    openai.bicep
+    anomalyDetector.bicep
+```
+
+The generated infrastructure can optionally be deployed to a test subscription for validation.
+
+## System Interaction Flow
+
+1. **Architecture Design**: Drag Azure resources onto the canvas and connect them.
+2. **Architecture Review**: Click **Validate** to analyze the architecture and receive recommendations.
+3. **AI Architecture Discussion**: Use AI Chat to discuss design decisions and explore improvements.
+4. **Infrastructure Generation**: Generate IaC from the finalized architecture.
+
+## Design Principles
+
+- Deterministic core system for reliability
+- AI used only for reasoning and recommendations
+- Single source of truth via project JSON state
+- Modular Infrastructure-as-Code generation
+- On-demand AI analysis to control token usage
+
+## Architecture Overview
+
+```mermaid
+flowchart LR
+  UI[User Interface] --> Canvas[Canvas Engine]
+  Canvas --> State[Architecture Graph (project state)]
+
+  UI --> Chat[AI Chat]
+  Chat --> Advisor[Architecture Advisor Agent]
+  Advisor --> State
+
+  UI --> Validate[Validate]
+  Validate --> Planner[Architecture Planning Agent]
+  Planner --> State
+
+  UI --> Generate[Generate Code]
+  Generate --> IaC[IaC Generation Engine]
+  IaC --> State
+```
+
+
+
+
+
+---
+
+# AI-Assisted Azure Infrastructure Architecture Designer
+
+## Overview
+
+The **AI-Assisted Azure Infrastructure Architecture Designer** is an interactive platform that enables users to visually design, analyze, and generate Infrastructure-as-Code (IaC) for cloud architectures on **Microsoft Azure**.
+
+The platform provides a **drag-and-drop canvas** where users construct infrastructure architectures using Azure service icons. Resources can be configured through a properties panel, while AI-driven guidance helps improve architecture quality, security, scalability, and cost efficiency.
+
+The system integrates conversational AI, architecture analysis, automated IaC generation, deployment validation, and Git-based delivery pipelines, allowing teams to move seamlessly from **visual design to production-ready infrastructure code**.
+
+---
+
+# Core Capabilities
+
+## 1. Visual Infrastructure Design Canvas
+
+The platform provides a **graphical architecture canvas** where users can design Azure infrastructure by dragging and connecting resource icons.
+
+### Key Features
+
+* Drag-and-drop Azure services onto the canvas
+* Visual connections to represent dependencies and network flows
+* Real-time architecture editing (move, delete, group resources)
+* Logical grouping of architecture components
+
+The canvas internally represents the architecture as a **graph model**:
+
+* **Nodes** → Azure resources
+* **Edges** → dependencies or communication relationships
+
+This graph representation enables AI analysis, architecture validation, and IaC generation.
+
+---
+
+# 2. Resource Properties Configuration
+
+A **context-aware properties panel** allows users to configure the settings of the selected resource.
+
+### Capabilities
+
+* Automatically updates when a resource is selected
+* Displays configurable parameters specific to the Azure service
+* Supports validation and recommended defaults
+* Updates architecture state in real time
+
+Example configurable properties include:
+
+* Resource name
+* Region
+* SKU / service tier
+* Scaling configuration
+* Networking configuration
+* Security settings
+
+This panel ensures the architecture contains all required deployment parameters.
+
+---
+
+# 3. Architecture Tips and Best-Practice Advisor
+
+The **Tips panel** continuously analyzes the architecture currently present on the canvas and provides best-practice recommendations.
+
+### Context Awareness
+
+The Tips engine understands:
+
+* All resources currently on the canvas
+* Their configuration
+* Their relationships and dependencies
+* Overall architecture patterns
+
+### Types of Recommendations
+
+**Resource-Level Tips**
+
+* Missing configuration
+* Security hardening recommendations
+* Cost optimization suggestions
+
+**Architecture-Level Tips**
+
+* High-availability improvements
+* Networking architecture recommendations
+* Resilience and fault-tolerance patterns
+* Scalability improvements
+
+### Implementable Recommendations
+
+Each tip includes an **Implement** button.
+
+When selected, the system automatically applies the recommendation to the canvas by:
+
+* Adding required resources
+* Updating configurations
+* Creating necessary connections
+
+This allows users to adopt best practices with a single action.
+
+---
+
+# 4. AI Architecture Chat Assistant
+
+The platform includes a conversational AI assistant that helps users design and improve their infrastructure architecture.
+
+The AI assistant has **full awareness of the current architecture on the canvas**, including:
+
+* resources
+* relationships
+* configuration settings
+* architectural patterns
+
+### Supported Interactions
+
+**Architecture Discussion**
+
+Users can ask questions about their design:
+
+> “Is this architecture production ready?”
+
+**Architecture Improvement Suggestions**
+
+AI analyzes the architecture and recommends improvements.
+
+Example:
+
+* add load balancing
+* add private networking
+* introduce high availability
+
+**Generate Architecture from Natural Language**
+
+Users can start with a prompt such as:
+
+> “Create a scalable web application architecture using Kubernetes and a managed database.”
+
+The AI generates a full architecture that can be applied to the canvas.
+
+**Modify Existing Architecture**
+
+AI can suggest modifications such as:
+
+* introducing redundancy
+* restructuring networking
+* adding security layers
+
+Users can **apply these suggestions directly to the canvas**, either by:
+
+* augmenting the existing design
+* replacing the current architecture
+
+---
+
+# 5. Infrastructure-as-Code Generation
+
+Once the architecture design is finalized, the platform generates production-ready Infrastructure-as-Code.
+
+Supported formats include:
+
+* **Azure Bicep**
+* **Terraform**
+
+The system translates the architecture graph into structured infrastructure definitions.
+
+---
+
+# 6. Modular IaC Generation
+
+The platform generates **modular Infrastructure-as-Code** to improve maintainability and reuse.
+
+### Bicep Project Structure
+
+Each resource is generated as a **separate Bicep module**, while a central orchestration file coordinates the deployment.
+
+Example structure:
+
+```
+/infra
+  main.bicep
+  modules/
+    vnet.bicep
+    subnet.bicep
+    appservice.bicep
+    storage.bicep
+```
+
+* **main.bicep** orchestrates deployment
+* Resource modules encapsulate resource logic
+* Parameters and outputs allow modular composition
+
+This approach aligns with recommended best practices for **Azure Bicep** deployments.
+
+---
+
+# 7. Deployment Testing and Validation
+
+Before exporting code, the platform provides **deployment validation capabilities**.
+
+### Features
+
+* Infrastructure syntax validation
+* Dry-run deployment simulation
+* Test deployments against a sample Azure subscription
+
+This allows users to verify that the generated infrastructure definitions are valid and deployable.
+
+---
+
+# 8. Git Integration and CI/CD Automation
+
+The platform integrates with Git repositories to streamline infrastructure delivery workflows.
+
+### Capabilities
+
+* Automatic export of generated IaC to configured repositories
+* Project-specific Git repository configuration
+* Commit and version management
+* Automatic CI/CD pipeline generation
+
+Example pipeline capabilities include:
+
+* Infrastructure validation
+* automated deployment workflows
+* environment promotion
+
+This enables seamless integration with modern DevOps workflows.
+
+---
+
+# 9. Iterative Architecture Workflow
+
+The platform supports a **round-trip design workflow** between architecture and code.
+
+### Workflow
+
+1. Design infrastructure visually on the canvas
+2. Configure resource properties
+3. Review AI tips and apply improvements
+4. Discuss architecture with AI assistant
+5. Generate Infrastructure-as-Code
+6. Validate and test deployment
+7. Export code to Git repository
+
+Users can **return to the canvas from the code generation screen** to modify the architecture and regenerate the infrastructure code, enabling rapid iterative development.
+
+---
+
+# Key Value Proposition
+
+The platform bridges the gap between **visual cloud architecture design and Infrastructure-as-Code implementation** by combining:
+
+* Visual modeling
+* AI-assisted architecture guidance
+* Automated code generation
+* Deployment validation
+* Git-based DevOps integration
+
+This significantly reduces the time required to move from **conceptual architecture to deployable infrastructure** while ensuring adherence to cloud best practices.
+
+
+User Interface
+   | 
+   |-- Canvas Engine
+   |       |
+   |       └── Architecture Graph (shared state)
+   |
+   |-- AI Chat → Architecture Advisor Agent
+   |
+   |-- Validate → Architecture Planning Agent
+   |
+   └-- Generate Code → IaC Generation Engine
+
+
+
+Your **Validate-triggered analysis idea absolutely makes sense** 👍 and is actually the **better engineering decision**.
+
+Running AI continuously while the user drags resources would cause:
+
+* unnecessary **token consumption**
+* unnecessary **latency**
+* unnecessary **complexity**
+* noisy suggestions while the user is still designing
+
+Triggering AI **only when the user clicks “Validate”** creates a **clear workflow moment**:
+*“I think my architecture is ready to be reviewed.”*
+
+This mirrors how real architecture reviews work.
+
+So the design becomes:
+
+```text
+Design → Validate → Review Tips → Implement → Re-Validate → Generate Code
+```
+
+Efficient, intentional, and predictable.
+
+---
+
+# Agent and Engine Architecture Summary
+
+## System Philosophy
+
+The platform is primarily a **deterministic architecture modeling system** with **AI-assisted reasoning**.
+Core infrastructure modeling, canvas manipulation, and code generation are handled by **deterministic engines**, while **AI agents provide architecture reasoning, suggestions, and conversational guidance**.
+
+This separation ensures:
+
+* predictable behavior
+* low token consumption
+* high reliability
+* controlled AI usage
+
+---
+
+# Core Components
+
+## 1. Canvas Engine (Deterministic)
+
+The **Canvas Engine** manages the visual architecture diagram and maintains the internal **architecture graph model**.
+
+Responsibilities:
+
+* add/remove resources
+* connect resources
+* maintain architecture graph (nodes and edges)
+* enforce resource schema
+* load and update resource properties
+* provide architecture state to AI agents
+
+The canvas is **not AI-driven** because these operations are deterministic UI interactions.
+
+---
+
+## 2. Architecture Graph (Shared State)
+
+The architecture is stored as a **graph model**.
+
+Structure:
+
+* **Nodes:** Azure resources
+* **Edges:** relationships or dependencies
+* **Properties:** configuration parameters
+
+Example:
+
+```
+VNet
+ └── Subnet
+      └── VM
+```
+
+This graph is the **single source of truth** used by:
+
+* AI chat analysis
+* architecture validation
+* IaC generation
+
+---
+
+## 3. Architecture Advisor Agent (AI Chat)
+
+The **Architecture Advisor Agent** powers the **AI Chat tab**.
+
+It uses the Azure MCP tool **`cloudarchitect_design`** to assist with architecture design discussions.
+
+Responsibilities:
+
+* interpret user questions
+* analyze current canvas architecture
+* suggest improvements
+* generate architecture patterns
+* convert approved suggestions into structured canvas actions
+
+The agent acts as a **conversational architecture assistant**.
+
+---
+
+## 4. Architecture Planning Agent (Tips Engine)
+
+The **Architecture Planning Agent** powers the **Tips panel**.
+
+It uses the Azure MCP tool **`architecture_planning`**.
+
+This agent is executed when the user clicks **Validate**.
+
+Responsibilities:
+
+* analyze the current architecture graph
+* identify missing components
+* detect best-practice violations
+* suggest architecture improvements
+* generate implementable recommendations
+
+Each recommendation includes an **Implement action** that can be executed by the Canvas Engine.
+
+---
+
+## 5. IaC Generation Engine
+
+The **IaC Generation Engine** converts the finalized architecture graph into deployable Infrastructure-as-Code.
+
+Supported outputs:
+
+* Azure Bicep
+* Terraform
+
+Generation is driven by **live Azure MCP template resolution**, using current resource schemas and canvas properties at generation time.
+
+The engine can optionally:
+
+* run a dry-run validation
+* deploy to a temporary test subscription
+* delete test resources after validation
+
+---
+
+## 6. AI Controller (Light Orchestration Layer)
+
+A lightweight controller coordinates interactions between:
+
+* UI
+* Canvas Engine
+* AI agents
+* IaC generator
+
+Responsibilities:
+
+* provide canvas state to agents
+* route requests to the correct agent
+* translate AI responses into canvas operations
+* ensure safe architecture modifications
+
+This component is simpler than a full multi-agent orchestrator.
+
+---
+
+# Validation Workflow
+
+The **Validate** button triggers architecture analysis.
+
+Process:
+
+1. User clicks **Validate**
+2. Architecture Planning Agent analyzes canvas graph
+3. Tips panel populates with:
+
+   * improvement suggestions
+   * architecture conflicts
+   * best-practice violations
+4. User may click **Implement** on any tip
+5. Canvas Engine applies the modification
+6. User may re-run validation
+
+This ensures AI is used **only when needed**, preventing unnecessary compute or token usage.
+
+---
+
+# Final Architecture Overview
+
+```
+User Interface
+   | 
+   |-- Canvas Engine
+   |       |
+   |       └── Architecture Graph (shared state)
+   |
+   |-- AI Chat → Architecture Advisor Agent
+   |
+   |-- Validate → Architecture Planning Agent
+   |
+   └-- Generate Code → IaC Generation Engine
 ```
 
 ---
 
-## Project structure
+# Development Guidance
 
-```text
-Agentic-Cloud-Architect/
-├── Agents/
-│   ├── AzureAIFoundry/        # Foundry bootstrap, threaded agent workflows, model-backed helpers
-│   ├── AzureMCP/              # Chat, validation, and IaC agents using Azure MCP context
-│   └── common/                # Shared agent utilities and activity logging
-├── App_Backend/               # FastAPI backend and API orchestration
-├── App_Frontend/              # Canvas UI, project flows, tips, chat, and settings
-├── App_State/                 # Runtime state, logs, and local app settings
-├── Clouds/                    # Azure catalogs, icons, schemas, and resource metadata
-├── Projects/                  # Per-project architecture state, documentation, diagrams, and IaC output
-├── Dockerfile
-├── docker-compose.yml
-└── ARCHITECTURE_DIAGRAMS.md   # Competition-friendly ASCII architecture diagrams
-```
+Key design principles:
 
----
+1. **Keep canvas operations deterministic**
+2. **Use AI only for reasoning tasks**
+3. **Use the architecture graph as the single source of truth**
+4. **Trigger AI analysis intentionally (Validate / Chat)**
+5. **Convert AI suggestions into structured canvas actions**
 
-## Current focus and scope
+This approach ensures the platform remains **stable, efficient, and scalable** while still providing powerful **AI-assisted cloud architecture design**.
 
-- **Cloud focus:** Azure
-- **Primary code generation output:** Azure Bicep
-- **AI providers:** Azure AI Foundry and local Ollama
-- **Key strengths:** architecture reasoning, Azure-grounded validation, structured provenance, and fast first-pass code generation
 
-This focus is intentional: the project aims to be deeply useful for Azure architecture design instead of broadly generic.
 
----
 
-## Why A3 is memorable
+-----------------------
+I have implemented Azure MCP server and a few of its functions in the file MCP/AzureMCP_test.py.
+I want you to take inspiration from this implementation and use Azure MCP function "Azure Cloud Architect design tool or cloudarchitect_design tool" (likn: https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/tools/azure-cloud-architect) to create AI chat feature.
+I now want to implement an AI agent that controls the chat in AI chat panel. 
 
-Because it does something that feels obvious once you see it:
+Goal: create a chat-based AI agent that answers Azure architecture questions using the MCP tool cloudarchitect_design.
 
-**it makes the architecture itself the living source of truth for conversation, review, and code generation.**
 
-That is the core insight behind the project — and the reason it has strong competition potential.
+maybe the system prompt can be:
+----------------------
+You are a senior cloud architect.
+
+You help users design cloud architectures.
+
+You will receive:
+- a user question
+
+You should:
+- answer the architecture question
+----------------------
+
+all this will lead to a minimal AI Architecture Advisor Chat for my application.
+
+A simple chat interface with:
+
+scrollable message history
+user input field
+send button
+loading state
+
+ architecture_planning tools, Returns instructions for selecting appropriate Azure services for discovered application components and designing infrastructure architecture. The LLM agent should execute these instructions using available tools. Use this tool when: - Discovery analysis has been completed and azd-arch-plan.md exists - Application components have been identified and classified - Need to map components to Azure hosting services - Ready to plan containerization and database strategies 
+
+ sample questions that could be asked:
+ "How should I design a scalable web app in Azure?"
+"What is the best architecture for an AI application?"
+"How can I secure an API in Azure?"
+
+
+can you let me know what you understand and what to implement?
+
+
+Later the AI will need to:
+
+• analyze architectures
+• generate tips
+• suggest architecture improvements
+• propose canvas changes
+• generate IaC
+
+Those are actions, not just text.
