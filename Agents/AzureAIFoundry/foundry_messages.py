@@ -485,6 +485,34 @@ def _extract_message_text(message: Any) -> str:
     return ""
 
 
+def _looks_like_activity_log_message(content: str) -> bool:
+    """Return True for messages posted by post_thread_activity_message.
+
+    Those messages follow the pattern:
+        [<actor>] <event-type>
+        Timestamp (UTC): <iso-timestamp>
+        <json-or-text payload>
+
+    They must not be shown as chat bubbles in the UI.
+    """
+    safe = str(content or "").strip()
+    if not safe.startswith("["):
+        return False
+    # First line must be of the form  "[something] something"
+    first_newline = safe.find("\n")
+    if first_newline < 0:
+        return False
+    first_line = safe[:first_newline].strip()
+    # Must open with "[" and contain "] " (closing bracket + space)
+    bracket_end = first_line.find("] ")
+    if bracket_end < 1:
+        return False
+    # Second line must start with "Timestamp (UTC):"
+    rest = safe[first_newline + 1:]
+    second_line = rest.lstrip("\n").split("\n")[0].strip()
+    return second_line.startswith("Timestamp (UTC):")
+
+
 def _normalize_message_for_display(role: str, content: str) -> str:
     safe_role = str(role or "").strip().lower()
     safe_content = str(content or "").strip()
@@ -492,6 +520,9 @@ def _normalize_message_for_display(role: str, content: str) -> str:
         return ""
 
     if safe_content.startswith("[Architect Agent] Project "):
+        return ""
+
+    if _looks_like_activity_log_message(safe_content):
         return ""
 
     if safe_role == "user":
