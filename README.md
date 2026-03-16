@@ -10,6 +10,28 @@ Design on a canvas, validate with AI guidance, and generate modular Bicep from o
 
 > Note: GitHub does not reliably render embedded `<video>`/`<iframe>` content in README files, so demo links are provided directly.
 
+## Screenshots
+
+GitHub README files do not support JavaScript-based tabs/slideshows, so this uses a compact collapsible gallery.
+
+<details>
+  <summary>Open screenshot gallery</summary>
+
+- [TODO](Videos%20and%20Images/0-TODO.png)
+- [Landing Page](Videos%20and%20Images/1-Landing-Page.png)
+- [Application Settings](Videos%20and%20Images/2-Application-Settings.png)
+- [Select Project](Videos%20and%20Images/3-Select-project.png)
+- [Project Loading](Videos%20and%20Images/4-Project-loading.png)
+- [Canvas View](Videos%20and%20Images/5-Canvas-view.png)
+- [Resource Property](Videos%20and%20Images/6-View-Resource-Property.png)
+- [Start Validation](Videos%20and%20Images/7-Start-Validation.png)
+- [Validation Report](Videos%20and%20Images/8-Validation-Report.png)
+- [Generate Code](Videos%20and%20Images/9-Generate-Code.png)
+- [Coding Guardrails](Videos%20and%20Images/10-Coding-Guardrails.png)
+- [Technical Architecture](Videos%20and%20Images/TechnicalArchitecture.png)
+
+</details>
+
 ## Highlights
 
 - Visual Azure architecture design with drag-and-drop canvas
