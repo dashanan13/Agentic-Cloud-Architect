@@ -13,7 +13,7 @@ COPY Agents ./Agents
 COPY App_Frontend ./App_Frontend
 COPY Clouds ./Clouds
 COPY Projects/Default /workspace/Projects/Default
-COPY App_State /workspace/App_State
+RUN mkdir -p /workspace/App_State
 
 RUN python /app/App_Frontend/generate_catalogs.py \
 	&& mkdir -p /app/App_Frontend/icons/azure \
