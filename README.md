@@ -99,7 +99,7 @@ This section maps the solution to each equally-weighted judging dimension and po
 | Azure MCP tooling | Grounds architecture chat, validation guidance, and IaC guardrails in Azure context | Improves relevance and quality of recommendations/output |
 | Azure Identity + AI Project client | Authenticates and accesses Foundry resources securely | Enterprise-friendly identity and integration pattern |
 
-> A local model path (`ollama-local`) is supported for development. Azure Foundry is the primary cloud AI path.
+> A local model path (`ollama-local`) is not supported yet. Azure Foundry is the primary cloud AI path.
 
 ---
 
@@ -276,6 +276,11 @@ flowchart LR
 
 - Docker
 - Docker Compose
+
+### Azure AI Foundry prerequisites
+
+- Ensure your Microsoft Entra ID app registration has permissions to access Azure AI Foundry and to deploy/manage agents and threads.
+- Deploy compatible model deployments in Foundry before creating agents (typically OpenAI models such as GPT-5.2).
 
 ### Start the project
 
