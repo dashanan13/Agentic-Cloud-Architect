@@ -190,21 +190,50 @@ Agentic-Cloud-Architect/
 
 ```mermaid
 flowchart LR
-  UI["User Interface"] --> Canvas["Canvas Engine"]
-  Canvas --> Graph["Architecture Graph"]
+  subgraph BuildLane["Build and Evolution"]
+    Engineer["Product Engineer"]
+    Copilot["GitHub Copilot"]
+    Repo["Agentic-Cloud-Architect Codebase"]
+    Engineer <--> Copilot
+    Engineer --> Repo
+    Copilot --> Repo
+  end
 
-  UI --> Chat["AI Chat"]
-  Chat --> Advisor["Architecture Advisor Agent"]
-  Advisor --> Graph
+  subgraph RuntimeLane["Runtime Application Flow"]
+    User["User"]
+    UI["Web App UI<br/>Canvas, Validate, AI Chat, Generate Code"]
+    API["Backend API and Orchestrator<br/>FastAPI"]
+    Graph["Project Canvas State<br/>Single Source of Truth"]
+    Agents["Agent Layer<br/>Chat Agent, Validation Agent, IaC Agent"]
+    IaC["Generated IaC Artifacts<br/>Modular Bicep"]
 
-  UI --> Validate["Validate"]
-  Validate --> Planner["Architecture Planning Agent"]
-  Planner --> Graph
+    User --> UI
+    UI --> API
+    API <--> Graph
+    API --> Agents
+    Agents --> API
+    API --> IaC
+  end
 
-  UI --> Generate["Generate Code"]
-  Generate --> IaC["IaC Generation Engine"]
-  IaC --> Graph
+  subgraph ToolingLane["AI and Azure Tooling"]
+    MCP["Azure MCP Server<br/>cloudarchitect_design<br/>architecture_planning<br/>live template guidance"]
+    AF["Microsoft Agent Framework"]
+    Foundry["Azure AI Foundry<br/>models, agent IDs, threads and runs"]
+    Azure["Azure Services<br/>RG, VNet, Subnet, NSG, Route Table, Public IP"]
+  end
+
+  Agents --> MCP
+  Agents <--> AF
+  AF <--> Foundry
+  IaC --> Azure
 ```
+
+This diagram emphasizes where each key technology is used:
+
+- GitHub Copilot supports engineering and iteration during build time.
+- Azure MCP provides architecture/tool grounding (`cloudarchitect_design`, planning, templates).
+- Microsoft Agent Framework + Azure AI Foundry power model-driven agent execution.
+- Azure services are the deployment target for generated IaC.
 
 ## Core Workflow
 
