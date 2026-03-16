@@ -592,6 +592,93 @@ function switchDependencyToCustom(properties, modeField, refField, nameField, fa
   properties[nameField] = String(fallbackName || currentItem?.name || properties[nameField] || "");
 }
 
+function synchronizeExistingReferenceNames() {
+  if (!Array.isArray(state.canvasItems) || !state.canvasItems.length) {
+    return false;
+  }
+
+  const itemsById = new Map();
+  state.canvasItems.forEach((item) => {
+    if (item && item.id) {
+      itemsById.set(item.id, item);
+    }
+  });
+
+  let changed = false;
+
+  const referenceKeyValidators = {
+    resourceGroup: (candidate) => isResourceGroupItem(candidate),
+    parentZone: (candidate, owner) => isDnsZoneItem(candidate) && candidate.id !== owner?.id,
+    virtualNetwork: (candidate) => isVirtualNetworkItem(candidate),
+    networkSecurityGroup: (candidate) => isNetworkSecurityGroupItem(candidate),
+    routeTable: (candidate) => isRouteTableItem(candidate),
+    associatedSubnet: (candidate) => isSubnetItem(candidate),
+    bastionPublicIp: (candidate) => isPublicIpItem(candidate),
+    firewallPublicIp: (candidate) => isPublicIpItem(candidate)
+  };
+
+  const resolveReferenceNameValue = (referenceKey, referencedItem) => {
+    if (referenceKey === "parentZone") {
+      return sanitizeDnsNameValue(referencedItem?.name || "");
+    }
+    return String(referencedItem?.name || "");
+  };
+
+  const resolveReferenceDescriptors = (properties) => {
+    if (!properties || typeof properties !== "object") {
+      return [];
+    }
+
+    return Object.keys(properties)
+      .filter((modeField) => modeField.endsWith("Mode") && properties[modeField] === "existing")
+      .map((modeField) => {
+        const referenceKey = modeField.slice(0, -4);
+        return {
+          referenceKey,
+          modeField,
+          refField: `${referenceKey}Ref`,
+          nameField: `${referenceKey}Name`
+        };
+      })
+      .filter(({ refField, nameField }) => Object.prototype.hasOwnProperty.call(properties, refField)
+        && Object.prototype.hasOwnProperty.call(properties, nameField));
+  };
+
+  state.canvasItems.forEach((item) => {
+    if (!item || typeof item !== "object") {
+      return;
+    }
+
+    const properties = ensureItemProperties(item);
+
+    const referenceDescriptors = resolveReferenceDescriptors(properties);
+    referenceDescriptors.forEach(({ referenceKey, refField, nameField }) => {
+      const refId = String(properties[refField] || "").trim();
+      if (!refId) {
+        return;
+      }
+
+      const referencedItem = itemsById.get(refId);
+      if (!referencedItem) {
+        return;
+      }
+
+      const validator = referenceKeyValidators[referenceKey];
+      if (typeof validator === "function" && !validator(referencedItem, item)) {
+        return;
+      }
+
+      const nextName = resolveReferenceNameValue(referenceKey, referencedItem);
+      if (String(properties[nameField] || "") !== nextName) {
+        properties[nameField] = nextName;
+        changed = true;
+      }
+    });
+  });
+
+  return changed;
+}
+
 function normalizeResourceIdentity(value) {
   return normalizeLabel(value).replace(/[^a-z0-9]+/g, "");
 }
@@ -3601,6 +3688,8 @@ function persistCanvasLocal() {
     return;
   }
 
+  synchronizeExistingReferenceNames();
+
   state.currentProject.canvasView = {
     x: state.canvasView.x,
     y: state.canvasView.y,
@@ -3609,6 +3698,23 @@ function persistCanvasLocal() {
   state.currentProject.canvasItems = state.canvasItems.map((item) => ({ ...item }));
   state.currentProject.canvasConnections = state.canvasConnections.map((connection) => ({ ...connection }));
   saveCurrentProject();
+}
+
+function flushPendingCanvasEditsForManualSave() {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement) {
+    const shouldBlurActiveElement = activeElement === projectNameDisplay
+      || (propertyContentEl instanceof HTMLElement && propertyContentEl.contains(activeElement));
+    if (shouldBlurActiveElement) {
+      activeElement.blur();
+    }
+  }
+
+  persistCanvasLocal();
 }
 
 function toWorldPoint(clientX, clientY) {
@@ -4741,6 +4847,7 @@ function normalizeSaveTrigger(value) {
 }
 
 function buildProjectSnapshot(options = {}) {
+  synchronizeExistingReferenceNames();
   const saveTrigger = normalizeSaveTrigger(options.saveTrigger);
   return {
     project: {
@@ -6798,6 +6905,7 @@ async function runArchitectureValidation() {
 
   try {
     setSaveStatus("Saving current architecture before validation...");
+    flushPendingCanvasEditsForManualSave();
     await saveProjectFiles({ silent: true, saveTrigger: "manual" });
 
     setSaveStatus("Running architecture validation...");
@@ -7094,6 +7202,7 @@ projectNameDisplay?.addEventListener("keydown", (event) => {
 
 // ===== Event Listeners =====
 btnBackProjects.addEventListener("click", async () => {
+  flushPendingCanvasEditsForManualSave();
   try {
     await saveProjectFiles({ saveTrigger: "manual" });
   } catch {
@@ -7103,8 +7212,13 @@ btnBackProjects.addEventListener("click", async () => {
 });
 
 btnProjectSave?.addEventListener("click", async () => {
+  flushPendingCanvasEditsForManualSave();
   updateTimestamp();
-  await saveProjectFiles({ saveTrigger: "manual" });
+  try {
+    await saveProjectFiles({ saveTrigger: "manual" });
+  } catch (error) {
+    setSaveStatus(error?.message || "Save failed", true);
+  }
 });
 
 btnValidate?.addEventListener("click", async () => {
@@ -7142,6 +7256,7 @@ btnGenerateCode?.addEventListener("click", async () => {
   params.set("parameterFormat", parameterFormat);
 
   try {
+    flushPendingCanvasEditsForManualSave();
     updateTimestamp();
     await saveProjectFiles({ silent: true, saveTrigger: "manual" });
   } catch {
@@ -7412,7 +7527,7 @@ propertyContentEl?.addEventListener("click", async (event) => {
   // Handle Save button click
   const saveBtn = event.target.closest("[data-property-action='save']");
   if (saveBtn) {
-    persistCanvasLocal();
+    flushPendingCanvasEditsForManualSave();
     renderCanvasItems();
     renderCanvasConnections();
 
@@ -7423,8 +7538,9 @@ propertyContentEl?.addEventListener("click", async (event) => {
       updateTimestamp();
       await saveProjectFiles({ saveTrigger: "manual" });
       saveBtn.textContent = "Saved!";
-    } catch {
+    } catch (error) {
       saveBtn.textContent = "Save failed";
+      setSaveStatus(error?.message || "Save failed", true);
     }
 
     setTimeout(() => {
