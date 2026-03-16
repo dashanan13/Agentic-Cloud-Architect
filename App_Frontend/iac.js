@@ -1,5 +1,6 @@
 const btnBack = document.getElementById("btn-iac-back");
 const btnRetry = document.getElementById("btn-iac-retry");
+const btnWarningMode = document.getElementById("btn-iac-warning-mode");
 const btnCopy = document.getElementById("btn-iac-copy");
 const btnDownload = document.getElementById("btn-iac-download");
 const btnStatusToggle = document.getElementById("btn-iac-status-toggle");
@@ -38,6 +39,8 @@ const state = {
   pollTimer: null,
   latestTask: null,
   retryBusy: false,
+  allowWarnings: true,
+  currentTaskAllowWarnings: true,
   loadedTaskResultId: "",
   collapsedDirs: new Set(),
   expandedStageIds: new Set(),
@@ -54,6 +57,23 @@ function updateRetryButtonState() {
 
   btnRetry.hidden = !isTerminalState;
   btnRetry.disabled = !isTerminalState || state.retryBusy;
+}
+
+function updateWarningModeButton() {
+  if (!btnWarningMode) {
+    return;
+  }
+
+  const strictMode = !state.allowWarnings;
+  const currentStatus = String(state.latestTask?.status || "").trim().toLowerCase();
+  const isTaskInFlight = currentStatus === "queued" || currentStatus === "running";
+
+  btnWarningMode.textContent = strictMode ? "Warnings: Disallowed" : "Warnings: Allowed";
+  btnWarningMode.setAttribute("aria-pressed", String(strictMode));
+  btnWarningMode.title = strictMode
+    ? "Strict mode: warnings or skipped checks block generation"
+    : "Allow warning and skipped checks (default)";
+  btnWarningMode.disabled = isTaskInFlight || state.retryBusy;
 }
 
 function consumeAutostartIntent(projectId) {
@@ -182,6 +202,7 @@ function normalizeTask(task) {
   }
 
   const status = String(task.status || "queued").trim().toLowerCase();
+  const allowWarnings = typeof task.allowWarnings === "boolean" ? task.allowWarnings : true;
   const stages = Array.isArray(task.stages)
     ? task.stages
       .map((stage) => ({
@@ -219,6 +240,7 @@ function normalizeTask(task) {
   return {
     taskId,
     status,
+    allowWarnings,
     message: String(task.message || "").trim(),
     error: String(task.error || "").trim(),
     progress: clampProgress(task.progress, 0),
@@ -383,6 +405,9 @@ function getStageVisualStatus(stage) {
   const totals = parseGuardrailCheckTotals(stage);
   if (totals) {
     if (totals.failed > 0) {
+      return "error";
+    }
+    if (!state.currentTaskAllowWarnings && (totals.warning > 0 || totals.skipped > 0)) {
       return "error";
     }
     return "completed";
@@ -842,9 +867,12 @@ function renderTask(task) {
 
   state.latestTask = normalized;
   state.taskId = normalized.taskId;
+  state.allowWarnings = normalized.allowWarnings;
+  state.currentTaskAllowWarnings = normalized.allowWarnings;
   syncTaskUrl(normalized.taskId);
   renderStageList(normalized.stages);
   updateRetryButtonState();
+  updateWarningModeButton();
 
   if (normalized.status === "completed") {
     setStatus("complete", {
@@ -974,10 +1002,12 @@ async function startGenerationTask() {
   }
 
   state.retryBusy = true;
+  state.currentTaskAllowWarnings = state.allowWarnings;
   state.latestTask = {
     status: "running",
   };
   updateRetryButtonState();
+  updateWarningModeButton();
 
   state.loadedTaskResultId = "";
   state.expandedStageIds.clear();
@@ -990,13 +1020,15 @@ async function startGenerationTask() {
 
   try {
     const parameterFormat = state.parameterFormat === "json" ? "json" : "bicepparam";
+    const allowWarnings = Boolean(state.allowWarnings);
     const response = await fetch(`/api/project/${encodeURIComponent(state.projectId)}/iac/task/start`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        parameterFormat
+        parameterFormat,
+        allowWarnings
       })
     });
 
@@ -1043,9 +1075,11 @@ async function startGenerationTask() {
       progress: 0
     });
     updateRetryButtonState();
+    updateWarningModeButton();
   } finally {
     state.retryBusy = false;
     updateRetryButtonState();
+    updateWarningModeButton();
   }
 }
 
@@ -1146,6 +1180,27 @@ async function handleRetryGeneration() {
   await startGenerationTask();
 }
 
+function handleWarningModeToggle() {
+  if (!btnWarningMode || btnWarningMode.disabled) {
+    return;
+  }
+
+  state.allowWarnings = !state.allowWarnings;
+  state.currentTaskAllowWarnings = state.allowWarnings;
+  updateWarningModeButton();
+
+  if (statusMetaEl) {
+    statusMetaEl.textContent = state.allowWarnings
+      ? "Guardrail mode set to allow warnings (default)."
+      : "Guardrail mode set to strict. Warnings and skipped checks will block generation.";
+  }
+
+  const stages = Array.isArray(state.latestTask?.stages) && state.latestTask.stages.length
+    ? state.latestTask.stages
+    : buildDefaultStages();
+  renderStageList(stages);
+}
+
 async function initialize() {
   const params = getParams();
   state.projectId = params.projectId;
@@ -1167,6 +1222,9 @@ async function initialize() {
   }
 
   btnBack?.addEventListener("click", handleBack);
+  btnWarningMode?.addEventListener("click", () => {
+    handleWarningModeToggle();
+  });
   btnRetry?.addEventListener("click", () => {
     handleRetryGeneration();
   });
@@ -1184,6 +1242,7 @@ async function initialize() {
   setStatusCollapsed(false);
   updateDownloadButtonState();
   updateRetryButtonState();
+  updateWarningModeButton();
 
   renderStageList(buildDefaultStages());
   setStatus("idle", {

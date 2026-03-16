@@ -363,6 +363,7 @@ def _failed_guardrail_check_names(diagnostics: Mapping[str, Any], max_items: int
 def _evaluate_guardrail_source_pass(
     diagnostics: Mapping[str, Any],
     *,
+    allow_warnings: bool = True,
     allow_no_checks: bool = False,
 ) -> tuple[bool, str]:
     source = str(diagnostics.get("source") or "Guardrail source").strip() or "Guardrail source"
@@ -371,6 +372,8 @@ def _evaluate_guardrail_source_pass(
 
     tested = _safe_non_negative_int(counts.get("tested"))
     failed = _safe_non_negative_int(counts.get("failed"))
+    warning = _safe_non_negative_int(counts.get("warning"))
+    skipped = _safe_non_negative_int(counts.get("skipped"))
     if connection_state != "connected":
         return True, f"{source} unavailable ({connection_state}); non-blocking"
 
@@ -386,6 +389,9 @@ def _evaluate_guardrail_source_pass(
     if failed > 0:
         return False, f"{source} has failed checks"
 
+    if not allow_warnings and (warning > 0 or skipped > 0):
+        return False, f"{source} has non-pass checks"
+
     return True, f"{source} passed"
 
 
@@ -393,12 +399,17 @@ def _build_guardrail_gate_failure_message(
     *,
     mcp_diagnostics: Mapping[str, Any],
     coding_diagnostics: Mapping[str, Any],
+    allow_warnings: bool = True,
 ) -> tuple[bool, str]:
     mcp_ok, mcp_reason = _evaluate_guardrail_source_pass(
         mcp_diagnostics,
+        allow_warnings=allow_warnings,
         allow_no_checks=True,
     )
-    coding_ok, coding_reason = _evaluate_guardrail_source_pass(coding_diagnostics)
+    coding_ok, coding_reason = _evaluate_guardrail_source_pass(
+        coding_diagnostics,
+        allow_warnings=allow_warnings,
+    )
 
     if mcp_ok and coding_ok:
         return True, ""
@@ -540,6 +551,7 @@ def generate_bicep_iac_from_canvas(
     project_name: str,
     project_id: str,
     parameter_format: str = DEFAULT_PARAMETER_FORMAT,
+    allow_warnings: bool = True,
     foundry_agent_id: str | None = None,
     foundry_thread_id: str | None = None,
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
@@ -552,6 +564,7 @@ def generate_bicep_iac_from_canvas(
         details={
             "projectName": project_name,
             "parameterFormat": parameter_format,
+            "allowWarnings": bool(allow_warnings),
         },
     )
 
@@ -768,6 +781,7 @@ def generate_bicep_iac_from_canvas(
     guardrails_passed, guardrail_failure_message = _build_guardrail_gate_failure_message(
         mcp_diagnostics=mcp_guardrail_diagnostics,
         coding_diagnostics=coding_guardrail_diagnostics,
+        allow_warnings=bool(allow_warnings),
     )
     if not guardrails_passed:
         generation_warnings.append(guardrail_failure_message)
@@ -820,6 +834,7 @@ def generate_bicep_iac_from_canvas(
     return {
         "ok": True,
         "parameterFormat": safe_parameter_format,
+        "allowWarnings": bool(allow_warnings),
         "files": written_files,
         "deploymentOrder": deployment_order,
         "warnings": generation_warnings,

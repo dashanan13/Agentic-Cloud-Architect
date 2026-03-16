@@ -267,6 +267,7 @@ class ArchitectureValidationFixAuditPayload(BaseModel):
 
 class IacGeneratePayload(BaseModel):
     parameterFormat: str | None = None
+    allowWarnings: bool | None = None
 
 
 def _normalize_save_trigger(value: str | None) -> str:
@@ -544,6 +545,7 @@ def _serialize_iac_task(task: dict) -> dict:
         "message": str(task.get("message") or "").strip(),
         "progress": _clamp_progress(task.get("progress"), 0),
         "parameterFormat": normalize_parameter_format(task.get("parameterFormat") or "bicepparam"),
+        "allowWarnings": bool(task.get("allowWarnings", True)),
         "createdAt": task.get("createdAt"),
         "updatedAt": task.get("updatedAt"),
         "startedAt": task.get("startedAt"),
@@ -575,7 +577,7 @@ def _serialize_iac_task(task: dict) -> dict:
     return response
 
 
-def _create_iac_task(project_id: str, parameter_format: str) -> dict:
+def _create_iac_task(project_id: str, parameter_format: str, allow_warnings: bool) -> dict:
     now = _timestamp_ms()
     task_id = uuid4().hex
     payload = {
@@ -585,6 +587,7 @@ def _create_iac_task(project_id: str, parameter_format: str) -> dict:
         "message": "Generation queued",
         "progress": 1,
         "parameterFormat": normalize_parameter_format(parameter_format),
+        "allowWarnings": bool(allow_warnings),
         "createdAt": now,
         "updatedAt": now,
         "startedAt": None,
@@ -606,6 +609,7 @@ def _create_iac_task(project_id: str, parameter_format: str) -> dict:
         details={
             "taskId": task_id,
             "parameterFormat": payload["parameterFormat"],
+            "allowWarnings": payload["allowWarnings"],
         },
     )
     return payload
@@ -4279,6 +4283,7 @@ def _reset_iac_language_output_dir(project_dir: Path, iac_language: str) -> Path
 def _generate_project_iac_payload(
     project_id: str,
     requested_parameter_format: str | None = None,
+    allow_warnings: bool = True,
     progress_callback=None,
 ) -> dict:
     entry, metadata, _project_settings, iac_language, parameter_format = _prepare_iac_generation_context(
@@ -4379,6 +4384,7 @@ def _generate_project_iac_payload(
         details={
             "projectName": str(metadata.get("name") or entry["name"]),
             "parameterFormat": parameter_format,
+            "allowWarnings": bool(allow_warnings),
             "resourceCount": resource_count,
             "connectionCount": connection_count,
             "foundryAgentId": foundry_agent_id or "",
@@ -4411,6 +4417,7 @@ def _generate_project_iac_payload(
             project_name=str(metadata.get("name") or entry["name"]),
             project_id=entry["id"],
             parameter_format=parameter_format,
+            allow_warnings=bool(allow_warnings),
             foundry_agent_id=foundry_agent_id,
             foundry_thread_id=foundry_thread_id,
             progress_callback=progress_callback,
@@ -4435,6 +4442,7 @@ def _generate_project_iac_payload(
             details={
                 "projectName": str(metadata.get("name") or entry["name"]),
                 "parameterFormat": parameter_format,
+                "allowWarnings": bool(allow_warnings),
                 "fileCount": len(result.get("files") if isinstance(result.get("files"), list) else []),
                 "warningCount": len(result.get("warnings") if isinstance(result.get("warnings"), list) else []),
             },
@@ -4460,6 +4468,7 @@ def _generate_project_iac_payload(
             details={
                 "projectName": str(metadata.get("name") or entry["name"]),
                 "parameterFormat": parameter_format,
+                "allowWarnings": bool(allow_warnings),
                 "error": str(exc),
             },
         )
@@ -4487,6 +4496,7 @@ def _generate_project_iac_payload(
             details={
                 "projectName": str(metadata.get("name") or entry["name"]),
                 "parameterFormat": parameter_format,
+                "allowWarnings": bool(allow_warnings),
                 "error": str(exc),
             },
         )
@@ -4498,11 +4508,12 @@ def _generate_project_iac_payload(
         "root": str((entry["projectDir"] / "IaC").relative_to(WORKSPACE_ROOT)),
         "iacLanguage": iac_language,
         "parameterFormat": parameter_format,
+        "allowWarnings": bool(allow_warnings),
         "generation": result,
     }
 
 
-def _run_iac_generation_task(task_id: str, project_id: str, parameter_format: str) -> None:
+def _run_iac_generation_task(task_id: str, project_id: str, parameter_format: str, allow_warnings: bool) -> None:
     with IAC_TASK_LOCK:
         _mark_iac_task_running(task_id)
 
@@ -4514,6 +4525,7 @@ def _run_iac_generation_task(task_id: str, project_id: str, parameter_format: st
         payload = _generate_project_iac_payload(
             project_id,
             requested_parameter_format=parameter_format,
+            allow_warnings=bool(allow_warnings),
             progress_callback=on_progress,
         )
     except HTTPException as exc:
@@ -4537,8 +4549,11 @@ def _run_iac_generation_task(task_id: str, project_id: str, parameter_format: st
 @app.post("/api/project/{project_id}/iac/task/start")
 def start_project_iac_task(project_id: str, body: IacGeneratePayload | None = None):
     requested_format_raw = ""
+    allow_warnings = True
     if body and body.parameterFormat is not None:
         requested_format_raw = str(body.parameterFormat or "").strip()
+    if body and body.allowWarnings is not None:
+        allow_warnings = bool(body.allowWarnings)
 
     entry, _metadata, _project_settings, _iac_language, parameter_format = _prepare_iac_generation_context(
         project_id,
@@ -4555,11 +4570,11 @@ def start_project_iac_task(project_id: str, body: IacGeneratePayload | None = No
                 "task": _serialize_iac_task(existing_task),
             }
 
-        created_task = _create_iac_task(entry["id"], parameter_format)
+        created_task = _create_iac_task(entry["id"], parameter_format, allow_warnings)
 
     worker = Thread(
         target=_run_iac_generation_task,
-        args=(created_task["taskId"], entry["id"], parameter_format),
+        args=(created_task["taskId"], entry["id"], parameter_format, allow_warnings),
         daemon=True,
     )
     worker.start()
@@ -4606,12 +4621,16 @@ def get_project_iac_task(project_id: str, task_id: str):
 @app.post("/api/project/{project_id}/iac/generate")
 def generate_project_iac(project_id: str, body: IacGeneratePayload | None = None):
     requested_format_raw = ""
+    allow_warnings = True
     if body and body.parameterFormat is not None:
         requested_format_raw = str(body.parameterFormat or "").strip()
+    if body and body.allowWarnings is not None:
+        allow_warnings = bool(body.allowWarnings)
 
     return _generate_project_iac_payload(
         project_id,
         requested_parameter_format=requested_format_raw,
+        allow_warnings=allow_warnings,
         progress_callback=None,
     )
 
