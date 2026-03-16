@@ -158,12 +158,26 @@ Current MVP demonstrates an end-to-end working flow:
 <table>
   <tr>
     <td align="center">
+      <a href="Videos%20and%20Images/0-TODO.png"><img src="Videos%20and%20Images/0-TODO.png" alt="TODO" width="280"></a><br>
+      TODO
+    </td>
+    <td align="center">
       <a href="Videos%20and%20Images/1-Landing-Page.png"><img src="Videos%20and%20Images/1-Landing-Page.png" alt="Landing Page" width="280"></a><br>
       Landing Page
     </td>
     <td align="center">
       <a href="Videos%20and%20Images/2-Application-Settings.png"><img src="Videos%20and%20Images/2-Application-Settings.png" alt="Application Settings" width="280"></a><br>
       Application Settings
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="Videos%20and%20Images/3-Select-project.png"><img src="Videos%20and%20Images/3-Select-project.png" alt="Select Project" width="280"></a><br>
+      Select Project
+    </td>
+    <td align="center">
+      <a href="Videos%20and%20Images/4-Project-loading.png"><img src="Videos%20and%20Images/4-Project-loading.png" alt="Project Loading" width="280"></a><br>
+      Project Loading
     </td>
     <td align="center">
       <a href="Videos%20and%20Images/5-Canvas-view.png"><img src="Videos%20and%20Images/5-Canvas-view.png" alt="Canvas View" width="280"></a><br>
@@ -172,17 +186,39 @@ Current MVP demonstrates an end-to-end working flow:
   </tr>
   <tr>
     <td align="center">
+      <a href="Videos%20and%20Images/6-View-Resource-Property.png"><img src="Videos%20and%20Images/6-View-Resource-Property.png" alt="Resource Property" width="280"></a><br>
+      Resource Property
+    </td>
+    <td align="center">
+      <a href="Videos%20and%20Images/7-Start-Validation.png"><img src="Videos%20and%20Images/7-Start-Validation.png" alt="Start Validation" width="280"></a><br>
+      Start Validation
+    </td>
+    <td align="center">
       <a href="Videos%20and%20Images/8-Validation-Report.png"><img src="Videos%20and%20Images/8-Validation-Report.png" alt="Validation Report" width="280"></a><br>
       Validation Report
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <a href="Videos%20and%20Images/9-Generate-Code.png"><img src="Videos%20and%20Images/9-Generate-Code.png" alt="Generate Code" width="280"></a><br>
       Generate Code
     </td>
     <td align="center">
+      <a href="Videos%20and%20Images/10-Coding-Guardrails.png"><img src="Videos%20and%20Images/10-Coding-Guardrails.png" alt="Coding Guardrails" width="280"></a><br>
+      Coding Guardrails
+    </td>
+    <td align="center">
       <a href="Videos%20and%20Images/11-Successful-CodeGeneration.png"><img src="Videos%20and%20Images/11-Successful-CodeGeneration.png" alt="Successful Code Generation" width="280"></a><br>
       Successful Code Generation
     </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="Videos%20and%20Images/TechnicalArchitecture.png"><img src="Videos%20and%20Images/TechnicalArchitecture.png" alt="Technical Architecture" width="280"></a><br>
+      Technical Architecture
+    </td>
+    <td></td>
+    <td></td>
   </tr>
 </table>
 
