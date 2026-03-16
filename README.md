@@ -275,14 +275,36 @@ flowchart LR
 ### Prerequisites
 
 - Docker
-- Docker Compose
+- Docker Compose (only if running from source)
 
 ### Azure AI Foundry prerequisites
 
 - Ensure your Microsoft Entra ID app registration has permissions to access Azure AI Foundry and to deploy/manage agents and threads.
 - Deploy compatible model deployments in Foundry before creating agents (typically OpenAI models such as GPT-5.2).
 
-### Start the project
+### Quick Start (Docker Hub image, no clone)
+
+Basic run:
+
+```bash
+docker pull mohit13/agentic-cloud-architect:beta
+docker run -d --name agentic-cloud-architect -p 3000:3000 \
+  mohit13/agentic-cloud-architect:beta
+```
+
+Persistent data (recommended):
+
+```bash
+docker pull mohit13/agentic-cloud-architect:beta
+docker run -d --name agentic-cloud-architect -p 3000:3000 \
+  -v "$PWD/App_State:/workspace/App_State" \
+  -v "$PWD/Projects:/workspace/Projects" \
+  mohit13/agentic-cloud-architect:beta
+```
+
+Open: http://localhost:3000
+
+### Run from source (clone repo)
 
 ```bash
 git clone https://github.com/dashanan13/Agentic-Cloud-Architect.git
