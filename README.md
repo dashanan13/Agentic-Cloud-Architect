@@ -3,6 +3,8 @@
 Agentic Cloud Architect is a visual, AI-assisted Infrastructure-as-Code platform for Azure.
 It helps teams move from architecture idea → validated design → generated Bicep using one shared project state.
 
+🚀 **[Live Demo](https://a3-app.whitedune-b3d45872.norwayeast.azurecontainerapps.io/landing.html)** — Try it now on Azure!
+
 > [!WARNING]
 > This project is under development and can misbehave if startup steps are skipped.
 > Verify and save **Application Settings** before doing anything else, otherwise chat/validation/codegen may fail silently.
