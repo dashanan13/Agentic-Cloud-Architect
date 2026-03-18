@@ -60,7 +60,7 @@ DEFAULT_TEMPLATE_DIR = PROJECTS_DIR / "Default"
 FRONTEND_DIR = Path("/app/App_Frontend")
 
 DEFAULT_APP_SETTINGS = {
-    "modelProvider": "ollama-local",
+    "modelProvider": "azure-foundry",
     "azureTenantId": "",
     "azureClientId": "",
     "azureClientSecret": "",
@@ -69,7 +69,6 @@ DEFAULT_APP_SETTINGS = {
     "aiFoundryProjectName": "",
     "aiFoundryEndpoint": "",
     "foundryApiVersion": "2024-05-01-preview",
-    "ollamaBaseUrl": "http://host.docker.internal:11434",
     "foundryModelCoding": "",
     "foundryModelReasoning": "",
     "foundryModelFast": "",
@@ -78,9 +77,6 @@ DEFAULT_APP_SETTINGS = {
     "foundryValidationAgentId": "",
     "foundryDefaultAgentId": "",
     "foundryDefaultThreadId": "",
-    "ollamaModelPathCoding": "",
-    "ollamaModelPathReasoning": "",
-    "ollamaModelPathFast": "",
     "iacLiveTemplateStrict": True,
 }
 
@@ -304,7 +300,7 @@ def initialize_application_activity_log() -> None:
     try:
         APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
         projects_count = len(collect_project_entries())
-        provider = str(load_app_settings().get("modelProvider") or "ollama-local").strip().lower()
+        provider = str(load_app_settings().get("modelProvider") or "azure-foundry").strip().lower()
         _append_app_activity(
             "application.startup.ready",
             status="info",
@@ -1373,34 +1369,23 @@ def load_app_settings() -> dict:
 
 def resolve_model_by_purpose(settings: dict, purpose: str) -> tuple[str, str]:
     purpose_value = str(purpose or "fast").strip().lower()
-    provider = str(settings.get("modelProvider") or "ollama-local").strip().lower()
-    if provider == "ollama-local":
-        purpose_to_var = {
-            "coding": "ollamaModelPathCoding",
-            "code": "ollamaModelPathCoding",
-            "reasoning": "ollamaModelPathReasoning",
-            "fast": "ollamaModelPathFast",
-            "chat": "ollamaModelPathReasoning",
-        }
-    else:
-        purpose_to_var = {
-            "coding": "foundryModelCoding",
-            "code": "foundryModelCoding",
-            "reasoning": "foundryModelReasoning",
-            "fast": "foundryModelFast",
-            "chat": "foundryModelReasoning",
-        }
-    variable = purpose_to_var.get(purpose_value, "modelFast")
-    if variable == "modelFast":
-        variable = "ollamaModelPathFast" if provider == "ollama-local" else "foundryModelFast"
+    provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
+    purpose_to_var = {
+        "coding": "foundryModelCoding",
+        "code": "foundryModelCoding",
+        "reasoning": "foundryModelReasoning",
+        "fast": "foundryModelFast",
+        "chat": "foundryModelReasoning",
+    }
+    variable = purpose_to_var.get(purpose_value, "foundryModelFast")
     model_name = str(settings.get(variable) or "").strip()
     return variable, model_name
 
 
 def sanitize_app_settings_for_provider(settings: dict) -> dict:
     incoming = settings if isinstance(settings, dict) else {}
-    provider = str(incoming.get("modelProvider") or "ollama-local").strip().lower()
-    normalized_provider = "azure-foundry" if provider == "azure-foundry" else "ollama-local"
+    provider = str(incoming.get("modelProvider") or "azure-foundry").strip().lower()
+    normalized_provider = "azure-foundry"
 
     merged = {
         **DEFAULT_APP_SETTINGS,
@@ -1408,66 +1393,39 @@ def sanitize_app_settings_for_provider(settings: dict) -> dict:
         "modelProvider": normalized_provider,
     }
 
-    if normalized_provider == "azure-foundry":
-        merged["ollamaBaseUrl"] = ""
-        merged["ollamaModelPathCoding"] = ""
-        merged["ollamaModelPathReasoning"] = ""
-        merged["ollamaModelPathFast"] = ""
-    else:
-        merged["azureSubscriptionId"] = ""
-        merged["azureResourceGroup"] = ""
-        merged["aiFoundryProjectName"] = ""
-        merged["aiFoundryEndpoint"] = ""
-        merged["foundryModelCoding"] = ""
-        merged["foundryModelReasoning"] = ""
-        merged["foundryModelFast"] = ""
-
     return merged
 
 
 def build_persistable_app_settings(settings: dict) -> dict:
     sanitized = sanitize_app_settings_for_provider(settings)
-    provider = str(sanitized.get("modelProvider") or "ollama-local").strip().lower()
+    provider = str(sanitized.get("modelProvider") or "azure-foundry").strip().lower()
 
-    if provider == "azure-foundry":
-        keys = (
-            "modelProvider",
-            "azureTenantId",
-            "azureClientId",
-            "azureClientSecret",
-            "azureSubscriptionId",
-            "azureResourceGroup",
-            "aiFoundryProjectName",
-            "aiFoundryEndpoint",
-            "foundryApiVersion",
-            "foundryModelCoding",
-            "foundryModelReasoning",
-            "foundryModelFast",
-            "foundryChatAgentId",
-            "foundryIacAgentId",
-            "foundryValidationAgentId",
-            "foundryDefaultAgentId",
-            "foundryDefaultThreadId",
-            "iacLiveTemplateStrict",
-        )
-    else:
-        keys = (
-            "modelProvider",
-            "azureTenantId",
-            "azureClientId",
-            "azureClientSecret",
-            "ollamaBaseUrl",
-            "ollamaModelPathCoding",
-            "ollamaModelPathReasoning",
-            "ollamaModelPathFast",
-            "iacLiveTemplateStrict",
-        )
+    keys = (
+        "modelProvider",
+        "azureTenantId",
+        "azureClientId",
+        "azureClientSecret",
+        "azureSubscriptionId",
+        "azureResourceGroup",
+        "aiFoundryProjectName",
+        "aiFoundryEndpoint",
+        "foundryApiVersion",
+        "foundryModelCoding",
+        "foundryModelReasoning",
+        "foundryModelFast",
+        "foundryChatAgentId",
+        "foundryIacAgentId",
+        "foundryValidationAgentId",
+        "foundryDefaultAgentId",
+        "foundryDefaultThreadId",
+        "iacLiveTemplateStrict",
+    )
 
     return {key: sanitized.get(key, "") for key in keys}
 
 
 def is_azure_foundry_provider(settings: dict) -> bool:
-    return str(settings.get("modelProvider") or "ollama-local").strip().lower() == "azure-foundry"
+    return str(settings.get("modelProvider") or "azure-foundry").strip().lower() == "azure-foundry"
 
 
 def _non_empty_text(value: Any) -> str:
@@ -2364,7 +2322,7 @@ def save_app_settings(body: AppSettingsPayload):
             **DEFAULT_APP_SETTINGS,
             **incoming_settings,
         }
-        provider = str(effective_settings.get("modelProvider") or "ollama-local").strip().lower()
+        provider = str(effective_settings.get("modelProvider") or "azure-foundry").strip().lower()
 
         _append_app_activity(
             "settings.app.save",
@@ -2426,7 +2384,7 @@ def get_app_settings():
         step="completed",
         source="backend.api",
         details={
-            "provider": str(settings.get("modelProvider") or "ollama-local").strip().lower(),
+            "provider": str(settings.get("modelProvider") or "azure-foundry").strip().lower(),
             "hasFoundryEndpoint": bool(str(settings.get("aiFoundryEndpoint") or "").strip()),
         },
     )
@@ -2434,6 +2392,52 @@ def get_app_settings():
         "settings": settings,
         "path": str(target.relative_to(WORKSPACE_ROOT)) if target.exists() else None,
     }
+
+
+@app.delete("/api/settings/app/reset")
+def reset_app_settings():
+    try:
+        target = APP_STATE_DIR / "app.settings.env"
+        
+        _append_app_activity(
+            "settings.app.reset",
+            status="info",
+            category="settings",
+            step="requested",
+            source="backend.api",
+            details={
+                "fileExists": target.exists(),
+            },
+        )
+
+        # Delete the settings file if it exists
+        if target.exists():
+            target.unlink()
+
+        _append_app_activity(
+            "settings.app.reset",
+            status="info",
+            category="settings",
+            step="completed",
+            source="backend.api",
+            details={
+                "fileDeleted": True,
+            },
+        )
+
+        return {"ok": True, "message": "Application settings reset successfully."}
+    except Exception as exc:
+        _append_app_activity(
+            "settings.app.reset",
+            status="error",
+            category="settings",
+            step="failed",
+            source="backend.api",
+            details={
+                "error": str(exc),
+            },
+        )
+        raise HTTPException(status_code=500, detail="Failed to reset application settings.")
 
 
 @app.post("/api/foundry/bootstrap-default")
@@ -3548,7 +3552,7 @@ def audit_project_architecture_validation_fix(project_id: str, body: Architectur
 def verify_app_settings(body: VerifySettingsPayload):
     settings = body.settings or {}
 
-    provider = str(settings.get("modelProvider") or "ollama-local").strip().lower()
+    provider = str(settings.get("modelProvider") or "azure-foundry").strip().lower()
     try:
         _append_app_activity(
             "settings.app.verify",
@@ -3559,10 +3563,7 @@ def verify_app_settings(body: VerifySettingsPayload):
             details={"provider": provider},
         )
 
-        if provider == "ollama-local":
-            message, models = verify_ollama_settings(settings)
-        else:
-            message, models = verify_foundry_settings(settings)
+        message, models = verify_foundry_settings(settings)
 
         _append_app_activity(
             "settings.app.verify",

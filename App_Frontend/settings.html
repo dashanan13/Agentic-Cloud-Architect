@@ -23,7 +23,7 @@
           <section class="settings-panel">
             <div class="settings-content">
               <h2 id="settings-heading">Application Settings</h2>
-              <p id="settings-subtitle" class="settings-subtitle">Configure models for Azure AI Foundry or local Ollama.</p>
+              <p id="settings-subtitle" class="settings-subtitle">Configure models for Azure AI Foundry.</p>
 
               <form id="app-settings-form" class="settings-form">
                 <section class="settings-section">
@@ -51,7 +51,6 @@
                     <label for="as-model-provider">Model Provider</label>
                     <select id="as-model-provider">
                       <option value="azure-foundry">Azure AI Foundry</option>
-                      <option value="ollama-local">Local (Ollama)</option>
                     </select>
                   </div>
 
@@ -118,39 +117,6 @@
                     </select>
                   </div>
                 </div>
-
-                <div id="as-ollama-fields" class="provider-fields is-hidden" hidden>
-                  <div class="form-group">
-                    <div class="label-row">
-                      <label for="as-ollama-base-url">Ollama Base URL</label>
-                      <span id="as-ollama-base-url-status" class="status-icon" aria-hidden="true"></span>
-                    </div>
-                    <div class="input-row">
-                      <input type="text" id="as-ollama-base-url" placeholder="http://host.docker.internal:11434" />
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="as-ollama-model-coding">Coding Model Path</label>
-                    <select id="as-ollama-model-coding">
-                      <option value="">Select a model</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="as-ollama-model-reasoning">Reasoning Model Path</label>
-                    <select id="as-ollama-model-reasoning">
-                      <option value="">Select a model</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="as-ollama-model-fast">Fast Model Path</label>
-                    <select id="as-ollama-model-fast">
-                      <option value="">Select a model</option>
-                    </select>
-                  </div>
-                </div>
                 </section>
 
                 <section class="settings-section">
@@ -173,7 +139,7 @@
               <div id="settings-message" class="form-message" aria-live="polite"></div>
               <div class="settings-actions">
                 <button id="btn-settings-verify" class="btn btn--verify" title="Test connection to AI model provider">Verify connection</button>
-                <button id="btn-settings-reset" class="btn btn--secondary" title="Reset all settings to default values">Reset</button>
+                <button id="btn-settings-reset" class="btn btn--secondary" title="Remove settings">Clear settings</button>
                 <button id="btn-settings-save" class="btn btn--primary" title="Save all application settings">Save Application Settings</button>
               </div>
             </div>

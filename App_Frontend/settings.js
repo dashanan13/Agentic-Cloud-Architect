@@ -13,18 +13,13 @@ const projectGithubRepoUrlInput = document.getElementById("ps-github-repo-url");
 
 const providerSelect = document.getElementById("as-model-provider");
 const foundryFields = document.getElementById("as-foundry-fields");
-const ollamaFields = document.getElementById("as-ollama-fields");
 const foundryEndpointStatus = document.getElementById("as-foundry-endpoint-status");
-const ollamaBaseUrlStatus = document.getElementById("as-ollama-base-url-status");
 const foundryCodingSelect = document.getElementById("as-foundry-model-coding");
 const foundryReasoningSelect = document.getElementById("as-foundry-model-reasoning");
 const foundryFastSelect = document.getElementById("as-foundry-model-fast");
 const foundryDefaultAgentInput = document.getElementById("as-foundry-app-agent");
 const foundryIacAgentInput = document.getElementById("as-foundry-iac-agent");
 const foundryDefaultThreadInput = document.getElementById("as-foundry-app-thread");
-const ollamaCodingSelect = document.getElementById("as-ollama-model-coding");
-const ollamaReasoningSelect = document.getElementById("as-ollama-model-reasoning");
-const ollamaFastSelect = document.getElementById("as-ollama-model-fast");
 const iacContinueOnMcpFailureCheckbox = document.getElementById("as-iac-continue-on-mcp-failure");
 
 const DEFAULT_APP_SETTINGS = {
@@ -37,7 +32,6 @@ const DEFAULT_APP_SETTINGS = {
   aiFoundryProjectName: "",
   aiFoundryEndpoint: "",
   foundryApiVersion: "2024-05-01-preview",
-  ollamaBaseUrl: "http://host.docker.internal:11434",
   foundryModelCoding: "",
   foundryModelReasoning: "",
   foundryModelFast: "",
@@ -45,9 +39,6 @@ const DEFAULT_APP_SETTINGS = {
   foundryIacAgentId: "",
   foundryDefaultAgentId: "",
   foundryDefaultThreadId: "",
-  ollamaModelPathCoding: "",
-  ollamaModelPathReasoning: "",
-  ollamaModelPathFast: "",
   iacLiveTemplateStrict: true
 };
 
@@ -63,7 +54,6 @@ const state = {
   projectId: "",
   isProjectMode: false,
   isVerified: false,
-  ollamaModels: [],
   foundryModels: []
 };
 
@@ -71,12 +61,6 @@ const foundryModelFieldIds = new Set([
   "as-foundry-model-coding",
   "as-foundry-model-reasoning",
   "as-foundry-model-fast"
-]);
-
-const ollamaModelFieldIds = new Set([
-  "as-ollama-model-coding",
-  "as-ollama-model-reasoning",
-  "as-ollama-model-fast"
 ]);
 
 function getParams() {
@@ -149,7 +133,7 @@ function applySettingsPageContext(params) {
     settingsHeading.textContent = "Application Settings";
   }
   if (settingsSubtitle) {
-    settingsSubtitle.textContent = "Configure models for Azure AI Foundry or local Ollama.";
+    settingsSubtitle.textContent = "Configure models for Azure AI Foundry.";
   }
   if (btnSave) {
     btnSave.textContent = "Save Application Settings";
@@ -217,10 +201,8 @@ function applyStatusIcon(iconElement, isActive, status) {
 
 function setStatusIcons(provider, status = "idle") {
   const showFoundry = provider === "azure-foundry";
-  const showOllama = provider === "ollama-local";
 
   applyStatusIcon(foundryEndpointStatus, showFoundry, status);
-  applyStatusIcon(ollamaBaseUrlStatus, showOllama, status);
 }
 
 function getFoundrySelectedModels() {
@@ -231,44 +213,25 @@ function getFoundrySelectedModels() {
   };
 }
 
-function getOllamaSelectedModels() {
-  return {
-    coding: String(ollamaCodingSelect?.value || "").trim(),
-    reasoning: String(ollamaReasoningSelect?.value || "").trim(),
-    fast: String(ollamaFastSelect?.value || "").trim()
-  };
-}
-
 function resetVerification({ preserveSelections = true } = {}) {
   state.isVerified = false;
   state.foundryModels = [];
-  state.ollamaModels = [];
 
   if (preserveSelections) {
     setFoundryModelOptions([], getFoundrySelectedModels());
-    setOllamaModelOptions([], getOllamaSelectedModels());
   } else {
     setFoundryModelOptions([], {});
-    setOllamaModelOptions([], {});
   }
 
   setFoundryModelLocked(true);
-  setOllamaModelLocked(true);
   updateSaveButtonState();
   setStatusIcons("azure-foundry", "idle");
-  setStatusIcons("ollama-local", "idle");
 }
 
 function setFoundryModelLocked(locked) {
   foundryCodingSelect.disabled = locked;
   foundryReasoningSelect.disabled = locked;
   foundryFastSelect.disabled = locked;
-}
-
-function setOllamaModelLocked(locked) {
-  ollamaCodingSelect.disabled = locked;
-  ollamaReasoningSelect.disabled = locked;
-  ollamaFastSelect.disabled = locked;
 }
 
 function updateSaveButtonState() {
@@ -278,8 +241,6 @@ function updateSaveButtonState() {
   if (state.isVerified) {
     if (provider === "azure-foundry") {
       canSave = [foundryCodingSelect, foundryReasoningSelect, foundryFastSelect].every((field) => String(field.value || "").trim());
-    } else {
-      canSave = [ollamaCodingSelect, ollamaReasoningSelect, ollamaFastSelect].every((field) => String(field.value || "").trim());
     }
   }
 
@@ -422,9 +383,6 @@ function updateProviderVisibility() {
 
   foundryFields.classList.toggle("is-hidden", !isFoundry);
   foundryFields.toggleAttribute("hidden", !isFoundry);
-
-  ollamaFields.classList.toggle("is-hidden", isFoundry);
-  ollamaFields.toggleAttribute("hidden", isFoundry);
 }
 
 function populateAppSettings() {
@@ -438,7 +396,6 @@ function populateAppSettings() {
   document.getElementById("as-azure-resource-group").value = appSettings.azureResourceGroup;
   document.getElementById("as-ai-foundry-project-name").value = appSettings.aiFoundryProjectName;
   document.getElementById("as-ai-foundry-endpoint").value = appSettings.aiFoundryEndpoint;
-  document.getElementById("as-ollama-base-url").value = appSettings.ollamaBaseUrl;
   const chatAgentId = String(appSettings.foundryChatAgentId || appSettings.foundryDefaultAgentId || "");
   if (foundryDefaultAgentInput) {
     foundryDefaultAgentInput.value = chatAgentId;
@@ -463,13 +420,6 @@ function populateAppSettings() {
     fast: appSettings.foundryModelFast
   });
   setFoundryModelLocked(true);
-
-  setOllamaModelOptions([], {
-    coding: appSettings.ollamaModelPathCoding,
-    reasoning: appSettings.ollamaModelPathReasoning,
-    fast: appSettings.ollamaModelPathFast
-  });
-  setOllamaModelLocked(true);
 
   updateProviderVisibility();
   updateSaveButtonState();
@@ -512,12 +462,6 @@ function setSelectOptions(selectElement, models, preferredValue) {
   }
 }
 
-function setOllamaModelOptions(models, preferred = {}) {
-  setSelectOptions(ollamaCodingSelect, models, preferred.coding);
-  setSelectOptions(ollamaReasoningSelect, models, preferred.reasoning);
-  setSelectOptions(ollamaFastSelect, models, preferred.fast);
-}
-
 function setFoundryModelOptions(models, preferred = {}) {
   setSelectOptions(foundryCodingSelect, models, preferred.coding);
   setSelectOptions(foundryReasoningSelect, models, preferred.reasoning);
@@ -525,40 +469,75 @@ function setFoundryModelOptions(models, preferred = {}) {
 }
 
 async function resetFormState() {
+  // Confirm before resetting
+  const confirmed = window.confirm(
+    "This will clear all settings and delete the saved app.settings.env file. Continue?"
+  );
+  
+  if (!confirmed) {
+    return;
+  }
+
   try {
-    await loadAppSettings();
+    // Call backend to delete settings file
+    const response = await fetch("/api/settings/app/reset", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to reset settings.");
+    }
+
+    // Reset application state to defaults
+    state.appSettings = { ...DEFAULT_APP_SETTINGS };
     state.foundryModels = [];
-    state.ollamaModels = [];
-    populateAppSettings();
+    state.isVerified = false;
+
+    // Clear all form fields
+    document.getElementById("as-model-provider").value = "azure-foundry";
+    document.getElementById("as-azure-tenant-id").value = "";
+    document.getElementById("as-azure-client-id").value = "";
+    document.getElementById("as-azure-client-secret").value = "";
+    document.getElementById("as-azure-subscription-id").value = "";
+    document.getElementById("as-azure-resource-group").value = "";
+    document.getElementById("as-ai-foundry-project-name").value = "";
+    document.getElementById("as-ai-foundry-endpoint").value = "";
+    document.getElementById("as-foundry-model-coding").value = "";
+    document.getElementById("as-foundry-model-reasoning").value = "";
+    document.getElementById("as-foundry-model-fast").value = "";
+    if (foundryDefaultAgentInput) {
+      foundryDefaultAgentInput.value = "";
+    }
+    if (foundryIacAgentInput) {
+      foundryIacAgentInput.value = "";
+    }
+    if (foundryDefaultThreadInput) {
+      foundryDefaultThreadInput.value = "";
+    }
+    if (iacContinueOnMcpFailureCheckbox) {
+      iacContinueOnMcpFailureCheckbox.checked = false;
+    }
+
+    // Reset UI state
+    updateProviderVisibility();
     resetVerification();
-    setMessage("Loaded saved settings from file.", "success");
+    updateSaveButtonState();
+
+    setMessage("All settings reset and app.settings.env deleted.", "success");
   } catch (error) {
-    setMessage(error.message || "Unable to reload saved settings.", "error");
+    setMessage(error.message || "Unable to reset settings.", "error");
   }
 }
 
 function buildProviderScopedSettings(settings) {
-  const provider = String(settings?.modelProvider || "azure-foundry").trim().toLowerCase();
   const scoped = {
     ...DEFAULT_APP_SETTINGS,
     ...settings,
-    modelProvider: provider === "ollama-local" ? "ollama-local" : "azure-foundry"
+    modelProvider: "azure-foundry"
   };
-
-  if (scoped.modelProvider === "azure-foundry") {
-    scoped.ollamaBaseUrl = "";
-    scoped.ollamaModelPathCoding = "";
-    scoped.ollamaModelPathReasoning = "";
-    scoped.ollamaModelPathFast = "";
-  } else {
-    scoped.azureSubscriptionId = "";
-    scoped.azureResourceGroup = "";
-    scoped.aiFoundryProjectName = "";
-    scoped.aiFoundryEndpoint = "";
-    scoped.foundryModelCoding = "";
-    scoped.foundryModelReasoning = "";
-    scoped.foundryModelFast = "";
-  }
 
   return scoped;
 }
@@ -579,13 +558,9 @@ function collectAppSettings() {
     foundryIacAgentId: String(state.appSettings.foundryIacAgentId || "").trim(),
     foundryDefaultAgentId: chatAgentId,
     foundryDefaultThreadId: String(state.appSettings.foundryDefaultThreadId || "").trim(),
-    ollamaBaseUrl: document.getElementById("as-ollama-base-url").value.trim(),
     foundryModelCoding: document.getElementById("as-foundry-model-coding").value.trim(),
     foundryModelReasoning: document.getElementById("as-foundry-model-reasoning").value.trim(),
     foundryModelFast: document.getElementById("as-foundry-model-fast").value.trim(),
-    ollamaModelPathCoding: document.getElementById("as-ollama-model-coding").value.trim(),
-    ollamaModelPathReasoning: document.getElementById("as-ollama-model-reasoning").value.trim(),
-    ollamaModelPathFast: document.getElementById("as-ollama-model-fast").value.trim(),
     iacLiveTemplateStrict: !(iacContinueOnMcpFailureCheckbox?.checked || false)
   };
 }
@@ -620,17 +595,10 @@ async function handleVerify() {
 
     state.isVerified = true;
     btnSave.disabled = false;
-    if (settings.modelProvider === "ollama-local") {
-      const models = Array.isArray(payload?.models) ? payload.models : [];
-      state.ollamaModels = models;
-      setOllamaModelOptions(models, {});
-      setOllamaModelLocked(false);
-    } else {
-      const models = Array.isArray(payload?.models) ? payload.models : [];
-      state.foundryModels = models;
-      setFoundryModelOptions(models, {});
-      setFoundryModelLocked(false);
-    }
+    const models = Array.isArray(payload?.models) ? payload.models : [];
+    state.foundryModels = models;
+    setFoundryModelOptions(models, {});
+    setFoundryModelLocked(false);
     setStatusIcons(settings.modelProvider, "ok");
     updateSaveButtonState();
     setMessage(payload?.message || "Verification succeeded.", "success", "Select models to enable Save.");
@@ -790,7 +758,7 @@ async function initialize() {
 
   document.getElementById("app-settings-form").addEventListener("input", (event) => {
     const targetId = event?.target?.id || "";
-    if (foundryModelFieldIds.has(targetId) || ollamaModelFieldIds.has(targetId)) {
+    if (foundryModelFieldIds.has(targetId)) {
       updateSaveButtonState();
       return;
     }
@@ -799,7 +767,7 @@ async function initialize() {
 
   document.getElementById("app-settings-form").addEventListener("change", (event) => {
     const targetId = event?.target?.id || "";
-    if (foundryModelFieldIds.has(targetId) || ollamaModelFieldIds.has(targetId)) {
+    if (foundryModelFieldIds.has(targetId)) {
       updateSaveButtonState();
       return;
     }

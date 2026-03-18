@@ -289,19 +289,19 @@ flowchart LR
 Basic run:
 
 ```bash
-docker pull mohit13/agentic-cloud-architect:beta
+docker pull mohit13/agentic-cloud-architect:latest
 docker run -d --name agentic-cloud-architect -p 3000:3000 \
-  mohit13/agentic-cloud-architect:beta
+  mohit13/agentic-cloud-architect:latest
 ```
 
 Persistent data (recommended):
 
 ```bash
-docker pull mohit13/agentic-cloud-architect:beta
+docker pull mohit13/agentic-cloud-architect:latest
 docker run -d --name agentic-cloud-architect -p 3000:3000 \
   -v "$PWD/App_State:/workspace/App_State" \
   -v "$PWD/Projects:/workspace/Projects" \
-  mohit13/agentic-cloud-architect:beta
+  mohit13/agentic-cloud-architect:latest
 ```
 
 Open: http://localhost:3000
