@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Canvas UI</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+  <!-- LEFT -->
+  <div class="section">
+    <img src="../../Assets/Icons/home.png" class="icon" />
+    <span>App Name</span>
+  </div>
+
+  <!-- CENTER -->
+  <div class="header-center">
+    <img src="../../Assets/Icons/generate.png" class="icon" />
+    <span>Project Name</span>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="section right-tools">
+
+    <div class="icon-btn" title="Export">
+      <img src="../../Assets/Icons/export.png" class="icon" />
+    </div>
+
+
+    <div class="icon-btn" title="Validate">
+      <img src="../../Assets/Icons/validate.png" class="icon" />
+    </div>
+
+
+    <div class="icon-btn" title="Save">
+      <img src="../../Assets/Icons/save.png" class="icon" />
+    </div>
+
+    <div class="icon-btn" title="Settings">
+      <img src="../../Assets/Icons/settings.png" class="icon" />
+    </div>
+    
+
+    <div class="icon-btn" title="Home">
+      <img src="../../Assets/Icons/home.png" class="icon" />
+    </div>
+
+    <div class="signin">Sign In</div>
+
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <h3>Resources</h3>
+    <p>[Resource 1]</p>
+    <p>[Resource 2]</p>
+    <p>[Resource 3]</p>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-container">
+
+    <div class="canvas-toolbar">
+
+      <!-- LEFT -->
+      <div class="toolbar-left">
+        <div class="icon-btn" onclick="zoomOut()">-</div>
+        <span id="zoomValue">Zoom: 100%</span>
+        <div class="icon-btn" onclick="zoomIn()">+</div>
+      </div>
+
+      <!-- CENTER (floating messages) -->
+      <div class="toolbar-center" id="infoMessage">
+        Info messages
+      </div>
+
+      <!-- RIGHT -->
+      <div class="toolbar-right">
+        <div class="icon-btn" onclick="resetCanvas()" title="Reset">
+          <img src="../../Assets/Icons/reset.png" class="icon" />
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="canvas" id="canvas">
+      <!-- future drag-drop area -->
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(event, 'properties')">Properties</div>
+      <div class="tab" onclick="switchTab(event, 'chat')">AI Chat</div>
+      <div class="tab" onclick="switchTab(event, 'tips')">Tips</div>
+    </div>
+
+    <div class="tab-content">
+
+      <div id="properties" class="tab-pane active">
+        <p>Properties panel...</p>
+      </div>
+
+      <div id="chat" class="tab-pane">
+        <div class="chat-box">
+          <div class="message">Hello! Ask me anything.</div>
+        </div>
+        <input type="text" placeholder="Type a message..." />
+      </div>
+
+      <div id="tips" class="tab-pane">
+        <p>Helpful tips will appear here.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
