@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landing</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Agentic Cloud Architect</h1>
+    <p>Design, build, and manage cloud infrastructure with AI assistance</p>
+  </div>
+
+  <!-- SELECT PROJECT -->
+  <div class="card">
+    <div class="card-header" onclick="toggleSection(this)">
+      <h2>Select Project</h2>
+      <span>▼</span>
+    </div>
+
+    <div class="card-body">
+
+      <div class="project-item">
+        <div>
+          <strong>Azure-Project1</strong><br>
+          <span class="muted">3/22/2026, 12:10 AM</span>
+        </div>
+
+        <button class="btn-plain">Delete</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CREATE PROJECT -->
+  <div class="card">
+    <div class="card-header" onclick="toggleSection(this)">
+      <h2>Create Project</h2>
+      <span>▼</span>
+    </div>
+
+    <div class="card-body">
+
+      <label>Cloud Provider</label>
+      <select>
+        <option>Select a cloud...</option>
+      </select>
+
+      <label>Application type / use case</label>
+      <select>
+        <option>Select application type...</option>
+      </select>
+
+      <label>IaC script language</label>
+      <div class="toggle">
+        <button class="active">Bicep</button>
+        <button>Terraform</button>
+      </div>
+
+      <label>Project Name</label>
+      <input placeholder="project-name">
+
+      <label>Project ID</label>
+      <input disabled placeholder="Auto-generated">
+
+      <label>Project Description</label>
+
+      <!-- QUALITY BAR -->
+      <div class="quality-bar">
+        <div class="q red"></div>
+        <div class="q orange"></div>
+        <div class="q yellow"></div>
+        <div class="q green"></div>
+        <div class="q teal"></div>
+      </div>
+
+      <textarea rows="5"></textarea>
+
+      <div class="help">
+        <p>A good description includes:</p>
+        <ol>
+          <li>What you are building</li>
+          <li>Who will use it</li>
+          <li>Main components</li>
+          <li>Data type & sensitivity</li>
+          <li>Requirements (latency, compliance)</li>
+        </ol>
+      </div>
+
+      <button class="primary full">Create Project</button>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  body.style.display = body.style.display === "none" ? "block" : "none";
+}
+</script>
+
+</body>
+</html>

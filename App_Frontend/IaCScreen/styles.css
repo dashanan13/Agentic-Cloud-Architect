@@ -1,0 +1,205 @@
+/* GLOBAL */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f5f6f8;
+  color: #1f1f1f;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 16px;
+  background: #ffffff;
+  position: relative;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 600;
+}
+
+.right-tools {
+  margin-left: auto;
+}
+
+.icon {
+  width: 18px;
+  opacity: 0.7;
+}
+
+/* BUTTONS */
+.btn {
+  padding: 6px 12px;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn:hover {
+  background: #f0f0f0;
+}
+
+/* TOGGLE */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.switch {
+  width: 36px;
+  height: 18px;
+  background: #ccc;
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.switch::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.switch.active {
+  background: #0078d4;
+}
+
+.switch.active::after {
+  left: 20px;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* GENERATION */
+.generation-section {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.generation-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.error-text {
+  color: #d13438;
+}
+
+.collapse-hint {
+  color: #888;
+  font-size: 12px;
+}
+
+.generation-body {
+  padding: 12px 16px;
+}
+
+/* STEP BOXES (IMPROVED) */
+.step {
+  background: #fafafa;
+  border: 1px solid #e2e2e2;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.step:hover {
+  background: #f3f3f3;
+}
+
+.step-title {
+  font-size: 13px;
+}
+
+.step-body {
+  display: none;
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+}
+
+.step.error {
+  border-left: 3px solid #d13438;
+}
+
+.step.error .step-title {
+  color: #d13438;
+}
+
+/* BOTTOM */
+.bottom-section {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* TREE */
+.tree-panel {
+  width: 28%;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-content {
+  padding: 12px;
+  font-size: 13px;
+}
+
+/* PREVIEW */
+.preview-panel {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-content {
+  padding: 12px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* TITLES */
+.panel-title {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}

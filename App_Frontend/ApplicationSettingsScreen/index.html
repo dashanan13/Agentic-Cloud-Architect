@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Application Settings</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="header">
+  <button class="btn-plain">← Back</button>
+  <div class="header-title">Application Settings</div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Azure App Registration Details</h2>
+
+    <label>AZURE_TENANT_ID</label>
+    <input>
+
+    <label>AZURE_CLIENT_ID</label>
+    <input>
+
+    <label>AZURE_CLIENT_SECRET</label>
+    <input type="password">
+  </div>
+
+  <div class="card">
+    <h2>Model Configuration</h2>
+
+    <label>Model Provider</label>
+    <select><option>Azure AI Foundry</option></select>
+
+    <label>AZURE_SUBSCRIPTION_ID</label>
+    <input>
+
+    <label>AZURE_RESOURCE_GROUP</label>
+    <input>
+
+    <label>AI_FOUNDRY_PROJECT_NAME</label>
+    <input>
+
+    <label>AI_FOUNDRY_ENDPOINT</label>
+    <input>
+
+    <label>Chat Agent</label>
+    <input>
+
+    <label>IaC Agent</label>
+    <input>
+
+    <label>Application Thread</label>
+    <input>
+
+    <label>Coding Model</label>
+    <select><option>gpt-5.2</option></select>
+
+    <label>Reasoning Model</label>
+    <select><option>gpt-5.2</option></select>
+
+    <label>Fast Model</label>
+    <select><option>gpt-5.2</option></select>
+  </div>
+
+  <div class="card">
+    <h2>IaC Generation</h2>
+
+    <p><strong>Live template failure behavior</strong></p>
+
+    <label>
+      <input type="checkbox">
+      Continue on MCP failure (fallback to local templates)
+    </label>
+
+    <p class="muted">
+      If unchecked, generation fails fast when live MCP template/schema lookup fails.
+    </p>
+  </div>
+
+  <div class="actions">
+    <button>Verify connection</button>
+    <button>Remove settings</button>
+    <button class="primary">Save Application Settings</button>
+  </div>
+
+</div>
+
+</body>
+</html>

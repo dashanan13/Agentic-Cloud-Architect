@@ -1,0 +1,117 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f5f6f8;
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+
+/* HERO */
+.hero {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* FORM */
+label {
+  display: block;
+  margin-top: 14px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+}
+
+/* TOGGLE */
+.toggle {
+  display: flex;
+  margin-top: 6px;
+}
+
+.toggle button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.toggle .active {
+  background: #ddd;
+}
+
+/* PROJECT ITEM */
+.project-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #eee;
+  padding: 12px;
+}
+
+.btn-plain {
+  border: 1px solid #ccc;
+  background: none;
+  padding: 6px 12px;
+}
+
+/* QUALITY */
+.quality-bar {
+  display: flex;
+  height: 6px;
+  margin: 8px 0 10px;
+}
+
+.q { flex: 1; }
+.red { background: #e74c3c; }
+.orange { background: #f39c12; }
+.yellow { background: #f1c40f; }
+.green { background: #2ecc71; }
+.teal { background: #1abc9c; }
+
+/* HELP */
+.help {
+  background: #fafafa;
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+/* BUTTON */
+.primary {
+  margin-top: 20px;
+  padding: 12px;
+}
+
+.full { width: 100%; }
+
+.muted { color: #888; }

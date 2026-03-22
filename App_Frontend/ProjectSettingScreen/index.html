@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Project Settings</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="header">
+  <button class="btn-plain">← Back</button>
+  <div class="header-title">Project Settings</div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Project Configuration</h2>
+
+    <label>Project Thread</label>
+    <input>
+
+    <label>GITHUB_REPO_URL</label>
+    <input>
+
+    <label>IaC script language</label>
+    <div class="toggle">
+      <button class="active">Bicep</button>
+      <button>Terraform</button>
+    </div>
+
+    <label>Bicep parameter file format</label>
+    <div class="toggle">
+      <button class="active">.bicepparam</button>
+      <button>.json</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Project Details</h2>
+
+    <label>Project Name</label>
+    <input>
+
+    <label>Project ID</label>
+    <input disabled>
+
+    <label>Project Cloud</label>
+    <input disabled value="Azure">
+
+    <label>Application Type</label>
+    <select>
+      <option>API / Backend Service</option>
+    </select>
+
+    <label>Project Description</label>
+
+    <div class="quality-bar">
+      <div class="q red"></div>
+      <div class="q orange"></div>
+      <div class="q yellow"></div>
+      <div class="q green"></div>
+      <div class="q teal"></div>
+    </div>
+
+    <textarea rows="6"></textarea>
+
+    <div class="help">
+      <p>A good description includes:</p>
+      <ol>
+        <li>What you are building</li>
+        <li>Users & scale</li>
+        <li>Components</li>
+        <li>Data sensitivity</li>
+        <li>Requirements</li>
+      </ol>
+    </div>
+  </div>
+
+  <button class="primary full">Save Project Settings</button>
+
+</div>
+
+</body>
+</html>

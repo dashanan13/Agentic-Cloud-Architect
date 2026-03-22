@@ -1,0 +1,81 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f5f6f8;
+}
+
+/* HEADER */
+.header {
+  position: relative;
+  height: 56px;              /* FIXED HEIGHT */
+  padding: 0 40px;           /* REMOVE vertical padding */
+  display: flex;
+  align-items: center;       /* vertical centering for back button */
+  background: white;
+  border-bottom: 1px solid #ddd;
+}
+
+/* CENTER TITLE PROPERLY */
+.header-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;                  /* KEY FIX */
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 0 40px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 40px;
+}
+
+button {
+  padding: 10px;
+}
+
+.primary {
+  background: #ddd;
+}
+
+.btn-plain {
+  border: 1px solid #ccc;
+  background: none;
+  padding: 6px 12px;
+}
+
+.muted {
+  color: #777;
+  font-size: 14px;
+}

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IaC Screen</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+  <div class="section">
+    <img src="../../Assets/Icons/home.png" class="icon" />
+    <span>App Name</span>
+  </div>
+
+  <div class="header-center">
+    IaC: Project Title
+  </div>
+
+  <div class="section right-tools">
+
+    <!-- TOGGLE -->
+    <div class="toggle">
+      <span id="warningLabel">Warnings: Allowed</span>
+      <div class="switch active" id="warningToggle" onclick="toggleWarnings()"></div>
+    </div>
+
+    <button class="btn">Retry</button>
+    <button class="btn">Back</button>
+  </div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- GENERATION -->
+  <div class="generation-section">
+
+    <div class="generation-header" onclick="toggleGeneration()">
+      <span>Generation Status: <b class="error-text">Error</b></span>
+      <span class="collapse-hint">click to collapse</span>
+    </div>
+
+    <div class="generation-body" id="generationBody">
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-title">Clear existing IaC output</div>
+        <div class="step-body">Cleaned existing IaC output folder</div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-title">Gather resource properties</div>
+        <div class="step-body">Captured 5 resources and 1 connections</div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-title">Build dependency tree</div>
+        <div class="step-body">Dependency tree built successfully</div>
+      </div>
+
+      <div class="step error" onclick="toggleStep(this)">
+        <div class="step-title">Run coding-model guardrails</div>
+        <div class="step-body">8 checks failed — blocking generation</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-section">
+
+    <div class="tree-panel">
+      <div class="panel-title">Tree structure of IaC files and folders</div>
+
+      <div class="tree-content">
+        <p>📁 root</p>
+        <p> ├── 📄 main.bicep</p>
+        <p> ├── 📄 parameters.json</p>
+        <p> └── 📁 modules</p>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="panel-title">
+        File preview of the file selected in the folder tree
+      </div>
+
+      <div class="preview-content">
+        Select a file to preview its content...
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function toggleGeneration() {
+  const body = document.getElementById("generationBody");
+  body.style.display = body.style.display === "none" ? "block" : "none";
+}
+
+function toggleStep(el) {
+  const body = el.querySelector(".step-body");
+  body.style.display = body.style.display === "block" ? "none" : "block";
+}
+
+/* TOGGLE LOGIC */
+function toggleWarnings() {
+  const toggle = document.getElementById("warningToggle");
+  const label = document.getElementById("warningLabel");
+
+  toggle.classList.toggle("active");
+
+  if (toggle.classList.contains("active")) {
+    label.innerText = "Warnings: Allowed";
+  } else {
+    label.innerText = "Warnings: Disallowed";
+  }
+}
+</script>
+
+</body>
+</html>
