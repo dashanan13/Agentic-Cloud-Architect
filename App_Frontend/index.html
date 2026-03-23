@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic Cloud Architect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .home-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .logo {
+            width: 240px;
+            height: 240px;
+            object-fit: contain;
+        }
+
+        .app-name {
+            font-size: 40px;
+            font-weight: 600;
+            color: #000000;
+            letter-spacing: -0.5px;
+        }
+
+        .start-button {
+            padding: 14px 48px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #000000;
+            background-color: #ffffff;
+            border: 2px solid #4a4a4a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .start-button:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .start-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="home-container">
+        <img src="/Assets/Logo/logo.png" alt="Agentic Cloud Architect Logo" class="logo" />
+        <h1 class="app-name">Agentic Cloud Architect</h1>
+        <button class="start-button" onclick="navigateToLaunchScreen()">Start</button>
+    </div>
+
+    <script>
+        function navigateToLaunchScreen() {
+            window.location.href = './landing.html';
+        }
+    </script>
+</body>
+</html>
