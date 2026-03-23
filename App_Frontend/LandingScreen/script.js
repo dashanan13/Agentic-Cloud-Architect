@@ -122,15 +122,43 @@ function updateProjectIdPreview() {
 
 // ===== Message Handling =====
 function setMessage(text, type = "info") {
+  // Use overlay modal when available; fall back to inline message
+  const overlay = document.getElementById('landing-overlay');
+  const overlayContent = document.getElementById('landing-overlay-content');
+  if (overlay && overlayContent) {
+    // hide if empty
+    if (!text) {
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden', 'true');
+      overlayContent.innerHTML = '';
+      return;
+    }
+    overlayContent.innerHTML = '';
+    const msg = document.createElement('div');
+    msg.className = `message ${type ? `message--${type}` : ""}`.trim();
+    msg.textContent = text;
+    overlayContent.appendChild(msg);
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+    return;
+  }
   if (!messageEl) return;
   messageEl.textContent = text;
   messageEl.className = `message ${type ? `message--${type}` : ""}`.trim();
 }
 
 function clearMessage() {
+  const overlay = document.getElementById('landing-overlay');
+  const overlayContent = document.getElementById('landing-overlay-content');
+  if (overlay) {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    if (overlayContent) overlayContent.innerHTML = '';
+    return;
+  }
   if (messageEl) {
-    messageEl.textContent = "";
-    messageEl.className = "message";
+    messageEl.textContent = '';
+    messageEl.className = 'message';
   }
 }
 
@@ -535,3 +563,22 @@ function toggleSection(header) {
 
 // ===== Start =====
 initialize();
+
+// Setup overlay close/backdrop handlers (if overlay exists)
+(() => {
+  const overlay = document.getElementById('landing-overlay');
+  if (!overlay) return;
+  const backdrop = overlay.querySelector('.overlay-backdrop');
+  const close = overlay.querySelector('.overlay-close');
+  // clicking backdrop closes
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target === backdrop) {
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+  });
+  if (close) close.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+  });
+})();
