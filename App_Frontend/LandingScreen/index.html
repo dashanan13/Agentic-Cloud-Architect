@@ -15,97 +15,119 @@
   <div class="hero">
     <h1>Agentic Cloud Architect</h1>
     <p>Design, build, and manage cloud infrastructure with AI assistance</p>
+    <div class="hero-actions">
+      <button type="button" id="btn-app-settings" class="btn-secondary" title="Configure Azure AI Foundry settings">Application Settings</button>
+    </div>
   </div>
 
   <!-- SELECT PROJECT -->
-  <div class="card">
+    <div class="card">
     <div class="card-header" onclick="toggleSection(this)">
       <h2>Select Project</h2>
-      <span>▼</span>
+      <span class="collapse-indicator">Collapse</span>
     </div>
 
-    <div class="card-body">
-
-      <div class="project-item">
-        <div>
-          <strong>Azure-Project1</strong><br>
-          <span class="muted">3/22/2026, 12:10 AM</span>
-        </div>
-
-        <button class="btn-plain">Delete</button>
-      </div>
-
+    <div class="card-body" id="projects-select-content">
+      <div id="projects-azure"></div>
+      <div id="landing-message" class="message"></div>
     </div>
   </div>
 
   <!-- CREATE PROJECT -->
-  <div class="card">
-    <div class="card-header" onclick="toggleSection(this)">
+    <div class="card">
+    <div class="card-header" id="landing-create-toggle" onclick="toggleSection(this)">
       <h2>Create Project</h2>
-      <span>▼</span>
+      <span class="collapse-indicator">Collapse</span>
     </div>
 
     <div class="card-body">
 
-      <label>Cloud Provider</label>
-      <select>
-        <option>Select a cloud...</option>
-      </select>
-
-      <label>Application type / use case</label>
-      <select>
-        <option>Select application type...</option>
-      </select>
-
-      <label>IaC script language</label>
-      <div class="toggle">
-        <button class="active">Bicep</button>
-        <button>Terraform</button>
+      <div class="form-group" style="display: none;">
+        <label>Cloud Provider</label>
+        <select id="landing-cloud">
+          <option value="Azure" selected>Azure</option>
+        </select>
       </div>
 
-      <label>Project Name</label>
-      <input placeholder="project-name">
-
-      <label>Project ID</label>
-      <input disabled placeholder="Auto-generated">
-
-      <label>Project Description</label>
-
-      <!-- QUALITY BAR -->
-      <div class="quality-bar">
-        <div class="q red"></div>
-        <div class="q orange"></div>
-        <div class="q yellow"></div>
-        <div class="q green"></div>
-        <div class="q teal"></div>
+      <div class="form-group">
+        <label>Application type / use case</label>
+        <select id="landing-app-type">
+          <option value="">Select application type...</option>
+          <option value="Web Application">Web Application</option>
+          <option value="API / Backend Service">API / Backend Service</option>
+          <option value="Microservices Platform">Microservices Platform</option>
+          <option value="Data Processing / Analytics">Data Processing / Analytics</option>
+          <option value="AI / ML Application">AI / ML Application</option>
+          <option value="Internal Enterprise System">Internal Enterprise System</option>
+          <option value="IoT System">IoT System</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
 
-      <textarea rows="5"></textarea>
-
-      <div class="help">
-        <p>A good description includes:</p>
-        <ol>
-          <li>What you are building</li>
-          <li>Who will use it</li>
-          <li>Main components</li>
-          <li>Data type & sensitivity</li>
-          <li>Requirements (latency, compliance)</li>
-        </ol>
+      <div class="form-group">
+        <label>IaC script language</label>
+        <div class="segmented-control">
+          <input type="radio" name="landing-iac-language" value="bicep" id="iac-bicep" checked>
+          <label for="iac-bicep">Bicep</label>
+          <input type="radio" name="landing-iac-language" value="terraform" id="iac-terraform">
+          <label for="iac-terraform">Terraform</label>
+        </div>
       </div>
 
-      <button class="primary full">Create Project</button>
+      <div class="form-group">
+        <label>Project Name</label>
+        <input id="landing-name" placeholder="project-name">
+        <small id="landing-name-hint" class="hint"></small>
+      </div>
+
+      <div class="form-group">
+        <label>Project ID</label>
+        <input id="landing-project-id" disabled placeholder="Auto-generated">
+      </div>
+
+      <div class="form-group">
+        <label>Project Description</label>
+
+        <!-- QUALITY BAR -->
+        <div id="landing-quality-bar" class="quality-bar">
+          <div class="q red"></div>
+          <div class="q orange"></div>
+          <div class="q yellow"></div>
+          <div class="q green"></div>
+          <div class="q teal"></div>
+        </div>
+        <small id="landing-quality-status">Quality: Not evaluated</small>
+
+        <div class="description-input-wrapper">
+          <div class="textarea-placeholder" id="description-placeholder">
+            <p>This description is used as <strong>AI context</strong> throughout your entire project — the AI architect will read it before every conversation to understand your <strong>goals</strong>, <strong>constraints</strong>, and <strong>design intent</strong>. The richer and more specific it is, the better the AI guidance you will receive.</p>
+            <p class="placeholder-example">Example: A global API service handling <strong>identity verification</strong> for a consumer web app. Expected <strong>10k daily users worldwide</strong>, storing <strong>PII data</strong> with <strong>GDPR compliance</strong>, requiring <strong>high availability</strong> and <strong>low latency</strong>.</p>
+            <p class="placeholder-tip">💡 Descriptions over <strong>500 characters</strong> give the AI enough context to provide meaningful architecture guidance.</p>
+          </div>
+            <textarea id="landing-description" rows="5"></textarea>
+            <button type="button" id="btn-improve-description" class="btn-secondary" title="Improve description with AI">AI</button>
+        </div>
+
+        <div class="help">
+          <p>A good description includes:</p>
+          <ol>
+            <li>What type of application are you building and what problem does it solve?</li>
+            <li>Who will use it, from where, and how many users do you expect?</li>
+            <li>What main components will it include (web app, API, database, etc.)?</li>
+            <li>What type of data will it handle — including any sensitive or regulated data?</li>
+            <li>Any specific requirements: high availability, compliance (GDPR, HIPAA), latency, cost constraints?</li>
+          </ol>
+        </div>
+      </div>
+
+      <button id="btn-landing-create" class="primary full">Create Project</button>
 
     </div>
   </div>
 
 </div>
 
-<script>
-function toggleSection(header) {
-  const body = header.nextElementSibling;
-  body.style.display = body.style.display === "none" ? "block" : "none";
-}
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>

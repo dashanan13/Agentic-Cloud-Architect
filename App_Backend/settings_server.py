@@ -4800,7 +4800,12 @@ def delete_project_snapshot(project_id: str):
 
 @app.get("/", include_in_schema=False)
 def frontend_root():
-    return RedirectResponse(url="/landing.html")
+    return RedirectResponse(url="/index.html")
+
+
+@app.get("/index.html", include_in_schema=False)
+def index_page():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 @app.get("/landing.html", include_in_schema=False)

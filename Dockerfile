@@ -11,6 +11,7 @@ RUN apt-get update \
 COPY App_Backend/settings_server.py ./settings_server.py
 COPY Agents ./Agents
 COPY App_Frontend ./App_Frontend
+COPY Assets ./Assets
 COPY Clouds ./Clouds
 COPY Projects/Default /workspace/Projects/Default
 RUN mkdir -p /workspace/App_State
@@ -22,7 +23,8 @@ RUN python /app/App_Frontend/generate_catalogs.py \
 	&& if [ -f /app/Clouds/AWS/AWS-Icon.png ]; then cp /app/Clouds/AWS/AWS-Icon.png /app/App_Frontend/icons/aws-icon.png; fi \
 	&& if [ -f /app/Clouds/GCP/GCP-Icon.png ]; then cp /app/Clouds/GCP/GCP-Icon.png /app/App_Frontend/icons/gcp-icon.png; fi \
 	&& cp /app/Clouds/azure-bicep-icon.png /app/App_Frontend/icons/azure-bicep-icon.png \
-	&& cp /app/Clouds/terraform-icon.png /app/App_Frontend/icons/terraform-icon.png
+	&& cp /app/Clouds/terraform-icon.png /app/App_Frontend/icons/terraform-icon.png \
+	&& cp -R /app/Assets /app/App_Frontend/Assets
 
 EXPOSE 3000
 

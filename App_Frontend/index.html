@@ -66,18 +66,63 @@
             transform: translateY(0);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .test-button {
+            padding: 12px 36px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666666;
+            background-color: #f5f5f5;
+            border: 1px solid #cccccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .test-button:hover {
+            background-color: #f9f9f9;
+            border-color: #999999;
+        }
+
+        .test-button:active {
+            background-color: #eeeeee;
+        }
+
+        .beta-label {
+            font-size: 12px;
+            color: #999999;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="home-container">
         <img src="/Assets/Logo/logo.png" alt="Agentic Cloud Architect Logo" class="logo" />
         <h1 class="app-name">Agentic Cloud Architect</h1>
-        <button class="start-button" onclick="navigateToLaunchScreen()">Start</button>
+        <div class="button-group">
+            <button class="start-button" onclick="navigateToLaunchScreen()">Start</button>
+            <div>
+                <button class="test-button" onclick="navigateToNewLandingScreen()">Try New Landing Page</button>
+                <div class="beta-label">(Testing)</div>
+            </div>
+        </div>
     </div>
 
     <script>
         function navigateToLaunchScreen() {
             window.location.href = './landing.html';
+        }
+
+        function navigateToNewLandingScreen() {
+            window.location.href = './LandingScreen/index.html';
         }
     </script>
 </body>
