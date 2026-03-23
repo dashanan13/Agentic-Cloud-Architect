@@ -65,6 +65,15 @@ button {
   padding: 10px;
 }
 
+/* show hand cursor for clickable controls */
+button, .btn-plain, input[type="button"], input[type="submit"], a {
+  cursor: pointer;
+}
+
+button:active, .btn-plain:active {
+  transform: translateY(1px);
+}
+
 .primary {
   background: #ddd;
 }
