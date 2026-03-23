@@ -312,7 +312,9 @@ input, select, textarea {
   background: linear-gradient(180deg,#ffffff 0%, #fbfbfb 100%);
   margin-bottom: 8px;
 }
-
+.project-item {
+  cursor: pointer;
+}
 .project-item:hover {
   transform: translateY(-1px);
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
