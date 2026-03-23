@@ -1,86 +1,154 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Project Settings</title>
-<link rel="stylesheet" href="styles.css">
-</head>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="../" />
+    <title>Agentic Cloud Architect - Project Settings</title>
+    <link rel="stylesheet" href="./ProjectSettingScreen/styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <div class="screen is-active screen--project-settings" id="screen-settings">
+        <header class="topbar">
+          <div class="topbar__left">
+            <span class="project-label project-label--strong">Project Settings</span>
+            <span class="project-name-prefix-display" id="project-settings-context">(Project)</span>
+          </div>
+          <div class="topbar__right">
+            <button id="btn-project-settings-back" class="btn btn--secondary btn--sm" type="button">Back</button>
+          </div>
+        </header>
 
-<body>
+        <main class="settings-layout">
+          <section class="settings-panel">
+            <div class="settings-content">
+              <h2 id="project-settings-heading">Project Settings</h2>
+              <p class="settings-subtitle">Configure project details and project-specific settings.</p>
 
-<div class="header">
-  <button class="btn-plain">← Back</button>
-  <div class="header-title">Project Settings</div>
-</div>
+              <form id="project-settings-form" class="settings-form">
+                <section class="settings-section card-like">
+                  <h3 class="settings-section-title">Create Project</h3>
 
-<div class="container">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="ps-project-cloud">Project Cloud</label>
+                      <input type="text" id="ps-project-cloud" class="input-readonly" readonly placeholder="Loaded from the current project" />
+                    </div>
 
-  <div class="card">
-    <h2>Project Configuration</h2>
+                    <div class="form-group">
+                      <label for="ps-project-name">Project Name</label>
+                      <input type="text" id="ps-project-name" class="input-readonly" readonly placeholder="Loaded from the current project" />
+                    </div>
 
-    <label>Project Thread</label>
-    <input>
+                    <div class="form-group">
+                      <label for="ps-project-id">Project ID</label>
+                      <input type="text" id="ps-project-id" class="input-readonly" readonly placeholder="Loaded from the current project" />
+                    </div>
 
-    <label>GITHUB_REPO_URL</label>
-    <input>
+                    <div class="form-group form-group--full">
+                      <label for="ps-project-type">Application Type</label>
+                      <select id="ps-project-type" aria-label="Application type">
+                        <option value="">Select application type...</option>
+                        <option value="Web Application">Web Application</option>
+                        <option value="API / Backend Service">API / Backend Service</option>
+                        <option value="Microservices Platform">Microservices Platform</option>
+                        <option value="Data Processing / Analytics">Data Processing / Analytics</option>
+                        <option value="AI / ML Application">AI / ML Application</option>
+                        <option value="Internal Enterprise System">Internal Enterprise System</option>
+                        <option value="IoT System">IoT System</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
 
-    <label>IaC script language</label>
-    <div class="toggle">
-      <button class="active">Bicep</button>
-      <button>Terraform</button>
+                    <div class="form-group form-group--full">
+                      <label for="ps-project-description">Project Description</label>
+                      <div class="quality-meter" id="ps-description-quality-meter" aria-live="polite">
+                        <div class="quality-bar">
+                          <div class="quality-bar__fill" id="ps-description-quality-fill"></div>
+                          <div class="quality-bar__markers" aria-hidden="true">
+                            <span class="quality-bar__marker" data-level="0"></span>
+                            <span class="quality-bar__marker" data-level="1"></span>
+                            <span class="quality-bar__marker" data-level="2"></span>
+                            <span class="quality-bar__marker" data-level="3"></span>
+                            <span class="quality-bar__marker" data-level="4"></span>
+                            <span class="quality-bar__marker" data-level="5"></span>
+                          </div>
+                        </div>
+                        <div class="quality-labels">
+                          <span class="quality-label" data-level="0">Poor</span>
+                          <span class="quality-label" data-level="1">Minimal</span>
+                          <span class="quality-label" data-level="2">Adequate</span>
+                          <span class="quality-label" data-level="3">Informative</span>
+                          <span class="quality-label" data-level="4">Rich</span>
+                          <span class="quality-label" data-level="5">Perfect</span>
+                        </div>
+                      </div>
+                      <div class="quality-status" id="ps-description-quality-status">Quality: Not evaluated</div>
+                      <div class="description-input-wrapper">
+                        <div class="textarea-placeholder" id="ps-description-placeholder" aria-hidden="true">
+                          <p>This description is used as <strong>AI context</strong> throughout your entire project — the AI architect will read it before every conversation to understand your <strong>goals</strong>, <strong>constraints</strong>, and <strong>design intent</strong>. The richer and more specific it is, the better the AI guidance you will receive.</p>
+                          <p class="placeholder-example">Example: A global API service handling <strong>identity verification</strong> for a consumer web app. Expected <strong>10k daily users worldwide</strong>, storing <strong>PII data</strong> with <strong>GDPR compliance</strong>, requiring <strong>high availability</strong> and <strong>low latency</strong>.</p>
+                          <p class="placeholder-tip">💡 Descriptions over <strong>500 characters</strong> give the AI enough context to provide meaningful architecture guidance.</p>
+                        </div>
+                        <textarea id="ps-project-description" aria-label="Project description"></textarea>
+                        <button type="button" class="ai-help-btn" id="btn-ps-improve-description" title="Improve description with AI">AI</button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="settings-section card-like">
+                  <h3 class="settings-section-title">Project Configuration</h3>
+
+                  <div class="form-grid">
+                    <div class="form-group form-group--full">
+                      <label for="ps-project-thread">Project Thread</label>
+                      <input type="text" id="ps-project-thread" class="input-readonly" placeholder="Created on project load" readonly />
+                    </div>
+
+                    <div class="form-group form-group--full">
+                      <label for="ps-github-repo-url">GITHUB_REPO_URL</label>
+                      <input type="url" id="ps-github-repo-url" placeholder="https://github.com/org/repo" autocomplete="off" />
+                    </div>
+
+                    <div class="form-group form-group--full">
+                      <label for="ps-iac-bicep">IaC Script Language</label>
+                      <div class="segmented-control" role="radiogroup" aria-label="IaC Script Language">
+                        <input type="radio" id="ps-iac-bicep" name="ps-iac-language" value="bicep" checked />
+                        <label for="ps-iac-bicep">Bicep</label>
+                        <input type="radio" id="ps-iac-terraform" name="ps-iac-language" value="terraform" />
+                        <label for="ps-iac-terraform">Terraform</label>
+                      </div>
+                      <small class="name-hint">Used when generating IaC code for this project.</small>
+                    </div>
+
+                    <div class="form-group form-group--full">
+                      <label for="ps-param-bicepparam">Bicep Parameter File Format</label>
+                      <div class="segmented-control" role="radiogroup" aria-label="Bicep Parameter File Format">
+                        <input type="radio" id="ps-param-bicepparam" name="ps-iac-params" value="bicepparam" checked />
+                        <label for="ps-param-bicepparam">.bicepparam</label>
+                        <input type="radio" id="ps-param-json" name="ps-iac-params" value="json" />
+                        <label for="ps-param-json">.json</label>
+                      </div>
+                      <small class="name-hint">Generator outputs a single main parameter file in the selected format.</small>
+                    </div>
+                  </div>
+                </section>
+              </form>
+            </div>
+
+            <div class="settings-footer">
+              <div id="project-settings-message" class="form-message" aria-live="polite"></div>
+              <div class="settings-actions">
+                <button id="btn-project-settings-save" class="btn btn--primary" type="button">Save Project Settings</button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
 
-    <label>Bicep parameter file format</label>
-    <div class="toggle">
-      <button class="active">.bicepparam</button>
-      <button>.json</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Project Details</h2>
-
-    <label>Project Name</label>
-    <input>
-
-    <label>Project ID</label>
-    <input disabled>
-
-    <label>Project Cloud</label>
-    <input disabled value="Azure">
-
-    <label>Application Type</label>
-    <select>
-      <option>API / Backend Service</option>
-    </select>
-
-    <label>Project Description</label>
-
-    <div class="quality-bar">
-      <div class="q red"></div>
-      <div class="q orange"></div>
-      <div class="q yellow"></div>
-      <div class="q green"></div>
-      <div class="q teal"></div>
-    </div>
-
-    <textarea rows="6"></textarea>
-
-    <div class="help">
-      <p>A good description includes:</p>
-      <ol>
-        <li>What you are building</li>
-        <li>Users & scale</li>
-        <li>Components</li>
-        <li>Data sensitivity</li>
-        <li>Requirements</li>
-      </ol>
-    </div>
-  </div>
-
-  <button class="primary full">Save Project Settings</button>
-
-</div>
-
-</body>
+    <script src="./project-settings.js"></script>
+  </body>
 </html>

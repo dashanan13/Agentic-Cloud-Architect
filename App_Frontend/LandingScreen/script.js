@@ -11,7 +11,6 @@ const messageEl = document.getElementById("landing-message");
 const qualityBar = document.getElementById("landing-quality-bar");
 const qualityStatus = document.getElementById("landing-quality-status");
 const btnCreate = document.getElementById("btn-landing-create");
-const btnAppSettings = document.getElementById("btn-app-settings");
 const projectsAzureContainer = document.getElementById("projects-azure");
 
 // ===== State =====
@@ -533,12 +532,6 @@ if (btnCreate) {
     } finally {
       btnCreate.disabled = false;
     }
-  });
-}
-
-if (btnAppSettings) {
-  btnAppSettings.addEventListener("click", () => {
-    window.location.href = "/ApplicationSettingsScreen/index.html";
   });
 }
 

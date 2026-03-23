@@ -2,6 +2,7 @@
 const btnBackProjects = document.getElementById("btn-back-projects");
 const btnProjectSave = document.getElementById("btn-project-save");
 const btnProjectSettings = document.getElementById("btn-project-settings");
+const btnProjectSettingsTemplate = document.getElementById("btn-project-settings-template");
 const btnValidate = document.getElementById("btn-validate");
 const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnGenerateCode = document.getElementById("btn-generate-code");
@@ -7233,6 +7234,16 @@ btnProjectSettings?.addEventListener("click", () => {
   const params = new URLSearchParams();
   params.set("projectId", state.currentProject.id);
   window.location.href = `./project-settings.html?${params.toString()}`;
+});
+
+btnProjectSettingsTemplate?.addEventListener("click", () => {
+  if (!state.currentProject) {
+    return;
+  }
+
+  const params = new URLSearchParams();
+  params.set("projectId", state.currentProject.id);
+  window.location.href = `./ProjectSettingScreen/index.html?${params.toString()}`;
 });
 
 btnGenerateCode?.addEventListener("click", async () => {
