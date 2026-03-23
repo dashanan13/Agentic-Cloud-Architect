@@ -42,7 +42,7 @@
     <label>AI_FOUNDRY_PROJECT_NAME</label>
     <input id="aiFoundryProjectName" data-key="aiFoundryProjectName">
 
-    <label>AI_FOUNDRY_ENDPOINT</label>
+    <label>AI_FOUNDRY_ENDPOINT <span id="aiFoundryEndpointStatus" aria-live="polite" style="margin-left:8px;font-size:16px;vertical-align:middle"></span></label>
     <input id="aiFoundryEndpoint" data-key="aiFoundryEndpoint">
 
     <label>Coding Model (should be usable for Agents, ex. gpt-5.2)</label>
@@ -129,7 +129,30 @@
       if(sel) sel.disabled = !enabled;
     });
     updateVerifyAvailability();
+    setEndpointStatus('unknown');
     updateSaveState();
+  }
+
+  function setEndpointStatus(state){
+    const el = document.getElementById('aiFoundryEndpointStatus');
+    if(!el) return;
+    if(state==='ok'){
+      el.textContent = '✓';
+      el.title = 'Foundry endpoint verified';
+      el.style.color = '#2ecc71';
+    } else if(state==='fail'){
+      el.textContent = '✖';
+      el.title = 'Foundry endpoint verification failed';
+      el.style.color = '#e74c3c';
+    } else if(state==='checking'){
+      el.textContent = '…';
+      el.title = 'Verifying foundry endpoint';
+      el.style.color = '#999';
+    } else {
+      el.textContent = '';
+      el.title = '';
+      el.style.color = '';
+    }
   }
 
   function updateSaveState(){
@@ -159,6 +182,7 @@
   async function verifyConnection(){
     const btn = document.getElementById('btn-verify');
     btn.disabled = true;
+    setEndpointStatus('checking');
     try{
       const settingsPayload = {};
       // only send the connection-related keys
@@ -173,6 +197,7 @@
       const data = await res.json();
       if(data?.models && Array.isArray(data.models)){
         connectionVerified = true;
+        setEndpointStatus('ok');
         // populate model selects and enable them for user choice
         const coding = document.getElementById('foundryModelCoding');
         const reason = document.getElementById('foundryModelReasoning');
@@ -199,6 +224,7 @@
       }
     }catch(err){
       console.error(err);
+      setEndpointStatus('fail');
       alert('Verification failed: '+(err.message||err));
     }finally{ btn.disabled=false; }
   }
@@ -226,6 +252,7 @@
       mappingKeys.forEach(k=>{ const el = document.querySelector('[data-key="'+k+'"]'); if(el) setField(el.id,''); });
       ['foundryModelCoding','foundryModelReasoning','foundryModelFast'].forEach(id=>{ const s=document.getElementById(id); if(s){ s.innerHTML=''; s.disabled=true; } });
       updateSaveState();
+      setEndpointStatus('unknown');
       alert('Settings cleared');
     } else { alert('Failed to reset settings'); }
   }
