@@ -510,7 +510,7 @@ if (btnCreate) {
 
 if (btnAppSettings) {
   btnAppSettings.addEventListener("click", () => {
-    window.location.href = "/settings.html";
+    window.location.href = "/ApplicationSettingsScreen/index.html";
   });
 }
 
