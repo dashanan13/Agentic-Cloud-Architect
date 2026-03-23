@@ -718,10 +718,12 @@ btnImproveDescription?.addEventListener("click", async () => {
 
 // ===== Initialization =====
 async function initialize() {
-  await bootstrapFoundryDefaultsOnLoad();
-
   try {
-    await loadProjects();
+    // Load projects and bootstrap Foundry in parallel for better performance
+    await Promise.all([
+      bootstrapFoundryDefaultsOnLoad(),
+      loadProjects()
+    ]);
     renderProjectsList();
     setCreateMessage("");
   } catch (error) {

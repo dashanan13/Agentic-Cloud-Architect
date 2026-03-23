@@ -108,10 +108,9 @@
         <img src="/Assets/Logo/logo.png" alt="Agentic Cloud Architect Logo" class="logo" />
         <h1 class="app-name">Agentic Cloud Architect</h1>
         <div class="button-group">
-            <button class="start-button" onclick="navigateToLaunchScreen()">Start</button>
+            <button class="start-button" onclick="navigateToNewLandingScreen()">Start</button>
             <div>
-                <button class="test-button" onclick="navigateToNewLandingScreen()">Try New Landing Page</button>
-                <div class="beta-label">(Testing)</div>
+                <button class="test-button" onclick="navigateToAppSettings()">Application Settings</button>
             </div>
         </div>
     </div>
@@ -123,6 +122,10 @@
 
         function navigateToNewLandingScreen() {
             window.location.href = './LandingScreen/index.html';
+        }
+
+        function navigateToAppSettings() {
+            window.location.href = './ApplicationSettingsScreen/index.html';
         }
     </script>
 </body>

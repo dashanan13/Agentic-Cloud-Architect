@@ -9,7 +9,7 @@
 <body>
 
 <div class="header">
-  <button class="btn-plain">← Back</button>
+  <button id="btn-back" class="btn-plain">← Back</button>
   <div class="header-title">Application Settings</div>
 </div>
 
@@ -19,50 +19,49 @@
     <h2>Azure App Registration Details</h2>
 
     <label>AZURE_TENANT_ID</label>
-    <input>
+    <input id="azureTenantId" data-key="azureTenantId">
 
     <label>AZURE_CLIENT_ID</label>
-    <input>
+    <input id="azureClientId" data-key="azureClientId">
 
     <label>AZURE_CLIENT_SECRET</label>
-    <input type="password">
+    <input id="azureClientSecret" type="password" data-key="azureClientSecret">
   </div>
 
   <div class="card">
     <h2>Model Configuration</h2>
-
     <label>Model Provider</label>
-    <select><option>Azure AI Foundry</option></select>
+    <select id="modelProvider" data-key="modelProvider"><option value="azure-foundry">Azure AI Foundry</option></select>
 
     <label>AZURE_SUBSCRIPTION_ID</label>
-    <input>
+    <input id="azureSubscriptionId" data-key="azureSubscriptionId">
 
     <label>AZURE_RESOURCE_GROUP</label>
-    <input>
+    <input id="azureResourceGroup" data-key="azureResourceGroup">
 
     <label>AI_FOUNDRY_PROJECT_NAME</label>
-    <input>
+    <input id="aiFoundryProjectName" data-key="aiFoundryProjectName">
 
     <label>AI_FOUNDRY_ENDPOINT</label>
-    <input>
-
-    <label>Chat Agent</label>
-    <input>
-
-    <label>IaC Agent</label>
-    <input>
-
-    <label>Application Thread</label>
-    <input>
+    <input id="aiFoundryEndpoint" data-key="aiFoundryEndpoint">
 
     <label>Coding Model</label>
-    <select><option>gpt-5.2</option></select>
+    <select id="foundryModelCoding" data-key="foundryModelCoding" disabled></select>
 
     <label>Reasoning Model</label>
-    <select><option>gpt-5.2</option></select>
+    <select id="foundryModelReasoning" data-key="foundryModelReasoning" disabled></select>
 
     <label>Fast Model</label>
-    <select><option>gpt-5.2</option></select>
+    <select id="foundryModelFast" data-key="foundryModelFast" disabled></select>
+
+    <label>Chat Agent</label>
+    <input id="foundryChatAgentId" data-key="foundryChatAgentId" readonly>
+
+    <label>IaC Agent</label>
+    <input id="foundryIacAgentId" data-key="foundryIacAgentId" readonly>
+
+    <label>Application Thread</label>
+    <input id="foundryDefaultThreadId" data-key="foundryDefaultThreadId" readonly>
   </div>
 
   <div class="card">
@@ -81,12 +80,199 @@
   </div>
 
   <div class="actions">
-    <button>Verify connection</button>
-    <button>Remove settings</button>
-    <button class="primary">Save Application Settings</button>
+    <button id="btn-verify" disabled>Verify connection</button>
+    <button id="btn-verify-agents" disabled>Verify Agents and Threads</button>
+    <button id="btn-reset">Remove settings</button>
+    <button id="btn-save" class="primary" disabled>Save Application Settings</button>
   </div>
 
 </div>
 
 </body>
+<script>
+  // Application Settings behavior
+  async function $(id){return document.getElementById(id);}
+
+  const mappingKeys = [
+    'azureTenantId','azureClientId','azureClientSecret','azureSubscriptionId','azureResourceGroup','aiFoundryProjectName','aiFoundryEndpoint','foundryChatAgentId','foundryIacAgentId','foundryDefaultThreadId','foundryModelCoding','foundryModelReasoning','foundryModelFast','modelProvider'
+  ];
+
+  function setField(id, value){
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(el.tagName==='SELECT'){
+      // try to set existing option or append
+      let opt = Array.from(el.options).find(o=>o.value===value || o.text===value);
+      if(!opt && value){
+        opt = new Option(value, value);
+        el.add(opt);
+      }
+      el.value = value || (el.options[0] && el.options[0].value) || '';
+    } else {
+      el.value = value || '';
+    }
+  }
+
+  async function loadSettings(){
+    const res = await fetch('/api/settings/app');
+    if(!res.ok) return;
+    const payload = await res.json();
+    const settings = payload?.settings || {};
+    mappingKeys.forEach(k=>{
+      const el = document.querySelector('[data-key="'+k+'"]');
+      if(el) setField(el.id, settings[k]||'');
+    });
+    // if models already present, enable selects
+    const enabled = Boolean(settings.foundryModelCoding || settings.foundryModelReasoning || settings.foundryModelFast);
+    ['foundryModelCoding','foundryModelReasoning','foundryModelFast'].forEach(id=>{
+      const sel = document.getElementById(id);
+      if(sel) sel.disabled = !enabled;
+    });
+    updateVerifyAvailability();
+    updateSaveState();
+  }
+
+  function updateSaveState(){
+    const btnSave = document.getElementById('btn-save');
+    const modelCoding = document.getElementById('foundryModelCoding').value;
+    const modelReason = document.getElementById('foundryModelReasoning').value;
+    const modelFast = document.getElementById('foundryModelFast').value;
+    const modelsSelected = !!(modelCoding && modelReason && modelFast);
+    // Save allowed only after connection verified and models selected
+    btnSave.disabled = !(connectionVerified && modelsSelected);
+  }
+
+  let connectionVerified = false;
+
+  function updateVerifyAvailability(){
+    const required = [
+      'modelProvider','azureSubscriptionId','azureResourceGroup','aiFoundryProjectName','aiFoundryEndpoint'
+    ];
+    const ok = required.every(k=>{
+      const el = document.querySelector('[data-key="'+k+'"]');
+      return el && String(el.value||'').trim().length>0;
+    });
+    const btn = document.getElementById('btn-verify');
+    if(btn) btn.disabled = !ok;
+  }
+
+  async function verifyConnection(){
+    const btn = document.getElementById('btn-verify');
+    btn.disabled = true;
+    try{
+      const settingsPayload = {};
+      // only send the connection-related keys
+      ['modelProvider','azureSubscriptionId','azureResourceGroup','aiFoundryProjectName','aiFoundryEndpoint','azureTenantId','azureClientId','azureClientSecret'].forEach(k=>{
+        const el = document.querySelector('[data-key="'+k+'"]');
+        if(el) settingsPayload[k]=el.value;
+      });
+      const res = await fetch('/api/settings/app/verify', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({settings: settingsPayload})
+      });
+      if(!res.ok) throw new Error('Verify failed');
+      const data = await res.json();
+      if(data?.models && Array.isArray(data.models)){
+        connectionVerified = true;
+        // populate model selects and enable them for user choice
+        const coding = document.getElementById('foundryModelCoding');
+        const reason = document.getElementById('foundryModelReasoning');
+        const fast = document.getElementById('foundryModelFast');
+        [coding,reason,fast].forEach(s=>{ s.innerHTML=''; s.disabled=false; });
+        data.models.forEach(m=>{
+          const opt = new Option(m,m);
+          coding.add(opt.cloneNode(true));
+          reason.add(opt.cloneNode(true));
+          fast.add(opt.cloneNode(true));
+        });
+        // preserve prior selections if present
+        const appRes = await fetch('/api/settings/app');
+        const appData = await appRes.json();
+        const s = appData.settings||{};
+        setField('foundryModelCoding', s.foundryModelCoding||'');
+        setField('foundryModelReasoning', s.foundryModelReasoning||'');
+        setField('foundryModelFast', s.foundryModelFast||'');
+        updateSaveState();
+        // if connection verified and user already has model selections, enable verify-agents
+        const selValues = ['foundryModelCoding','foundryModelReasoning','foundryModelFast'].every(i=>{ const e=document.getElementById(i); return e && e.value; });
+        const btnAgents = document.getElementById('btn-verify-agents');
+        if(btnAgents) btnAgents.disabled = !(selValues && connectionVerified);
+      }
+    }catch(err){
+      console.error(err);
+      alert('Verification failed: '+(err.message||err));
+    }finally{ btn.disabled=false; }
+  }
+
+  async function saveSettings(){
+    const btn = document.getElementById('btn-save');
+    btn.disabled = true;
+    try{
+      const payload = { settings: {} };
+      mappingKeys.forEach(k=>{
+        const el = document.querySelector('[data-key="'+k+'"]');
+        if(el) payload.settings[k]=el.value;
+      });
+      const res = await fetch('/api/settings/app', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+      if(!res.ok){ const e = await res.text(); throw new Error(e||'Save failed'); }
+      alert('Settings saved');
+    }catch(err){ console.error(err); alert('Save failed: '+(err.message||err)); }
+    finally{ updateSaveState(); }
+  }
+
+  async function resetSettings(){
+    if(!confirm('Remove all application settings?')) return;
+    const res = await fetch('/api/settings/app/reset', {method:'DELETE'});
+    if(res.ok){
+      mappingKeys.forEach(k=>{ const el = document.querySelector('[data-key="'+k+'"]'); if(el) setField(el.id,''); });
+      ['foundryModelCoding','foundryModelReasoning','foundryModelFast'].forEach(id=>{ const s=document.getElementById(id); if(s){ s.innerHTML=''; s.disabled=true; } });
+      updateSaveState();
+      alert('Settings cleared');
+    } else { alert('Failed to reset settings'); }
+  }
+
+  async function verifyAgentsAndThreads(){
+    const btn = document.getElementById('btn-verify-agents');
+    btn.disabled = true;
+    try{
+      const res = await fetch('/api/foundry/verify-agents-and-threads', {method:'POST'});
+      if(!res.ok) throw new Error('verify-agents failed');
+      const data = await res.json();
+      // populate read-only fields
+      if(data?.agentIds){
+        setField('foundryChatAgentId', data.agentIds.chat || '');
+        setField('foundryIacAgentId', data.agentIds.iac || '');
+        // threads may be in data.threads.chat etc or found in returned threads
+      }
+      if(data?.threads){
+        const threadId = data.threads.chat || data.threads.iac || data.threads.validation || '';
+        setField('foundryDefaultThreadId', threadId || '');
+      }
+    }catch(err){
+      console.error(err);
+      alert('Verify agents failed: '+(err.message||err));
+    }finally{ btn.disabled=false; }
+  }
+
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    (await $('btn-back')).addEventListener('click', ()=>{ window.location.href = '/index.html'; });
+    (await $('btn-verify')).addEventListener('click', verifyConnection);
+    (await $('btn-verify-agents')).addEventListener('click', verifyAgentsAndThreads);
+    (await $('btn-save')).addEventListener('click', saveSettings);
+    (await $('btn-reset')).addEventListener('click', resetSettings);
+    ['foundryModelCoding','foundryModelReasoning','foundryModelFast'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.addEventListener('change', ()=>{
+        updateSaveState();
+        // enable verify-agents only after user selects models and connection verified
+        const selValues = ['foundryModelCoding','foundryModelReasoning','foundryModelFast'].every(i=>{ const e=document.getElementById(i); return e && e.value; });
+        const btnAgents = document.getElementById('btn-verify-agents');
+        if(btnAgents) btnAgents.disabled = !(selValues && connectionVerified);
+      });
+    });
+    // update verify availability as fields change
+    ['modelProvider','azureSubscriptionId','azureResourceGroup','aiFoundryProjectName','aiFoundryEndpoint'].forEach(k=>{
+      const el = document.querySelector('[data-key="'+k+'"]'); if(el) el.addEventListener('input', updateVerifyAvailability);
+    });
+    await loadSettings();
+  });
+</script>
 </html>
