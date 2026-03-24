@@ -3240,6 +3240,20 @@ textarea:not(.property-input):not(.chat-input):focus {
   width: min(620px, 100%);
 }
 
+#app-settings-form {
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 12px;
+  background: #2a2a2a;
+}
+
+#app-settings-form .settings-section {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+
 .settings-form .form-group {
   width: 100%;
 }
