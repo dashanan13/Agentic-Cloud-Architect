@@ -11,41 +11,36 @@
     <div class="app" id="app">
       <div class="screen is-active screen--project-settings" id="screen-settings">
         <header class="topbar">
-          <div class="topbar__left">
-            <span class="project-label project-label--strong">Project Settings</span>
-            <span class="project-name-prefix-display" id="project-settings-context">(Project)</span>
+          <div class="topbar__left" style="display: flex; align-items: center;">
+            <a href="../index.html" id="logo-link" style="display: flex; align-items: center; margin-right: 18px;">
+              <img src="../Assets/Logo/logo-icon.jpg" alt="Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 0;" />
+            </a>
+          </div>
+          <div class="topbar__center" style="margin: 0 auto; text-align: center; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center;">
+            <span class="project-label project-label--strong" id="project-settings-title">Project Settings: (Azure-Project1)</span>
           </div>
           <div class="topbar__right">
-            <button id="btn-project-settings-back" class="btn btn--secondary btn--sm" type="button">Back</button>
+            <button id="btn-project-settings-back" class="btn btn--outline btn--sm btn-rect" type="button">Back</button>
           </div>
         </header>
 
         <main class="settings-layout">
           <section class="settings-panel">
             <div class="settings-content">
-              <h2 id="project-settings-heading">Project Settings</h2>
-              <p class="settings-subtitle">Configure project details and project-specific settings.</p>
+
 
               <form id="project-settings-form" class="settings-form">
                 <section class="settings-section card-like">
-                  <h3 class="settings-section-title">Create Project</h3>
-
+                  <h3 class="settings-section-title">Project Details</h3>
                   <div class="form-grid">
-                    <div class="form-group">
-                      <label for="ps-project-cloud">Project Cloud</label>
-                      <input type="text" id="ps-project-cloud" class="input-readonly" readonly placeholder="Loaded from the current project" />
-                    </div>
-
-                    <div class="form-group">
+                    <div class="form-group form-group--full">
                       <label for="ps-project-name">Project Name</label>
-                      <input type="text" id="ps-project-name" class="input-readonly" readonly placeholder="Loaded from the current project" />
+                      <input type="text" id="ps-project-name" placeholder="Loaded from the current project" />
                     </div>
-
-                    <div class="form-group">
+                    <div class="form-group form-group--full">
                       <label for="ps-project-id">Project ID</label>
                       <input type="text" id="ps-project-id" class="input-readonly" readonly placeholder="Loaded from the current project" />
                     </div>
-
                     <div class="form-group form-group--full">
                       <label for="ps-project-type">Application Type</label>
                       <select id="ps-project-type" aria-label="Application type">
@@ -60,7 +55,6 @@
                         <option value="Other">Other</option>
                       </select>
                     </div>
-
                     <div class="form-group form-group--full">
                       <label for="ps-project-description">Project Description</label>
                       <div class="quality-meter" id="ps-description-quality-meter" aria-live="polite">
@@ -86,13 +80,23 @@
                       </div>
                       <div class="quality-status" id="ps-description-quality-status">Quality: Not evaluated</div>
                       <div class="description-input-wrapper">
+                        <textarea id="ps-project-description" aria-label="Project description"></textarea>
+                        <button type="button" class="ai-help-btn" id="btn-ps-improve-description" title="Improve description with AI">AI</button>
                         <div class="textarea-placeholder" id="ps-description-placeholder" aria-hidden="true">
                           <p>This description is used as <strong>AI context</strong> throughout your entire project — the AI architect will read it before every conversation to understand your <strong>goals</strong>, <strong>constraints</strong>, and <strong>design intent</strong>. The richer and more specific it is, the better the AI guidance you will receive.</p>
                           <p class="placeholder-example">Example: A global API service handling <strong>identity verification</strong> for a consumer web app. Expected <strong>10k daily users worldwide</strong>, storing <strong>PII data</strong> with <strong>GDPR compliance</strong>, requiring <strong>high availability</strong> and <strong>low latency</strong>.</p>
                           <p class="placeholder-tip">💡 Descriptions over <strong>500 characters</strong> give the AI enough context to provide meaningful architecture guidance.</p>
                         </div>
-                        <textarea id="ps-project-description" aria-label="Project description"></textarea>
-                        <button type="button" class="ai-help-btn" id="btn-ps-improve-description" title="Improve description with AI">AI</button>
+                      </div>
+                      <div class="help help-box" style="margin-top: 16px;">
+                        <strong>A good description includes:</strong>
+                        <ol>
+                          <li>What type of application are you building and what problem does it solve?</li>
+                          <li>Who will use it, from where, and how many users do you expect?</li>
+                          <li>What main components will it include (web app, API, database, etc.)?</li>
+                          <li>What type of data will it handle — including any sensitive or regulated data?</li>
+                          <li>Any specific requirements: high availability, compliance (GDPR, HIPAA), latency, cost constraints?</li>
+                        </ol>
                       </div>
                     </div>
                   </div>
@@ -141,7 +145,7 @@
             <div class="settings-footer">
               <div id="project-settings-message" class="form-message" aria-live="polite"></div>
               <div class="settings-actions">
-                <button id="btn-project-settings-save" class="btn btn--primary" type="button">Save Project Settings</button>
+                <button id="btn-project-settings-save" class="btn btn--primary btn-rect" type="button">Save Project Settings</button>
               </div>
             </div>
           </section>

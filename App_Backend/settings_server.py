@@ -1012,13 +1012,18 @@ def parse_env_file(path: Path) -> dict:
 
     payload = {}
     lines = path.read_text(encoding="utf-8").splitlines()
+    current_key = None
     for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
+        stripped = line.rstrip("\r\n")
+        if not stripped or stripped.strip().startswith("#"):
             continue
-        key, value = stripped.split("=", 1)
-        payload[snake_to_camel(key.strip())] = value.strip()
-
+        if "=" in stripped:
+            key, value = stripped.split("=", 1)
+            current_key = snake_to_camel(key.strip())
+            payload[current_key] = value.rstrip()
+        elif current_key:
+            # Multiline value: append with newline
+            payload[current_key] += "\n" + stripped
     return payload
 
 
