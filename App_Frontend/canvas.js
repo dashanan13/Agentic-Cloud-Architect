@@ -7243,7 +7243,7 @@ btnProjectSettingsTemplate?.addEventListener("click", () => {
 
   const params = new URLSearchParams();
   params.set("projectId", state.currentProject.id);
-  window.location.href = `./ProjectSettingScreen/index.html?${params.toString()}`;
+  window.location.href = `./IaCScreen/index.html?${params.toString()}`;
 });
 
 btnGenerateCode?.addEventListener("click", async () => {

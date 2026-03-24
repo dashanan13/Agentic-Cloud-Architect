@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base href="../" />
   <title>IaC Screen</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="./IaCScreen/styles.css" />
 </head>
 
 <body>
@@ -13,24 +14,20 @@
 <div class="header">
 
   <div class="section">
-    <img src="../../Assets/Icons/home.png" class="icon" />
-    <span>App Name</span>
+    <a href="./index.html" class="app-home">
+      <img src="./Assets/Logo/logo-icon.jpg" class="icon app-logo" alt="App logo" />
+      <span class="visually-hidden">Home</span>
+    </a>
   </div>
 
   <div class="header-center">
-    IaC: Project Title
+    IaC: <span id="iac-project-context">(Project)</span>
   </div>
 
   <div class="section right-tools">
-
-    <!-- TOGGLE -->
-    <div class="toggle">
-      <span id="warningLabel">Warnings: Allowed</span>
-      <div class="switch active" id="warningToggle" onclick="toggleWarnings()"></div>
-    </div>
-
-    <button class="btn">Retry</button>
-    <button class="btn">Back</button>
+    <button id="btn-iac-warning-mode" class="btn" type="button" aria-pressed="false">Warnings: Allowed</button>
+    <button id="btn-iac-retry" class="btn" type="button" hidden disabled>Retry</button>
+    <button id="btn-iac-back" class="btn" type="button">Back</button>
   </div>
 
 </div>
@@ -41,36 +38,26 @@
   <!-- GENERATION -->
   <div class="generation-section">
 
-    <div class="section-inner-rect">
+    <div class="section-inner-rect iac-status is-idle" id="iac-status">
 
-    <div class="generation-header" onclick="toggleGeneration()">
-      <span>Generation Status: <b class="error-text">Error</b></span>
-      <span class="collapse-hint">click to collapse</span>
-    </div>
+      <div class="iac-status__top">
+        <p class="iac-status__text" id="iac-status-text">IaC status: waiting</p>
+        <button id="btn-iac-status-toggle" class="iac-status__toggle" type="button" aria-expanded="true" aria-controls="iac-status-body" title="Collapse generation status">
+          <span aria-hidden="true">▴</span>
+        </button>
+      </div>
+      <p class="iac-status__meta visually-hidden" id="iac-status-meta">Task not started.</p>
 
-    <div class="generation-body" id="generationBody">
-
-      <div class="step" onclick="toggleStep(this)">
-        <div class="step-title">Clear existing IaC output</div>
-        <div class="step-body">Cleaned existing IaC output folder</div>
+      <div class="iac-status__progress">
+        <div class="iac-progress__track">
+          <div class="iac-progress__fill" id="iac-progress-fill"></div>
+          <div class="iac-progress__milestones" id="iac-progress-milestones" aria-hidden="true"></div>
+        </div>
       </div>
 
-      <div class="step" onclick="toggleStep(this)">
-        <div class="step-title">Gather resource properties</div>
-        <div class="step-body">Captured 5 resources and 1 connections</div>
+      <div class="generation-body iac-status__details" id="iac-status-body">
+        <ul class="iac-stage-list" id="iac-stage-list" aria-label="IaC generation stages"></ul>
       </div>
-
-      <div class="step" onclick="toggleStep(this)">
-        <div class="step-title">Build dependency tree</div>
-        <div class="step-body">Dependency tree built successfully</div>
-      </div>
-
-      <div class="step error" onclick="toggleStep(this)">
-        <div class="step-title">Run coding-model guardrails</div>
-        <div class="step-body">8 checks failed — blocking generation</div>
-      </div>
-
-    </div>
 
     </div>
 
@@ -82,24 +69,28 @@
     <div class="section-inner-rect section-inner-rect--bottom">
 
     <div class="tree-panel">
-      <div class="panel-title">Tree structure of IaC files and folders</div>
+      <div class="panel-title">
+        <span>Files</span>
+        <div class="tree-actions">
+          <button id="btn-iac-download" class="btn" type="button" disabled>Download</button>
+        </div>
+      </div>
 
-      <div class="tree-content">
-        <p>📁 root</p>
-        <p> ├── 📄 main.bicep</p>
-        <p> ├── 📄 parameters.json</p>
-        <p> └── 📁 modules</p>
+      <div class="tree-content iac-file-list" id="iac-file-list">
       </div>
     </div>
 
     <div class="preview-panel">
       <div class="panel-title">
-        File preview of the file selected in the folder tree
+        <span id="iac-viewer-title">Preview</span>
+        <div class="preview-actions">
+          <button id="btn-iac-copy" class="btn" type="button" disabled>Copy</button>
+        </div>
       </div>
 
-      <div class="preview-content">
+      <pre class="preview-content iac-file-content is-empty" id="iac-file-content">
         Select a file to preview its content...
-      </div>
+      </pre>
     </div>
 
     </div>
@@ -107,32 +98,7 @@
   </div>
 
 </div>
-
-<script>
-function toggleGeneration() {
-  const body = document.getElementById("generationBody");
-  body.style.display = body.style.display === "none" ? "block" : "none";
-}
-
-function toggleStep(el) {
-  const body = el.querySelector(".step-body");
-  body.style.display = body.style.display === "block" ? "none" : "block";
-}
-
-/* TOGGLE LOGIC */
-function toggleWarnings() {
-  const toggle = document.getElementById("warningToggle");
-  const label = document.getElementById("warningLabel");
-
-  toggle.classList.toggle("active");
-
-  if (toggle.classList.contains("active")) {
-    label.innerText = "Warnings: Allowed";
-  } else {
-    label.innerText = "Warnings: Disallowed";
-  }
-}
-</script>
+<script src="./iac.js?v=20260316a"></script>
 
 </body>
 </html>
