@@ -342,13 +342,13 @@ body {
 }
 
 .canvas-toolbar {
-  height: 64px;
-  min-height: 64px;
+  height: 35px;
+  min-height: 35px;
   border-bottom: 1px solid #e6e6e6;
   display: flex;
   align-items: center;
   padding: 6px 8px; /* uniform 8px left/right */
-  flex: 0 0 64px;
+  flex: 0 0 35px;
   background: #fbfbfb;
 }
 
