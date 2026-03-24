@@ -250,6 +250,29 @@ input[readonly] {
   border: 2px solid #000;
 }
 
+#btn-back {
+  padding: 6px 12px;
+  min-height: auto;
+  border: 1px solid #d0d0d0;
+  border-radius: 0;
+  background: #ffffff;
+  color: #1f1f1f;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.2;
+  box-shadow: none;
+}
+
+#btn-back:hover {
+  background: #f0f0f0;
+  border-color: #d0d0d0;
+  color: #1f1f1f;
+}
+
+#btn-back:active {
+  transform: none;
+}
+
 .btn--primary {
   background: #000000;
   color: #ffffff;
