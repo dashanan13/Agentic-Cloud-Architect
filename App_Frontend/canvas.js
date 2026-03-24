@@ -7209,7 +7209,7 @@ btnBackProjects.addEventListener("click", async () => {
   } catch {
     // Continue navigation even if file save fails.
   }
-  window.location.href = "./landing.html";
+  window.location.href = "./LandingScreen/index.html";
 });
 
 btnProjectSave?.addEventListener("click", async () => {
@@ -7233,7 +7233,7 @@ btnProjectSettings?.addEventListener("click", () => {
 
   const params = new URLSearchParams();
   params.set("projectId", state.currentProject.id);
-  window.location.href = `./project-settings.html?${params.toString()}`;
+  window.location.href = `./ProjectSettingScreen/index.html?${params.toString()}`;
 });
 
 btnProjectSettingsTemplate?.addEventListener("click", () => {
@@ -7287,7 +7287,7 @@ btnGenerateCode?.addEventListener("click", async () => {
   }
 
   setSaveStatus("Opening IaC generation...");
-  window.location.href = `./iac.html?${params.toString()}`;
+  window.location.href = `./IaCScreen/index.html?${params.toString()}`;
 });
 
 btnExportDiagram?.addEventListener("click", async (event) => {
@@ -8423,7 +8423,7 @@ async function initialize() {
 
   if (!projectId) {
     console.error("No project ID provided");
-    window.location.href = "./landing.html";
+    window.location.href = "./LandingScreen/index.html";
     return;
   }
 
@@ -8438,7 +8438,7 @@ async function initialize() {
   // Load this specific project from backend files
   if (!await loadCurrentProject(projectId)) {
     console.error("Project not found");
-    window.location.href = "./landing.html";
+    window.location.href = "./LandingScreen/index.html";
     return;
   }
 

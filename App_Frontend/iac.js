@@ -1090,7 +1090,7 @@ function handleBack() {
     return;
   }
 
-  window.location.href = "./landing.html";
+  window.location.href = "./LandingScreen/index.html";
 }
 
 async function handleDownloadZip() {

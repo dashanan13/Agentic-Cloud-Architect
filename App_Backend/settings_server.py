@@ -4815,7 +4815,7 @@ def index_page():
 
 @app.get("/landing.html", include_in_schema=False)
 def landing_page():
-    return FileResponse(FRONTEND_DIR / "landing.html")
+    return FileResponse(FRONTEND_DIR / "LandingScreen" / "index.html")
 
 
 @app.get("/canvas.html", include_in_schema=False)
@@ -4825,7 +4825,7 @@ def canvas_page():
 
 @app.get("/settings.html", include_in_schema=False)
 def settings_page():
-    return FileResponse(FRONTEND_DIR / "settings.html")
+    return FileResponse(FRONTEND_DIR / "ApplicationSettingsScreen" / "index.html")
 
 
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=False), name="frontend-static")
