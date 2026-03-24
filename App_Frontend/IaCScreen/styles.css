@@ -100,10 +100,16 @@ body {
   flex-direction: column;
 }
 
+.section-inner-rect {
+  border: 1px solid #d8dde6;
+  background: #ffffff;
+}
+
 /* GENERATION */
 .generation-section {
   background: #ffffff;
   border-bottom: 1px solid #e0e0e0;
+  padding: 16px;
 }
 
 .generation-header {
@@ -162,6 +168,13 @@ body {
 
 /* BOTTOM */
 .bottom-section {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 16px 16px 16px;
+}
+
+.section-inner-rect--bottom {
   flex: 1;
   display: flex;
   overflow: hidden;
