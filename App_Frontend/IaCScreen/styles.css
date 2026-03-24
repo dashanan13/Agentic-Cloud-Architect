@@ -4,7 +4,8 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
   background: #f5f6f8;
   color: #1f1f1f;
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
@@ -168,9 +169,10 @@ body {
 
 /* BOTTOM */
 .bottom-section {
-  flex: 1;
+  flex: none;
+  height: 900px;
   display: flex;
-  overflow: hidden;
+  overflow: visible;
   padding: 16px 16px 16px;
 }
 
@@ -192,6 +194,8 @@ body {
 .tree-content {
   padding: 12px;
   font-size: 13px;
+  flex: 1;
+  overflow: auto;
 }
 
 /* PREVIEW */
@@ -206,6 +210,8 @@ body {
   padding: 12px;
   font-size: 13px;
   color: #666;
+  flex: 1;
+  overflow: auto;
 }
 
 /* TITLES */
