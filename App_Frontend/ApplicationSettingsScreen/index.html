@@ -8,84 +8,104 @@
 
 <body>
 
-<div class="header">
-  <button id="btn-back" class="btn-plain">← Back</button>
-  <div class="header-title">Application Settings</div>
-</div>
+<div class="app" id="app">
+  <div class="screen is-active">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="../index.html" class="topbar__home-link" aria-label="Go to home">
+          <img src="../Assets/Logo/logo-icon.jpg" alt="Logo">
+        </a>
+      </div>
+      <div class="topbar__center">
+        <span class="project-label project-label--strong">Application Settings</span>
+      </div>
+      <div class="topbar__right">
+        <button id="btn-back" class="btn btn--outline btn--sm btn-rect" type="button">Back</button>
+      </div>
+    </header>
 
-<div class="container">
+    <main class="settings-layout">
+      <section class="settings-panel">
+        <div class="settings-content">
+          <form id="app-settings-form" class="settings-form">
+            <section class="settings-section card-like">
+              <h2 class="settings-section-title">Azure App Registration Details</h2>
 
-  <div class="card">
-    <h2>Azure App Registration Details</h2>
+              <label>AZURE_TENANT_ID</label>
+              <input id="azureTenantId" data-key="azureTenantId">
 
-    <label>AZURE_TENANT_ID</label>
-    <input id="azureTenantId" data-key="azureTenantId">
+              <label>AZURE_CLIENT_ID</label>
+              <input id="azureClientId" data-key="azureClientId">
 
-    <label>AZURE_CLIENT_ID</label>
-    <input id="azureClientId" data-key="azureClientId">
+              <label>AZURE_CLIENT_SECRET</label>
+              <input id="azureClientSecret" type="password" data-key="azureClientSecret">
+            </section>
 
-    <label>AZURE_CLIENT_SECRET</label>
-    <input id="azureClientSecret" type="password" data-key="azureClientSecret">
+            <section class="settings-section card-like">
+              <h2 class="settings-section-title">Model Configuration</h2>
+              <label>Model Provider</label>
+              <select id="modelProvider" data-key="modelProvider"><option value="azure-foundry">Azure AI Foundry</option></select>
+
+              <label>AZURE_SUBSCRIPTION_ID</label>
+              <input id="azureSubscriptionId" data-key="azureSubscriptionId">
+
+              <label>AZURE_RESOURCE_GROUP</label>
+              <input id="azureResourceGroup" data-key="azureResourceGroup">
+
+              <label>AI_FOUNDRY_PROJECT_NAME</label>
+              <input id="aiFoundryProjectName" data-key="aiFoundryProjectName">
+
+              <label>AI_FOUNDRY_ENDPOINT <span id="aiFoundryEndpointStatus" aria-live="polite" style="margin-left:8px;font-size:16px;vertical-align:middle"></span></label>
+              <input id="aiFoundryEndpoint" data-key="aiFoundryEndpoint">
+
+              <label>Coding Model (should be usable for Agents, ex. gpt-5.2)</label>
+              <select id="foundryModelCoding" data-key="foundryModelCoding" disabled></select>
+
+              <label>Reasoning Model (should be usable for Agents, ex. gpt-5.2)</label>
+              <select id="foundryModelReasoning" data-key="foundryModelReasoning" disabled></select>
+
+              <label>Fast Model (should be usable for Agents, ex. gpt-5.2)</label>
+              <select id="foundryModelFast" data-key="foundryModelFast" disabled></select>
+
+              <label>Chat Agent</label>
+              <input id="foundryChatAgentId" data-key="foundryChatAgentId" readonly>
+
+              <label>IaC Agent</label>
+              <input id="foundryIacAgentId" data-key="foundryIacAgentId" readonly>
+
+              <label>Application Thread</label>
+              <input id="foundryDefaultThreadId" data-key="foundryDefaultThreadId" readonly>
+            </section>
+
+            <section class="settings-section card-like">
+              <h2 class="settings-section-title">IaC Generation</h2>
+
+              <p><strong>Live template failure behavior</strong></p>
+
+              <label class="inline-checkbox">
+                <input type="checkbox">
+                Continue on MCP failure (fallback to local templates)
+              </label>
+
+              <p class="muted">
+                If unchecked, generation fails fast when live MCP template/schema lookup fails.
+              </p>
+            </section>
+          </form>
+        </div>
+
+        <div class="settings-footer">
+          <div class="form-message" aria-live="polite"></div>
+          <div class="settings-actions">
+            <button id="btn-verify" class="btn btn--outline btn-rect" type="button" disabled>Verify connection</button>
+            <button id="btn-verify-agents" class="btn btn--outline btn-rect" type="button" disabled>Verify Agents and Threads</button>
+            <button id="btn-reset" class="btn btn--outline btn-rect" type="button">Remove settings</button>
+            <button id="btn-save" class="btn btn--primary btn-rect" type="button" disabled>Save Application Settings</button>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
-
-  <div class="card">
-    <h2>Model Configuration</h2>
-    <label>Model Provider</label>
-    <select id="modelProvider" data-key="modelProvider"><option value="azure-foundry">Azure AI Foundry</option></select>
-
-    <label>AZURE_SUBSCRIPTION_ID</label>
-    <input id="azureSubscriptionId" data-key="azureSubscriptionId">
-
-    <label>AZURE_RESOURCE_GROUP</label>
-    <input id="azureResourceGroup" data-key="azureResourceGroup">
-
-    <label>AI_FOUNDRY_PROJECT_NAME</label>
-    <input id="aiFoundryProjectName" data-key="aiFoundryProjectName">
-
-    <label>AI_FOUNDRY_ENDPOINT <span id="aiFoundryEndpointStatus" aria-live="polite" style="margin-left:8px;font-size:16px;vertical-align:middle"></span></label>
-    <input id="aiFoundryEndpoint" data-key="aiFoundryEndpoint">
-
-    <label>Coding Model (should be usable for Agents, ex. gpt-5.2)</label>
-    <select id="foundryModelCoding" data-key="foundryModelCoding" disabled></select>
-
-    <label>Reasoning Model (should be usable for Agents, ex. gpt-5.2)</label>
-    <select id="foundryModelReasoning" data-key="foundryModelReasoning" disabled></select>
-
-    <label>Fast Model (should be usable for Agents, ex. gpt-5.2)</label>
-    <select id="foundryModelFast" data-key="foundryModelFast" disabled></select>
-
-    <label>Chat Agent</label>
-    <input id="foundryChatAgentId" data-key="foundryChatAgentId" readonly>
-
-    <label>IaC Agent</label>
-    <input id="foundryIacAgentId" data-key="foundryIacAgentId" readonly>
-
-    <label>Application Thread</label>
-    <input id="foundryDefaultThreadId" data-key="foundryDefaultThreadId" readonly>
-  </div>
-
-  <div class="card">
-    <h2>IaC Generation</h2>
-
-    <p><strong>Live template failure behavior</strong></p>
-
-    <label>
-      <input type="checkbox">
-      Continue on MCP failure (fallback to local templates)
-    </label>
-
-    <p class="muted">
-      If unchecked, generation fails fast when live MCP template/schema lookup fails.
-    </p>
-  </div>
-
-  <div class="actions">
-    <button id="btn-verify" disabled>Verify connection</button>
-    <button id="btn-verify-agents" disabled>Verify Agents and Threads</button>
-    <button id="btn-reset">Remove settings</button>
-    <button id="btn-save" class="primary" disabled>Save Application Settings</button>
-  </div>
-
 </div>
 
 </body>
