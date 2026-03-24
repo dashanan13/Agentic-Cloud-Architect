@@ -16,7 +16,7 @@ COPY Clouds ./Clouds
 COPY Projects/Default /workspace/Projects/Default
 RUN mkdir -p /workspace/App_State
 
-RUN python /app/App_Frontend/generate_catalogs.py \
+RUN python /app/App_Frontend/scripts/generate_catalogs.py \
 	&& mkdir -p /app/App_Frontend/icons/azure \
 	&& cp -R /app/Clouds/Azure/Icons/. /app/App_Frontend/icons/azure/ \
 	&& cp /app/Clouds/Azure/Azure-Icon.png /app/App_Frontend/icons/azure-icon.png \

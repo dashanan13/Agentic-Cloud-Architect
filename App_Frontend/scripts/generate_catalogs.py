@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 CLOUDS_DIR = ROOT / "Clouds"
 OUTPUT_DIR = ROOT / "App_Frontend" / "catalogs"
 ICON_EXTENSIONS = {".svg", ".png", ".jpg", ".jpeg"}
