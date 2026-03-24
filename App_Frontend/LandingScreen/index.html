@@ -100,13 +100,26 @@
       <div class="form-group">
         <label>Project Description</label>
 
-        <!-- QUALITY BAR -->
-        <div id="landing-quality-bar" class="quality-bar">
-          <div class="q red"></div>
-          <div class="q orange"></div>
-          <div class="q yellow"></div>
-          <div class="q green"></div>
-          <div class="q teal"></div>
+        <div class="quality-meter" id="landing-quality-meter" aria-live="polite">
+          <div id="landing-quality-bar" class="quality-bar">
+            <div class="quality-bar__fill" id="landing-quality-fill"></div>
+            <div class="quality-bar__markers" aria-hidden="true">
+              <span class="quality-bar__marker" data-level="0"></span>
+              <span class="quality-bar__marker" data-level="1"></span>
+              <span class="quality-bar__marker" data-level="2"></span>
+              <span class="quality-bar__marker" data-level="3"></span>
+              <span class="quality-bar__marker" data-level="4"></span>
+              <span class="quality-bar__marker" data-level="5"></span>
+            </div>
+          </div>
+          <div class="quality-labels">
+            <span class="quality-label" data-level="0">Poor</span>
+            <span class="quality-label" data-level="1">Minimal</span>
+            <span class="quality-label" data-level="2">Adequate</span>
+            <span class="quality-label" data-level="3">Informative</span>
+            <span class="quality-label" data-level="4">Rich</span>
+            <span class="quality-label" data-level="5">Perfect</span>
+          </div>
         </div>
         <small id="landing-quality-status">Quality: Not evaluated</small>
 

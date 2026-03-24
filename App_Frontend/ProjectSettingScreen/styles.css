@@ -175,7 +175,7 @@ body {
 }
 
 .settings-form {
-  margin-top: 22px;
+  margin-top: 0;
   display: grid;
   gap: 20px;
 }

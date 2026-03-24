@@ -9,6 +9,7 @@ const iacLanguageInputs = Array.from(document.querySelectorAll('input[name="land
 const nameHint = document.getElementById("landing-name-hint");
 const messageEl = document.getElementById("landing-message");
 const qualityBar = document.getElementById("landing-quality-bar");
+const qualityFill = document.getElementById("landing-quality-fill");
 const qualityStatus = document.getElementById("landing-quality-status");
 const btnCreate = document.getElementById("btn-landing-create");
 const projectsAzureContainer = document.getElementById("projects-azure");
@@ -163,17 +164,18 @@ function clearMessage() {
 
 // ===== Description Quality =====
 function setDescriptionQuality(index, level, status, label) {
-  state.descriptionQuality = { index, level, status, score: (index + 1) * (100 / DESCRIPTION_LEVELS.length) };
+  const safeIndex = Math.max(0, Math.min(DESCRIPTION_LEVELS.length - 1, Number(index) || 0));
+  state.descriptionQuality = { index: safeIndex, level, status, score: (safeIndex + 1) * (100 / DESCRIPTION_LEVELS.length) };
   
   if (qualityStatus) {
     qualityStatus.textContent = label || `Quality: ${level}`;
   }
 
-  if (qualityBar) {
-    const markers = Array.from(qualityBar.querySelectorAll(".q"));
-    markers.forEach((marker, i) => {
-      marker.style.opacity = i <= index ? "1" : "0.3";
-    });
+  if (qualityFill) {
+    const isNotEvaluated = status === "empty" || (label === "Quality: Not evaluated");
+    qualityFill.style.width = isNotEvaluated
+      ? "0%"
+      : `${((safeIndex + 1) / DESCRIPTION_LEVELS.length) * 100}%`;
   }
 }
 
@@ -200,7 +202,7 @@ function scheduleDescriptionEvaluation() {
   }
 
   if (!description) {
-    setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
+    setDescriptionQuality(0, "Poor", "empty", "Quality: Not evaluated");
     updateCreateButtonState();
     return;
   }
@@ -441,7 +443,7 @@ async function initialize() {
     setMessage(error.message || "Unable to load projects.", "error");
   }
 
-  setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
+  setDescriptionQuality(0, "Poor", "empty", "Quality: Not evaluated");
   if (cloudSelect) {
     cloudSelect.value = cloudSelect.value || "Azure";
   }
@@ -522,7 +524,7 @@ if (btnCreate) {
       }
       appTypeSelect.value = "";
       cloudSelect.value = "Azure";
-      setDescriptionQuality(0, "Poor", "idle", "Quality: Not evaluated");
+      setDescriptionQuality(0, "Poor", "empty", "Quality: Not evaluated");
 
       await loadProjects();
       renderProjectsList();
