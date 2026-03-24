@@ -5,6 +5,7 @@
   --layout-right-default: 25;
   --layout-right-min: 20;
   --layout-right-max: 50;
+  --toolbar-control-height: 18px;
 }
 
 html,
@@ -63,8 +64,40 @@ body {
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-weight: bold;
+}
+
+.center-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  margin-right: 0px;
+}
+
+.project-iac-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  margin-right: 0px;
+}
+
+.project-iac-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: inline-block;
+}
+
+.project-name-prefix,
+.project-name-suffix {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  margin-left: 0;
 }
 
 .right-tools {
@@ -72,8 +105,8 @@ body {
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
 }
 
 .icon-btn {
@@ -129,10 +162,13 @@ body {
   font-size: 18px;
   font-weight: 600;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .left-panel h3 + #search-input {
-  margin: 4px 10px 8px;
+  margin: 12px 10px 12px;
   flex: 0 0 auto;
 }
 
@@ -144,6 +180,13 @@ body {
   padding: 8px 10px;
   font: inherit;
   box-sizing: border-box;
+}
+
+.left-title-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: inline-block;
 }
 
 /* LEFT PANEL: CONTENT (Scrollable Resource List) */
@@ -299,32 +342,116 @@ body {
 }
 
 .canvas-toolbar {
-  height: 40px;
-  min-height: 40px;
-  border-bottom: 1px solid #ddd;
+  height: 64px;
+  min-height: 64px;
+  border-bottom: 1px solid #e6e6e6;
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  flex: 0 0 40px;
-  background: #fafafa;
+  padding: 6px 8px; /* uniform 8px left/right */
+  flex: 0 0 64px;
+  background: #fbfbfb;
 }
 
 /* LEFT */
+
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 250px;
+  gap: 8px; /* uniform 8px between controls and reset */
+  min-width: 0;
+  margin-right: 8px; /* gap before toolbar-center */
+}
+
+.toolbar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px; /* small breathing room between buttons and container */
+  border: 1px solid #ccc; /* match reset button */
+  border-radius: 0;
+  background: #fff;
+  height: auto;
+  width: 75%;
+  max-width: 220px;
+  box-sizing: border-box;
+}
+
+.toolbar-controls .icon-btn {
+  border: 1px solid #ccc; /* match reset button */
+  padding: 4px 8px; /* reduced to make +/- boxes smaller */
+  border-radius: 0;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1;
+  min-width: 28px; /* slightly smaller square */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.toolbar-controls #canvas-zoom-label {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 4px;
+}
+
+.reset-btn {
+  padding: 6px 12px; /* match .signin */
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #ccc; /* match .signin border color */
+  border-radius: 0;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.status-boundary {
+  border-left: 1px solid #ddd;
+  padding-left: 12px;
+  margin-left: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* CENTER (auto-centered via flex) */
 .toolbar-center {
   flex: 1;
-  text-align: center;
   color: #666;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* align message to the left of the center area */
+  padding: 0 8px; /* uniform 8px around message */
+  min-width: 0;
+  overflow: hidden; /* ensure child ellipsis works */
+}
+
+/* Center status boundary (boxed system message integrated with page) */
+.center-status-boundary {
+  display: inline-flex; /* align with other controls */
+  align-items: center;
+  width: 100%;
+  max-width: none;
+  padding: 6px 12px; /* match .signin */
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  box-sizing: border-box;
+  white-space: nowrap; /* force single-line */
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: ellipsis; /* truncate with ellipsis */
+  font-size: 15px;
+  line-height: 1;
+  text-align: left;
+}
+
+.center-status-boundary #center-system-message {
+  display: block;
 }
 
 /* RIGHT */

@@ -18,45 +18,40 @@
   <!-- LEFT -->
   <div class="section">
     <a href="./index.html" class="icon-btn" title="Home" aria-label="Home">
-      <img src="./Assets/Icons/home.png" class="icon" />
+      <img src="/Assets/Logo/logo-icon.jpg" style="height: 36px; width: 36px; object-fit: contain; border-radius: 0;" />
     </a>
-    <span id="project-iac-icon" aria-hidden="true"></span>
-    <span class="resources-title">Resources</span>
-    <span id="project-name-prefix-display" class="visually-hidden"></span>
-    <span id="project-name-suffix-display" class="visually-hidden" contenteditable="true" role="button" tabindex="0">Project Name</span>
+    <span id="left-canvas-title" class="project-name-suffix">Canvas</span>
   </div>
 
   <!-- CENTER -->
   <div class="header-center">
-    <img src="./Assets/Icons/generate.png" class="icon" />
-    <span>Canvas</span>
+    
+    <span id="project-iac-icon" aria-hidden="true" class="project-iac-icon"></span>
+    <span id="project-name-prefix-display" class="project-name-prefix visually-hidden"></span>
+    <span id="project-name-suffix-display" class="project-name-suffix" contenteditable="true" role="button" tabindex="0">Project Name</span>
   </div>
 
   <!-- RIGHT -->
   <div class="section right-tools">
 
     <button id="btn-export-diagram" class="icon-btn" title="Export Diagram" type="button">
-      <img src="./Assets/Icons/export.png" class="icon" />
+      <img src="/Assets/Icons/export.png" class="icon" />
     </button>
 
     <button id="btn-validate" class="icon-btn" title="Validate" type="button">
-      <img src="./Assets/Icons/validate.png" class="icon" />
+      <img src="/Assets/Icons/validate.png" class="icon" />
     </button>
 
     <button id="btn-project-save" class="icon-btn" title="Save" type="button">
-      <img src="./Assets/Icons/save.png" class="icon" />
+      <img src="/Assets/Icons/save.png" class="icon" />
     </button>
 
-    <button id="btn-generate-code" class="icon-btn" title="Generate Code" type="button">
-      <img src="./Assets/Icons/generate.png" class="icon" />
+    <button id="btn-project-settings-template" class="icon-btn" title="Generate Code" type="button">
+      <img src="/Assets/Icons/generate.png" class="icon" />
     </button>
 
     <button id="btn-project-settings" class="icon-btn" title="Project Settings" type="button">
-      <img src="./Assets/Icons/settings.png" class="icon" />
-    </button>
-    
-    <button id="btn-project-settings-template" class="icon-btn" title="new IaC" type="button">
-      <img src="./Assets/Icons/generate.png" class="icon" />
+      <img src="/Assets/Icons/settings.png" class="icon" />
     </button>
 
     <button id="btn-back-projects" class="signin" type="button">Back to Projects</button>
@@ -70,7 +65,7 @@
   <!-- LEFT PANEL -->
   <!-- Update Black status here --> 
   <div class="left-panel panel panel--left">
-    <h3>Resources</h3>
+    <h3><img src="/Assets/Logo/azure-logo-small.png" class="left-title-icon" alt="Azure"/>Resources</h3>
     <input type="search" id="search-input" placeholder="Search resources" aria-label="Search resources" />
     <div class="resource-list" id="resource-list" aria-label="Resource list"></div>
     <div class="left-footer" aria-label="Resource footer">
@@ -90,24 +85,28 @@
 
       <!-- LEFT -->
       <div class="toolbar-left">
-        <button id="canvas-zoom-out" class="icon-btn" type="button">-</button>
-        <span id="canvas-zoom-label">100%</span>
-        <button id="canvas-zoom-in" class="icon-btn" type="button">+</button>
-        <button id="canvas-reset-view" class="icon-btn" type="button">Reset</button>
+            <div class="toolbar-controls">
+              <button id="canvas-zoom-out" class="icon-btn" type="button">-</button>
+              <span id="canvas-zoom-label">100%</span>
+              <button id="canvas-zoom-in" class="icon-btn" type="button">+</button>
+            </div>
+
+            <button id="canvas-reset-view" class="signin reset-btn" type="button">Reset</button>
       </div>
 
-      <!-- CENTER (floating messages) -->
+      <!-- CENTER (single bounded system message) -->
       <div class="toolbar-center">
-        <span id="project-save-status"></span>
-        <span id="canvas-status">0 resources · 0 connections</span>
+        <div id="center-status-boundary" class="center-status-boundary" role="status" aria-live="polite" title="Space to display system messages and notifications etc, The message length can be more than the visible space and can extend beyond that">
+          <span id="center-system-message">Space to display system messages and notifications etc, The message length can be more than the visible space and can extend beyond that</span>
+        </div>
       </div>
 
-      <!-- RIGHT -->
+      <!-- RIGHT 
       <div class="toolbar-right">
         <span id="selected-resource-name" class="status-text"></span>
         <span id="status-left-width" class="visually-hidden"></span>
         <span id="status-right-width" class="visually-hidden"></span>
-      </div>
+      </div>-->
 
     </div>
 

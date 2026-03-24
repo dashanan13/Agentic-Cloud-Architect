@@ -1806,7 +1806,7 @@ function renderIacIcon() {
   const lang = String(state.currentProject?.iacLanguage || "bicep").trim().toLowerCase();
   const src = IAC_ICONS[lang] || IAC_ICONS.bicep;
   const label = lang === "terraform" ? "Terraform" : lang === "opentofu" ? "OpenTofu" : "Bicep";
-  projectIacIconEl.innerHTML = `<img src="${src}" alt="${label}" title="${label}" width="22" height="22" />`;
+  projectIacIconEl.innerHTML = `<img src="${src}" alt="${label}" title="${label}" />`;
 }
 
 function renderProjectName() {
@@ -4211,11 +4211,8 @@ function updateCanvasNodeSelection() {
 }
 
 function updateCanvasStatus() {
-  if (canvasStatusEl) {
-    const resourceCount = state.canvasItems.length;
-    const connectionCount = state.canvasConnections.length;
-    canvasStatusEl.textContent = `${resourceCount} resource${resourceCount !== 1 ? 's' : ''} · ${connectionCount} connection${connectionCount !== 1 ? 's' : ''}`;
-  }
+  // Intentionally left blank: center system message replaces resource/connection counts.
+  // The UI intentionally does not display resource/connection counts in the center bar.
 }
 
 /**
@@ -4386,13 +4383,8 @@ function renderCanvasView() {
 }
 
 function updateCanvasStatus() {
-  if (!canvasStatusEl) {
-    return;
-  }
-  
-  const resourceCount = state.canvasItems.length;
-  const connectionCount = state.canvasConnections.length;
-  canvasStatusEl.textContent = `${resourceCount} resource${resourceCount !== 1 ? 's' : ''} · ${connectionCount} connection${connectionCount !== 1 ? 's' : ''}`;
+  // Intentionally left blank: center system message replaces resource/connection counts.
+  // The UI intentionally does not display resource/connection counts in the center bar.
 }
 
 function selectCanvasItem(itemId) {
@@ -4822,6 +4814,15 @@ function initializeCanvasInteractions() {
 }
 
 function setSaveStatus(message, isError = false) {
+  // Prefer writing save/status text into the center system message box when available.
+  const centerMsgEl = document.getElementById("center-system-message");
+  const centerBoundary = document.getElementById("center-status-boundary");
+  if (centerMsgEl) {
+    centerMsgEl.textContent = message;
+    if (centerBoundary) centerBoundary.title = message;
+    return;
+  }
+
   if (!projectSaveStatus) {
     return;
   }
