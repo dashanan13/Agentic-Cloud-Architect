@@ -138,7 +138,7 @@ function readCssPxVar(variableName, fallback) {
 }
 
 const layoutConfig = {
-  leftDefault: readCssPxVar("--layout-left-default", 15),
+  leftDefault: readCssPxVar("--layout-left-default", 18),
   leftMin: readCssPxVar("--layout-left-min", 10),
   leftMax: readCssPxVar("--layout-left-max", 30),
   rightDefault: readCssPxVar("--layout-right-default", 20),
@@ -3654,10 +3654,16 @@ function renderResources() {
     const groupBody = document.createElement("div");
     groupBody.className = "resource-group-body";
 
+    const startsExpanded = category.toLowerCase() === "custom";
+    heading.classList.toggle("collapsed", !startsExpanded);
+    groupBody.classList.toggle("collapsed", !startsExpanded);
+    heading.setAttribute("aria-expanded", startsExpanded ? "true" : "false");
+
     // Add click handler for collapsible functionality
     heading.addEventListener("click", () => {
       const isCollapsed = heading.classList.toggle("collapsed");
       groupBody.classList.toggle("collapsed", isCollapsed);
+      heading.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
     });
 
     filtered.forEach((resource) => {
@@ -8449,7 +8455,8 @@ async function initialize() {
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;
-  state.leftWidth = clamp(Number(state.currentProject.leftWidth) || layoutConfig.leftDefault, constraints.leftMin, constraints.leftMax);
+  // Use the layout default for left width on project load to preserve global UI setting
+  state.leftWidth = clamp(layoutConfig.leftDefault, constraints.leftMin, constraints.leftMax);
   state.rightWidth = clamp(Number(state.currentProject.rightWidth) || layoutConfig.rightDefault, constraints.rightMin, constraints.rightMax);
   state.bottomHeight = clamp(Number(state.currentProject.bottomHeight) || layoutConfig.bottomDefault, constraints.bottomMin, constraints.bottomMax);
   state.bottomRightWidth = clamp(Number(state.currentProject.bottomRightWidth) || layoutConfig.bottomRightDefault, constraints.bottomRightMin, constraints.bottomRightMax);
@@ -8483,6 +8490,15 @@ async function initialize() {
 
   // Initialize layout
   applySizes();
+  // Ensure left width uses global layout default (avoid restoring legacy project value)
+  try {
+    if (appEl) {
+      state.leftWidth = clamp(layoutConfig.leftDefault, constraints.leftMin, constraints.leftMax);
+      appEl.style.setProperty("--left-width", `${state.leftWidth}%`);
+    }
+  } catch (e) {
+    // ignore
+  }
   initializeCanvasInteractions();
   renderCanvasItems();
   renderCanvasView();

@@ -3,128 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base href="../" />
   <title>Canvas UI</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="./CanvasScreen/styles.css" />
 </head>
 
 <body>
+
+<div id="app">
 
 <!-- HEADER -->
 <div class="header">
 
   <!-- LEFT -->
   <div class="section">
-    <img src="../../Assets/Icons/home.png" class="icon" />
-    <span>App Name</span>
+    <a href="./index.html" class="icon-btn" title="Home" aria-label="Home">
+      <img src="./Assets/Icons/home.png" class="icon" />
+    </a>
+    <span id="project-iac-icon" aria-hidden="true"></span>
+    <span class="resources-title">Resources</span>
+    <span id="project-name-prefix-display" class="visually-hidden"></span>
+    <span id="project-name-suffix-display" class="visually-hidden" contenteditable="true" role="button" tabindex="0">Project Name</span>
   </div>
 
   <!-- CENTER -->
   <div class="header-center">
-    <img src="../../Assets/Icons/generate.png" class="icon" />
-    <span>Project Name</span>
+    <img src="./Assets/Icons/generate.png" class="icon" />
+    <span>Canvas</span>
   </div>
 
   <!-- RIGHT -->
   <div class="section right-tools">
 
-    <div class="icon-btn" title="Export Diagram">
-      <img src="../../Assets/Icons/export.png" class="icon" />
-    </div>
+    <button id="btn-export-diagram" class="icon-btn" title="Export Diagram" type="button">
+      <img src="./Assets/Icons/export.png" class="icon" />
+    </button>
 
-    <div class="icon-btn" title="Validate">
-      <img src="../../Assets/Icons/validate.png" class="icon" />
-    </div>
+    <button id="btn-validate" class="icon-btn" title="Validate" type="button">
+      <img src="./Assets/Icons/validate.png" class="icon" />
+    </button>
 
-    <div class="icon-btn" title="Save">
-      <img src="../../Assets/Icons/save.png" class="icon" />
-    </div>
+    <button id="btn-project-save" class="icon-btn" title="Save" type="button">
+      <img src="./Assets/Icons/save.png" class="icon" />
+    </button>
 
-    <div class="icon-btn" title="Generate Code">
-      <img src="../../Assets/Icons/generate.png" class="icon" />
-    </div>
+    <button id="btn-generate-code" class="icon-btn" title="Generate Code" type="button">
+      <img src="./Assets/Icons/generate.png" class="icon" />
+    </button>
 
-    <div class="icon-btn" title="Project Settings">
-      <img src="../../Assets/Icons/settings.png" class="icon" />
-    </div>
+    <button id="btn-project-settings" class="icon-btn" title="Project Settings" type="button">
+      <img src="./Assets/Icons/settings.png" class="icon" />
+    </button>
     
+    <button id="btn-project-settings-template" class="icon-btn" title="new IaC" type="button">
+      <img src="./Assets/Icons/generate.png" class="icon" />
+    </button>
 
-    <div class="icon-btn" title="Home">
-      <img src="../../Assets/Icons/home.png" class="icon" />
-    </div>
-
-    <div class="signin">Sign In</div>
+    <button id="btn-back-projects" class="signin" type="button">Back to Projects</button>
 
   </div>
 </div>
 
 <!-- MAIN -->
-<div class="main">
+<div class="main" id="workspace">
 
   <!-- LEFT PANEL -->
-  <div class="left-panel">
+  <!-- Update Black status here --> 
+  <div class="left-panel panel panel--left">
     <h3>Resources</h3>
-    <p>[Resource 1]</p>
-    <p>[Resource 2]</p>
-    <p>[Resource 3]</p>
+    <input type="search" id="search-input" placeholder="Search resources" aria-label="Search resources" />
+    <div class="resource-list" id="resource-list" aria-label="Resource list"></div>
+    <div class="left-footer" aria-label="Resource footer">
+      <div class="left-footer-inner">
+        <div class="status-text" id="chat-runtime-model">Model: Loading...</div>
+        <div class="status-text" id="chat-runtime-mcp">Azure MCP: Loading...</div> 
+      </div>
+    </div>
   </div>
 
+  <div class="splitter splitter--vertical" data-splitter="left" role="separator" aria-orientation="vertical" aria-label="Resize left panel"></div>
+
   <!-- CANVAS -->
-  <div class="canvas-container">
+  <div class="canvas-container panel panel--center">
 
     <div class="canvas-toolbar">
 
       <!-- LEFT -->
       <div class="toolbar-left">
-        <div class="icon-btn" onclick="zoomOut()">-</div>
-        <span id="zoomValue">Zoom: 100%</span>
-        <div class="icon-btn" onclick="zoomIn()">+</div>
+        <button id="canvas-zoom-out" class="icon-btn" type="button">-</button>
+        <span id="canvas-zoom-label">100%</span>
+        <button id="canvas-zoom-in" class="icon-btn" type="button">+</button>
+        <button id="canvas-reset-view" class="icon-btn" type="button">Reset</button>
       </div>
 
       <!-- CENTER (floating messages) -->
-      <div class="toolbar-center" id="infoMessage">
-        Info messages
+      <div class="toolbar-center">
+        <span id="project-save-status"></span>
+        <span id="canvas-status">0 resources · 0 connections</span>
       </div>
 
       <!-- RIGHT -->
       <div class="toolbar-right">
-        <div class="icon-btn" onclick="resetCanvas()" title="Reset">
-          <img src="../../Assets/Icons/reset.png" class="icon" />
-        </div>
+        <span id="selected-resource-name" class="status-text"></span>
+        <span id="status-left-width" class="visually-hidden"></span>
+        <span id="status-right-width" class="visually-hidden"></span>
       </div>
 
     </div>
 
     <!-- CANVAS AREA -->
-    <div class="canvas" id="canvas">
-      <!-- future drag-drop area -->
+    <div class="canvas canvas-viewport" id="canvas-viewport" aria-label="Architecture canvas" tabindex="0">
+      <div class="canvas-grid" id="canvas-grid"></div>
+      <svg class="canvas-edges" id="canvas-edges" aria-hidden="true"></svg>
+      <div class="canvas-layer" id="canvas-layer"></div>
     </div>
 
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
+  <div class="splitter splitter--vertical" data-splitter="right" role="separator" aria-orientation="vertical" aria-label="Resize right panel"></div>
 
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab(event, 'properties')">Properties</div>
-      <div class="tab" onclick="switchTab(event, 'chat')">AI Chat</div>
-      <div class="tab" onclick="switchTab(event, 'tips')">Tips</div>
+  <!-- RIGHT PANEL -->
+  <div class="right-panel panel panel--right">
+
+    <div class="tabs right-panel-tabs" role="tablist" aria-label="Property, tips and AI chat">
+      <div id="tab-properties" class="tab is-active" data-tab="properties" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-properties">Properties</div>
+      <div id="tab-chat" class="tab" data-tab="chat" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-chat">AI Chat</div>
+      <div id="tab-tips" class="tab" data-tab="tips" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-tips">Tips</div>
     </div>
 
     <div class="tab-content">
 
-      <div id="properties" class="tab-pane active">
-        <p>Properties panel...</p>
+      <div id="panel-properties" class="tab-pane tab-panel right-tab-panel" role="tabpanel" aria-labelledby="tab-properties">
+        <div id="property-content" class="property-content">
+          <p>Properties panel...</p>
+        </div>
       </div>
 
-      <div id="chat" class="tab-pane">
-        <div class="chat-box">
+      <div id="panel-chat" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-chat" hidden>
+        <div class="chat-box chat-history" id="chat-history">
           <div class="message">Hello! Ask me anything.</div>
         </div>
-        <input type="text" placeholder="Type a message..." />
+        <textarea id="chat-input" placeholder="Type a message..."></textarea>
+        <button id="chat-send" class="icon-btn" type="button">Send</button>
       </div>
 
-      <div id="tips" class="tab-pane">
-        <p>Helpful tips will appear here.</p>
+      <div id="panel-tips" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-tips" hidden>
+        <div id="tips-content">
+          <p>Helpful tips will appear here.</p>
+        </div>
       </div>
 
     </div>
@@ -133,6 +159,8 @@
 
 </div>
 
-<script src="script.js"></script>
+</div>
+
+<script src="./canvas.js?v=20260316d"></script>
 </body>
 </html>

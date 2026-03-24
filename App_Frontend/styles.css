@@ -12,9 +12,9 @@
   --form-label-gap: 8px;
   --form-group-gap: 16px;
 
-  --layout-left-default: 15%;
-  --layout-left-min: 10%;
-  --layout-left-max: 30%;
+  --layout-left-default: 18%;
+  --layout-left-min: 15%;
+  --layout-left-max: 25%;
 
   --layout-right-default: 20%;
   --layout-right-min: 15%;

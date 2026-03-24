@@ -4820,7 +4820,7 @@ def landing_page():
 
 @app.get("/canvas.html", include_in_schema=False)
 def canvas_page():
-    return FileResponse(FRONTEND_DIR / "canvas.html")
+    return FileResponse(FRONTEND_DIR / "CanvasScreen" / "canvas.html")
 
 
 @app.get("/settings.html", include_in_schema=False)
