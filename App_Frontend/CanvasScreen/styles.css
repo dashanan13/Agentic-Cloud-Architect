@@ -227,7 +227,7 @@ body {
 .resource-group-title {
   margin: 2px 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 400;
   color: #21242a;
   display: flex;
   align-items: center;
@@ -291,7 +291,7 @@ body {
 
 .resource-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.2;
 }
 
@@ -346,6 +346,8 @@ body {
   min-width: 0;
   height: 100%;
   overflow: hidden;
+  border-left: 1px solid #c8cdd5;
+  border-right: 1px solid #c8cdd5;
 }
 
 .canvas-toolbar {
@@ -406,7 +408,7 @@ body {
 .reset-btn {
   padding: 6px 12px; /* match .signin */
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   border: 1px solid #ccc; /* match .signin border color */
   border-radius: 0;
   background: #fff;
@@ -491,7 +493,6 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 200px;
-  box-shadow: inset 0 0 0 1px #d0d0d0;
   cursor: grab;
 }
 
@@ -640,12 +641,13 @@ body {
   flex-direction: column;
   background: #fff;
   border: 2px solid #34495e;
-  border-radius: 4px;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   cursor: pointer;
   min-width: 80px;
   min-height: 60px;
+  overflow: hidden;
 }
 
 .canvas-node:hover {
@@ -684,8 +686,8 @@ body {
 }
 
 .canvas-container-header img {
-  width: 16px;
-  height: 16px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
 }
 
@@ -749,8 +751,8 @@ body {
 }
 
 .canvas-resource-header img {
-  width: 18px;
-  height: 18px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   flex: 0 0 auto;
 }
@@ -776,6 +778,83 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+}
+
+/* Icon-view mode for non-container resource nodes */
+.canvas-node--resource.icon-view {
+  min-width: unset;
+  min-height: unset;
+  width: 96px;
+  height: 96px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.canvas-node--resource.icon-view:hover {
+  border: none;
+  box-shadow: none;
+}
+
+.canvas-node--resource.icon-view.selected {
+  border: none;
+  background: transparent;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  border-radius: 8px;
+}
+
+.canvas-resource-icon-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0;
+}
+
+.canvas-resource-icon-view img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+/* View mode toggle in property panel */
+.view-mode-toggle {
+  display: flex;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f5f7fa;
+  padding: 3px;
+  gap: 3px;
+  margin: 0;
+}
+
+.view-mode-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 400;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #555;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-mode-btn:hover {
+  background: #ecedef;
+}
+
+.view-mode-btn--active {
+  background: #fff;
+  color: #111;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
 }
 
 /* Remove Button */
@@ -807,66 +886,92 @@ body {
   background: rgba(255, 0, 0, 0.3);
 }
 
+/* Remove button on icon-view nodes: hidden by default, shown on hover absolutely */
+.canvas-node--resource.icon-view .canvas-node-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  background: rgba(220, 53, 69, 0.85);
+  color: #fff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.canvas-node--resource.icon-view:hover .canvas-node-remove {
+  opacity: 1;
+}
+
 /* Connection Handles */
 .canvas-connect-handle {
   position: absolute;
-  width: 10px;
-  height: 10px;
   background: #3b82f6;
   border: 2px solid #fff;
   border-radius: 50%;
   cursor: crosshair;
   opacity: 0;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
   padding: 0;
   margin: 0;
-  box-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
 }
 
 .canvas-node:hover .canvas-connect-handle {
   opacity: 1;
 }
 
+/* Top/bottom: portrait ellipse (narrow × tall) */
 .canvas-connect-handle[data-anchor="top"] {
-  top: -8px;
+  width: 16px;
+  height: 24px;
+  top: -13px;
   left: 50%;
   transform: translateX(-50%);
 }
 
+.canvas-connect-handle[data-anchor="bottom"] {
+  width: 16px;
+  height: 24px;
+  bottom: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Left/right: landscape ellipse (wide × narrow) */
 .canvas-connect-handle[data-anchor="right"] {
-  right: -8px;
+  width: 24px;
+  height: 16px;
+  right: -13px;
   top: 50%;
   transform: translateY(-50%);
 }
 
-.canvas-connect-handle[data-anchor="bottom"] {
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
 .canvas-connect-handle[data-anchor="left"] {
-  left: -8px;
+  width: 24px;
+  height: 16px;
+  left: -13px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .canvas-connect-handle:hover {
   background: #60a5fa;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
-  transform: scale(1.3);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
 }
 
 .canvas-connect-handle[data-anchor="top"]:hover {
-  transform: translateX(-50%) scale(1.3);
+  transform: translateX(-50%) scale(1.15);
 }
 
 .canvas-connect-handle[data-anchor="right"]:hover {
-  transform: translateY(-50%) scale(1.3);
+  transform: translateY(-50%) scale(1.15);
 }
 
 .canvas-connect-handle[data-anchor="bottom"]:hover {
-  transform: translateX(-50%) scale(1.3);
+  transform: translateX(-50%) scale(1.15);
 }
 
 /* Canvas Edges (SVG Connections) */
@@ -906,6 +1011,21 @@ path.canvas-edge--draft {
   fill: none;
   opacity: 0.7;
   pointer-events: none;
+}
+
+/* Bezier midpoint drag handle */
+circle.canvas-edge-midpoint {
+  fill: #fff;
+  stroke: #f59e0b;
+  stroke-width: 2;
+  cursor: grab;
+  pointer-events: all;
+}
+
+circle.canvas-edge-midpoint:hover {
+  fill: #fef3c7;
+  stroke: #d97706;
+  cursor: grab;
 }
 
 /* ============================================================
@@ -1124,7 +1244,7 @@ path.canvas-edge--draft {
 .tag-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .tag-row {
@@ -1150,6 +1270,58 @@ path.canvas-edge--draft {
 /* ============================================================
    ACTION BUTTONS (.btn)
    ============================================================ */
+
+/* Subsection cards inside property sections (e.g. security rules) */
+.property-subsection {
+  background: #ffffff;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.property-subsection__summary {
+  list-style: none;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #444;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f7fa;
+  border-bottom: 1px solid transparent;
+}
+
+.property-subsection__summary::-webkit-details-marker {
+  display: none;
+}
+
+.property-subsection[open] .property-subsection__summary {
+  border-bottom-color: #dde1e7;
+}
+
+.property-subsection__summary::after {
+  content: "›";
+  font-size: 14px;
+  color: #666;
+  transition: transform 0.15s ease;
+}
+
+.property-subsection[open] .property-subsection__summary::after {
+  transform: rotate(90deg);
+}
+
+.property-subsection__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #fff;
+}
 
 .property-actions {
   display: flex;

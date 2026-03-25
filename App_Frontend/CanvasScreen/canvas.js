@@ -567,23 +567,36 @@ function renderCanvasItems() {
     } else {
       nodeEl.classList.add("canvas-node--resource");
 
-      const headerEl = document.createElement("div");
-      headerEl.className = "canvas-resource-header";
+      if (item.viewMode === "icon") {
+        nodeEl.classList.add("icon-view");
+        const iconViewEl = document.createElement("div");
+        iconViewEl.className = "canvas-resource-icon-view";
+        const iconOnlyEl = document.createElement("img");
+        iconOnlyEl.src = item.iconSrc || "/Assets/Icons/resource-default.png";
+        iconOnlyEl.alt = `${resourceType} icon`;
+        iconOnlyEl.draggable = false;
+        iconViewEl.appendChild(iconOnlyEl);
+        nodeEl.appendChild(iconViewEl);
+        nodeEl.appendChild(buildRemoveControl(item.id));
+      } else {
+        const headerEl = document.createElement("div");
+        headerEl.className = "canvas-resource-header";
 
-      const typeEl = document.createElement("span");
-      typeEl.className = "canvas-resource-type";
-      typeEl.textContent = resourceType;
+        const typeEl = document.createElement("span");
+        typeEl.className = "canvas-resource-type";
+        typeEl.textContent = resourceType;
 
-      headerEl.appendChild(iconEl);
-      headerEl.appendChild(typeEl);
-      headerEl.appendChild(buildRemoveControl(item.id));
+        headerEl.appendChild(iconEl);
+        headerEl.appendChild(typeEl);
+        headerEl.appendChild(buildRemoveControl(item.id));
 
-      const bodyEl = document.createElement("div");
-      bodyEl.className = "canvas-resource-body";
-      bodyEl.textContent = item.name;
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "canvas-resource-body";
+        bodyEl.textContent = item.name;
 
-      nodeEl.appendChild(headerEl);
-      nodeEl.appendChild(bodyEl);
+        nodeEl.appendChild(headerEl);
+        nodeEl.appendChild(bodyEl);
+      }
 
       if (isConnectableItem(item)) {
         ["top", "right", "bottom", "left"].forEach((anchor) => {

@@ -200,7 +200,8 @@ const canvasInteraction = {
   resizeOriginX: 0,
   resizeOriginY: 0,
   widthOrigin: 0,
-  heightOrigin: 0
+  heightOrigin: 0,
+  midpointDraggingConnectionId: null
 };
 
 const constraints = {
@@ -2516,6 +2517,55 @@ function buildGenericResourcePropertyMarkup(selectedItem) {
   ].join("");
 }
 
+// Global handler called by inline onclick on view-mode toggle buttons
+window._setResourceViewMode = function(mode) {
+  if (!state.selectedResource) {
+    return;
+  }
+  const selectedItem = getItemById(state.selectedResource);
+  if (!selectedItem || selectedItem.isContainer) {
+    return;
+  }
+  selectedItem.viewMode = mode;
+  persistCanvasLocal();
+  renderCanvasItems();
+  updatePropertyPanelForSelection();
+};
+
+function buildSelectedResourcePropertyMarkup(selectedItem) {
+  let viewToggleMarkup = "";
+  if (!selectedItem.isContainer) {
+    const viewMode = selectedItem.viewMode || "full";
+    viewToggleMarkup = [
+      '<div class="view-mode-toggle">',
+      `<button class="view-mode-btn${viewMode !== "icon" ? " view-mode-btn--active" : ""}" type="button" onclick="window._setResourceViewMode('full')">Full view</button>`,
+      `<button class="view-mode-btn${viewMode === "icon" ? " view-mode-btn--active" : ""}" type="button" onclick="window._setResourceViewMode('icon')">Icon view</button>`,
+      '</div>',
+    ].join("");
+  }
+
+  let markup;
+  if (isResourceGroupItem(selectedItem)) {
+    markup = buildResourceGroupPropertyMarkup(selectedItem);
+  } else if (isNetworkSecurityGroupItem(selectedItem)) {
+    markup = buildNetworkSecurityGroupPropertyMarkup(selectedItem);
+  } else if (isRouteTableItem(selectedItem)) {
+    markup = buildRouteTablePropertyMarkup(selectedItem);
+  } else if (isVirtualNetworkItem(selectedItem)) {
+    markup = buildVirtualNetworkPropertyMarkup(selectedItem);
+  } else if (isSubnetItem(selectedItem)) {
+    markup = buildSubnetPropertyMarkup(selectedItem);
+  } else if (isPublicIpItem(selectedItem)) {
+    markup = buildPublicIpPropertyMarkup(selectedItem);
+  } else if (isDnsZoneItem(selectedItem)) {
+    markup = buildDnsZonePropertyMarkup(selectedItem);
+  } else {
+    markup = buildGenericResourcePropertyMarkup(selectedItem);
+  }
+
+  return markup.replace('<div class="property-form">', '<div class="property-form">' + viewToggleMarkup);
+}
+
 function buildResourceGroupPropertyMarkup(selectedItem) {
   const properties = ensureItemProperties(selectedItem);
 
@@ -3348,38 +3398,6 @@ function buildDnsZonePropertyMarkup(selectedItem) {
   ].join("");
 }
 
-function buildSelectedResourcePropertyMarkup(selectedItem) {
-  if (isResourceGroupItem(selectedItem)) {
-    return buildResourceGroupPropertyMarkup(selectedItem);
-  }
-
-  if (isNetworkSecurityGroupItem(selectedItem)) {
-    return buildNetworkSecurityGroupPropertyMarkup(selectedItem);
-  }
-
-  if (isRouteTableItem(selectedItem)) {
-    return buildRouteTablePropertyMarkup(selectedItem);
-  }
-
-  if (isVirtualNetworkItem(selectedItem)) {
-    return buildVirtualNetworkPropertyMarkup(selectedItem);
-  }
-
-  if (isSubnetItem(selectedItem)) {
-    return buildSubnetPropertyMarkup(selectedItem);
-  }
-
-  if (isPublicIpItem(selectedItem)) {
-    return buildPublicIpPropertyMarkup(selectedItem);
-  }
-
-  if (isDnsZoneItem(selectedItem)) {
-    return buildDnsZonePropertyMarkup(selectedItem);
-  }
-
-  return buildGenericResourcePropertyMarkup(selectedItem);
-}
-
 function getPropertyPanelStateKey() {
   if (state.selectedConnectionId) {
     return `connection:${state.selectedConnectionId}`;
@@ -4134,10 +4152,31 @@ function getConnectionPath(connection) {
   const fromScreen = worldToScreenPoint(fromWorld.x, fromWorld.y);
   const toScreen = worldToScreenPoint(toWorld.x, toWorld.y);
 
+  const geoMidX = (fromScreen.x + toScreen.x) / 2;
+  const geoMidY = (fromScreen.y + toScreen.y) / 2;
+
+  let pathStr;
+  let handleScreenX = geoMidX;
+  let handleScreenY = geoMidY;
+
+  if (connection.midpointX != null && connection.midpointY != null) {
+    const midScreen = worldToScreenPoint(connection.midpointX, connection.midpointY);
+    handleScreenX = midScreen.x;
+    handleScreenY = midScreen.y;
+    // Derive quadratic bezier control point so curve passes through waypoint at t=0.5
+    const cpX = 2 * midScreen.x - 0.5 * (fromScreen.x + toScreen.x);
+    const cpY = 2 * midScreen.y - 0.5 * (fromScreen.y + toScreen.y);
+    pathStr = `M ${fromScreen.x} ${fromScreen.y} Q ${cpX} ${cpY} ${toScreen.x} ${toScreen.y}`;
+  } else {
+    pathStr = `M ${fromScreen.x} ${fromScreen.y} L ${toScreen.x} ${toScreen.y}`;
+  }
+
   return {
-    path: `M ${fromScreen.x} ${fromScreen.y} L ${toScreen.x} ${toScreen.y}`,
-    midX: (fromScreen.x + toScreen.x) / 2,
-    midY: (fromScreen.y + toScreen.y) / 2
+    path: pathStr,
+    midX: geoMidX,
+    midY: geoMidY,
+    handleScreenX,
+    handleScreenY
   };
 }
 
@@ -4225,6 +4264,17 @@ function renderCanvasConnections() {
     }
 
     canvasEdgesEl.appendChild(edge);
+
+    // Midpoint drag handle shown on selected connection
+    if (state.selectedConnectionId === connection.id) {
+      const mpCircle = document.createElementNS(namespace, "circle");
+      mpCircle.classList.add("canvas-edge-midpoint");
+      mpCircle.setAttribute("cx", pathData.handleScreenX);
+      mpCircle.setAttribute("cy", pathData.handleScreenY);
+      mpCircle.setAttribute("r", "4");
+      mpCircle.dataset.connectionId = connection.id;
+      canvasEdgesEl.appendChild(mpCircle);
+    }
   });
 
   if (state.edgeDraft.active && state.edgeDraft.sourceId) {
@@ -4404,23 +4454,36 @@ function renderCanvasItems() {
       // Render as resource
       nodeEl.classList.add("canvas-node--resource");
 
-      const headerEl = document.createElement("div");
-      headerEl.className = "canvas-resource-header";
+      if (item.viewMode === "icon") {
+        nodeEl.classList.add("icon-view");
+        const iconViewEl = document.createElement("div");
+        iconViewEl.className = "canvas-resource-icon-view";
+        const iconOnlyEl = document.createElement("img");
+        iconOnlyEl.src = item.iconSrc || "/Assets/Icons/resource-default.png";
+        iconOnlyEl.alt = `${resourceType} icon`;
+        iconOnlyEl.draggable = false;
+        iconViewEl.appendChild(iconOnlyEl);
+        nodeEl.appendChild(iconViewEl);
+        nodeEl.appendChild(buildRemoveControl(item.id));
+      } else {
+        const headerEl = document.createElement("div");
+        headerEl.className = "canvas-resource-header";
 
-      const typeEl = document.createElement("span");
-      typeEl.className = "canvas-resource-type";
-      typeEl.textContent = resourceType;
+        const typeEl = document.createElement("span");
+        typeEl.className = "canvas-resource-type";
+        typeEl.textContent = resourceType;
 
-      headerEl.appendChild(iconEl);
-      headerEl.appendChild(typeEl);
-      headerEl.appendChild(buildRemoveControl(item.id));
+        headerEl.appendChild(iconEl);
+        headerEl.appendChild(typeEl);
+        headerEl.appendChild(buildRemoveControl(item.id));
 
-      const bodyEl = document.createElement("div");
-      bodyEl.className = "canvas-resource-body";
-      bodyEl.textContent = item.name;
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "canvas-resource-body";
+        bodyEl.textContent = item.name;
 
-      nodeEl.appendChild(headerEl);
-      nodeEl.appendChild(bodyEl);
+        nodeEl.appendChild(headerEl);
+        nodeEl.appendChild(bodyEl);
+      }
 
       // Add connection handles to resources
       if (isConnectableItem(item)) {
@@ -4743,13 +4806,49 @@ function initializeCanvasInteractions() {
     renderCanvasConnections();
   });
 
+  canvasEdgesEl?.addEventListener("dblclick", (event) => {
+    // Double-click midpoint handle to reset connection to straight line
+    const mpHandle = event.target.closest(".canvas-edge-midpoint");
+    if (mpHandle && mpHandle.dataset.connectionId) {
+      const connection = state.canvasConnections.find((c) => c.id === mpHandle.dataset.connectionId);
+      if (connection) {
+        connection.midpointX = null;
+        connection.midpointY = null;
+        persistCanvasLocal();
+        renderCanvasConnections();
+      }
+    }
+  });
+
   canvasEdgesEl?.addEventListener("mousedown", (event) => {
+    // Check if clicking the bezier midpoint handle
+    const mpHandle = event.target.closest(".canvas-edge-midpoint");
+    if (mpHandle && mpHandle.dataset.connectionId) {
+      event.preventDefault();
+      event.stopPropagation();
+      canvasInteraction.midpointDraggingConnectionId = mpHandle.dataset.connectionId;
+      return;
+    }
     if (findInEventPath(event, "canvas-edge")) {
       event.stopPropagation();
     }
   });
 
   window.addEventListener("mousemove", (event) => {
+    // Handle bezier midpoint dragging
+    if (canvasInteraction.midpointDraggingConnectionId) {
+      const connection = state.canvasConnections.find((c) => c.id === canvasInteraction.midpointDraggingConnectionId);
+      if (connection && canvasViewportEl) {
+        const vpRect = canvasViewportEl.getBoundingClientRect();
+        const screenX = event.clientX - vpRect.left;
+        const screenY = event.clientY - vpRect.top;
+        connection.midpointX = (screenX - state.canvasView.x) / state.canvasView.zoom;
+        connection.midpointY = (screenY - state.canvasView.y) / state.canvasView.zoom;
+        renderCanvasConnections();
+      }
+      return;
+    }
+
     if (state.edgeDraft.active) {
       state.edgeDraft.endClientX = event.clientX;
       state.edgeDraft.endClientY = event.clientY;
@@ -4827,6 +4926,14 @@ function initializeCanvasInteractions() {
   });
 
   window.addEventListener("mouseup", () => {
+    // End bezier midpoint drag
+    if (canvasInteraction.midpointDraggingConnectionId) {
+      canvasInteraction.midpointDraggingConnectionId = null;
+      persistCanvasLocal();
+      renderCanvasConnections();
+      return;
+    }
+
     if (state.edgeDraft.active && state.edgeDraft.sourceId) {
       const sourceId = state.edgeDraft.sourceId;
 
