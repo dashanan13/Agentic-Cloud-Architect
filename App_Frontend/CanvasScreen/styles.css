@@ -581,16 +581,17 @@ body {
 
 .tab-content {
   flex: 1;
-  min-height: 200px;
-  padding: 10px;
+  min-height: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   background: #fff;
+  overflow: hidden;
 }
 
 .tab-panel {
   flex: 1;
-  min-height: 80px;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -905,4 +906,348 @@ path.canvas-edge--draft {
   fill: none;
   opacity: 0.7;
   pointer-events: none;
+}
+
+/* ============================================================
+   RIGHT PANEL — PROPERTY TAB LAYOUT
+   ============================================================ */
+
+/* Properties tab panel: fixed header + scrollable body */
+#panel-properties {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Resource identity strip at the top of the property tab */
+.property-panel-header {
+  flex: 0 0 auto;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f5f6f8;
+}
+
+.prop-res-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scrollable form area */
+.property-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f0f2f5;
+}
+
+.property-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.property-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.property-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.property-content::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+/* Empty / placeholder state */
+.property-content > p {
+  padding: 20px 16px;
+  color: #888;
+  font-size: 13px;
+  text-align: center;
+  margin: 0;
+}
+
+/* ============================================================
+   PROPERTY FORM STRUCTURE
+   ============================================================ */
+
+.property-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 16px;
+}
+
+/* Collapsible section card */
+.property-group {
+  background: #ffffff;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.property-group__summary {
+  list-style: none;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #444;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f7fa;
+  border-bottom: 1px solid transparent;
+  transition: background 0.1s ease;
+}
+
+.property-group[open] > .property-group__summary {
+  border-bottom-color: #dde1e7;
+}
+
+.property-group__summary:hover {
+  background: #eceef2;
+}
+
+.property-group__summary::-webkit-details-marker {
+  display: none;
+}
+
+.property-group__summary::after {
+  content: "›";
+  font-size: 16px;
+  color: #999;
+  transition: transform 0.15s ease;
+  flex: 0 0 auto;
+}
+
+.property-group[open] > .property-group__summary::after {
+  transform: rotate(90deg);
+}
+
+.property-group__body {
+  padding: 10px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+}
+
+/* ============================================================
+   FIELD ROWS
+   ============================================================ */
+
+.property-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.property-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.property-value {
+  font-size: 13px;
+  color: #333;
+  padding: 4px 0;
+  word-break: break-word;
+}
+
+.property-helper {
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+  padding: 3px 0;
+}
+
+/* Inputs, selects, textareas inside the property panel */
+.property-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.property-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.property-input[readonly],
+.property-input:disabled {
+  background: #f8f9fb;
+  color: #999;
+  cursor: default;
+}
+
+.property-input--textarea {
+  min-height: 72px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   TAG EDITOR
+   ============================================================ */
+
+.property-row--tags {
+  gap: 6px;
+}
+
+.property-inline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tag-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag-row--key-value {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 4px;
+  align-items: center;
+}
+
+.tag-row__separator {
+  font-size: 12px;
+  color: #aaa;
+  user-select: none;
+  padding: 0 1px;
+}
+
+/* ============================================================
+   ACTION BUTTONS (.btn)
+   ============================================================ */
+
+.property-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Actions row — card style matching property-group */
+.property-form > .property-actions {
+  background: #ffffff;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  padding: 10px;
+  justify-content: space-between;
+}
+
+/* Empty / no-selection card */
+.property-group--empty {
+  background: #ffffff;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.property-group--empty > p {
+  margin: 0;
+  padding: 16px 12px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+  user-select: none;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--sm {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.btn--primary {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: #2563eb;
+  border-color: #1d4ed8;
+}
+
+.btn--secondary {
+  background: #f1f3f5;
+  border-color: #d0d5dd;
+  color: #333;
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: #e4e7eb;
+  border-color: #b0b8c1;
+}
+
+.btn--danger {
+  background: #fff;
+  border-color: #f87171;
+  color: #dc2626;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+/* ============================================================
+   CHAT & TIPS PANELS — restore inner padding
+   ============================================================ */
+
+#panel-chat,
+#panel-tips {
+  padding: 10px;
 }

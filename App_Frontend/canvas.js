@@ -1250,11 +1250,13 @@ function sanitizeItemProperties(resourceType, properties, validItemIds = null, i
     };
   }
 
-  if (hasTags) {
-    return { tags };
-  }
-
-  return {};
+  // Generic fallback — preserve common text properties for non-specialised resource types
+  return {
+    location: String(source.location || ""),
+    sku: String(source.sku || ""),
+    description: String(source.description || ""),
+    tags
+  };
 }
 
 function ensureItemProperties(item) {
@@ -2490,18 +2492,42 @@ function buildExistingCustomReferenceMarkup(config) {
 }
 
 function buildGenericResourcePropertyMarkup(selectedItem) {
+  const properties = ensureItemProperties(selectedItem);
+
   const basicSectionContent = [
     '<label class="property-row">',
     '<span class="property-label">Name</span>',
     `<input class="property-input" type="text" value="${escapeHtml(selectedItem.name)}" data-resource-field="name" maxlength="80" />`,
-    '</label>'
+    '</label>',
+    '<div class="property-row">',
+    '<span class="property-label">Type</span>',
+    `<span class="property-value">${escapeHtml(selectedItem.resourceType || "")}</span>`,
+    '</div>',
+    '<div class="property-row">',
+    '<span class="property-label">Category</span>',
+    `<span class="property-value">${escapeHtml(selectedItem.category || "—")}</span>`,
+    '</div>',
+    buildLocationInputMarkup(properties.location),
+    '<label class="property-row">',
+    '<span class="property-label">SKU / Tier</span>',
+    `<input class="property-input" type="text" value="${escapeHtml(properties.sku || "")}" data-resource-field="sku" placeholder="e.g. Standard" maxlength="80" />`,
+    '</label>',
+  ].join("");
+
+  const notesSectionContent = [
+    '<label class="property-row">',
+    '<span class="property-label">Notes</span>',
+    `<textarea class="property-input property-input--textarea" data-resource-field="description" maxlength="500" placeholder="Add notes about this resource...">${escapeHtml(properties.description || "")}</textarea>`,
+    '</label>',
   ].join("");
 
   return [
     '<div class="property-form">',
     buildPropertySectionMarkup("Basic", basicSectionContent, { open: true }),
+    buildPropertySectionMarkup("Tags", buildTagEditorMarkup(properties.tags)),
+    buildPropertySectionMarkup("Notes", notesSectionContent),
     buildResourceActionMarkup(),
-    '</div>'
+    '</div>',
   ].join("");
 }
 
@@ -3524,7 +3550,7 @@ function updatePropertyPanelForSelection() {
   if (selectedConnection) {
     const fromItem = getItemById(selectedConnection.fromId);
     const toItem = getItemById(selectedConnection.toId);
-    setSelectedResourceName(selectedConnection.name || "Unnamed Connection");
+    setSelectedResourceName("Connection");
     
     const connectableItems = state.canvasItems.filter((item) => isConnectableItem(item));
     const fromOptions = connectableItems
@@ -3536,6 +3562,9 @@ function updatePropertyPanelForSelection() {
     
     propertyContentEl.innerHTML = [
       "<div class=\"property-form\">",
+      "<details class=\"property-group\" open>",
+      "<summary class=\"property-group__summary\">Connection</summary>",
+      "<div class=\"property-group__body\">",
       "<label class=\"property-row\">",
       "<span class=\"property-label\">Name</span>",
       `<input class=\"property-input\" type=\"text\" value=\"${(selectedConnection.name || "").replace(/\"/g, "&quot;")}\" data-connection-field=\"name\" maxlength=\"80\" />`,
@@ -3553,9 +3582,12 @@ function updatePropertyPanelForSelection() {
       "<span class=\"property-label\">Direction</span>",
       `<select class=\"property-input\" data-connection-field=\"direction\"><option value=\"one-way\" ${selectedConnection.direction === "one-way" ? "selected" : ""}>One-way</option><option value=\"bi\" ${selectedConnection.direction === "bi" ? "selected" : ""}>Bi-directional</option></select>`,
       "</label>",
+      "</div>",
+      "</details>",
       "<div class=\"property-actions\">",
       `<button class=\"btn btn--sm btn--primary\" type=\"button\" data-property-action=\"save\">Save</button>`,
       `<button class=\"btn btn--sm btn--danger\" type=\"button\" data-connection-action=\"remove\">Remove</button>`,
+      "</div>",
       "</div>"
     ].join("");
 
@@ -3570,7 +3602,7 @@ function updatePropertyPanelForSelection() {
   const selectedItem = getItemById(state.selectedResource);
   if (selectedItem) {
     ensureItemProperties(selectedItem);
-    setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
+    setSelectedResourceName(selectedItem.resourceType || "Resource");
     propertyContentEl.innerHTML = buildSelectedResourcePropertyMarkup(selectedItem);
 
     propertyPanelRenderedStateKey = nextStateKey;
@@ -3583,7 +3615,7 @@ function updatePropertyPanelForSelection() {
 
   propertyPanelRenderedStateKey = "";
   setSelectedResourceName("None selected");
-  propertyContentEl.textContent = "Select a resource or connection to edit property details.";
+  propertyContentEl.innerHTML = "<div class=\"property-form\"><div class=\"property-group property-group--empty\"><p>Select a resource or connection to view and edit its properties.</p></div></div>";
 }
 
 function createResourceRow(category, resource, iconRoot) {
@@ -7519,7 +7551,7 @@ propertyContentEl?.addEventListener("input", (event) => {
 
   if (target.matches("[data-resource-field='name']")) {
     selectedItem.name = String(target.value || "");
-    setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
+    setSelectedResourceName(selectedItem.resourceType || "Resource");
     renderCanvasItems();
     persistCanvasLocal();
     return;
@@ -7602,7 +7634,7 @@ propertyContentEl?.addEventListener("input", (event) => {
       : resolveSubnetNameForPurpose(subnetPurpose, target.value);
 
     syncSubnetItemName(selectedItem);
-    setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
+    setSelectedResourceName(selectedItem.resourceType || "Resource");
     renderCanvasItems();
 
     persistCanvasLocal();
@@ -8189,7 +8221,7 @@ propertyContentEl?.addEventListener("change", (event) => {
     }
 
     syncSubnetItemName(selectedItem);
-    setSelectedResourceName(selectedItem.name || selectedItem.resourceType || "Resource");
+    setSelectedResourceName(selectedItem.resourceType || "Resource");
     renderCanvasItems();
     updatePropertyPanelForSelection();
     persistCanvasLocal();
@@ -8516,6 +8548,14 @@ propertyContentEl?.addEventListener("change", (event) => {
       updatePropertyPanelForSelection();
       persistCanvasLocal();
       return;
+    }
+
+    // Fallback: save plain text / textarea value for unrecognised fields
+    // ('name' is excluded — it has its own dedicated handler below)
+    if (fieldName && fieldName !== "name") {
+      properties[fieldName] = String(target.value || "");
+      updatePropertyPanelForSelection();
+      persistCanvasLocal();
     }
   }
 
