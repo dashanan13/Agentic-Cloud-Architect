@@ -2374,22 +2374,7 @@ async function loadCatalogForCloud(cloudName) {
 
 // ===== Resource Rendering =====
 function updatePropertyPanel(resourceName) {
-  propertyPanelRenderedStateKey = "";
-
-  if (!resourceName) {
-    setSelectedResourceName("None selected");
-    propertyContentEl.textContent = "Select a resource or connection to edit property details.";
-    return;
-  }
-
-  setSelectedResourceName(resourceName);
-  propertyContentEl.innerHTML = [
-    "Property",
-    "- Name",
-    "- Region",
-    "- SKU / Tier",
-    "- Tags"
-  ].join("<br />");
+  updatePropertyPanelForSelection();
 }
 
 function buildResourceMetaMarkup() {

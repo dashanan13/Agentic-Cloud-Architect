@@ -653,39 +653,7 @@ function updateCanvasNodeSelection() {
 }
 
 function updatePropertyPanel(resourceName) {
-  if (!resourceName) {
-    if (propertyContentEl) {
-      propertyContentEl.innerHTML = "<p>Select a resource to edit properties.</p>";
-    }
-    return;
-  }
-
-  const item = getItemById(resourceName);
-  if (!item) {
-    if (propertyContentEl) {
-      propertyContentEl.innerHTML = "<p>Resource not found.</p>";
-    }
-    return;
-  }
-
-  const html = `
-    <div class="property-item">
-      <label>Name:</label>
-      <input type="text" value="${escapeHtml(item.name)}" data-property="name" />
-    </div>
-    <div class="property-item">
-      <label>Type:</label>
-      <input type="text" value="${escapeHtml(item.resourceType)}" data-property="resourceType" readonly />
-    </div>
-    <div class="property-item">
-      <label>Category:</label>
-      <input type="text" value="${escapeHtml(item.category || '')}" data-property="category" />
-    </div>
-  `;
-
-  if (propertyContentEl) {
-    propertyContentEl.innerHTML = html;
-  }
+  updatePropertyPanelForSelection();
 }
 
 function escapeHtml(value) {
@@ -1226,6 +1194,7 @@ function initializeCanvas() {
   renderCanvasView();
   renderCanvasItems();
   renderResourceList();
+  updatePropertyPanelForSelection();
 
   // Load project from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -1236,6 +1205,7 @@ function initializeCanvas() {
       if (success) {
         renderCanvasView();
         renderCanvasItems();
+        updatePropertyPanelForSelection();
         
         // Update project name display
         if (projectNameDisplay && state.currentProject) {
