@@ -166,8 +166,8 @@ const state = {
   selectedResource: null,
   searchTerm: "",
   canvasView: {
-    x: 0,
-    y: 0,
+    x: 120,
+    y: 80,
     zoom: 1
   },
   canvasItems: [],
@@ -186,6 +186,7 @@ const state = {
 
 const canvasInteraction = {
   isPanning: false,
+  spacePanMode: false,
   panOriginX: 0,
   panOriginY: 0,
   viewOriginX: 0,
@@ -216,11 +217,26 @@ const constraints = {
 const MAX_PROJECT_NAME_LENGTH = 50;
 const AUTOSAVE_INTERVAL_MS = 30000;
 const CANVAS_ZOOM = {
-  min: 0.05,
-  max: 3,
+  min: 0.2,
+  max: 4,
   step: 0.05,
   grid: 40
 };
+
+const CANVAS_WORLD = {
+  width: 6000,
+  height: 4000,
+  defaultOffsetX: -900,  // Center-focused positioning at 50% zoom (canvas middle at 3000,2000)
+  defaultOffsetY: -600   // Center-focused positioning at 50% zoom
+};
+function createDefaultCanvasView() {
+  // Start near center with a comfortable zoom while allowing infinite pan.
+  return {
+    x: CANVAS_WORLD.defaultOffsetX,
+    y: CANVAS_WORLD.defaultOffsetY,
+    zoom: 0.5
+  };
+}
 
 const CANVAS_CONTAINER = {
   minWidth: 220,
@@ -1901,8 +1917,8 @@ function sanitizeProject(project) {
     lastSaved: Number(project.lastSaved) || Date.now(),
     canvasStateHash: String(project.canvasStateHash || "").trim(),
     canvasView: {
-      x: Number(incomingView.x) || 0,
-      y: Number(incomingView.y) || 0,
+      x: Number.isFinite(Number(incomingView.x)) ? Number(incomingView.x) : CANVAS_WORLD.defaultOffsetX,
+      y: Number.isFinite(Number(incomingView.y)) ? Number(incomingView.y) : CANVAS_WORLD.defaultOffsetY,
       zoom: clamp(Number(incomingView.zoom) || 1, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
     },
     canvasItems: sanitizedItems,
@@ -3972,6 +3988,52 @@ function getAnchorScreenPoint(itemId, anchor = "right") {
   return { x: rect.left + rect.width, y: cy };
 }
 
+function worldToScreenPoint(worldX, worldY) {
+  return {
+    x: worldX * state.canvasView.zoom + state.canvasView.x,
+    y: worldY * state.canvasView.zoom + state.canvasView.y
+  };
+}
+
+function getNodeWorldRect(itemId) {
+  const item = getItemById(itemId);
+  if (!item) {
+    return null;
+  }
+
+  const world = getItemWorldPosition(itemId);
+  if (item.isContainer) {
+    const width = clamp(Number(item.width) || CANVAS_CONTAINER.defaultWidth, CANVAS_CONTAINER.minWidth, 2400);
+    const height = clamp(Number(item.height) || CANVAS_CONTAINER.defaultHeight, CANVAS_CONTAINER.minHeight, 2400);
+    return {
+      left: world.x,
+      top: world.y,
+      width,
+      height
+    };
+  }
+
+  const nodeEl = canvasLayerEl?.querySelector(`.canvas-node[data-item-id="${itemId}"]`);
+  if (nodeEl) {
+    const rect = nodeEl.getBoundingClientRect();
+    const width = Math.max(180, rect.width / state.canvasView.zoom);
+    const height = Math.max(74, rect.height / state.canvasView.zoom);
+    return {
+      left: world.x,
+      top: world.y,
+      width,
+      height
+    };
+  }
+
+  return {
+    left: world.x,
+    top: world.y,
+    width: 180,
+    height: 74
+  };
+}
+
 function toWorldFromScreenPoint(screenX, screenY) {
   return {
     x: (screenX - state.canvasView.x) / state.canvasView.zoom,
@@ -3980,11 +4042,24 @@ function toWorldFromScreenPoint(screenX, screenY) {
 }
 
 function getAnchorWorldPoint(itemId, anchor = "right") {
-  const screen = getAnchorScreenPoint(itemId, anchor);
-  if (!screen) {
+  const rect = getNodeWorldRect(itemId);
+  if (!rect) {
     return null;
   }
-  return toWorldFromScreenPoint(screen.x, screen.y);
+
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  if (anchor === "top") {
+    return { x: cx, y: rect.top };
+  }
+  if (anchor === "bottom") {
+    return { x: cx, y: rect.top + rect.height };
+  }
+  if (anchor === "left") {
+    return { x: rect.left, y: cy };
+  }
+  return { x: rect.left + rect.width, y: cy };
 }
 
 function findClosestByClass(element, className) {
@@ -4039,10 +4114,13 @@ function getConnectionPath(connection) {
     return null;
   }
 
+  const fromScreen = worldToScreenPoint(fromWorld.x, fromWorld.y);
+  const toScreen = worldToScreenPoint(toWorld.x, toWorld.y);
+
   return {
-    path: `M ${fromWorld.x} ${fromWorld.y} L ${toWorld.x} ${toWorld.y}`,
-    midX: (fromWorld.x + toWorld.x) / 2,
-    midY: (fromWorld.y + toWorld.y) / 2
+    path: `M ${fromScreen.x} ${fromScreen.y} L ${toScreen.x} ${toScreen.y}`,
+    midX: (fromScreen.x + toScreen.x) / 2,
+    midY: (fromScreen.y + toScreen.y) / 2
   };
 }
 
@@ -4071,9 +4149,9 @@ function ensureEdgesDefs() {
   markerEnd.setAttribute("viewBox", "0 0 10 10");
   markerEnd.setAttribute("refX", "9");
   markerEnd.setAttribute("refY", "5");
-  markerEnd.setAttribute("markerWidth", "10");
-  markerEnd.setAttribute("markerHeight", "10");
-  markerEnd.setAttribute("markerUnits", "userSpaceOnUse");
+  markerEnd.setAttribute("markerWidth", "4");
+  markerEnd.setAttribute("markerHeight", "4");
+  markerEnd.setAttribute("markerUnits", "strokeWidth");
   markerEnd.setAttribute("orient", "auto-start-reverse");
 
   const arrowEndPath = document.createElementNS(namespace, "path");
@@ -4096,6 +4174,7 @@ function renderCanvasConnections() {
   const viewportRect = canvasViewportEl.getBoundingClientRect();
   canvasEdgesEl.setAttribute("width", `${Math.max(0, viewportRect.width)}`);
   canvasEdgesEl.setAttribute("height", `${Math.max(0, viewportRect.height)}`);
+  canvasEdgesEl.removeAttribute("viewBox");
 
   const defs = canvasEdgesEl.querySelector("defs");
   canvasEdgesEl.innerHTML = "";
@@ -4134,10 +4213,15 @@ function renderCanvasConnections() {
   if (state.edgeDraft.active && state.edgeDraft.sourceId) {
     const sourceWorld = getAnchorWorldPoint(state.edgeDraft.sourceId, state.edgeDraft.sourceAnchor);
     if (sourceWorld) {
-      const targetWorld = toWorldPoint(state.edgeDraft.endClientX, state.edgeDraft.endClientY);
+      const sourceScreen = worldToScreenPoint(sourceWorld.x, sourceWorld.y);
+      const viewportRect = canvasViewportEl.getBoundingClientRect();
+      const targetScreen = {
+        x: state.edgeDraft.endClientX - viewportRect.left,
+        y: state.edgeDraft.endClientY - viewportRect.top
+      };
       const draftPath = document.createElementNS(namespace, "path");
       draftPath.classList.add("canvas-edge");
-      draftPath.setAttribute("d", `M ${sourceWorld.x} ${sourceWorld.y} L ${targetWorld.x} ${targetWorld.y}`);
+      draftPath.setAttribute("d", `M ${sourceScreen.x} ${sourceScreen.y} L ${targetScreen.x} ${targetScreen.y}`);
       draftPath.setAttribute("marker-end", "url(#edge-arrow-end)");
       draftPath.setAttribute("stroke-dasharray", "4 4");
       canvasEdgesEl.appendChild(draftPath);
@@ -4359,20 +4443,20 @@ function renderCanvasItems() {
 }
 
 function renderCanvasView() {
-  if (!canvasLayerEl || !canvasGridEl) {
+  if (!canvasLayerEl || !canvasGridEl || !canvasViewportEl) {
     return;
   }
 
   canvasLayerEl.style.transform = `translate(${state.canvasView.x}px, ${state.canvasView.y}px) scale(${state.canvasView.zoom})`;
   if (canvasEdgesEl) {
-    canvasEdgesEl.style.transform = `translate(${state.canvasView.x}px, ${state.canvasView.y}px) scale(${state.canvasView.zoom})`;
+    canvasEdgesEl.style.transform = "none";
   }
 
-  const gridStep = CANVAS_ZOOM.grid * state.canvasView.zoom;
-  const offsetX = ((state.canvasView.x % gridStep) + gridStep) % gridStep;
-  const offsetY = ((state.canvasView.y % gridStep) + gridStep) % gridStep;
-  canvasGridEl.style.backgroundSize = `${gridStep}px ${gridStep}px`;
-  canvasGridEl.style.backgroundPosition = `${offsetX}px ${offsetY}px`;
+  canvasViewportEl.style.setProperty("--canvas-world-width", `${CANVAS_WORLD.width}px`);
+  canvasViewportEl.style.setProperty("--canvas-world-height", `${CANVAS_WORLD.height}px`);
+  canvasViewportEl.style.setProperty("--canvas-world-screen-x", `${state.canvasView.x}px`);
+  canvasViewportEl.style.setProperty("--canvas-world-screen-y", `${state.canvasView.y}px`);
+  canvasViewportEl.style.setProperty("--canvas-world-scale", `${state.canvasView.zoom}`);
 
   if (canvasZoomLabelEl) {
     canvasZoomLabelEl.textContent = `${Math.round(state.canvasView.zoom * 100)}%`;
@@ -4420,6 +4504,8 @@ function setCanvasZoom(nextZoom, clientX, clientY) {
   renderCanvasView();
   persistCanvasLocal();
 }
+
+
 
 function adjustCanvasZoom(direction, clientX, clientY) {
   const nextZoom = state.canvasView.zoom + direction * CANVAS_ZOOM.step;
@@ -4507,7 +4593,11 @@ function initializeCanvasInteractions() {
       return;
     }
 
-    if (event.target.closest(".canvas-node")) {
+    const panningWithMiddleButton = event.button === 1;
+    const panningWithSpaceKey = event.button === 0 && canvasInteraction.spacePanMode;
+    const clickedNode = event.target.closest(".canvas-node");
+
+    if (!panningWithMiddleButton && clickedNode && !panningWithSpaceKey) {
       return;
     }
 
@@ -4527,6 +4617,10 @@ function initializeCanvasInteractions() {
 
   canvasLayerEl.addEventListener("mousedown", (event) => {
     if (event.button !== 0) {
+      return;
+    }
+
+    if (canvasInteraction.spacePanMode) {
       return;
     }
 
@@ -4557,6 +4651,10 @@ function initializeCanvasInteractions() {
 
   canvasLayerEl.addEventListener("mousedown", (event) => {
     if (event.button !== 0) {
+      return;
+    }
+
+    if (canvasInteraction.spacePanMode) {
       return;
     }
 
@@ -4763,6 +4861,26 @@ function initializeCanvasInteractions() {
     }
   });
 
+  window.addEventListener("keydown", (event) => {
+    if (event.code !== "Space") {
+      return;
+    }
+    canvasInteraction.spacePanMode = true;
+    if (!canvasInteraction.isPanning) {
+      canvasViewportEl.classList.add("is-panning");
+    }
+  });
+
+  window.addEventListener("keyup", (event) => {
+    if (event.code !== "Space") {
+      return;
+    }
+    canvasInteraction.spacePanMode = false;
+    if (!canvasInteraction.isPanning) {
+      canvasViewportEl.classList.remove("is-panning");
+    }
+  });
+
   canvasLayerEl.addEventListener("mousedown", (event) => {
     if (event.target.closest(".canvas-node-remove")) {
       return;
@@ -4806,7 +4924,7 @@ function initializeCanvasInteractions() {
   canvasZoomInBtn?.addEventListener("click", () => adjustCanvasZoom(1));
   canvasZoomOutBtn?.addEventListener("click", () => adjustCanvasZoom(-1));
   canvasResetViewBtn?.addEventListener("click", () => {
-    state.canvasView = { x: 0, y: 0, zoom: 1 };
+    state.canvasView = createDefaultCanvasView();
     renderCanvasView();
     persistCanvasLocal();
   });
@@ -8462,11 +8580,38 @@ async function initialize() {
   state.bottomHeight = clamp(Number(state.currentProject.bottomHeight) || layoutConfig.bottomDefault, constraints.bottomMin, constraints.bottomMax);
   state.bottomRightWidth = clamp(Number(state.currentProject.bottomRightWidth) || layoutConfig.bottomRightDefault, constraints.bottomRightMin, constraints.bottomRightMax);
   state.searchTerm = String(state.currentProject.searchTerm || "");
-  state.canvasView = {
-    x: Number(state.currentProject.canvasView?.x) || 0,
-    y: Number(state.currentProject.canvasView?.y) || 0,
-    zoom: clamp(Number(state.currentProject.canvasView?.zoom) || 1, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
-  };
+  
+  // Calculate viewport dimensions for centering
+  const viewportRect = canvasViewportEl?.getBoundingClientRect();
+  const viewportWidth = viewportRect?.width || 800;
+  const viewportHeight = viewportRect?.height || 600;
+  
+  // Initialize canvasView with center-focused positioning
+  const hasSavedView = Number.isFinite(Number(state.currentProject.canvasView?.x)) &&
+                       Number.isFinite(Number(state.currentProject.canvasView?.y)) &&
+                       Number.isFinite(Number(state.currentProject.canvasView?.zoom));
+  
+  if (hasSavedView) {
+    // Use saved view state
+    state.canvasView = {
+      x: Number(state.currentProject.canvasView.x),
+      y: Number(state.currentProject.canvasView.y),
+      zoom: clamp(Number(state.currentProject.canvasView.zoom), CANVAS_ZOOM.min, CANVAS_ZOOM.max)
+    };
+  } else {
+    // New project: center on canvas middle at zoom 0.5 for good initial fit
+    const defaultZoom = 0.5;
+    const canvasMiddleWorldX = CANVAS_WORLD.width / 2;
+    const canvasMiddleWorldY = CANVAS_WORLD.height / 2;
+    
+    // Position so canvas middle appears at viewport center
+    state.canvasView = {
+      x: viewportWidth / 2 - canvasMiddleWorldX * defaultZoom,
+      y: viewportHeight / 2 - canvasMiddleWorldY * defaultZoom,
+      zoom: clamp(defaultZoom, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
+    };
+  }
+  
   state.canvasItems = Array.isArray(state.currentProject.canvasItems)
     ? state.currentProject.canvasItems.map((item) => ({ ...item }))
     : [];

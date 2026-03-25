@@ -1035,7 +1035,12 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   cursor: grab;
-  background: var(--panel);
+  --canvas-world-width: 4800px;
+  --canvas-world-height: 3200px;
+  --canvas-world-screen-x: 0px;
+  --canvas-world-screen-y: 0px;
+  --canvas-world-scale: 1;
+  background: #0f1115;
 }
 
 .canvas-viewport.is-panning {
@@ -1051,9 +1056,17 @@ body {
 
 .canvas-grid {
   pointer-events: none;
-  background-image:
-    linear-gradient(to right, var(--border) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background: transparent;
+}
+
+.canvas-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: #171a20;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.18) 1.1px, transparent 1.3px);
+  background-size: calc(48px * var(--canvas-world-scale)) calc(48px * var(--canvas-world-scale));
+  background-position: var(--canvas-world-screen-x) var(--canvas-world-screen-y);
 }
 
 .canvas-layer {
@@ -1280,7 +1293,7 @@ body {
   display: block;
   min-width: 220px;
   min-height: 140px;
-  border: 2px dashed #253F3F;
+  border: 2px solid #253F3F;
   background: rgba(47, 79, 79, 0.5); /* CONTAINER BACKGROUND - Semi-transparent version of #2F4F4F */
   padding: 0;
   cursor: default;
