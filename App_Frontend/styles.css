@@ -1169,7 +1169,7 @@ body {
 }
 
 .canvas-resource-type {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   line-height: 1.2;
   font-weight: 600;
   color: #ffffff;
@@ -1177,12 +1177,13 @@ body {
 }
 
 .canvas-resource-body {
-  min-height: 44px;
-  padding: 10px;
+  min-height: 22px;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
   font-weight: 600;
   overflow-wrap: anywhere;
 }

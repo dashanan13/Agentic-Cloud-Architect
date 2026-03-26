@@ -4051,8 +4051,8 @@ function getNodeWorldRect(itemId) {
   const nodeEl = canvasLayerEl?.querySelector(`.canvas-node[data-item-id="${itemId}"]`);
   if (nodeEl) {
     const rect = nodeEl.getBoundingClientRect();
-    const width = Math.max(180, rect.width / state.canvasView.zoom);
-    const height = Math.max(74, rect.height / state.canvasView.zoom);
+    const width = rect.width / state.canvasView.zoom;
+    const height = rect.height / state.canvasView.zoom;
     return {
       left: world.x,
       top: world.y,
@@ -4064,8 +4064,8 @@ function getNodeWorldRect(itemId) {
   return {
     left: world.x,
     top: world.y,
-    width: 180,
-    height: 74
+    width: item.viewMode === "icon" ? 96 : 180,
+    height: item.viewMode === "icon" ? 96 : 74
   };
 }
 
@@ -4077,6 +4077,19 @@ function toWorldFromScreenPoint(screenX, screenY) {
 }
 
 function getAnchorWorldPoint(itemId, anchor = "right") {
+  if (canvasLayerEl && canvasViewportEl) {
+    const handleEl = canvasLayerEl.querySelector(
+      `.canvas-connect-handle[data-item-id="${itemId}"][data-anchor="${anchor}"]`
+    );
+    if (handleEl) {
+      const viewportRect = canvasViewportEl.getBoundingClientRect();
+      const handleRect = handleEl.getBoundingClientRect();
+      const centerX = handleRect.left - viewportRect.left + handleRect.width / 2;
+      const centerY = handleRect.top - viewportRect.top + handleRect.height / 2;
+      return toWorldFromScreenPoint(centerX, centerY);
+    }
+  }
+
   const rect = getNodeWorldRect(itemId);
   if (!rect) {
     return null;
