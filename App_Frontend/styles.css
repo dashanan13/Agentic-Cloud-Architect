@@ -1623,8 +1623,9 @@ select.property-input {
 }
 
 .status-ai-value {
-  font-size: 0.62rem;
-  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -1712,9 +1713,11 @@ select.property-input {
 }
 
 .validation-runtime {
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   background: var(--panel);
   padding: 8px 10px;
+  margin: 10px 10px 0;
   display: grid;
   gap: 4px;
 }
@@ -1727,9 +1730,9 @@ select.property-input {
 }
 
 .validation-runtime__label {
-  font-size: 0.64rem;
+  font-size: 0.68rem;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .validation-summary {
@@ -1818,6 +1821,8 @@ select.property-input {
   font-size: 0.68rem;
   color: var(--muted);
   line-height: 1.45;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .validation-finding__target {
@@ -1918,10 +1923,19 @@ select.property-input {
   background: var(--bg);
   padding: 8px;
   font-size: 0.62rem;
+  font-family: inherit;
   color: var(--text);
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.validation-description-text {
+  white-space: pre-wrap;
+  font-family: inherit;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .validation-score-table-wrap {

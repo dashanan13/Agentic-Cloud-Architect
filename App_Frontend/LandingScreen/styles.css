@@ -324,6 +324,32 @@ input, select, textarea {
   border: 1px solid #ccc;
   background: none;
   padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 3px;
+}
+
+.project-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-old-canvas {
+  border-color: #a0b4d6;
+  color: #2563eb;
+}
+
+.btn-old-canvas:hover {
+  background: #eff5ff;
+  border-color: #2563eb;
+}
+
+.btn-delete:hover {
+  background: #fff2f2;
+  border-color: #ef4444;
+  color: #dc2626;
 }
 
 /* QUALITY */

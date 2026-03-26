@@ -27,6 +27,12 @@ const centerSystemMessageEl = document.getElementById("center-system-message");
 const tabsElements = document.querySelectorAll('.tab[role="tab"]');
 const tabPanelsElements = document.querySelectorAll('.tab-pane[role="tabpanel"]');
 
+// Chat panel elements
+const chatHistoryEl = document.getElementById("chat-history");
+const chatInputEl = document.getElementById("chat-input");
+const chatSendBtn = document.getElementById("chat-send");
+const tipsContentEl = document.getElementById("tips-content");
+
 // ===== Constants =====
 const CANVAS_ZOOM = {
   min: 0.2,
@@ -105,6 +111,17 @@ const canvasInteraction = {
   widthOrigin: 0,
   heightOrigin: 0
 };
+
+// ===== Chat State =====
+let chatAgentState = null;
+let chatRequestInFlight = false;
+const chatWelcomeMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
+
+// ===== Validation / Tips State =====
+let validationRunInFlight = false;
+let validationResult = null;
+let tipsExpandedSections = new Set();
+const tipsInitialMarkup = tipsContentEl ? tipsContentEl.innerHTML : "";
 
 // ===== Helper Functions =====
 
@@ -1127,24 +1144,24 @@ function setupButtonHandlers() {
     });
   }
 
-  // Tab switching
+  // Validate button
+  if (btnValidate) {
+    btnValidate.addEventListener("click", () => {
+      runValidation();
+    });
+  }
+
+  // Tab switching — on switching to chat, load history; on switching to tips, render panel
   tabsElements.forEach((tab) => {
     tab.addEventListener("click", () => {
       const tabId = tab.dataset.tab;
-      
-      // Remove active from all tabs
-      tabsElements.forEach(t => t.classList.remove("is-active"));
-      tabPanelsElements.forEach(p => {
-        p.classList.add("is-hidden");
-        p.hidden = true;
-      });
-
-      // Add active to clicked tab
-      tab.classList.add("is-active");
-      const panel = document.getElementById(`panel-${tabId}`);
-      if (panel) {
-        panel.classList.remove("is-hidden");
-        panel.hidden = false;
+      setActiveTab(tabId);
+      if (tabId === "chat") {
+        loadChatHistory();
+        loadChatStatus();
+      }
+      if (tabId === "tips") {
+        renderTipsPanel();
       }
     });
   });
@@ -1189,6 +1206,470 @@ function renderResourceList() {
   });
 }
 
+// ===== AI Chat Functions =====
+
+function setActiveTab(tabId) {
+  tabsElements.forEach(t => t.classList.remove("is-active"));
+  tabPanelsElements.forEach(p => { p.classList.add("is-hidden"); p.hidden = true; });
+  const tab = document.querySelector(`.tab[data-tab="${tabId}"]`);
+  if (tab) tab.classList.add("is-active");
+  const panel = document.getElementById(`panel-${tabId}`);
+  if (panel) { panel.classList.remove("is-hidden"); panel.hidden = false; }
+}
+
+function escapeHtmlChat(value) {
+  const d = document.createElement("div");
+  d.textContent = value;
+  return d.innerHTML;
+}
+
+function appendChatMessage(text, role = "user", scroll = true) {
+  if (!chatHistoryEl) return;
+  // Remove welcome banner on first real message
+  const welcome = chatHistoryEl.querySelector(".chat-welcome");
+  if (welcome) welcome.remove();
+
+  const el = document.createElement("div");
+  el.className = `chat-message chat-message--${role}`;
+  el.textContent = text;
+  chatHistoryEl.appendChild(el);
+  if (scroll) chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  return el;
+}
+
+function appendLoadingBubble() {
+  if (!chatHistoryEl) return null;
+  const el = document.createElement("div");
+  el.className = "chat-message chat-message--assistant chat-message--loading";
+  el.innerHTML = '<span class="chat-dots"><span></span><span></span><span></span></span>';
+  chatHistoryEl.appendChild(el);
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  return el;
+}
+
+function setChatBusy(isBusy) {
+  chatRequestInFlight = Boolean(isBusy);
+  if (chatSendBtn) chatSendBtn.disabled = chatRequestInFlight;
+  if (chatInputEl) chatInputEl.disabled = chatRequestInFlight;
+}
+
+async function loadChatHistory() {
+  if (!chatHistoryEl || !state.currentProject?.id) return;
+  try {
+    const res = await fetch(`/api/chat/architecture/history?projectId=${encodeURIComponent(state.currentProject.id)}`);
+    if (!res.ok) return;
+    const payload = await res.json();
+    const messages = Array.isArray(payload?.messages) ? payload.messages : [];
+    const valid = messages.filter(m => (m.role === "user" || m.role === "assistant") && String(m.content || "").trim());
+    if (!valid.length) return;
+    chatHistoryEl.innerHTML = "";
+    valid.forEach(m => appendChatMessage(m.content, m.role, false));
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  } catch {
+    // Keep welcome state on error
+  }
+}
+
+async function loadChatStatus() {
+  try {
+    const projectId = state.currentProject?.id ? `?projectId=${encodeURIComponent(state.currentProject.id)}` : "";
+    const res = await fetch(`/api/chat/architecture/status${projectId}`);
+    if (!res.ok) return;
+    const payload = await res.json();
+    const model = payload?.model || {};
+    const mcp = payload?.connections?.azureMcp || {};
+    if (chatRuntimeModelEl) {
+      chatRuntimeModelEl.textContent = String(model.activeModel || model.configuredModel || "—").trim() || "—";
+    }
+    if (chatRuntimeMcpEl) {
+      chatRuntimeMcpEl.textContent = mcp.connected ? "Connected" : (mcp.configured ? "Configured" : "Unavailable");
+    }
+  } catch {
+    if (chatRuntimeModelEl) chatRuntimeModelEl.textContent = "Unavailable";
+    if (chatRuntimeMcpEl) chatRuntimeMcpEl.textContent = "Unknown";
+  }
+}
+
+async function sendChatMessage() {
+  if (!chatInputEl || chatRequestInFlight) return;
+  const message = chatInputEl.value.trim();
+  if (!message) return;
+
+  appendChatMessage(message, "user");
+  chatInputEl.value = "";
+  setChatBusy(true);
+  const loadingEl = appendLoadingBubble();
+
+  try {
+    const res = await fetch("/api/chat/architecture", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        projectId: state.currentProject?.id || null,
+        agentState: chatAgentState || null,
+      }),
+    });
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(payload?.detail || "AI chat request failed.");
+    }
+    if (loadingEl) loadingEl.remove();
+    chatAgentState = payload?.agentState || null;
+    appendChatMessage(String(payload?.message || "I could not generate a response."), "assistant");
+  } catch (err) {
+    if (loadingEl) loadingEl.remove();
+    appendChatMessage(err?.message || "Unable to complete AI chat request.", "assistant");
+  } finally {
+    setChatBusy(false);
+    if (chatInputEl) chatInputEl.focus();
+  }
+}
+
+if (chatSendBtn) chatSendBtn.addEventListener("click", sendChatMessage);
+if (chatInputEl) {
+  chatInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+  });
+}
+
+// ===== Validation / Tips Functions =====
+
+function buildCanvasSnapshot() {
+  const items = state.canvasItems || [];
+  const connections = state.canvasConnections || [];
+  return {
+    canvasItems: items,
+    canvasConnections: connections,
+    summary: {
+      totalResources: items.length,
+      totalConnections: connections.length,
+      resourceTypes: [...new Set(items.map(i => i.resourceType || i.name || "Unknown"))],
+    },
+  };
+}
+
+// ---- Tips structural helpers (mirrors old canvas arrangement) ----
+
+function renderTipsGroup(key, title, count, bodyHtml, defaultExpanded = false, nested = false) {
+  const isOpen = tipsExpandedSections.has(key) || defaultExpanded;
+  const titleText = count != null ? `${title} (${count})` : title;
+  const classes = ["validation-group", nested ? "validation-group--nested" : ""].filter(Boolean).join(" ");
+  return `
+    <section class="${classes}">
+      <button type="button" class="validation-group__toggle" data-tips-toggle="${escapeHtmlChat(key)}" aria-expanded="${isOpen}">
+        <span class="validation-group__title">${escapeHtmlChat(titleText)}</span>
+        <span class="validation-group__chevron" aria-hidden="true">${isOpen ? "▾" : "▸"}</span>
+      </button>
+      <div class="validation-group__body${isOpen ? "" : " is-hidden"}"${isOpen ? "" : " hidden"}>
+        ${bodyHtml}
+      </div>
+    </section>`;
+}
+
+function renderFinding(titleHtml, bodyHtml) {
+  return `<article class="validation-finding"><h4 class="validation-finding__title">${titleHtml}</h4>${bodyHtml}</article>`;
+}
+
+function renderLineList(entries, emptyMsg = "None identified.", compact = false) {
+  const safe = Array.isArray(entries) ? entries.filter(e => String(e || "").trim()) : [];
+  if (!safe.length) return `<p class="validation-empty">${escapeHtmlChat(emptyMsg)}</p>`;
+  const cls = compact ? "validation-list validation-list--compact" : "validation-list";
+  return `<ul class="${cls}">${safe.map(e => `<li>${escapeHtmlChat(String(e))}</li>`).join("")}</ul>`;
+}
+
+function renderActionChecklist(items, emptyMsg = "No actions identified.") {
+  const safe = Array.isArray(items) ? items.filter(e => String(e || "").trim()) : [];
+  if (!safe.length) return `<p class="validation-empty">${escapeHtmlChat(emptyMsg)}</p>`;
+  return `<ol class="validation-action-list">${safe.map(e => `<li>&#10003; ${escapeHtmlChat(String(e))}</li>`).join("")}</ol>`;
+}
+
+function renderTipsPanel() {
+  if (!tipsContentEl) return;
+
+  if (!validationResult) {
+    tipsContentEl.innerHTML = tipsInitialMarkup || `<div class="tab-placeholder"><div class="tab-placeholder-icon">&#128161;</div><p class="tab-placeholder-title">Architecture Tips</p><p class="tab-placeholder-sub">Click <strong>Validate</strong> in the toolbar to analyse your architecture.</p></div>`;
+    return;
+  }
+
+  if (validationResult.errorMessage) {
+    tipsContentEl.innerHTML = `<div class="vr-error"><strong>Validation failed</strong><p>${escapeHtmlChat(validationResult.errorMessage)}</p></div>`;
+    return;
+  }
+
+  const r = validationResult;
+  const archSummary        = String(r.architecture_summary || "").trim();
+  const detectedServices   = Array.isArray(r.detected_services) ? r.detected_services : [];
+  const maturity           = r.architecture_maturity && typeof r.architecture_maturity === "object" ? r.architecture_maturity : {};
+  const pillarAssessment   = r.pillar_assessment && typeof r.pillar_assessment === "object" ? r.pillar_assessment : {};
+  const priorityItems      = Array.isArray(r.priority_improvements) ? r.priority_improvements : [];
+  const configIssues       = Array.isArray(r.configuration_issues) ? r.configuration_issues : [];
+  const antiPatterns       = Array.isArray(r.architecture_antipatterns) ? r.architecture_antipatterns : [];
+  const quickFixes         = Array.isArray(r.quick_configuration_fixes) ? r.quick_configuration_fixes : [];
+  const missingCaps        = Array.isArray(r.missing_capabilities) ? r.missing_capabilities : [];
+  const recPatterns        = Array.isArray(r.recommended_patterns) ? r.recommended_patterns : [];
+
+  // ---- Runtime strip ----
+  const runtimeHtml = [
+    `<div class="validation-runtime__row"><span class="validation-runtime__label">Status</span><span class="vr-status-ok">Completed</span></div>`,
+    `<div class="validation-runtime__row"><span class="validation-runtime__label">Services detected</span><span class="vr-status-ok">${detectedServices.length}</span></div>`,
+    `<div class="validation-runtime__row"><span class="validation-runtime__label">Pillars assessed</span><span class="vr-status-ok">5</span></div>`,
+  ].join("");
+
+  // ---- Summary counts strip ----
+  const criticalCount = configIssues.length + antiPatterns.length;
+  const improvCount   = priorityItems.length;
+  const missingCount  = missingCaps.length;
+  const summaryHtml = [
+    `<span class="validation-summary__item">Config Issues <strong>${criticalCount}</strong></span>`,
+    `<span class="validation-summary__item">Improvements <strong>${improvCount}</strong></span>`,
+    `<span class="validation-summary__item">Missing <strong>${missingCount}</strong></span>`,
+  ].join("");
+
+  // ---- Section 1: Overview ----
+  const overallAssessment = String(maturity.overall_assessment || "").trim();
+  const servicesListHtml = detectedServices.length
+    ? `<ul class="validation-list">${detectedServices.map(s => `<li>${escapeHtmlChat(s)}</li>`).join("")}</ul>`
+    : `<p class="validation-empty">No services detected.</p>`;
+
+  const section1Body = [
+    archSummary ? renderFinding("Architecture Summary", `<p class="validation-finding__message">${escapeHtmlChat(archSummary)}</p>`) : "",
+    renderFinding("Detected Azure Services", servicesListHtml),
+    overallAssessment ? renderFinding("Overall Assessment", `<p class="validation-finding__message">${escapeHtmlChat(overallAssessment)}</p>`) : "",
+  ].join("");
+
+  // ---- Section 2: Architecture Maturity ----
+  const maturityDims = ["reliability", "security", "observability", "scalability", "operational_maturity"];
+  const maturityRows = maturityDims.map(d => {
+    const level = String(maturity[d] || "Low").trim();
+    const label = d.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    return `<tr><td>${escapeHtmlChat(label)}</td><td class="vr-maturity-cell vr-maturity--${level.toLowerCase()}">${escapeHtmlChat(level)}</td></tr>`;
+  }).join("");
+  const maturityTableHtml = `
+    <div class="validation-score-table-wrap">
+      <table class="validation-score-table">
+        <thead><tr><th>Dimension</th><th>Maturity</th></tr></thead>
+        <tbody>${maturityRows}</tbody>
+      </table>
+    </div>`;
+  const section2Body = renderFinding("Maturity by Dimension", maturityTableHtml);
+
+  // ---- Section 3: Pillar Scores & Per-Pillar Review ----
+  const pillarKeys   = ["reliability", "security", "cost_optimization", "operational_excellence", "performance_efficiency"];
+  const pillarLabels = { reliability: "Reliability", security: "Security", cost_optimization: "Cost Optimization", operational_excellence: "Operational Excellence", performance_efficiency: "Performance" };
+
+  const pillarScoreRows = pillarKeys.map(p => {
+    const pa = pillarAssessment[p] && typeof pillarAssessment[p] === "object" ? pillarAssessment[p] : {};
+    const score = Number(pa.score || 0);
+    const icon = score >= 75 ? "✅" : score >= 50 ? "⚠️" : "🔴";
+    const recs = Array.isArray(pa.recommendations) ? pa.recommendations : [];
+    const topNote = recs.length ? String(recs[0]?.title || recs[0] || "").trim() : "—";
+    return `<tr><td><strong>${escapeHtmlChat(pillarLabels[p])}</strong></td><td>${icon} ${score}/100</td><td>${escapeHtmlChat(topNote)}</td></tr>`;
+  }).join("");
+
+  const scoreTableHtml = `
+    <div class="validation-score-table-wrap">
+      <table class="validation-score-table">
+        <thead><tr><th>Pillar</th><th>Score</th><th>Leading Note</th></tr></thead>
+        <tbody>${pillarScoreRows}</tbody>
+      </table>
+    </div>`;
+
+  // Per-pillar nested groups
+  const pillarGroupsHtml = pillarKeys.map(p => {
+    const pa = pillarAssessment[p] && typeof pillarAssessment[p] === "object" ? pillarAssessment[p] : {};
+    const strengths = Array.isArray(pa.strengths) ? pa.strengths : [];
+    const weaknesses = Array.isArray(pa.weaknesses) ? pa.weaknesses : [];
+    const recs = Array.isArray(pa.recommendations) ? pa.recommendations : [];
+    const recLines = recs.map(rec => {
+      const t = String(rec?.title || rec || "").trim();
+      const d = String(rec?.description || "").trim();
+      return d ? `${t} — ${d}` : t;
+    });
+    const pillarBody = [
+      renderFinding("Strengths", renderLineList(strengths, "No strengths recorded.")),
+      renderFinding("Weaknesses", renderLineList(weaknesses, "No weaknesses recorded.")),
+      renderFinding("Recommendations", renderLineList(recLines, "No recommendations recorded.")),
+    ].join("");
+    return renderTipsGroup(`pillar-${p}`, pillarLabels[p], null, pillarBody, false, true);
+  }).join("");
+
+  const section3Body = [
+    renderFinding("Pillar Scorecard", scoreTableHtml),
+    pillarGroupsHtml,
+  ].join("");
+
+  // ---- Section 4: Priority Action Plan ----
+  const highItems = priorityItems.filter(i => Number(i?.rank || 99) <= 2);
+  const midItems  = priorityItems.filter(i => Number(i?.rank || 99) > 2 && Number(i?.rank || 99) <= 4);
+  const lowItems  = priorityItems.filter(i => Number(i?.rank || 99) > 4);
+
+  const formatImprovLine = item => {
+    const title = String(item?.title || "Improvement").trim();
+    const desc  = String(item?.description || "").trim();
+    return desc ? `${title} — ${desc}` : title;
+  };
+
+  const section4Body = [
+    renderFinding("Immediate (Rank 1–2)", renderActionChecklist(highItems.map(formatImprovLine), "No immediate actions identified.")),
+    renderFinding("Short-term (Rank 3–4)", renderActionChecklist(midItems.map(formatImprovLine), "No short-term actions identified.")),
+    lowItems.length ? renderFinding("Additional", renderLineList(lowItems.map(formatImprovLine))) : "",
+  ].join("");
+
+  // ---- Section 5: Configuration Issues & Anti-patterns ----
+  const issueFindings = configIssues.map(item => {
+    const resource   = String(item?.resource || "Resource").trim();
+    const issue      = String(item?.issue || "").trim();
+    const impact     = String(item?.impact || "").trim();
+    const resolution = String(item?.resolution || "").trim();
+    const bodyParts = [
+      issue ? `<p class="validation-finding__message">${escapeHtmlChat(issue)}</p>` : "",
+      impact ? `<p class="validation-finding__target">Impact: ${escapeHtmlChat(impact)}</p>` : "",
+      resolution ? `<p class="validation-finding__target">&#10003; Fix: ${escapeHtmlChat(resolution)}</p>` : "",
+    ].join("");
+    return renderFinding(escapeHtmlChat(resource), bodyParts);
+  }).join("");
+
+  const antiPatternFindings = antiPatterns.map(item => {
+    const name = String(item?.name || "Anti-pattern").trim();
+    const risk = String(item?.risk || "").trim();
+    const rec  = String(item?.recommendation || "").trim();
+    const bodyParts = [
+      risk ? `<p class="validation-finding__message">${escapeHtmlChat(risk)}</p>` : "",
+      rec  ? `<p class="validation-finding__target">&#10003; ${escapeHtmlChat(rec)}</p>` : "",
+    ].join("");
+    return renderFinding(escapeHtmlChat(name), bodyParts);
+  }).join("");
+
+  const quickFixLines = quickFixes.map(item => {
+    const t = String(item?.title || "").trim();
+    const r = String(item?.resource || "").trim();
+    const target = String(item?.target_state || "").trim();
+    return r ? `${r}: ${t}${target ? ` → ${target}` : ""}` : t;
+  });
+
+  const section5Body = [
+    configIssues.length
+      ? `${issueFindings}`
+      : renderFinding("Configuration Issues", `<p class="validation-empty">No configuration issues detected.</p>`),
+    antiPatterns.length
+      ? renderTipsGroup("antipatterns", "Architecture Anti-patterns", antiPatterns.length, antiPatternFindings, false, true)
+      : "",
+    quickFixes.length
+      ? renderFinding("Quick Configuration Fixes", renderActionChecklist(quickFixLines))
+      : "",
+  ].join("");
+
+  // ---- Section 6: Missing Capabilities & Recommended Patterns ----
+  const missingFindings = missingCaps.map(item => {
+    const cap        = String(item?.capability || item || "").trim();
+    const importance = String(item?.importance || "").trim();
+    const reason     = String(item?.reason || "").trim();
+    const services   = Array.isArray(item?.suggested_services) ? item.suggested_services : [];
+    const badge      = importance ? `<span class="vr-importance vr-importance--${importance.toLowerCase()}">${escapeHtmlChat(importance.toUpperCase())}</span> ` : "";
+    const bodyParts  = [
+      reason ? `<p class="validation-finding__message">${badge}${escapeHtmlChat(reason)}</p>` : (badge ? `<p class="validation-finding__message">${badge}</p>` : ""),
+      services.length ? renderLineList(services, "", true) : "",
+    ].join("");
+    return renderFinding(escapeHtmlChat(cap), bodyParts);
+  }).join("");
+
+  const recPatternFindings = recPatterns.map(item => {
+    const name     = String(item?.name || "Pattern").trim();
+    const reason   = String(item?.reason || "").trim();
+    const services = Array.isArray(item?.azure_services) ? item.azure_services : [];
+    const bodyParts = [
+      reason ? `<p class="validation-finding__message">${escapeHtmlChat(reason)}</p>` : "",
+      services.length ? renderLineList(services, "", true) : "",
+    ].join("");
+    return renderFinding(escapeHtmlChat(name), bodyParts);
+  }).join("");
+
+  const section6Body = [
+    missingCaps.length
+      ? missingFindings
+      : renderFinding("Missing Capabilities", `<p class="validation-empty">No missing capabilities detected.</p>`),
+    recPatterns.length
+      ? renderTipsGroup("recpatterns", "Recommended Patterns", recPatterns.length, recPatternFindings, false, true)
+      : "",
+  ].join("");
+
+  // ---- Assemble ----
+  const groupsHtml = [
+    renderTipsGroup("overview",      "Overview",                            null,                  section1Body, true),
+    renderTipsGroup("maturity",      "Architecture Maturity",               maturityDims.length,   section2Body, true),
+    renderTipsGroup("pillars",       "Pillar Scores & Review",              pillarKeys.length,     section3Body, true),
+    renderTipsGroup("actions",       "Priority Action Plan",                priorityItems.length,  section4Body, true),
+    renderTipsGroup("config",        "Configuration Issues & Anti-patterns", configIssues.length + antiPatterns.length, section5Body, false),
+    renderTipsGroup("missing",       "Missing Capabilities & Patterns",     missingCaps.length + recPatterns.length,  section6Body, false),
+  ].join("");
+
+  tipsContentEl.innerHTML = `
+    <div class="validation-runtime">${runtimeHtml}</div>
+    <div class="validation-summary">${summaryHtml}</div>
+    <div class="validation-groups validation-report">${groupsHtml}</div>`;
+
+  // Wire toggle buttons
+  tipsContentEl.querySelectorAll("[data-tips-toggle]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.tipsToggle;
+      if (tipsExpandedSections.has(key)) {
+        tipsExpandedSections.delete(key);
+      } else {
+        tipsExpandedSections.add(key);
+      }
+      renderTipsPanel();
+    });
+  });
+}
+
+async function runValidation() {
+  if (validationRunInFlight || !state.currentProject?.id) {
+    if (!state.currentProject?.id) {
+      setActiveTab("tips");
+      if (tipsContentEl) tipsContentEl.innerHTML = `<div class="vr-error"><strong>No project loaded</strong><p>Please open a project before running validation.</p></div>`;
+    }
+    return;
+  }
+
+  validationRunInFlight = true;
+  validationResult = null;
+  tipsExpandedSections = new Set(["overview", "maturity", "pillars", "actions"]);
+
+  // Show running state and switch to tips tab
+  setActiveTab("tips");
+  if (tipsContentEl) {
+    tipsContentEl.innerHTML = `<div class="tips-running"><div class="tips-running-icon">&#9881;</div><p><strong>Validating architecture…</strong></p><p class="tips-running-sub">Analysing against the Azure Well-Architected Framework.</p></div>`;
+  }
+  if (btnValidate) { btnValidate.textContent = "Validating…"; btnValidate.disabled = true; }
+
+  try {
+    const snapshot = buildCanvasSnapshot();
+    const projectDescription = String(state.currentProject?.applicationDescription || "").trim();
+    const res = await fetch(`/api/project/${encodeURIComponent(state.currentProject.id)}/architecture/validation/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        canvasState: snapshot,
+        projectDescription,
+        projectId: state.currentProject.id,
+        projectName: state.currentProject.name || "Project",
+      }),
+    });
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(payload?.detail || "Validation request failed.");
+    }
+    validationResult = payload && typeof payload === "object" ? payload : {};
+  } catch (err) {
+    validationResult = { errorMessage: err?.message || "Architecture validation failed." };
+  } finally {
+    validationRunInFlight = false;
+    if (btnValidate) { btnValidate.textContent = "Validate"; btnValidate.disabled = false; }
+    renderTipsPanel();
+  }
+}
+
 // ===== Initialization =====
 
 function initializeCanvas() {
@@ -1208,6 +1689,7 @@ function initializeCanvas() {
   renderCanvasItems();
   renderResourceList();
   updatePropertyPanelForSelection();
+  loadChatStatus();
 
   // Load project from URL
   const urlParams = new URLSearchParams(window.location.search);

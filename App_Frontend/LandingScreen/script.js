@@ -378,8 +378,20 @@ function renderProjectsList() {
     infoDiv.appendChild(document.createElement("br"));
     infoDiv.appendChild(dateSpan);
 
+    const actionsDiv = document.createElement("div");
+    actionsDiv.className = "project-item-actions";
+
+    const oldCanvasBtn = document.createElement("button");
+    oldCanvasBtn.className = "btn-plain btn-old-canvas";
+    oldCanvasBtn.textContent = "Old Canvas";
+    oldCanvasBtn.title = "Open in the legacy canvas";
+    oldCanvasBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.location.href = `/old-canvas.html?projectId=${encodeURIComponent(project.id)}`;
+    });
+
     const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn-plain";
+    deleteBtn.className = "btn-plain btn-delete";
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -395,8 +407,11 @@ function renderProjectsList() {
       }
     });
 
+    actionsDiv.appendChild(oldCanvasBtn);
+    actionsDiv.appendChild(deleteBtn);
+
     item.appendChild(infoDiv);
-    item.appendChild(deleteBtn);
+    item.appendChild(actionsDiv);
 
     item.addEventListener("click", () => openProject(project.id));
 

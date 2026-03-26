@@ -140,16 +140,29 @@
       </div>
 
       <div id="panel-chat" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-chat" hidden>
-        <div class="chat-box chat-history" id="chat-history">
-          <div class="message">Hello! Ask me anything.</div>
+        <div class="chat-context-notice" id="chat-context-notice">
+          <span class="chat-context-notice__icon">&#9432;</span>
+          <span class="chat-context-notice__text">AI uses your <strong>project description</strong> as context.</span>
         </div>
-        <textarea id="chat-input" placeholder="Type a message..."></textarea>
-        <button id="chat-send" class="icon-btn" type="button">Send</button>
+        <div class="chat-history" id="chat-history" aria-live="polite">
+          <div class="chat-welcome">
+            <h3 class="chat-welcome-title">AI Chat ready</h3>
+            <p class="chat-welcome-message">Ask me anything about your Azure architecture design.</p>
+          </div>
+        </div>
+        <div class="chat-compose">
+          <textarea id="chat-input" class="chat-input" placeholder="Ask about your architecture..." aria-label="Chat message" rows="2"></textarea>
+          <button id="chat-send" class="btn btn--primary btn--sm" type="button" title="Send message (Enter)">Send</button>
+        </div>
       </div>
 
       <div id="panel-tips" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-tips" hidden>
-        <div id="tips-content">
-          <p>Helpful tips will appear here.</p>
+        <div id="tips-content" class="tips-content">
+          <div class="tab-placeholder">
+            <div class="tab-placeholder-icon">&#128161;</div>
+            <p class="tab-placeholder-title">Architecture Tips</p>
+            <p class="tab-placeholder-sub">Click <strong>Validate</strong> in the toolbar to analyse your architecture against the Azure Well-Architected Framework.</p>
+          </div>
         </div>
       </div>
 

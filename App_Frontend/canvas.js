@@ -6649,8 +6649,8 @@ function renderValidationTipsPanel() {
     '<article class="validation-finding">',
     '<h4 class="validation-finding__title">Project Description Context</h4>',
     projectDescription
-      ? `<pre class="validation-code">${escapeHtml(projectDescription)}</pre>`
-      : '<div class="validation-empty">No project description is configured for this project.</div>',
+      ? `<p class="validation-finding__message validation-description-text">${escapeHtml(projectDescription)}</p>`
+      : '<p class="validation-empty">No project description is configured for this project.</p>',
     '</article>',
   ].join("");
 

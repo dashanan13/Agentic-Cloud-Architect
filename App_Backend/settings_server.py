@@ -4823,6 +4823,11 @@ def canvas_page():
     return FileResponse(FRONTEND_DIR / "CanvasScreen" / "canvas.html")
 
 
+@app.get("/old-canvas.html", include_in_schema=False)
+def old_canvas_page():
+    return FileResponse(FRONTEND_DIR / "canvas.html")
+
+
 @app.get("/settings.html", include_in_schema=False)
 def settings_page():
     return FileResponse(FRONTEND_DIR / "ApplicationSettingsScreen" / "index.html")
