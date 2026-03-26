@@ -433,34 +433,93 @@ body {
   color: #666;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* align message to the left of the center area */
-  padding: 0 8px; /* uniform 8px around message */
+  justify-content: flex-start;
+  padding: 0 8px;
   min-width: 0;
-  overflow: hidden; /* ensure child ellipsis works */
+  overflow: visible; /* allow dropdown to escape */
+  position: relative;
 }
 
-/* Center status boundary (boxed system message integrated with page) */
+/* Center status boundary — single-row slot, expands on hover */
 .center-status-boundary {
-  display: inline-flex; /* align with other controls */
-  align-items: center;
+  position: relative;
   width: 100%;
-  max-width: none;
-  padding: 6px 12px; /* match .signin */
-  border: 1px solid #e0e0e0;
-  border-radius: 0;
-  background: #fff;
-  color: #111;
-  box-sizing: border-box;
-  white-space: nowrap; /* force single-line */
+  height: 26px;
   overflow: hidden;
-  text-overflow: ellipsis; /* truncate with ellipsis */
-  font-size: 15px;
-  line-height: 1;
-  text-align: left;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  background: #fff;
+  box-sizing: border-box;
+  cursor: default;
+  transition: none;
 }
 
-.center-status-boundary #center-system-message {
-  display: block;
+/* Expand downward as an overlay when hovered */
+.center-status-boundary:hover {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: auto;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  z-index: 200;
+  border-color: #bbb;
+}
+
+/* Message feed — column, newest on top */
+.message-feed {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual message rows */
+.message-item {
+  padding: 4px 12px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid #f2f2f2;
+  flex-shrink: 0;
+  animation: msg-slide-in 0.28s ease;
+}
+
+/* On hover (expanded state) allow full text to wrap */
+.center-status-boundary:hover .message-item {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.message-item:last-child {
+  border-bottom: none;
+}
+
+.message-item--error {
+  color: #b91c1c;
+  background: #fff5f5;
+}
+
+.message-item--ok {
+  color: #15803d;
+}
+
+@keyframes msg-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 60px;
+  }
 }
 
 /* RIGHT */

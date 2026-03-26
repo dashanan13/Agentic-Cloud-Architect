@@ -3737,7 +3737,7 @@ function updateTimestamp() {
   if (state.currentProject) {
     state.currentProject.lastSaved = Date.now();
     saveCurrentProject();
-    setSaveStatus(`Last saved: ${formatTimestamp(state.currentProject.lastSaved)} (Autosave: every 30s)`);
+    setSaveStatus(`Last saved: ${formatTimestamp(state.currentProject.lastSaved)} (Autosave: every 30s)`, false, "autosave");
   }
 }
 
@@ -5055,13 +5055,30 @@ function initializeCanvasInteractions() {
 
 }
 
-function setSaveStatus(message, isError = false) {
-  // Prefer writing save/status text into the center system message box when available.
-  const centerMsgEl = document.getElementById("center-system-message");
-  const centerBoundary = document.getElementById("center-status-boundary");
-  if (centerMsgEl) {
-    centerMsgEl.textContent = message;
-    if (centerBoundary) centerBoundary.title = message;
+function setSaveStatus(message, isError = false, key = null) {
+  const feed = document.getElementById("center-system-message");
+  if (feed) {
+    // If a key is given, update the existing keyed item in-place and move it to top
+    if (key) {
+      const existing = feed.querySelector(`[data-status-key="${key}"]`);
+      if (existing) {
+        existing.textContent = message;
+        existing.className = "message-item" + (isError ? " message-item--error" : "");
+        feed.prepend(existing);
+        return;
+      }
+    }
+    const item = document.createElement("div");
+    item.className = "message-item" + (isError ? " message-item--error" : "");
+    item.textContent = message;
+    if (key) {
+      item.dataset.statusKey = key;
+    }
+    feed.prepend(item);
+    // Keep feed bounded to last 30 messages
+    while (feed.children.length > 30) {
+      feed.removeChild(feed.lastChild);
+    }
     return;
   }
 
@@ -5189,7 +5206,7 @@ async function runProjectSaveRequest(options = {}) {
   }
 
   if (!silent) {
-    setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 30s)`);
+    setSaveStatus(`Last saved: ${new Date().toLocaleTimeString()} (Autosave: every 30s)`, false, "autosave");
   }
 }
 
@@ -8684,15 +8701,20 @@ async function initialize() {
     return;
   }
 
+  setSaveStatus("Initializing canvas...");
   await bootstrapFoundryDefaultsOnLoad();
+  setSaveStatus("Connecting to AI services...");
 
   try {
     await verifyFoundryAgentsAndThreads();
+    setSaveStatus("AI agents verified.");
   } catch {
     // Keep startup verification non-blocking.
+    setSaveStatus("AI agent verification skipped.");
   }
 
   // Load this specific project from backend files
+  setSaveStatus("Loading project data...");
   if (!await loadCurrentProject(projectId)) {
     console.error("Project not found");
     window.location.href = "./LandingScreen/index.html";
@@ -8703,6 +8725,7 @@ async function initialize() {
     resetChatPanel(),
     loadArchitectureValidationStatus({ silent: true })
   ]);
+  setSaveStatus("Chat and validation status loaded.");
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;
@@ -8778,14 +8801,14 @@ async function initialize() {
     // ignore
   }
   initializeCanvasInteractions();
+  setSaveStatus("Rendering canvas...");
   renderCanvasItems();
   renderCanvasView();
   updateCanvasStatus();
 
   // All core canvas data is ready — lift the skeleton loading state.
-  // Resource-list skeleton self-clears when renderResources() runs below.
-  // Property-content skeleton self-clears when updatePropertyPanel() runs below.
   appEl.classList.remove("is-canvas-loading");
+  setSaveStatus(`Project ready: ${state.currentProject.name || "Untitled"}`);
   window.setInterval(async () => {
     updateTimestamp();
 
@@ -8809,10 +8832,13 @@ async function initialize() {
   }, AUTOSAVE_INTERVAL_MS);
 
   // Load catalog and render resources
+  setSaveStatus("Loading resource catalog...");
   loadCatalogForCloud(state.currentProject.cloud).then(() => {
     renderResources();
+    setSaveStatus("Resources loaded.");
   }).catch(() => {
     renderResources();
+    setSaveStatus("Resource catalog unavailable — using cached data.", true);
   });
 
   // Initialize properties panel
