@@ -24,6 +24,7 @@ const btnBackProjects = document.getElementById("btn-back-projects");
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
 const centerSystemMessageEl = document.getElementById("center-system-message");
+const centerStatusBoundaryEl = document.getElementById("center-status-boundary");
 const tabsElements = document.querySelectorAll('.tab[role="tab"]');
 const tabPanelsElements = document.querySelectorAll('.tab-pane[role="tabpanel"]');
 
@@ -122,11 +123,41 @@ let validationRunInFlight = false;
 let validationResult = null;
 let tipsExpandedSections = new Set();
 const tipsInitialMarkup = tipsContentEl ? tipsContentEl.innerHTML : "";
+let centerMessageFlashTimer = null;
 
 // ===== Helper Functions =====
 
 function getItemById(itemId) {
   return state.canvasItems.find((candidate) => candidate.id === itemId) || null;
+}
+
+function setCenterSystemMessage(message, { flash = true, type = "" } = {}) {
+  if (!centerSystemMessageEl) {
+    return;
+  }
+
+  const safeMessage = String(message || "").trim();
+  if (!safeMessage) {
+    centerSystemMessageEl.innerHTML = "";
+    return;
+  }
+
+  centerSystemMessageEl.innerHTML = `<div class="message-item${type ? ` message-item--${type}` : ""}">${escapeHtml(safeMessage)}</div>`;
+
+  if (!flash || !centerStatusBoundaryEl) {
+    return;
+  }
+
+  centerStatusBoundaryEl.classList.remove("is-message-flash");
+  void centerStatusBoundaryEl.offsetWidth;
+  centerStatusBoundaryEl.classList.add("is-message-flash");
+
+  if (centerMessageFlashTimer) {
+    clearTimeout(centerMessageFlashTimer);
+  }
+  centerMessageFlashTimer = setTimeout(() => {
+    centerStatusBoundaryEl.classList.remove("is-message-flash");
+  }, 760);
 }
 
 function getChildrenByParentId(parentId) {
@@ -390,8 +421,8 @@ function getNodeWorldRect(itemId) {
   return {
     left: world.x,
     top: world.y,
-    width: item.viewMode === "icon" ? 128 : 180,
-    height: item.viewMode === "icon" ? 128 : 120
+    width: item.viewMode === "icon" ? 208 : 180,
+    height: item.viewMode === "icon" ? 208 : 120
   };
 }
 
@@ -884,12 +915,10 @@ async function runProjectSaveRequest(options = {}) {
 
     const result = await response.json();
     if (result.success) {
-      if (centerSystemMessageEl) {
-        centerSystemMessageEl.textContent = "Project saved successfully";
-        setTimeout(() => {
-          centerSystemMessageEl.textContent = "Space to display system messages and notifications etc";
-        }, 3000);
-      }
+      setCenterSystemMessage("Project saved successfully", { flash: true, type: "ok" });
+      setTimeout(() => {
+        setCenterSystemMessage("Space to display system messages and notifications etc", { flash: false });
+      }, 3000);
     }
   } catch (error) {
     console.error("Error saving project:", error);
@@ -1707,9 +1736,7 @@ function initializeCanvas() {
           projectNameDisplay.textContent = state.currentProject.name || "Project";
         }
 
-        if (centerSystemMessageEl) {
-          centerSystemMessageEl.textContent = `Loaded project: ${state.currentProject.name}`;
-        }
+        setCenterSystemMessage(`Loaded project: ${state.currentProject.name}`, { flash: true });
       }
     });
   }

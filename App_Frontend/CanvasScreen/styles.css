@@ -129,6 +129,11 @@ body {
   border-radius: 4px;
 }
 
+.icon-btn[aria-label="Home"]:hover {
+  background: transparent;
+  border-radius: 0;
+}
+
 /* MAIN */
 .main {
   display: flex;
@@ -456,6 +461,28 @@ body {
   transition: none;
 }
 
+.center-status-boundary.is-message-flash {
+  animation: center-status-flash 1600ms ease-out;
+}
+
+@keyframes center-status-flash {
+  0% {
+    border-color: #9aa3b2;
+    box-shadow: 0 0 0 0 rgba(154, 163, 178, 0.0);
+    background-color: #ffffff;
+  }
+  42% {
+    border-color: #111111;
+    box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.35);
+    background-color: #000000;
+  }
+  100% {
+    border-color: #ccc;
+    box-shadow: 0 0 0 0 rgba(127, 138, 155, 0.0);
+    background-color: #ffffff;
+  }
+}
+
 /* Expand downward as an overlay when hovered */
 .center-status-boundary:hover {
   position: absolute;
@@ -730,23 +757,23 @@ body {
 .canvas-container-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 12px;
+  padding: 4px 12px;
   background: #2c3e50;
   color: #fff;
   border-bottom: 1px solid #1a252f;
-  font-size: 13px;
+  font-size: 26px;
   font-weight: 600;
   user-select: none;
-  min-height: 36px;
+  min-height: 56px;
   flex: 0 0 auto;
   border-radius: 6px 6px 0 0;
   overflow: hidden;
 }
 
 .canvas-container-header img {
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -790,22 +817,22 @@ body {
 /* Resource Nodes */
 .canvas-node--resource {
   min-width: 180px;
-  min-height: 72px;
+  min-height: 124px;
   padding: 0;
 }
 
 .canvas-resource-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: 12px;
+  padding: 5px 12px;
   background: #34495e;
   color: #fff;
   border-bottom: 1px solid #2c3e50;
-  font-size: 12px;
+  font-size: 24px;
   font-weight: 600;
   user-select: none;
-  min-height: 32px;
+  min-height: 56px;
   flex: 0 0 auto;
   opacity: 1;
   border-radius: 6px 6px 0 0;
@@ -813,8 +840,8 @@ body {
 }
 
 .canvas-resource-header img {
-  width: 18px;
-  height: 18px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   flex: 0 0 auto;
 }
@@ -824,16 +851,16 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: 24px;
 }
 
 .canvas-resource-body {
   flex: 0 0 auto;
-  min-height: 32px;
-  padding: 6px 10px;
+  min-height: 56px;
+  padding: 5px 12px;
   background: #ecf0f1;
   color: #2c3e50;
-  font-size: 12px;
+  font-size: 24px;
   line-height: 1.2;
   font-weight: 600;
   word-wrap: break-word;
@@ -848,12 +875,12 @@ body {
 
 /* Icon-view mode for non-container resource nodes */
 .canvas-node--resource.icon-view {
-  min-width: 128px;
-  min-height: 128px;
-  width: 128px;
-  height: 128px;
+  min-width: 208px;
+  min-height: 208px;
+  width: 208px;
+  height: 208px;
   background: transparent;
-  border: 3px solid #16364c;
+  border: 3px solid #34495e;
   box-shadow: none;
   border-radius: 999px;
   align-items: center;
@@ -880,13 +907,13 @@ body {
   flex: 1;
   width: 100%;
   height: 100%;
-  padding: 20px;
+  padding: 14px;
   border-radius: 999px;
 }
 
 .canvas-resource-icon-view img {
-  width: 72px;
-  height: 72px;
+  width: 144px;
+  height: 144px;
   object-fit: contain;
 }
 
