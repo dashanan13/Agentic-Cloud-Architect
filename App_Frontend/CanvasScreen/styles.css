@@ -702,7 +702,7 @@ body {
   cursor: pointer;
   min-width: 80px;
   min-height: 60px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .canvas-node:hover {
@@ -710,7 +710,7 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.canvas-node.selected {
+.canvas-node.is-selected {
   border-color: #3b82f6;
   background: #f0f7ff;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -738,6 +738,8 @@ body {
   user-select: none;
   min-height: 36px;
   flex: 0 0 auto;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
 }
 
 .canvas-container-header img {
@@ -758,6 +760,7 @@ body {
   overflow: auto;
   padding: 8px;
   background: linear-gradient(135deg, rgba(248, 249, 251, 0.5) 0%, rgba(240, 242, 245, 0.5) 100%);
+  border-radius: 0 0 6px 6px;
 }
 
 .canvas-node--container:hover .canvas-container-body {
@@ -803,6 +806,8 @@ body {
   min-height: 32px;
   flex: 0 0 auto;
   opacity: 1;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
 }
 
 .canvas-resource-header img {
@@ -834,33 +839,34 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  border-radius: 0 0 6px 6px;
 }
 
 /* Icon-view mode for non-container resource nodes */
 .canvas-node--resource.icon-view {
-  min-width: unset;
-  min-height: unset;
-  width: 96px;
-  height: 96px;
+  min-width: 128px;
+  min-height: 128px;
+  width: 128px;
+  height: 128px;
   background: transparent;
-  border: none;
+  border: 3px solid #16364c;
   box-shadow: none;
-  border-radius: 0;
+  border-radius: 999px;
   align-items: center;
   justify-content: center;
   overflow: visible;
 }
 
 .canvas-node--resource.icon-view:hover {
-  border: none;
-  box-shadow: none;
+  border-color: #0f4970;
+  box-shadow: 0 0 0 1px rgba(15, 73, 112, 0.18);
 }
 
-.canvas-node--resource.icon-view.selected {
-  border: none;
+.canvas-node--resource.icon-view.is-selected {
+  border-color: #2563eb;
   background: transparent;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-  border-radius: 8px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  border-radius: 999px;
 }
 
 .canvas-resource-icon-view {
@@ -868,7 +874,10 @@ body {
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 0;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  border-radius: 999px;
 }
 
 .canvas-resource-icon-view img {
@@ -964,70 +973,72 @@ body {
 /* Connection Handles */
 .canvas-connect-handle {
   position: absolute;
-  background: #3b82f6;
-  border: 2px solid #fff;
-  border-radius: 50%;
+  z-index: 6;
+  background: #d0d5de;
+  border: 3px solid #6b7585;
+  border-radius: 999px;
   cursor: crosshair;
   opacity: 0;
-  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  pointer-events: none;
+  transition: opacity 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
   padding: 0;
   margin: 0;
-  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+  box-shadow: 0 2px 10px rgba(23, 124, 198, 0.35);
 }
 
-.canvas-node:hover .canvas-connect-handle {
+.canvas-node:hover .canvas-connect-handle,
+.canvas-node.is-selected .canvas-connect-handle {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Top/bottom: portrait ellipse (narrow × tall) */
 .canvas-connect-handle[data-anchor="top"] {
-  width: 16px;
-  height: 24px;
-  top: -13px;
+  width: 18px;
+  height: 30px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .canvas-connect-handle[data-anchor="bottom"] {
-  width: 16px;
-  height: 24px;
-  bottom: -13px;
+  width: 18px;
+  height: 30px;
+  bottom: -32px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 /* Left/right: landscape ellipse (wide × narrow) */
 .canvas-connect-handle[data-anchor="right"] {
-  width: 24px;
-  height: 16px;
-  right: -13px;
+  width: 30px;
+  height: 18px;
+  right: -32px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .canvas-connect-handle[data-anchor="left"] {
-  width: 24px;
-  height: 16px;
-  left: -13px;
+  width: 30px;
+  height: 18px;
+  left: -32px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .canvas-connect-handle:hover {
-  background: #60a5fa;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
+  background: #b5bbc8;
+  box-shadow: 0 0 0 4px rgba(107, 117, 133, 0.14), 0 4px 14px rgba(107, 117, 133, 0.32);
 }
 
-.canvas-connect-handle[data-anchor="top"]:hover {
-  transform: translateX(-50%) scale(1.15);
-}
-
-.canvas-connect-handle[data-anchor="right"]:hover {
-  transform: translateY(-50%) scale(1.15);
-}
-
+.canvas-connect-handle[data-anchor="top"]:hover,
 .canvas-connect-handle[data-anchor="bottom"]:hover {
-  transform: translateX(-50%) scale(1.15);
+  transform: translateX(-50%) scale(1.12);
+}
+
+.canvas-connect-handle[data-anchor="right"]:hover,
+.canvas-connect-handle[data-anchor="left"]:hover {
+  transform: translateY(-50%) scale(1.12);
 }
 
 /* Canvas Edges (SVG Connections) */

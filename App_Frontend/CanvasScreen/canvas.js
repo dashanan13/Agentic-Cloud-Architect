@@ -377,8 +377,8 @@ function getNodeWorldRect(itemId) {
   const nodeEl = canvasLayerEl?.querySelector(`.canvas-node[data-item-id="${itemId}"]`);
   if (nodeEl) {
     const rect = nodeEl.getBoundingClientRect();
-    const width = Math.max(180, rect.width / state.canvasView.zoom);
-    const height = Math.max(120, rect.height / state.canvasView.zoom);
+    const width = rect.width / state.canvasView.zoom;
+    const height = rect.height / state.canvasView.zoom;
     return {
       left: world.x,
       top: world.y,
@@ -390,8 +390,8 @@ function getNodeWorldRect(itemId) {
   return {
     left: world.x,
     top: world.y,
-    width: 180,
-    height: 120
+    width: item.viewMode === "icon" ? 128 : 180,
+    height: item.viewMode === "icon" ? 128 : 120
   };
 }
 
