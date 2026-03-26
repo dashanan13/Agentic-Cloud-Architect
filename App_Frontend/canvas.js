@@ -4084,9 +4084,20 @@ function getAnchorWorldPoint(itemId, anchor = "right") {
     if (handleEl) {
       const viewportRect = canvasViewportEl.getBoundingClientRect();
       const handleRect = handleEl.getBoundingClientRect();
-      const centerX = handleRect.left - viewportRect.left + handleRect.width / 2;
-      const centerY = handleRect.top - viewportRect.top + handleRect.height / 2;
-      return toWorldFromScreenPoint(centerX, centerY);
+      let anchorScreenX = handleRect.left - viewportRect.left + handleRect.width / 2;
+      let anchorScreenY = handleRect.top - viewportRect.top + handleRect.height / 2;
+
+      if (anchor === "top") {
+        anchorScreenY = handleRect.bottom - viewportRect.top;
+      } else if (anchor === "bottom") {
+        anchorScreenY = handleRect.top - viewportRect.top;
+      } else if (anchor === "left") {
+        anchorScreenX = handleRect.right - viewportRect.left;
+      } else {
+        anchorScreenX = handleRect.left - viewportRect.left;
+      }
+
+      return toWorldFromScreenPoint(anchorScreenX, anchorScreenY);
     }
   }
 
