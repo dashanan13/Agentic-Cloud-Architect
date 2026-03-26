@@ -1746,18 +1746,27 @@ circle.canvas-edge-midpoint:hover {
   gap: 8px;
 }
 
-.validation-runtime__label {
-  font-size: 0.68rem;
+.validation-runtime__row > .validation-runtime__label {
+  flex: 0 0 auto;
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
   color: #8a8fa8;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-weight: 600;
 }
 
-.vr-status-ok {
-  font-size: 0.68rem;
+.validation-runtime__row > .vr-status-ok {
+  flex: 0 0 auto;
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
   color: #15803d;
-  font-weight: 600;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 /* ---- Summary counts strip ---- */

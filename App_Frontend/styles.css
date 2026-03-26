@@ -1624,7 +1624,8 @@ select.property-input {
 
 .status-ai-value {
   font-size: 0.68rem;
-  font-weight: 500;
+  font-family: inherit;
+  font-weight: 400;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -1729,11 +1730,32 @@ select.property-input {
   gap: 8px;
 }
 
-.validation-runtime__label {
-  font-size: 0.68rem;
+.validation-runtime__row > .validation-runtime__label {
+  flex: 0 0 auto;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 600;
 }
+
+.validation-runtime__row > .status-ai-value {
+  flex: 0 0 auto;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.validation-runtime__row > .status-ai-value.chat-runtime-value--ok   { color: #4ade80; }
+.validation-runtime__row > .status-ai-value.chat-runtime-value--warn  { color: #fbbf24; }
+.validation-runtime__row > .status-ai-value.chat-runtime-value--error { color: #fca5a5; }
 
 .validation-summary {
   border-bottom: 1px solid var(--border);
@@ -2089,14 +2111,16 @@ select.property-input {
   justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
-}
+  font-family: inherit;
+  font-weight: 600;
 
 .chat-welcome-text {
   flex: 1;
 }
 
 .chat-welcome-title {
-  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 400;
   font-weight: 600;
   color: var(--text);
   margin: 0 0 6px 0;
