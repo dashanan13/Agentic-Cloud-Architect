@@ -2053,12 +2053,18 @@ function getItemExportSize(item) {
   if (nodeEl) {
     const rect = nodeEl.getBoundingClientRect();
     const zoom = Number(state.canvasView.zoom) || 1;
-    const width = Math.max(180, rect.width / zoom);
-    const height = Math.max(74, rect.height / zoom);
+    const minW = item.viewMode === "icon" ? 208 : 180;
+    const minH = item.viewMode === "icon" ? 208 : 74;
+    const width = Math.max(minW, rect.width / zoom);
+    const height = Math.max(minH, rect.height / zoom);
     return { width, height };
   }
 
-  return { width: 180, height: 74 };
+  // Fallback when DOM element not found — respect icon mode dimensions
+  return {
+    width: item.viewMode === "icon" ? 208 : 180,
+    height: item.viewMode === "icon" ? 208 : 124
+  };
 }
 
 function getAnchorPointForExport(itemRect, anchor = "right") {
@@ -2146,6 +2152,32 @@ function drawArrowHead(ctx, from, to, color) {
   ctx.fill();
 }
 
+function drawTopRoundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height);
+  ctx.lineTo(x, y + height);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawBottomRoundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + width, y);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y);
+  ctx.closePath();
+}
+
 async function exportCurrentDiagram(format = "png") {
   if (!state.currentProject) {
     return;
@@ -2214,10 +2246,20 @@ async function exportCurrentDiagram(format = "png") {
 
   ctx.scale(pixelRatio, pixelRatio);
 
+  // Read canvas-grid background colour from the live DOM element; fall back to the
+  // known design-system value so the exported image always looks like the editor.
+  const canvasGridComputedBg = (() => {
+    const gridEl = document.querySelector(".canvas-grid");
+    if (gridEl) {
+      const before = getComputedStyle(gridEl, "::before");
+      const bg = before?.backgroundColor;
+      if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") return bg;
+    }
+    return "#f8f9fb";          // light-mode canvas background from design system (CSS)
+  })();
+
   const colors = {
-    bg: getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#000000",
-    panel: getComputedStyle(document.documentElement).getPropertyValue("--panel").trim() || "#1a1a1a",
-    border: getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#333333",
+    bg: canvasGridComputedBg,  // use the actual canvas grid colour, not the --bg CSS var
     accent: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#3b82f6",
   };
 
@@ -2227,28 +2269,24 @@ async function exportCurrentDiagram(format = "png") {
   const toCanvasX = (worldX) => worldX - worldOffsetX;
   const toCanvasY = (worldY) => worldY - worldOffsetY;
 
-  ctx.fillStyle = colors.bg;
+  // ── Canvas background ─────────────────────────────────────────────
+  ctx.fillStyle = "#f8f9fb";
   ctx.fillRect(0, 0, exportWidth, exportHeight);
 
-  const gridSize = 40;
+  // ── Dot grid — mirrors the CSS radial-gradient used in .canvas-grid::before ──
+  // Grid spacing is 48 CSS px (matching CSS background-size).
+  const gridSize = 48;
   const gridOffsetX = ((-worldOffsetX % gridSize) + gridSize) % gridSize;
   const gridOffsetY = ((-worldOffsetY % gridSize) + gridSize) % gridSize;
-  ctx.strokeStyle = colors.border;
-  ctx.globalAlpha = 0.3;
-  ctx.lineWidth = 1;
-  for (let x = gridOffsetX; x <= exportWidth; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, exportHeight);
-    ctx.stroke();
+  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+  const dotRadius = 1.1;
+  for (let gx = gridOffsetX; gx <= exportWidth; gx += gridSize) {
+    for (let gy = gridOffsetY; gy <= exportHeight; gy += gridSize) {
+      ctx.beginPath();
+      ctx.arc(gx, gy, dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
-  for (let y = gridOffsetY; y <= exportHeight; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(exportWidth, y);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
 
   ctx.lineWidth = 2;
   ctx.strokeStyle = colors.accent;
@@ -2281,6 +2319,9 @@ async function exportCurrentDiagram(format = "png") {
   const imageMap = await buildExportImageMap(state.canvasItems);
   const sortedItems = [...state.canvasItems].sort((first, second) => getVisualLayer(first) - getVisualLayer(second));
 
+  // ===== EXPORT_FONT_SIZE matches the canvas CSS font scales =====
+  const EXPORT_FONT = "600 18px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
   sortedItems.forEach((item) => {
     const rect = itemRects.get(item.id);
     if (!rect) {
@@ -2291,68 +2332,120 @@ async function exportCurrentDiagram(format = "png") {
     const y = toCanvasY(rect.y);
     const width = rect.width;
     const height = rect.height;
-    const headerHeight = 32;
     const icon = imageMap.get(String(item.iconSrc || ""));
     const resourceType = String(item.resourceType || item.name || "Resource");
     const resourceName = String(item.name || "Resource");
 
+    // ── Container nodes ──────────────────────────────────────────
     if (item.isContainer) {
-      drawRoundedRect(ctx, x, y, width, height, 8);
-      ctx.fillStyle = "rgba(47, 79, 79, 0.5)";
+      const containerHeaderH = 56;
+
+      // Overall border
+      drawRoundedRect(ctx, x, y, width, height, 6);
+      ctx.fillStyle = colors.bg;
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "#253F3F";
-      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = "#34495e";
       ctx.stroke();
-      ctx.setLineDash([]);
 
-      ctx.fillStyle = colors.panel;
-      ctx.fillRect(x, y, width, headerHeight);
-      ctx.strokeStyle = colors.border;
-      ctx.setLineDash([4, 3]);
+      // Body fill (semi-transparent light)
+      drawBottomRoundedRect(ctx, x, y + containerHeaderH, width, Math.max(0, height - containerHeaderH), 6);
+      ctx.fillStyle = "rgba(248, 249, 251, 0.15)";
+      ctx.fill();
+
+      // Header background
+      drawTopRoundedRect(ctx, x, y, width, containerHeaderH, 6);
+      ctx.fillStyle = "#2c3e50";
+      ctx.fill();
+
+      // Header/body separator
       ctx.beginPath();
-      ctx.moveTo(x, y + headerHeight);
-      ctx.lineTo(x + width, y + headerHeight);
+      ctx.moveTo(x, y + containerHeaderH);
+      ctx.lineTo(x + width, y + containerHeaderH);
+      ctx.strokeStyle = "#1a252f";
+      ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.setLineDash([]);
 
+      // Icon in header
       if (icon) {
-        ctx.drawImage(icon, x + 10, y + 8, 16, 16);
+        ctx.drawImage(icon, x + 12, y + 8, 40, 40);
       }
 
+      // Header title text
       ctx.fillStyle = "#ffffff";
-      ctx.font = "600 12px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-      drawTextEllipsis(ctx, `${resourceType}: ${resourceName}`, x + 32, y + 20, width - 64);
+      ctx.font = EXPORT_FONT;
+      drawTextEllipsis(ctx, `${resourceType}: ${resourceName}`, x + 60, y + 36, width - 80);
       return;
     }
 
-    drawRoundedRect(ctx, x, y, width, height, 8);
-    ctx.fillStyle = "#2F4F4F";
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#253F3F";
-    ctx.stroke();
+    // ── Resource icon-view mode ───────────────────────────────────
+    if (item.viewMode === "icon") {
+      const cx = x + width / 2;
+      const cy = y + height / 2;
+      const radius = Math.min(width, height) / 2 - 2;
 
-    ctx.fillStyle = colors.panel;
-    ctx.fillRect(x, y, width, headerHeight);
-    ctx.strokeStyle = colors.border;
-    ctx.setLineDash([4, 3]);
-    ctx.beginPath();
-    ctx.moveTo(x, y + headerHeight);
-    ctx.lineTo(x + width, y + headerHeight);
-    ctx.stroke();
-    ctx.setLineDash([]);
+      // Circle fill (match canvas background)
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = colors.bg;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#34495e";
+      ctx.stroke();
 
-    if (icon) {
-      ctx.drawImage(icon, x + 10, y + 8, 16, 16);
+      // Large centered icon (same 144/208 ≈ 69% ratio as CSS)
+      if (icon) {
+        const iconSize = Math.min(width, height) * 0.69;
+        ctx.drawImage(icon, cx - iconSize / 2, cy - iconSize / 2, iconSize, iconSize);
+      }
+      return;
     }
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "600 12px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    drawTextEllipsis(ctx, resourceType, x + 32, y + 20, width - 64);
+    // ── Resource full-view mode ───────────────────────────────────
+    const fullHeaderH = 56;
+    const bodyH = Math.max(0, height - fullHeaderH);
 
-    ctx.font = "600 12px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    drawTextEllipsis(ctx, resourceName, x + 10, y + 51, width - 20);
+    // Overall rounded border
+    drawRoundedRect(ctx, x, y, width, height, 6);
+    ctx.fillStyle = colors.bg;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#2c3e50";
+    ctx.stroke();
+
+    // Header fill
+    drawTopRoundedRect(ctx, x, y, width, fullHeaderH, 6);
+    ctx.fillStyle = "#34495e";
+    ctx.fill();
+
+    // Header/body separator
+    ctx.beginPath();
+    ctx.moveTo(x, y + fullHeaderH);
+    ctx.lineTo(x + width, y + fullHeaderH);
+    ctx.strokeStyle = "#2c3e50";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Body fill
+    drawBottomRoundedRect(ctx, x, y + fullHeaderH, width, bodyH, 6);
+    ctx.fillStyle = "#ecf0f1";
+    ctx.fill();
+
+    // Header icon (36×36 matching CSS)
+    if (icon) {
+      ctx.drawImage(icon, x + 12, y + 10, 36, 36);
+    }
+
+    // Resource type text in header
+    ctx.fillStyle = "#ffffff";
+    ctx.font = EXPORT_FONT;
+    drawTextEllipsis(ctx, resourceType, x + 56, y + 36, width - 76);
+
+    // Resource name text in body
+    ctx.fillStyle = "#2c3e50";
+    ctx.font = EXPORT_FONT;
+    const bodyMidY = y + fullHeaderH + bodyH / 2 + 6;
+    drawTextEllipsis(ctx, resourceName, x + 12, bodyMidY, width - 24);
   });
 
   const normalizedFormat = format === "jpeg" ? "jpeg" : "png";
