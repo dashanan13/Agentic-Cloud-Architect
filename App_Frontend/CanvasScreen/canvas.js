@@ -61,6 +61,7 @@ const CANVAS_CONTAINER = {
 
 const MAX_PROJECT_NAME_LENGTH = 50;
 const AUTOSAVE_INTERVAL_MS = 30000;
+const CANVAS_DISPLAY_ZOOM_BASE = 0.5;
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -71,8 +72,12 @@ function createDefaultCanvasView() {
   return {
     x: CANVAS_WORLD.defaultOffsetX,
     y: CANVAS_WORLD.defaultOffsetY,
-    zoom: 0.5
+    zoom: CANVAS_DISPLAY_ZOOM_BASE
   };
+}
+
+function formatCanvasZoomPercent(zoomValue) {
+  return `${Math.round((zoomValue / CANVAS_DISPLAY_ZOOM_BASE) * 100)}%`;
 }
 
 // ===== State Management =====
@@ -777,7 +782,7 @@ function renderCanvasView() {
   canvasViewportEl.style.setProperty("--canvas-world-scale", `${state.canvasView.zoom}`);
 
   if (canvasZoomLabelEl) {
-    canvasZoomLabelEl.textContent = `${Math.round(state.canvasView.zoom * 100)}%`;
+    canvasZoomLabelEl.textContent = formatCanvasZoomPercent(state.canvasView.zoom);
   }
 
   renderCanvasConnections();

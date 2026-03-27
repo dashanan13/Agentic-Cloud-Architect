@@ -236,6 +236,7 @@ const constraints = {
 
 const MAX_PROJECT_NAME_LENGTH = 50;
 const AUTOSAVE_INTERVAL_MS = 30000;
+const CANVAS_DISPLAY_ZOOM_BASE = 0.5;
 const CANVAS_ZOOM = {
   min: 0.2,
   max: 4,
@@ -254,8 +255,12 @@ function createDefaultCanvasView() {
   return {
     x: CANVAS_WORLD.defaultOffsetX,
     y: CANVAS_WORLD.defaultOffsetY,
-    zoom: 0.5
+    zoom: CANVAS_DISPLAY_ZOOM_BASE
   };
+}
+
+function formatCanvasZoomPercent(zoomValue) {
+  return `${Math.round((zoomValue / CANVAS_DISPLAY_ZOOM_BASE) * 100)}%`;
 }
 
 const CANVAS_CONTAINER = {
@@ -1941,7 +1946,7 @@ function sanitizeProject(project) {
     canvasView: {
       x: Number.isFinite(Number(incomingView.x)) ? Number(incomingView.x) : CANVAS_WORLD.defaultOffsetX,
       y: Number.isFinite(Number(incomingView.y)) ? Number(incomingView.y) : CANVAS_WORLD.defaultOffsetY,
-      zoom: clamp(Number(incomingView.zoom) || 1, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
+      zoom: clamp(Number(incomingView.zoom) || createDefaultCanvasView().zoom, CANVAS_ZOOM.min, CANVAS_ZOOM.max)
     },
     canvasItems: sanitizedItems,
     canvasConnections: incomingConnections
@@ -4582,7 +4587,7 @@ function renderCanvasView() {
   canvasViewportEl.style.setProperty("--canvas-world-scale", `${state.canvasView.zoom}`);
 
   if (canvasZoomLabelEl) {
-    canvasZoomLabelEl.textContent = `${Math.round(state.canvasView.zoom * 100)}%`;
+    canvasZoomLabelEl.textContent = formatCanvasZoomPercent(state.canvasView.zoom);
   }
 
   renderCanvasConnections();
