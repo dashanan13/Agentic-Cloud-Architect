@@ -1821,7 +1821,7 @@ circle.canvas-edge-midpoint:hover {
   border-radius: 6px;
   background: #f8f9fb;
   padding: 7px 12px;
-  margin: 10px 10px 0;
+  margin: 2px 2px 0;
   display: grid;
   gap: 3px;
 }
@@ -1860,7 +1860,7 @@ circle.canvas-edge-midpoint:hover {
 .validation-summary {
   border-bottom: 1px solid #e8eaf0;
   background: #fff;
-  padding: 6px 12px;
+  padding: 2px 3px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -1878,9 +1878,9 @@ circle.canvas-edge-midpoint:hover {
 
 /* ---- Groups container ---- */
 .validation-groups {
-  padding: 8px;
+  padding: 2px;
   display: grid;
-  gap: 6px;
+  gap: 3px;
 }
 
 .validation-report {
