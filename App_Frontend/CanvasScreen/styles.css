@@ -1,5 +1,6 @@
 :root {
   --layout-left-default: 18;
+  --left-width: 18%;
   --layout-left-min: 15;
   --layout-left-max: 25;
   --layout-right-default: 25;
@@ -198,12 +199,17 @@ body {
   background: #eceff3;
 }
 
+/* Disable left splitter to make left panel non-resizable */
+.splitter[data-splitter="left"] {
+  display: none;
+}
+
 /* LEFT */
 .left-panel {
-  width: var(--left-width, calc(var(--layout-left-default) * 1%));
-  flex: 0 0 var(--left-width, calc(var(--layout-left-default) * 1%));
-  min-width: calc(var(--layout-left-min) * 1%);
-  max-width: calc(var(--layout-left-max) * 1%);
+  width: var(--left-width);
+  flex: 0 0 var(--left-width);
+  min-width: var(--left-width);
+  max-width: var(--left-width);
   background: #f5f6f8;
   border-right: 1px solid #ddd;
   display: flex;
@@ -368,8 +374,8 @@ body {
 
 /* Left footer wrapper (groups status items together) */
 .left-panel .left-footer {
-  background: #000;
-  color: #fff;
+  background: #f5f6f8; /* match upper left-panel background */
+  color: #1a1a1a;
   padding: 0;
   flex: 0 0 auto;
 }
