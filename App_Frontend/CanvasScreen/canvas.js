@@ -22,6 +22,7 @@ const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnProjectSettings = document.getElementById("btn-project-settings-template");
 const btnReachOut = document.getElementById("btn-reach-out");
 const btnBackProjects = document.getElementById("btn-back-projects");
+const validateButtonDefaultHtml = btnValidate ? btnValidate.innerHTML : "";
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
 const centerSystemMessageEl = document.getElementById("center-system-message");
@@ -1790,7 +1791,10 @@ async function runValidation() {
     validationResult = { errorMessage: err?.message || "Architecture validation failed." };
   } finally {
     validationRunInFlight = false;
-    if (btnValidate) { btnValidate.textContent = "Validate"; btnValidate.disabled = false; }
+    if (btnValidate) {
+      btnValidate.innerHTML = validateButtonDefaultHtml || "Validate";
+      btnValidate.disabled = false;
+    }
     renderTipsPanel();
   }
 }

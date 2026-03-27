@@ -5200,10 +5200,18 @@ function setValidateButtonBusy(isBusy) {
     return;
   }
 
+  if (!btnValidate.dataset.defaultHtml) {
+    btnValidate.dataset.defaultHtml = btnValidate.innerHTML;
+  }
+
   const busy = Boolean(isBusy);
   btnValidate.disabled = busy;
   btnValidate.setAttribute("aria-busy", busy ? "true" : "false");
-  btnValidate.textContent = busy ? "Validating..." : "Validate";
+  if (busy) {
+    btnValidate.textContent = "Validating...";
+  } else {
+    btnValidate.innerHTML = btnValidate.dataset.defaultHtml || "Validate";
+  }
 }
 
 
