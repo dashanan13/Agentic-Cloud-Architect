@@ -96,7 +96,10 @@ const state = {
     targetId: null,
     targetAnchor: "left",
     endClientX: 0,
-    endClientY: 0
+    endClientY: 0,
+    // magnetic-snap state — updated every mousemove while dragging
+    snapTargetId: null,
+    snapAnchor: "left"
   },
   searchTerm: ""
 };
@@ -426,6 +429,24 @@ function buildConnectHandle(itemId, anchor) {
   handle.dataset.anchor = anchor;
   handle.setAttribute("aria-label", `Connect from ${anchor}`);
   return handle;
+}
+
+// Returns the screen-space {x, y} of an anchor on a node given its viewport-relative screen rect.
+function getAnchorScreenPoint(nodeScreenRect, anchor) {
+  const cx = nodeScreenRect.left + nodeScreenRect.width / 2;
+  const cy = nodeScreenRect.top + nodeScreenRect.height / 2;
+  if (anchor === "top")    return { x: cx, y: nodeScreenRect.top };
+  if (anchor === "bottom") return { x: cx, y: nodeScreenRect.top + nodeScreenRect.height };
+  if (anchor === "left")   return { x: nodeScreenRect.left, y: cy };
+  return { x: nodeScreenRect.left + nodeScreenRect.width, y: cy }; // right
+}
+
+// Removes all magnetic-snap DOM markers from every node.
+function clearSnapHighlights() {
+  canvasLayerEl?.querySelectorAll(".canvas-node.is-edge-target")
+    .forEach((el) => el.classList.remove("is-edge-target"));
+  canvasLayerEl?.querySelectorAll(".canvas-connect-handle.is-snap-target")
+    .forEach((el) => el.classList.remove("is-snap-target"));
 }
 
 function getNodeScreenRect(itemId) {
@@ -926,11 +947,15 @@ function removeCanvasItem(itemId) {
 }
 
 function clearEdgeDraft() {
+  clearSnapHighlights();
+  if (canvasViewportEl) canvasViewportEl.classList.remove("is-edge-dragging");
   state.edgeDraft.active = false;
   state.edgeDraft.sourceId = null;
   state.edgeDraft.sourceAnchor = "right";
   state.edgeDraft.targetId = null;
   state.edgeDraft.targetAnchor = "left";
+  state.edgeDraft.snapTargetId = null;
+  state.edgeDraft.snapAnchor = "left";
 }
 
 // ===== Backend Integration =====
@@ -1152,43 +1177,118 @@ function initializeCanvasInteractions() {
     state.edgeDraft.targetAnchor = "left";
     state.edgeDraft.endClientX = event.clientX;
     state.edgeDraft.endClientY = event.clientY;
+    state.edgeDraft.snapTargetId = null;
+    state.edgeDraft.snapAnchor = "left";
     state.selectedConnectionId = null;
+    if (canvasViewportEl) canvasViewportEl.classList.add("is-edge-dragging");
     renderCanvasConnections();
     updateCanvasNodeSelection();
   });
 
-  // Drag edge end
+  // ── Magnetic-snap radius (screen pixels) ──────────────────────────────────
+  const EDGE_SNAP_RADIUS = 72;
+
+  // Drag edge end — update cursor position + magnetic snap
   document.addEventListener("mousemove", (event) => {
-    if (state.edgeDraft.active) {
-      state.edgeDraft.endClientX = event.clientX;
-      state.edgeDraft.endClientY = event.clientY;
-      renderCanvasConnections();
+    if (!state.edgeDraft.active) return;
+
+    state.edgeDraft.endClientX = event.clientX;
+    state.edgeDraft.endClientY = event.clientY;
+
+    // ── Compute cursor position relative to the viewport element ──
+    const viewportRect = canvasViewportEl ? canvasViewportEl.getBoundingClientRect() : null;
+    const cursorVX = event.clientX - (viewportRect?.left ?? 0);
+    const cursorVY = event.clientY - (viewportRect?.top  ?? 0);
+
+    // ── Find the nearest connectable anchor within snap radius ───
+    let bestDist = EDGE_SNAP_RADIUS;
+    let snapTargetId = null;
+    let snapAnchor   = "left";
+    let snapScreenX  = 0;
+    let snapScreenY  = 0;
+
+    state.canvasItems.forEach((item) => {
+      if (item.id === state.edgeDraft.sourceId) return;
+      if (!isConnectableItem(item)) return;
+      const nodeRect = getNodeScreenRect(item.id);
+      if (!nodeRect) return;
+
+      ["top", "right", "bottom", "left"].forEach((anchor) => {
+        const pt   = getAnchorScreenPoint(nodeRect, anchor);
+        const dist = Math.hypot(pt.x - cursorVX, pt.y - cursorVY);
+        if (dist < bestDist) {
+          bestDist    = dist;
+          snapTargetId = item.id;
+          snapAnchor  = anchor;
+          snapScreenX = pt.x;
+          snapScreenY = pt.y;
+        }
+      });
+    });
+
+    // ── Apply / clear snap highlights ────────────────────────────
+    clearSnapHighlights();
+    state.edgeDraft.snapTargetId = snapTargetId;
+    state.edgeDraft.snapAnchor   = snapAnchor;
+
+    if (snapTargetId && viewportRect) {
+      const targetNodeEl = canvasLayerEl?.querySelector(`.canvas-node[data-item-id="${snapTargetId}"]`);
+      if (targetNodeEl) {
+        targetNodeEl.classList.add("is-edge-target");
+        const snapHandleEl = targetNodeEl.querySelector(`.canvas-connect-handle[data-anchor="${snapAnchor}"]`);
+        if (snapHandleEl) snapHandleEl.classList.add("is-snap-target");
+      }
+      // Lock the wire tip to the snapped anchor position
+      state.edgeDraft.endClientX = viewportRect.left + snapScreenX;
+      state.edgeDraft.endClientY = viewportRect.top  + snapScreenY;
     }
+
+    renderCanvasConnections();
   });
 
-  // Release edge
+  // Release edge — prefer the magnetic snap result, fall back to precise hit
   document.addEventListener("mouseup", (event) => {
-    if (state.edgeDraft.active && state.edgeDraft.sourceId) {
+    if (!state.edgeDraft.active || !state.edgeDraft.sourceId) return;
+
+    const snapId     = state.edgeDraft.snapTargetId;
+    const snapAnchor = state.edgeDraft.snapAnchor;
+
+    if (snapId && snapId !== state.edgeDraft.sourceId) {
+      // ── Magnetic connection ───────────────────────────────────
+      const targetItem = getItemById(snapId);
+      if (targetItem && isConnectableItem(targetItem)) {
+        state.canvasConnections.push({
+          id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          fromId:       state.edgeDraft.sourceId,
+          toId:         snapId,
+          sourceAnchor: state.edgeDraft.sourceAnchor,
+          targetAnchor: snapAnchor,
+          direction:    "forward"
+        });
+        persistCanvasLocal();
+      }
+    } else {
+      // ── Precise-hit fallback (original behaviour) ────────────
       const handleEl = event.target.closest(".canvas-connect-handle");
       if (handleEl) {
-        const targetId = handleEl.dataset.itemId;
+        const targetId   = handleEl.dataset.itemId;
         const targetItem = getItemById(targetId);
         if (targetItem && isConnectableItem(targetItem) && targetId !== state.edgeDraft.sourceId) {
-          const connection = {
+          state.canvasConnections.push({
             id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            fromId: state.edgeDraft.sourceId,
-            toId: targetId,
+            fromId:       state.edgeDraft.sourceId,
+            toId:         targetId,
             sourceAnchor: state.edgeDraft.sourceAnchor,
             targetAnchor: handleEl.dataset.anchor || "left",
-            direction: "forward"
-          };
-          state.canvasConnections.push(connection);
+            direction:    "forward"
+          });
           persistCanvasLocal();
         }
       }
-      clearEdgeDraft();
-      renderCanvasConnections();
     }
+
+    clearEdgeDraft();
+    renderCanvasConnections();
   });
 
   // Node click to select

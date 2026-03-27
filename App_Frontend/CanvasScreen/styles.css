@@ -1084,6 +1084,7 @@ body {
   cursor: crosshair;
   opacity: 0;
   pointer-events: none;
+  /* Transition only for regular hover — removed during edge-drag via .is-edge-dragging */
   transition: opacity 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
   padding: 0;
   margin: 0;
@@ -1094,6 +1095,41 @@ body {
 .canvas-node.is-selected .canvas-connect-handle {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* While an edge is being dragged, instantly show all handles on the
+   snap-target node — no transition so there is zero flicker */
+.canvas-viewport.is-edge-dragging .canvas-node.is-edge-target .canvas-connect-handle {
+  opacity: 1;
+  pointer-events: auto;
+  transition: none;
+}
+
+/* The single best anchor on the snap-target pops and glows */
+.canvas-connect-handle.is-snap-target {
+  background: #2563eb;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.28), 0 4px 16px rgba(37, 99, 235, 0.5);
+  opacity: 1;
+  pointer-events: auto;
+  transition: none;
+}
+
+/* Enlarge the snapped handle via its anchor-specific transform */
+.canvas-connect-handle[data-anchor="top"].is-snap-target,
+.canvas-connect-handle[data-anchor="bottom"].is-snap-target {
+  transform: translateX(-50%) scale(1.35);
+}
+
+.canvas-connect-handle[data-anchor="right"].is-snap-target,
+.canvas-connect-handle[data-anchor="left"].is-snap-target {
+  transform: translateY(-50%) scale(1.35);
+}
+
+/* Change cursor while dragging an edge so the user knows they're in wire mode */
+.canvas-viewport.is-edge-dragging,
+.canvas-viewport.is-edge-dragging * {
+  cursor: crosshair !important;
 }
 
 /* Top/bottom: portrait ellipse (narrow × tall) */
