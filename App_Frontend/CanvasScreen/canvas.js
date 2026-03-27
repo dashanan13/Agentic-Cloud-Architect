@@ -449,6 +449,99 @@ function clearSnapHighlights() {
     .forEach((el) => el.classList.remove("is-snap-target"));
 }
 
+// ===== Resource Type Classification =====
+// Identifies which "structural role" a container plays in the Azure hierarchy
+// so we can auto-fill properties on resources placed inside it.
+
+function _rtMatch(item, patterns) {
+  const rt = String(item?.resourceType || "").toLowerCase();
+  const nm = String(item?.name || "").toLowerCase();
+  return patterns.some(p => rt.includes(p) || nm.includes(p));
+}
+function isResourceGroupItem(item) {
+  return _rtMatch(item, ["resource group", "microsoft.resources/resourcegroup"]);
+}
+function isVirtualNetworkItem(item) {
+  return _rtMatch(item, ["virtual network", "vnet", "microsoft.network/virtualnetwork"]);
+}
+function isSubnetItem(item) {
+  return _rtMatch(item, ["subnet", "/subnets"]);
+}
+
+// ===== Container-Driven Property Binding =====
+
+// Returns all ancestor container items ordered closest → furthest.
+function getAncestorChain(item) {
+  const chain = [];
+  let cursor = item;
+  while (cursor?.parentId) {
+    const parent = getItemById(cursor.parentId);
+    if (!parent) break;
+    chain.push(parent);
+    cursor = parent;
+  }
+  return chain;
+}
+
+// Returns [{field, value, fromId, fromName, fromType}] — auto-fill candidates
+// derived from the item’s container hierarchy. Closest ancestor wins per field.
+function resolveContainerProperties(item) {
+  const ancestors = getAncestorChain(item);
+  const seen = new Set();
+  const derived = [];
+
+  for (const anc of ancestors) {
+    if (isResourceGroupItem(anc) && !seen.has("resourceGroup")) {
+      seen.add("resourceGroup");
+      derived.push({ field: "resourceGroup", value: anc.name, fromId: anc.id, fromName: anc.name, fromType: "Resource Group" });
+      const loc = String(anc.properties?.location || "").trim();
+      if (loc && !seen.has("location")) {
+        seen.add("location");
+        derived.push({ field: "location", value: loc, fromId: anc.id, fromName: anc.name, fromType: "Resource Group" });
+      }
+    }
+    if (isVirtualNetworkItem(anc) && !seen.has("virtualNetwork")) {
+      seen.add("virtualNetwork");
+      derived.push({ field: "virtualNetwork", value: anc.name, fromId: anc.id, fromName: anc.name, fromType: "Virtual Network" });
+    }
+    if (isSubnetItem(anc) && !seen.has("subnet")) {
+      seen.add("subnet");
+      derived.push({ field: "subnet", value: anc.name, fromId: anc.id, fromName: anc.name, fromType: "Subnet" });
+    }
+  }
+  return derived;
+}
+
+// Writes container-derived values to item.properties.
+// Only overwrites a field if it was previously set by a container (tracked in
+// item._containerDerivedFields) OR if the field is currently empty.
+function applyContainerDrivenProperties(item) {
+  if (!item) return;
+  if (!item.properties || typeof item.properties !== "object") item.properties = {};
+
+  const derived = resolveContainerProperties(item);
+  const prevDerived = new Set(
+    Array.isArray(item._containerDerivedFields) ? item._containerDerivedFields : []
+  );
+
+  derived.forEach(({ field, value }) => {
+    if (!item.properties[field] || prevDerived.has(field)) {
+      item.properties[field] = value;
+    }
+  });
+
+  item._containerDerivedFields = derived.map(d => d.field);
+}
+
+// Recursively re-applies container properties to all descendants of a container.
+// Call this when a container’s name or location changes.
+function _propagateContainerPropsToChildren(containerId) {
+  getChildrenByParentId(containerId).forEach(child => {
+    applyContainerDrivenProperties(child);
+    if (child.isContainer) _propagateContainerPropsToChildren(child.id);
+  });
+}
+
 function getNodeScreenRect(itemId) {
   if (!canvasViewportEl) {
     return null;
@@ -828,6 +921,177 @@ function updatePropertyPanel(resourceName) {
   updatePropertyPanelForSelection();
 }
 
+// ===== Property Panel Rendering =====
+
+function setSelectedResourceName(label) {
+  const el = document.getElementById("selected-resource-name");
+  if (el) el.textContent = label || "No selection";
+}
+
+function _esc(v) {
+  const d = document.createElement("div");
+  d.textContent = v;
+  return d.innerHTML;
+}
+
+function updatePropertyPanelForSelection() {
+  if (!propertyContentEl) return;
+
+  const item = getItemById(state.selectedResource);
+
+  if (!item) {
+    setSelectedResourceName("No selection");
+    propertyContentEl.innerHTML = `<div class="prop-placeholder"><p>Select a resource on the canvas to view and edit its properties.</p></div>`;
+    return;
+  }
+
+  // Always refresh container-derived properties before rendering
+  applyContainerDrivenProperties(item);
+  setSelectedResourceName(item.resourceType || item.name || "Resource");
+
+  const derivedProps = resolveContainerProperties(item);
+  const derivedMap = new Map(derivedProps.map(d => [d.field, d]));
+
+  // ── Container Context section ────────────────────────────────────────
+  let contextHtml = "";
+  if (derivedProps.length) {
+    const typeIcons = { "Resource Group": "&#128193;", "Virtual Network": "&#127956;", "Subnet": "&#9634;" };
+    const seenRoles = new Set();
+    const ctxRows = getAncestorChain(item)
+      .filter(a => {
+        const role = isResourceGroupItem(a) ? "rg" : isVirtualNetworkItem(a) ? "vnet" : isSubnetItem(a) ? "subnet" : null;
+        if (!role || seenRoles.has(role)) return false;
+        seenRoles.add(role);
+        return true;
+      })
+      .map(a => {
+        const role = isResourceGroupItem(a) ? "Resource Group" : isVirtualNetworkItem(a) ? "Virtual Network" : "Subnet";
+        return `<div class="ctx-row"><span class="ctx-icon">${typeIcons[role] || "&#9642;"}</span><span class="ctx-role">${_esc(role)}</span><span class="ctx-name">${_esc(a.name)}</span></div>`;
+      }).join("");
+
+    contextHtml = `<details class="property-group" open>
+      <summary class="property-group__summary">Container Context</summary>
+      <div class="property-group__body ctx-body">${ctxRows}</div>
+    </details>`;
+  }
+
+  // ── Identity section ─────────────────────────────────────────────
+  const viewToggle = !item.isContainer
+    ? `<div class="view-mode-toggle" style="margin-bottom:8px">
+        <button class="view-mode-btn${(item.viewMode || "full") !== "icon" ? " view-mode-btn--active" : ""}" type="button" data-view-mode="full">Full view</button>
+        <button class="view-mode-btn${item.viewMode === "icon" ? " view-mode-btn--active" : ""}" type="button" data-view-mode="icon">Icon view</button>
+      </div>` : "";
+
+  const identityHtml = `<details class="property-group" open>
+    <summary class="property-group__summary">Identity</summary>
+    <div class="property-group__body">
+      ${viewToggle}
+      <label class="property-row">
+        <span class="property-label">Name</span>
+        <input class="property-input" type="text" data-prop-key="__name__" value="${_esc(item.name || "")}" maxlength="80" />
+      </label>
+      <div class="property-row">
+        <span class="property-label">Type</span>
+        <span class="property-value">${_esc(item.resourceType || item.name || "Resource")}</span>
+      </div>
+    </div>
+  </details>`;
+
+  // ── Properties section ──────────────────────────────────────────
+  const props = item.properties || {};
+  const propKeys = Object.keys(props).filter(
+    k => !k.startsWith("_") && !Array.isArray(props[k]) && typeof props[k] !== "object"
+  );
+
+  const propRows = propKeys.map(key => {
+    const val = props[key];
+    const d   = derivedMap.get(key);
+    const badge = d
+      ? `<span class="prop-from-badge" title="Auto-filled: ${_esc(d.fromType)} &quot;${_esc(d.fromName)}&quot;">&#128279; ${_esc(d.fromType)}</span>`
+      : "";
+    return `<label class="property-row${d ? " property-row--derived" : ""}">
+      <span class="property-label">${_esc(key)}${badge}</span>
+      <input class="property-input" type="text" data-prop-key="${_esc(key)}" value="${_esc(String(val ?? ""))}" placeholder="—" />
+    </label>`;
+  }).join("");
+
+  const addRow = `<div class="prop-add-row">
+    <input class="property-input prop-add-key" type="text" placeholder="Key" maxlength="60" />
+    <input class="property-input prop-add-val" type="text" placeholder="Value" maxlength="200" />
+    <button class="btn btn--sm prop-add-btn" type="button" data-action="add-prop">Add</button>
+  </div>`;
+
+  const propsHtml = `<details class="property-group" open>
+    <summary class="property-group__summary">Properties</summary>
+    <div class="property-group__body">
+      ${propRows || '<p class="prop-empty-hint">No properties yet. Use “Add” below or drop this resource into a container.</p>'}
+      ${addRow}
+    </div>
+  </details>`;
+
+  propertyContentEl.innerHTML = `<div class="property-form">${identityHtml}${contextHtml}${propsHtml}</div>`;
+  _bindPropertyPanelEvents(propertyContentEl, item);
+}
+
+function _bindPropertyPanelEvents(container, item) {
+  // Auto-save on input change / blur
+  container.addEventListener("change", (event) => {
+    const input = event.target.closest("[data-prop-key]");
+    if (!input) return;
+    const key = input.dataset.propKey;
+    const val = input.value;
+
+    if (key === "__name__") {
+      item.name = val;
+      renderCanvasItems();
+      _propagateContainerPropsToChildren(item.id);
+      persistCanvasLocal();
+      updatePropertyPanelForSelection();
+      return;
+    }
+
+    if (!item.properties) item.properties = {};
+    item.properties[key] = val;
+
+    // Un-mark as container-derived once the user manually edits the field
+    if (Array.isArray(item._containerDerivedFields)) {
+      item._containerDerivedFields = item._containerDerivedFields.filter(f => f !== key);
+    }
+
+    // Location change on a Resource Group → propagate to all children
+    if (isResourceGroupItem(item) && key === "location") {
+      _propagateContainerPropsToChildren(item.id);
+    }
+
+    persistCanvasLocal();
+    updatePropertyPanelForSelection();
+  });
+
+  // Add custom property button
+  container.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-action='add-prop']")) return;
+    const keyIn = container.querySelector(".prop-add-key");
+    const valIn = container.querySelector(".prop-add-val");
+    const k = (keyIn?.value || "").trim();
+    const v = (valIn?.value || "").trim();
+    if (!k || k.startsWith("_")) return;
+    if (!item.properties) item.properties = {};
+    item.properties[k] = v;
+    persistCanvasLocal();
+    updatePropertyPanelForSelection();
+  });
+
+  // View-mode toggle buttons
+  container.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-view-mode]");
+    if (!btn) return;
+    item.viewMode = btn.dataset.viewMode;
+    persistCanvasLocal();
+    renderCanvasItems();
+    updatePropertyPanelForSelection();
+  });
+}
+
 function escapeHtml(value) {
   const div = document.createElement("div");
   div.textContent = value;
@@ -910,6 +1174,8 @@ function createCanvasItem(resource, worldX, worldY) {
   };
 
   state.canvasItems.push(newItem);
+  // Auto-fill properties from the container hierarchy immediately on drop
+  applyContainerDrivenProperties(newItem);
   renderCanvasItems();
   selectCanvasItem(newItem.id);
   persistCanvasLocal();
@@ -1291,19 +1557,121 @@ function initializeCanvasInteractions() {
     renderCanvasConnections();
   });
 
-  // Node click to select
-  canvasLayerEl.addEventListener("click", (event) => {
-    if (canvasInteraction.spacePanMode) {
-      return;
-    }
+  // ──── Node drag: reposition items on the canvas; auto-reparent on drop ──────
+  let _nodeDragActive = false;
 
+  canvasLayerEl.addEventListener("mousedown", (event) => {
+    if (event.button !== 0) return;
+    if (canvasInteraction.spacePanMode || state.edgeDraft.active) return;
+    if (event.target.closest(".canvas-connect-handle")) return;
+    if (event.target.closest(".canvas-resize-handle")) return;
+    if (event.target.closest(".canvas-node-remove")) return;
     const nodeEl = event.target.closest(".canvas-node");
-    if (!nodeEl) {
-      return;
-    }
+    if (!nodeEl) return;
+    const item = getItemById(nodeEl.dataset.itemId);
+    if (!item) return;
 
-    const itemId = nodeEl.dataset.itemId;
-    selectCanvasItem(itemId);
+    event.preventDefault(); // prevent text selection during drag
+    _nodeDragActive = false;
+    selectCanvasItem(item.id);
+    const worldOrigin = getItemWorldPosition(item.id);
+    canvasInteraction.draggingItemId = item.id;
+    canvasInteraction.dragOriginX    = event.clientX;
+    canvasInteraction.dragOriginY    = event.clientY;
+    canvasInteraction.itemOriginX    = worldOrigin.x;
+    canvasInteraction.itemOriginY    = worldOrigin.y;
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!canvasInteraction.draggingItemId) return;
+    const dx = event.clientX - canvasInteraction.dragOriginX;
+    const dy = event.clientY - canvasInteraction.dragOriginY;
+    if (!_nodeDragActive && Math.hypot(dx, dy) < 5) return;
+    _nodeDragActive = true;
+    const item = getItemById(canvasInteraction.draggingItemId);
+    if (!item) { canvasInteraction.draggingItemId = null; return; }
+
+    const wdx = dx / state.canvasView.zoom;
+    const wdy = dy / state.canvasView.zoom;
+    const newWX = canvasInteraction.itemOriginX + wdx;
+    const newWY = canvasInteraction.itemOriginY + wdy;
+
+    if (item.parentId) {
+      const pw = getItemWorldPosition(item.parentId);
+      item.x = newWX - pw.x - CANVAS_CONTAINER.padding;
+      item.y = newWY - pw.y - CANVAS_CONTAINER.headerHeight - CANVAS_CONTAINER.padding;
+    } else {
+      item.x = newWX;
+      item.y = newWY;
+    }
+    renderCanvasItems();
+    renderCanvasConnections();
+  });
+
+  document.addEventListener("mouseup", () => {
+    const draggingId = canvasInteraction.draggingItemId;
+    canvasInteraction.draggingItemId = null;
+    if (!draggingId || !_nodeDragActive) return;
+    _nodeDragActive = false;
+
+    const item = getItemById(draggingId);
+    if (!item) return;
+
+    const worldNow  = getItemWorldPosition(draggingId);
+    const candidate = getContainerAtWorldPoint(worldNow.x, worldNow.y, draggingId);
+    const nextParentId = candidate ? candidate.id : null;
+
+    if (nextParentId !== (item.parentId || null)) {
+      moveItemToParent(item, nextParentId);
+      applyContainerDrivenProperties(item);
+      if (item.isContainer) _propagateContainerPropsToChildren(item.id);
+      renderCanvasItems();
+      updatePropertyPanelForSelection();
+    }
+    persistCanvasLocal();
+  });
+
+  // ──── Container resize handle ────────────────────────────────────────────
+  canvasLayerEl.addEventListener("mousedown", (event) => {
+    if (event.button !== 0) return;
+    const handleEl = event.target.closest(".canvas-resize-handle");
+    if (!handleEl) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const item = getItemById(handleEl.dataset.itemId);
+    if (!item?.isContainer) return;
+    canvasInteraction.resizingItemId  = item.id;
+    canvasInteraction.resizeOriginX   = event.clientX;
+    canvasInteraction.resizeOriginY   = event.clientY;
+    canvasInteraction.widthOrigin     = Number(item.width)  || CANVAS_CONTAINER.defaultWidth;
+    canvasInteraction.heightOrigin    = Number(item.height) || CANVAS_CONTAINER.defaultHeight;
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!canvasInteraction.resizingItemId) return;
+    const item = getItemById(canvasInteraction.resizingItemId);
+    if (!item) { canvasInteraction.resizingItemId = null; return; }
+    const dx = (event.clientX - canvasInteraction.resizeOriginX) / state.canvasView.zoom;
+    const dy = (event.clientY - canvasInteraction.resizeOriginY) / state.canvasView.zoom;
+    item.width  = Math.max(CANVAS_CONTAINER.minWidth,  canvasInteraction.widthOrigin  + dx);
+    item.height = Math.max(CANVAS_CONTAINER.minHeight, canvasInteraction.heightOrigin + dy);
+    renderCanvasItems();
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (canvasInteraction.resizingItemId) {
+      canvasInteraction.resizingItemId = null;
+      persistCanvasLocal();
+    }
+  });
+
+  // Node click to select (still needed for cases where mousedown didn't call selectCanvasItem)
+  canvasLayerEl.addEventListener("click", (event) => {
+    if (canvasInteraction.spacePanMode) return;
+    if (_nodeDragActive) return; // suppress click after a drag
+    const nodeEl = event.target.closest(".canvas-node");
+    if (!nodeEl) return;
+    selectCanvasItem(nodeEl.dataset.itemId);
   });
 
   // Remove button
@@ -1395,39 +1763,86 @@ function setupButtonHandlers() {
 
 // ===== Resource List Rendering =====
 
+// Built-in fallback resource set — covers key container types for hierarchy binding
+const BUILTIN_RESOURCES = [
+  { name: "Resource Groups",     resourceType: "Resource Groups",     category: "General",    iconSrc: "/Clouds/Azure/Icons/general/resource-group.svg",              isContainer: true  },
+  { name: "Virtual Networks",    resourceType: "Virtual Networks",    category: "Networking", iconSrc: "/Clouds/Azure/Icons/networking/virtual-network.svg",           isContainer: true  },
+  { name: "Subnet",              resourceType: "Subnet",              category: "Networking", iconSrc: "/Clouds/Azure/Icons/networking/subnet.svg",                    isContainer: true  },
+  { name: "App Service",         resourceType: "App Service",         category: "Compute",    iconSrc: "/Assets/Icons/compute/app-services.svg",                       isContainer: false },
+  { name: "Virtual Machine",     resourceType: "Virtual Machine",     category: "Compute",    iconSrc: "/Assets/Icons/compute/virtual-machine.svg",                    isContainer: false },
+  { name: "Key Vault",           resourceType: "Key Vault",           category: "Security",   iconSrc: "/Assets/Icons/security/key-vault.svg",                         isContainer: false },
+  { name: "Public IP Addresses", resourceType: "Public IP Addresses", category: "Networking", iconSrc: "/Clouds/Azure/Icons/networking/public-ip-address.svg",          isContainer: false },
+  { name: "Storage Accounts",    resourceType: "Storage Accounts",    category: "Storage",    iconSrc: "/Clouds/Azure/Icons/storage/storage-account.svg",              isContainer: false },
+  { name: "SQL Databases",       resourceType: "SQL Databases",       category: "Databases",  iconSrc: "/Clouds/Azure/Icons/databases/sql-database.svg",               isContainer: false },
+  { name: "Azure Functions",     resourceType: "Azure Functions",     category: "Compute",    iconSrc: "/Clouds/Azure/Icons/compute/function-app.svg",                 isContainer: false },
+];
+
 function renderResourceList() {
   if (!resourceListEl) return;
-
   const searchTerm = (searchInput?.value || "").toLowerCase();
-  
-  // For now, show a placeholder
-  // In full implementation, this would load from resource catalog
-  resourceListEl.innerHTML = `
-    <div class="resource-item" draggable="true" data-resource='{"name":"App Service","resourceType":"Azure App Service","category":"Compute","iconSrc":"/Assets/Icons/compute/app-services.svg"}'>
-      <img src="/Assets/Icons/compute/app-services.svg" alt="App Service" />
-      <span>App Service</span>
-    </div>
-    <div class="resource-item" draggable="true" data-resource='{"name":"Virtual Machine","resourceType":"Azure VM","category":"Compute","iconSrc":"/Assets/Icons/compute/virtual-machine.svg"}'>
-      <img src="/Assets/Icons/compute/virtual-machine.svg" alt="Virtual Machine" />
-      <span>Virtual Machine</span>
-    </div>
-    <div class="resource-item" draggable="true" data-resource='{"name":"Key Vault","resourceType":"Azure Key Vault","category":"Security","iconSrc":"/Assets/Icons/security/key-vault.svg"}'>
-      <img src="/Assets/Icons/security/key-vault.svg" alt="Key Vault" />
-      <span>Key Vault</span>
-    </div>
-  `;
 
-  // Setup drag events
-  const resourceItems = resourceListEl.querySelectorAll(".resource-item");
-  resourceItems.forEach((item) => {
-    item.addEventListener("dragstart", (event) => {
-      try {
-        const resourceJson = item.dataset.resource;
-        event.dataTransfer.effectAllowed = "copy";
-        event.dataTransfer.setData("application/json", resourceJson);
-      } catch (error) {
-        console.error("Error setting drag data:", error);
+  // Attempt to load the full catalog; fall back to BUILTIN_RESOURCES silently
+  if (!renderResourceList._catalogPromise) {
+    renderResourceList._catalogPromise = fetch("/Clouds/Azure/resource_catalog.json")
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null);
+  }
+
+  renderResourceList._catalogPromise.then(catalog => {
+    let allItems = BUILTIN_RESOURCES;
+
+    if (catalog && typeof catalog === "object" && !Array.isArray(catalog)) {
+      allItems = Object.entries(catalog).map(([displayName, entry]) => ({
+        name:         displayName,
+        resourceType: entry.resourceType || displayName,
+        iconSrc:      entry.icon
+          ? `/Clouds/Azure/Icons/${(entry.category || "general").toLowerCase()}/${entry.icon}`
+          : "/Assets/Icons/resource-default.png",
+        category:     entry.category || "",
+        isContainer:  isContainerResource({ resourceType: entry.resourceType || displayName, name: displayName })
+      }));
+    }
+
+    const filtered = searchTerm
+      ? allItems.filter(r => r.name.toLowerCase().includes(searchTerm) || (r.category || "").toLowerCase().includes(searchTerm))
+      : allItems;
+
+    // Containers first, then alpha within each group
+    const sorted = [...filtered].sort((a, b) => {
+      if (a.isContainer !== b.isContainer) return a.isContainer ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    resourceListEl.innerHTML = "";
+    sorted.forEach(item => {
+      const el = document.createElement("div");
+      el.className = "resource-item" + (item.isContainer ? " resource-item--container" : "");
+      el.draggable = true;
+      el.dataset.resource = JSON.stringify({
+        name: item.name,
+        resourceType: item.resourceType,
+        iconSrc: item.iconSrc,
+        category: item.category
+      });
+      const img = document.createElement("img");
+      img.src = item.iconSrc;
+      img.alt = item.name;
+      const label = document.createElement("span");
+      label.textContent = item.name;
+      el.appendChild(img);
+      el.appendChild(label);
+      if (item.isContainer) {
+        const badge = document.createElement("span");
+        badge.className = "resource-item__container-badge";
+        badge.title = "Container resource";
+        badge.textContent = "⊞";
+        el.appendChild(badge);
       }
+      el.addEventListener("dragstart", (event) => {
+        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.setData("application/json", el.dataset.resource);
+      });
+      resourceListEl.appendChild(el);
     });
   });
 }

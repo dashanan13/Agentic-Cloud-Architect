@@ -334,6 +334,62 @@ body {
   box-sizing: border-box;
 }
 
+/* resource-item mirrors resource-row for the dynamic list in CanvasScreen */
+.resource-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #cfd6de;
+  background: #fff;
+  border-radius: 4px;
+  padding: 7px 10px;
+  cursor: grab;
+  color: #222;
+  font-size: 13px;
+  box-sizing: border-box;
+  user-select: none;
+  margin-bottom: 2px;
+}
+
+.resource-item:hover {
+  background: #f0f4ff;
+  border-color: #93c5fd;
+}
+
+.resource-item img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex: 0 0 20px;
+}
+
+.resource-item span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* Container-type resource items get a subtle teal tint */
+.resource-item--container {
+  border-left: 3px solid #34495e;
+  background: #f8fafb;
+}
+
+.resource-item--container:hover {
+  background: #eef2f7;
+  border-left-color: #2563eb;
+}
+
+/* Small badge on container items */
+.resource-item__container-badge {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: #888;
+}
+
 .resource-row:hover {
   background: #f5f7fa;
 }
@@ -1022,7 +1078,6 @@ body {
 .view-mode-btn--active {
   background: #fff;
   color: #111;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-weight: 500;
 }
 
@@ -1558,6 +1613,128 @@ circle.canvas-edge-midpoint:hover {
   font-size: 13px;
   color: #888;
   text-align: center;
+}
+
+/* ============================================================
+   CONTAINER-CONTEXT + CONTAINER-DERIVED PROPERTY STYLES
+   ============================================================ */
+
+/* Container context badges (Resource Group / VNet / Subnet rows) */
+.ctx-body {
+  gap: 6px !important;
+}
+
+.ctx-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 3px 0;
+}
+
+.ctx-icon {
+  font-size: 15px;
+  flex: 0 0 20px;
+  text-align: center;
+}
+
+.ctx-role {
+  color: #888;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 90px;
+}
+
+.ctx-name {
+  color: #1a1a1a;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* "From container" inline badge on a property label */
+.prop-from-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 5px;
+  vertical-align: middle;
+  cursor: default;
+  white-space: nowrap;
+}
+
+/* Blue left-border accent on container-derived input rows */
+.property-row--derived .property-input {
+  border-left: 3px solid #93c5fd;
+  background: #f8fbff;
+}
+
+/* Empty properties hint */
+.prop-empty-hint {
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+  margin: 0;
+  padding: 4px 0;
+}
+
+/* "Add property" row at the bottom of the Properties section */
+.prop-add-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.prop-add-row .prop-add-key {
+  flex: 1;
+  min-width: 0;
+}
+
+.prop-add-row .prop-add-val {
+  flex: 2;
+  min-width: 0;
+}
+
+.prop-add-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 5px 10px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.prop-add-btn:hover {
+  background: #f5f5f5;
+}
+
+/* No-selection placeholder */
+.prop-placeholder {
+  padding: 20px 16px;
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+}
+
+.prop-placeholder p {
+  margin: 0;
   line-height: 1.5;
 }
 
@@ -1569,14 +1746,19 @@ circle.canvas-edge-midpoint:hover {
   padding: 6px 14px;
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  border-radius: 4px;
+  font-weight: 400;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 0;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
   user-select: none;
   white-space: nowrap;
   line-height: 1.4;
+  color: #333;
+}
+
+.btn:hover:not(:disabled) {
+  background: #f5f5f5;
 }
 
 .btn:disabled {
@@ -1590,36 +1772,33 @@ circle.canvas-edge-midpoint:hover {
 }
 
 .btn--primary {
-  background: #3b82f6;
-  border-color: #2563eb;
-  color: #fff;
+  background: #fff;
+  border-color: #ccc;
+  color: #333;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: #2563eb;
-  border-color: #1d4ed8;
+  background: #f5f5f5;
 }
 
 .btn--secondary {
-  background: #f1f3f5;
-  border-color: #d0d5dd;
+  background: #fff;
+  border-color: #ccc;
   color: #333;
 }
 
 .btn--secondary:hover:not(:disabled) {
-  background: #e4e7eb;
-  border-color: #b0b8c1;
+  background: #f5f5f5;
 }
 
 .btn--danger {
   background: #fff;
-  border-color: #f87171;
+  border-color: #ccc;
   color: #dc2626;
 }
 
 .btn--danger:hover:not(:disabled) {
   background: #fef2f2;
-  border-color: #dc2626;
 }
 
 /* ============================================================
