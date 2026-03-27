@@ -20,6 +20,7 @@ const btnProjectSave = document.getElementById("btn-project-save");
 const btnValidate = document.getElementById("btn-validate");
 const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnProjectSettings = document.getElementById("btn-project-settings-template");
+const btnReachOut = document.getElementById("btn-reach-out");
 const btnBackProjects = document.getElementById("btn-back-projects");
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
@@ -158,6 +159,89 @@ function setCenterSystemMessage(message, { flash = true, type = "" } = {}) {
   centerMessageFlashTimer = setTimeout(() => {
     centerStatusBoundaryEl.classList.remove("is-message-flash");
   }, 760);
+}
+
+function showReachOutMenu() {
+  // Create a temporary menu for contact options
+  const menuEl = document.createElement("div");
+  menuEl.style.cssText = `
+    position: fixed;
+    top: 60px;
+    right: 150px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10000;
+    min-width: 200px;
+    animation: slideDown 0.2s ease-out;
+  `;
+  
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = `
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+  
+  // Website option
+  const websiteBtn = document.createElement("a");
+  websiteBtn.href = "https://mohit13.com/";
+  websiteBtn.target = "_blank";
+  websiteBtn.rel = "noopener noreferrer";
+  websiteBtn.style.cssText = `
+    display: block;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  `;
+  websiteBtn.textContent = "📌 Visit Website";
+  websiteBtn.onmouseover = () => { websiteBtn.style.backgroundColor = "#f5f5f5"; };
+  websiteBtn.onmouseout = () => { websiteBtn.style.backgroundColor = "transparent"; };
+  
+  // Email option
+  const emailBtn = document.createElement("a");
+  emailBtn.href = "mailto:mohit13@outlook.com";
+  emailBtn.style.cssText = `
+    display: block;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  `;
+  emailBtn.textContent = "✉️ Send Email";
+  emailBtn.onmouseover = () => { emailBtn.style.backgroundColor = "#f5f5f5"; };
+  emailBtn.onmouseout = () => { emailBtn.style.backgroundColor = "transparent"; };
+  
+  menuEl.appendChild(websiteBtn);
+  menuEl.appendChild(emailBtn);
+  document.body.appendChild(menuEl);
+  
+  // Close menu when clicking outside
+  const closeMenu = (e) => {
+    if (!menuEl.contains(e.target) && e.target !== btnReachOut && !btnReachOut.contains(e.target)) {
+      menuEl.remove();
+      document.removeEventListener("click", closeMenu);
+    }
+  };
+  
+  setTimeout(() => {
+    document.addEventListener("click", closeMenu);
+  }, 50);
 }
 
 function getChildrenByParentId(parentId) {
@@ -1177,6 +1261,13 @@ function setupButtonHandlers() {
   if (btnValidate) {
     btnValidate.addEventListener("click", () => {
       runValidation();
+    });
+  }
+
+  // Reach Out button - show contact options
+  if (btnReachOut) {
+    btnReachOut.addEventListener("click", () => {
+      showReachOutMenu();
     });
   }
 

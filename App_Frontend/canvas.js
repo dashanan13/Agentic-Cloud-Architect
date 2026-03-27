@@ -3,6 +3,8 @@ const btnBackProjects = document.getElementById("btn-back-projects");
 const btnProjectSave = document.getElementById("btn-project-save");
 const btnProjectSettings = document.getElementById("btn-project-settings");
 const btnProjectSettingsTemplate = document.getElementById("btn-project-settings-template");
+const btnReachOut = document.getElementById("btn-reach-out");
+const reachOutMenuEl = document.getElementById("reach-out-menu");
 const btnValidate = document.getElementById("btn-validate");
 const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnGenerateCode = document.getElementById("btn-generate-code");
@@ -39,6 +41,23 @@ function setSelectedResourceName(value) {
   if (selectedResourceNameEl) {
     selectedResourceNameEl.textContent = value;
   }
+}
+
+function setReachOutMenuOpen(isOpen) {
+  if (!btnReachOut || !reachOutMenuEl) {
+    return;
+  }
+
+  btnReachOut.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  reachOutMenuEl.hidden = !isOpen;
+}
+
+function toggleReachOutMenu() {
+  if (!btnReachOut || !reachOutMenuEl) {
+    return;
+  }
+
+  setReachOutMenuOpen(reachOutMenuEl.hidden);
 }
 
 // IaC tool icon paths served from the static icons folder.
@@ -7534,6 +7553,34 @@ btnProjectSettingsTemplate?.addEventListener("click", () => {
   const params = new URLSearchParams();
   params.set("projectId", state.currentProject.id);
   window.location.href = `./IaCScreen/index.html?${params.toString()}`;
+});
+
+btnReachOut?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  toggleReachOutMenu();
+});
+
+reachOutMenuEl?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  setReachOutMenuOpen(false);
+});
+
+document.addEventListener("click", (event) => {
+  if (!btnReachOut || !reachOutMenuEl) {
+    return;
+  }
+
+  if (btnReachOut.contains(event.target) || reachOutMenuEl.contains(event.target)) {
+    return;
+  }
+
+  setReachOutMenuOpen(false);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    setReachOutMenuOpen(false);
+  }
 });
 
 btnGenerateCode?.addEventListener("click", async () => {

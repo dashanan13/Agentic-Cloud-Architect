@@ -111,6 +111,51 @@ body {
   margin-left: auto;
 }
 
+.reach-out-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.reach-out-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 190px;
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #d7dce3;
+  border-radius: 10px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+  z-index: 50;
+}
+
+.reach-out-menu[hidden] {
+  display: none !important;
+}
+
+.reach-out-menu__item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #1f2937;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.reach-out-menu__item:hover {
+  background: #f3f4f6;
+}
+
+.reach-out-menu__item:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .icon {
   width: 25px;
   height: 25px;
