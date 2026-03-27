@@ -244,6 +244,17 @@ const CANVAS_ZOOM = {
   grid: 40
 };
 
+const CONNECTION_COLOR_OPTIONS = [
+  { value: "#2563eb", label: "Blue" },
+  { value: "#16a34a", label: "Green" },
+  { value: "#dc2626", label: "Red" },
+  { value: "#7c3aed", label: "Purple" },
+  { value: "#ea580c", label: "Orange" },
+  { value: "#0f172a", label: "Black" }
+];
+const DEFAULT_CONNECTION_COLOR = CONNECTION_COLOR_OPTIONS[0].value;
+const SELECTED_CONNECTION_COLOR = "#f59e0b";
+
 const CANVAS_WORLD = {
   width: 6000,
   height: 4000,
@@ -261,6 +272,43 @@ function createDefaultCanvasView() {
 
 function formatCanvasZoomPercent(zoomValue) {
   return `${Math.round((zoomValue / CANVAS_DISPLAY_ZOOM_BASE) * 100)}%`;
+}
+
+function normalizeConnectionColor(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  const match = CONNECTION_COLOR_OPTIONS.find((option) => option.value.toLowerCase() === normalized);
+  return match ? match.value : DEFAULT_CONNECTION_COLOR;
+}
+
+function getConnectionColorOptionsMarkup(selectedColor) {
+  const normalizedSelected = normalizeConnectionColor(selectedColor);
+  return CONNECTION_COLOR_OPTIONS
+    .map((option) => `<option value="${option.value}" ${option.value === normalizedSelected ? "selected" : ""}>${option.label}</option>`)
+    .join("");
+}
+
+function getEdgeMarkerIdForColor(color) {
+  const normalizedColor = normalizeConnectionColor(color).replace("#", "").toLowerCase();
+  return `edge-arrow-${normalizedColor}`;
+}
+
+function createEdgeMarker(namespace, markerId, fillColor) {
+  const marker = document.createElementNS(namespace, "marker");
+  marker.setAttribute("id", markerId);
+  marker.setAttribute("viewBox", "0 0 10 10");
+  marker.setAttribute("refX", "9");
+  marker.setAttribute("refY", "5");
+  marker.setAttribute("markerWidth", "4");
+  marker.setAttribute("markerHeight", "4");
+  marker.setAttribute("markerUnits", "strokeWidth");
+  marker.setAttribute("orient", "auto-start-reverse");
+
+  const markerPath = document.createElementNS(namespace, "path");
+  markerPath.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+  markerPath.setAttribute("fill", fillColor);
+  marker.appendChild(markerPath);
+
+  return marker;
 }
 
 const CANVAS_CONTAINER = {
@@ -1961,6 +2009,7 @@ function sanitizeProject(project) {
           fromId: String(connection.fromId || ""),
           toId: String(connection.toId || ""),
           direction: connection.direction === "bi" ? "bi" : "one-way",
+          color: normalizeConnectionColor(connection.color),
           sourceAnchor: ["top", "right", "bottom", "left"].includes(connection.sourceAnchor) ? connection.sourceAnchor : "right",
           targetAnchor: ["top", "right", "bottom", "left"].includes(connection.targetAnchor) ? connection.targetAnchor : "left"
         };
@@ -2214,15 +2263,18 @@ async function exportCurrentDiagram(format = "png") {
     const to = getAnchorPointForExport(toRect, connection.targetAnchor || "left");
     const start = { x: toCanvasX(from.x), y: toCanvasY(from.y) };
     const end = { x: toCanvasX(to.x), y: toCanvasY(to.y) };
+    const lineColor = normalizeConnectionColor(connection.color);
+
+    ctx.strokeStyle = lineColor;
 
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
     ctx.stroke();
 
-    drawArrowHead(ctx, start, end, colors.accent);
+    drawArrowHead(ctx, start, end, lineColor);
     if (connection.direction === "bi") {
-      drawArrowHead(ctx, end, start, colors.accent);
+      drawArrowHead(ctx, end, start, lineColor);
     }
   });
 
@@ -3586,6 +3638,7 @@ function updatePropertyPanelForSelection() {
     const toOptions = connectableItems
       .map((item) => `<option value="${item.id}" ${item.id === selectedConnection.toId ? "selected" : ""}>${item.name}</option>`)
       .join("");
+    const colorOptions = getConnectionColorOptionsMarkup(selectedConnection.color);
     
     propertyContentEl.innerHTML = [
       "<div class=\"property-form\">",
@@ -3608,6 +3661,10 @@ function updatePropertyPanelForSelection() {
       "<label class=\"property-row\">",
       "<span class=\"property-label\">Direction</span>",
       `<select class=\"property-input\" data-connection-field=\"direction\"><option value=\"one-way\" ${selectedConnection.direction === "one-way" ? "selected" : ""}>One-way</option><option value=\"bi\" ${selectedConnection.direction === "bi" ? "selected" : ""}>Bi-directional</option></select>`,
+      "</label>",
+      "<label class=\"property-row\">",
+      "<span class=\"property-label\">Line Color</span>",
+      `<select class=\"property-input\" data-connection-field=\"color\">${colorOptions}</select>`,
       "</label>",
       "</div>",
       "</details>",
@@ -4248,22 +4305,11 @@ function ensureEdgesDefs() {
   const namespace = "http://www.w3.org/2000/svg";
   const defs = document.createElementNS(namespace, "defs");
 
-  const markerEnd = document.createElementNS(namespace, "marker");
-  markerEnd.setAttribute("id", "edge-arrow-end");
-  markerEnd.setAttribute("viewBox", "0 0 10 10");
-  markerEnd.setAttribute("refX", "9");
-  markerEnd.setAttribute("refY", "5");
-  markerEnd.setAttribute("markerWidth", "4");
-  markerEnd.setAttribute("markerHeight", "4");
-  markerEnd.setAttribute("markerUnits", "strokeWidth");
-  markerEnd.setAttribute("orient", "auto-start-reverse");
-
-  const arrowEndPath = document.createElementNS(namespace, "path");
-  arrowEndPath.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
-  arrowEndPath.setAttribute("fill", "#2563eb");
-  markerEnd.appendChild(arrowEndPath);
-
-  defs.appendChild(markerEnd);
+  CONNECTION_COLOR_OPTIONS.forEach((option) => {
+    defs.appendChild(createEdgeMarker(namespace, getEdgeMarkerIdForColor(option.value), option.value));
+  });
+  defs.appendChild(createEdgeMarker(namespace, "edge-arrow-end", DEFAULT_CONNECTION_COLOR));
+  defs.appendChild(createEdgeMarker(namespace, "edge-arrow-selected", SELECTED_CONNECTION_COLOR));
   canvasEdgesEl.appendChild(defs);
 }
 
@@ -4299,16 +4345,25 @@ function renderCanvasConnections() {
     edge.dataset.connectionId = connection.id;
     edge.setAttribute("d", pathData.path);
 
-    if (state.selectedConnectionId === connection.id) {
+    const isSelected = state.selectedConnectionId === connection.id;
+    const lineColor = normalizeConnectionColor(connection.color);
+    const effectiveStrokeColor = isSelected ? SELECTED_CONNECTION_COLOR : lineColor;
+
+    edge.setAttribute("stroke", effectiveStrokeColor);
+    edge.style.stroke = effectiveStrokeColor;
+
+    const markerId = isSelected ? "edge-arrow-selected" : getEdgeMarkerIdForColor(lineColor);
+
+    if (isSelected) {
       edge.classList.add("is-selected");
     }
 
     if (connection.direction === "bi") {
-      edge.setAttribute("marker-start", "url(#edge-arrow-end)");
-      edge.setAttribute("marker-end", "url(#edge-arrow-end)");
+      edge.setAttribute("marker-start", `url(#${markerId})`);
+      edge.setAttribute("marker-end", `url(#${markerId})`);
     } else {
       edge.removeAttribute("marker-start");
-      edge.setAttribute("marker-end", "url(#edge-arrow-end)");
+      edge.setAttribute("marker-end", `url(#${markerId})`);
     }
 
     canvasEdgesEl.appendChild(edge);
@@ -4348,6 +4403,7 @@ function upsertConnection(fromId, toId, direction, sourceAnchor = "right", targe
   const existing = state.canvasConnections.find((connection) => connection.fromId === fromId && connection.toId === toId);
   if (existing) {
     existing.direction = direction;
+    existing.color = normalizeConnectionColor(existing.color);
     existing.sourceAnchor = sourceAnchor;
     existing.targetAnchor = targetAnchor;
     state.selectedConnectionId = existing.id;
@@ -4372,6 +4428,7 @@ function upsertConnection(fromId, toId, direction, sourceAnchor = "right", targe
     fromId,
     toId,
     direction,
+    color: DEFAULT_CONNECTION_COLOR,
     sourceAnchor,
     targetAnchor
   };
@@ -8248,6 +8305,19 @@ propertyContentEl?.addEventListener("change", (event) => {
     }
 
     selected.direction = target.value === "bi" ? "bi" : "one-way";
+    updatePropertyPanelForSelection();
+    renderCanvasConnections();
+    persistCanvasLocal();
+    return;
+  }
+
+  if (target.matches("[data-connection-field='color']") && state.selectedConnectionId) {
+    const selected = state.canvasConnections.find((connection) => connection.id === state.selectedConnectionId);
+    if (!selected) {
+      return;
+    }
+
+    selected.color = normalizeConnectionColor(target.value);
     updatePropertyPanelForSelection();
     renderCanvasConnections();
     persistCanvasLocal();
