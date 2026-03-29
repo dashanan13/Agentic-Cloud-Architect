@@ -415,6 +415,38 @@ def _append_validation_log_event(
         pass  # Silently ignore write errors
 
 
+def _parse_validation_log_line(line: str) -> dict[str, Any] | None:
+    raw_line = str(line or "").strip()
+    if not raw_line.startswith("timestamp="):
+        return None
+
+    activity_marker = " activity="
+    details_marker = " details="
+
+    try:
+        activity_index = raw_line.index(activity_marker)
+        details_index = raw_line.index(details_marker, activity_index + len(activity_marker))
+    except ValueError:
+        return None
+
+    timestamp_text = raw_line[len("timestamp="):activity_index].strip()
+    activity_text = raw_line[activity_index + len(activity_marker):details_index].strip()
+    details_text = raw_line[details_index + len(details_marker):].strip()
+
+    details_payload: Any = details_text
+    if details_text.startswith("{") or details_text.startswith("["):
+        try:
+            details_payload = json.loads(details_text)
+        except Exception:
+            details_payload = details_text
+
+    return {
+        "timestamp": timestamp_text,
+        "activity": activity_text,
+        "details": details_payload,
+    }
+
+
 def _write_project_validation_text_log(
     project_dir: Path,
     *,
@@ -3477,6 +3509,52 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
         "threadId": foundry_thread_id,
         "agentId": foundry_agent_id,
         "validationLogPath": validation_log_ref,
+    }
+
+
+@app.get("/api/project/{project_id}/architecture/validation/log")
+def get_project_architecture_validation_log(project_id: str, validationRunId: str | None = None):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    log_path = entry["projectDir"] / "Documentation" / "validation.log"
+    if not log_path.exists():
+        return {
+            "ok": True,
+            "projectId": entry["id"],
+            "validationRunId": str(validationRunId or "").strip(),
+            "events": [],
+        }
+
+    safe_run_id = str(validationRunId or "").strip()
+
+    try:
+        lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to read validation log: {exc}") from exc
+
+    parsed_events: list[dict[str, Any]] = []
+    for raw_line in lines[-2000:]:
+        parsed = _parse_validation_log_line(raw_line)
+        if not isinstance(parsed, dict):
+            continue
+
+        if safe_run_id:
+            details_payload = parsed.get("details")
+            run_id_in_event = ""
+            if isinstance(details_payload, Mapping):
+                run_id_in_event = str(details_payload.get("validationRunId") or "").strip()
+            if run_id_in_event != safe_run_id:
+                continue
+
+        parsed_events.append(parsed)
+
+    return {
+        "ok": True,
+        "projectId": entry["id"],
+        "validationRunId": safe_run_id,
+        "events": parsed_events,
     }
 
 

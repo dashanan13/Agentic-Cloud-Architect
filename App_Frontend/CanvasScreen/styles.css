@@ -2080,11 +2080,27 @@ circle.canvas-edge-midpoint:hover {
   bottom: 0;
   width: var(--new-tip-progress, 0%);
   border-radius: 999px;
-  background: linear-gradient(to right, #3b82f6 55%, #f59e0b 100%);
+  background: #3b82f6;
 }
 
 .new-tip-progress__in-progress-band {
   display: none;
+  position: absolute;
+  left: var(--new-tip-progress, 0%);
+  top: 0;
+  bottom: 0;
+  width: var(--new-tip-stage-width, 14.2857%);
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(to right, #3b82f6 0%, #f59e0b 52%, #f59e0b 100%);
+}
+
+.new-tip-progress__heatbar.has-active-stage .new-tip-progress__in-progress-band {
+  display: block;
+}
+
+.new-tip-progress__heatbar.is-origin-start .new-tip-progress__in-progress-band {
+  border-radius: 999px;
+  background: #f59e0b;
 }
 
 .new-tip-progress__marker {

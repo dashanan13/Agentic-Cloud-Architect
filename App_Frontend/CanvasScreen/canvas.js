@@ -18,6 +18,7 @@ const projectNameDisplay = document.getElementById("project-name-suffix-display"
 const projectIacIconEl = document.getElementById("project-iac-icon");
 const btnProjectSave = document.getElementById("btn-project-save");
 const btnValidate = document.getElementById("btn-validate");
+const btnNewValidate = document.getElementById("btn-new-validate");
 const btnExportDiagram = document.getElementById("btn-export-diagram");
 const btnProjectSettings = document.getElementById("btn-project-settings-template");
 const btnReachOut = document.getElementById("btn-reach-out");
@@ -35,6 +36,9 @@ const chatHistoryEl = document.getElementById("chat-history");
 const chatInputEl = document.getElementById("chat-input");
 const chatSendBtn = document.getElementById("chat-send");
 const tipsContentEl = document.getElementById("tips-content");
+const newTipProgressPercentEl = document.getElementById("new-tip-progress-percent");
+const newTipProgressHeatbarEl = document.getElementById("new-tip-progress-heatbar");
+const newTipMilestoneEls = Array.from(document.querySelectorAll('.new-tip-progress__milestone[data-stage]'));
 
 // ===== Constants =====
 const CANVAS_ZOOM = {
@@ -63,6 +67,16 @@ const CANVAS_CONTAINER = {
 const MAX_PROJECT_NAME_LENGTH = 50;
 const AUTOSAVE_INTERVAL_MS = 30000;
 const CANVAS_DISPLAY_ZOOM_BASE = 0.5;
+const VALIDATION_PIPELINE_STAGES = [
+  { key: "graph-builder", label: "🧱 Graph Builder" },
+  { key: "enricher", label: "⚡ Enricher" },
+  { key: "rule-engine", label: "📏 Rule Engine" },
+  { key: "azure-learn-mcp", label: "📚 Azure Learn MCP" },
+  { key: "structured-findings", label: "📊 Structured Findings" },
+  { key: "ai-validation-agent", label: "🧠 AI Validation Agent" },
+  { key: "final-report", label: "📄 Final Report" },
+];
+const VALIDATION_PIPELINE_STAGE_WIDTH = 100 / VALIDATION_PIPELINE_STAGES.length;
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -134,6 +148,186 @@ let validationResult = null;
 let tipsExpandedSections = new Set();
 const tipsInitialMarkup = tipsContentEl ? tipsContentEl.innerHTML : "";
 let centerMessageFlashTimer = null;
+let validationProgressPollTimer = null;
+let validationProgressState = createValidationProgressState();
+
+function createValidationProgressState() {
+  return {
+    runId: "",
+    percent: 0,
+    activeStageKey: "",
+    stageStatuses: Object.fromEntries(VALIDATION_PIPELINE_STAGES.map((stage) => [stage.key, "not-started"])),
+  };
+}
+
+function generateValidationRunId() {
+  return `val-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
+
+function clearValidationProgressPolling() {
+  if (validationProgressPollTimer) {
+    clearInterval(validationProgressPollTimer);
+    validationProgressPollTimer = null;
+  }
+}
+
+function recomputeValidationProgressPercent() {
+  const completedCount = VALIDATION_PIPELINE_STAGES.filter((stage) => validationProgressState.stageStatuses[stage.key] === "completed").length;
+  validationProgressState.percent = Math.round((completedCount / VALIDATION_PIPELINE_STAGES.length) * 100);
+}
+
+function setValidationStageStatus(stageKey, nextStatus) {
+  if (!stageKey || !(stageKey in validationProgressState.stageStatuses)) {
+    return;
+  }
+
+  const currentStatus = validationProgressState.stageStatuses[stageKey];
+  if (currentStatus === "completed" && nextStatus !== "completed") {
+    return;
+  }
+
+  validationProgressState.stageStatuses[stageKey] = nextStatus;
+  if (nextStatus === "in-progress") {
+    validationProgressState.activeStageKey = stageKey;
+  } else if (validationProgressState.activeStageKey === stageKey) {
+    validationProgressState.activeStageKey = "";
+  }
+  recomputeValidationProgressPercent();
+}
+
+function completeValidationStage(stageKey) {
+  setValidationStageStatus(stageKey, "completed");
+}
+
+function startValidationStage(stageKey) {
+  setValidationStageStatus(stageKey, "in-progress");
+}
+
+function resetValidationProgressState(runId = "") {
+  validationProgressState = createValidationProgressState();
+  validationProgressState.runId = runId;
+  renderValidationProgressPanel();
+}
+
+function finalizeValidationProgressState() {
+  VALIDATION_PIPELINE_STAGES.forEach((stage) => {
+    validationProgressState.stageStatuses[stage.key] = "completed";
+  });
+  validationProgressState.activeStageKey = "";
+  recomputeValidationProgressPercent();
+  renderValidationProgressPanel();
+}
+
+function applyValidationLogEvents(runId, events) {
+  if (!runId) {
+    return;
+  }
+
+  resetValidationProgressState(runId);
+
+  const safeEvents = Array.isArray(events) ? events : [];
+  safeEvents.forEach((event) => {
+    const activity = String(event?.activity || "").trim();
+    if (!activity) {
+      return;
+    }
+
+    if (activity === "validation.run.requested") {
+      startValidationStage("graph-builder");
+      return;
+    }
+
+    if (activity === "validation.run.dispatch") {
+      completeValidationStage("graph-builder");
+      startValidationStage("enricher");
+      return;
+    }
+
+    if (activity === "validation.step.azure-mcp.completed") {
+      completeValidationStage("enricher");
+      startValidationStage("rule-engine");
+      return;
+    }
+
+    if (activity === "validation.step.thinking-model.completed") {
+      completeValidationStage("rule-engine");
+      startValidationStage("azure-learn-mcp");
+      return;
+    }
+
+    if (activity === "validation.aggregation.completed") {
+      completeValidationStage("azure-learn-mcp");
+      startValidationStage("structured-findings");
+      return;
+    }
+
+    if (activity === "validation.run.completed") {
+      completeValidationStage("structured-findings");
+      startValidationStage("ai-validation-agent");
+      completeValidationStage("ai-validation-agent");
+      startValidationStage("final-report");
+      completeValidationStage("final-report");
+    }
+  });
+
+  renderValidationProgressPanel();
+}
+
+async function pollValidationProgress(runId) {
+  if (!runId || !state.currentProject?.id) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/project/${encodeURIComponent(state.currentProject.id)}/architecture/validation/log?validationRunId=${encodeURIComponent(runId)}`);
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      return;
+    }
+
+    applyValidationLogEvents(runId, payload?.events);
+  } catch (_error) {
+    // Keep the current visible progress state when polling fails.
+  }
+}
+
+function startValidationProgressPolling(runId) {
+  clearValidationProgressPolling();
+  if (!runId) {
+    return;
+  }
+
+  pollValidationProgress(runId);
+  validationProgressPollTimer = setInterval(() => {
+    pollValidationProgress(runId);
+  }, 900);
+}
+
+function renderValidationProgressPanel() {
+  if (newTipProgressPercentEl) {
+    newTipProgressPercentEl.textContent = `${validationProgressState.percent}%`;
+  }
+
+  if (newTipProgressHeatbarEl) {
+    newTipProgressHeatbarEl.style.setProperty("--new-tip-progress", `${validationProgressState.percent}%`);
+    newTipProgressHeatbarEl.style.setProperty("--new-tip-stage-width", `${VALIDATION_PIPELINE_STAGE_WIDTH}%`);
+    newTipProgressHeatbarEl.classList.toggle("has-active-stage", Boolean(validationProgressState.activeStageKey));
+    newTipProgressHeatbarEl.classList.toggle("is-origin-start", validationProgressState.percent === 0);
+  }
+
+  newTipMilestoneEls.forEach((element) => {
+    const stageKey = element.dataset.stage;
+    const stageStatus = validationProgressState.stageStatuses[stageKey] || "not-started";
+    element.classList.remove("is-not-started", "is-in-progress", "is-completed");
+    if (stageStatus === "completed") {
+      element.classList.add("is-completed");
+    } else if (stageStatus === "in-progress") {
+      element.classList.add("is-in-progress");
+    } else {
+      element.classList.add("is-not-started");
+    }
+  });
+}
 
 // ===== Helper Functions =====
 
@@ -1734,7 +1928,13 @@ function setupButtonHandlers() {
   // Validate button
   if (btnValidate) {
     btnValidate.addEventListener("click", () => {
-      runValidation();
+      runValidation({ targetTab: "tips" });
+    });
+  }
+
+  if (btnNewValidate) {
+    btnNewValidate.addEventListener("click", () => {
+      runValidation({ targetTab: "new-tip" });
     });
   }
 
@@ -1756,6 +1956,9 @@ function setupButtonHandlers() {
       }
       if (tabId === "tips") {
         renderTipsPanel();
+      }
+      if (tabId === "new-tip") {
+        renderValidationProgressPanel();
       }
     });
   });
@@ -2264,21 +2467,27 @@ function renderTipsPanel() {
   });
 }
 
-async function runValidation() {
+async function runValidation(options = {}) {
+  const targetTab = String(options?.targetTab || "tips").trim() || "tips";
   if (validationRunInFlight || !state.currentProject?.id) {
     if (!state.currentProject?.id) {
-      setActiveTab("tips");
+      setActiveTab(targetTab === "new-tip" ? "new-tip" : "tips");
       if (tipsContentEl) tipsContentEl.innerHTML = `<div class="vr-error"><strong>No project loaded</strong><p>Please open a project before running validation.</p></div>`;
     }
     return;
   }
 
+  const validationRunId = generateValidationRunId();
   validationRunInFlight = true;
   validationResult = null;
   tipsExpandedSections = new Set(["overview", "maturity", "pillars", "actions"]);
+  resetValidationProgressState(validationRunId);
+  startValidationStage("graph-builder");
+  renderValidationProgressPanel();
+  startValidationProgressPolling(validationRunId);
 
   // Show running state and switch to tips tab
-  setActiveTab("tips");
+  setActiveTab(targetTab === "new-tip" ? "new-tip" : "tips");
   if (tipsContentEl) {
     tipsContentEl.innerHTML = `<div class="tips-running"><div class="tips-running-icon">&#9881;</div><p><strong>Validating architecture…</strong></p><p class="tips-running-sub">Analysing against the Azure Well-Architected Framework.</p></div>`;
   }
@@ -2295,6 +2504,7 @@ async function runValidation() {
         projectDescription,
         projectId: state.currentProject.id,
         projectName: state.currentProject.name || "Project",
+        validationRunId,
       }),
     });
     const payload = await res.json().catch(() => null);
@@ -2302,10 +2512,12 @@ async function runValidation() {
       throw new Error(payload?.detail || "Validation request failed.");
     }
     validationResult = payload && typeof payload === "object" ? payload : {};
+    finalizeValidationProgressState();
   } catch (err) {
     validationResult = { errorMessage: err?.message || "Architecture validation failed." };
   } finally {
     validationRunInFlight = false;
+    clearValidationProgressPolling();
     if (btnValidate) {
       btnValidate.innerHTML = validateButtonDefaultHtml || "Validate";
       btnValidate.disabled = false;
@@ -2320,6 +2532,7 @@ function initializeCanvas() {
   initializeCanvasInteractions();
   setupButtonHandlers();
   renderResourceList();
+  renderValidationProgressPanel();
 
   // Setup search
   if (searchInput) {
