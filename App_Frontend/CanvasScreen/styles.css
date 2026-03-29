@@ -2071,7 +2071,6 @@ circle.canvas-edge-midpoint:hover {
   height: 8px;
   border-radius: 999px;
   background: #d1d5db;
-  overflow: hidden;
 }
 
 .new-tip-progress__fill {
@@ -2080,27 +2079,16 @@ circle.canvas-edge-midpoint:hover {
   top: 0;
   bottom: 0;
   width: var(--new-tip-progress, 0%);
-  background: #3b82f6;
+  border-radius: 999px;
+  background: linear-gradient(to right, #3b82f6 55%, #f59e0b 100%);
 }
 
 .new-tip-progress__in-progress-band {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 18px;
-  left: var(--new-tip-progress, 0%);
-  transform: translateX(-100%);
-  background: #f59e0b;
+  display: none;
 }
 
 .new-tip-progress__marker {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  left: var(--new-tip-progress, 0%);
-  transform: translateX(-50%);
-  background: #f59e0b;
+  display: none;
 }
 
 .new-tip-progress__milestone.is-not-started {
