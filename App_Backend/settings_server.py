@@ -3895,56 +3895,29 @@ def save_project_snapshot(body: ProjectSavePayload):
         project_settings = load_project_settings_file(project_dir)
 
         app_settings = load_app_settings()
-        bootstrap_result = bootstrap_default_foundry_resources(app_settings)
-        if bootstrap_result.get("settingsUpdated"):
-            write_app_settings_file(app_settings)
-
-        thread_entry = {
-            "id": body.project.id,
-            "name": body.project.name,
-            "cloud": body.project.cloud,
-            "projectDir": project_dir,
-            "metadataPath": metadata_path,
-        }
+        bootstrap_result = {'skipped': True, 'reason': 'deferred'}
 
         seeded_metadata = dict(existing_metadata)
-        incoming_chat_thread_id = str(
-            body.project.foundryChatThreadId
-            or body.project.foundryThreadId
-            or ""
-        ).strip()
-        if incoming_chat_thread_id:
-            seeded_metadata["foundryChatThreadId"] = incoming_chat_thread_id
-            seeded_metadata["foundryThreadId"] = incoming_chat_thread_id
-
-        incoming_validation_thread_id = str(body.project.foundryValidationThreadId or "").strip()
-        if incoming_validation_thread_id:
-            seeded_metadata["foundryValidationThreadId"] = incoming_validation_thread_id
-
-        chat_thread_state = ensure_project_foundry_thread_state(
-            thread_entry,
-            app_settings,
-            purpose="chat",
-            project_settings=project_settings,
-            metadata=seeded_metadata,
-            persist=False,
-        )
-        project_settings = chat_thread_state["settings"]
-        seeded_metadata = chat_thread_state["metadata"]
-        foundry_thread_result = chat_thread_state["threadResult"]
-        foundry_thread_id = str(chat_thread_state.get("threadId") or "").strip() or None
-
-        validation_thread_state = ensure_project_foundry_thread_state(
-            thread_entry,
-            app_settings,
-            purpose="validation",
-            project_settings=project_settings,
-            metadata=seeded_metadata,
-            persist=False,
-        )
-        project_settings = validation_thread_state["settings"]
-        foundry_validation_thread_result = validation_thread_state["threadResult"]
-        foundry_validation_thread_id = str(validation_thread_state.get("threadId") or "").strip() or None
+        
+        foundry_thread_id = str(
+            body.project.foundryChatThreadId 
+            or body.project.foundryThreadId 
+            or ''
+        ).strip() or str(
+            _get_known_project_foundry_thread_id(project_settings, seeded_metadata, purpose='chat') 
+            or ''
+        ).strip() or None
+        
+        foundry_validation_thread_id = str(
+            body.project.foundryValidationThreadId 
+            or ''
+        ).strip() or str(
+            _get_known_project_foundry_thread_id(project_settings, seeded_metadata, purpose='validation') 
+            or ''
+        ).strip() or None
+        
+        foundry_thread_result = {'skipped': True, 'threadId': foundry_thread_id}
+        foundry_validation_thread_result = {'skipped': True, 'threadId': foundry_validation_thread_id}
 
         project_settings = merge_project_settings(
             project_settings,

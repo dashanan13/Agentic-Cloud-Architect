@@ -7578,6 +7578,11 @@ async function requestArchitectureChat(message) {
   }
 
   if (!response.ok) {
+    if (response.status === 404) {
+      appendAssistantMessage("I noticed that the AI agents or threads are missing. Let me try restoring them...");
+      await verifyFoundryAgentsAndThreads();
+      return await requestArchitectureChat(message); // Retry once after restoring
+    }
     const detail = payload?.detail ? String(payload.detail) : "AI chat request failed.";
     throw new Error(detail);
   }
@@ -7675,22 +7680,41 @@ projectNameDisplay?.addEventListener("keydown", (event) => {
 
 // ===== Event Listeners =====
 btnBackProjects.addEventListener("click", async () => {
+  // Give immediate visual feedback that a background action has started
+  const originalText = btnBackProjects.textContent;
+  btnBackProjects.textContent = "Saving...";
+  btnBackProjects.disabled = true;
+  btnBackProjects.style.cursor = "wait";
+
   flushPendingCanvasEditsForManualSave();
   try {
     await saveProjectFiles({ saveTrigger: "manual" });
   } catch {
     // Continue navigation even if file save fails.
   }
+  
+  btnBackProjects.textContent = "Redirecting...";
   window.location.href = "./LandingScreen/index.html";
 });
 
 btnProjectSave?.addEventListener("click", async () => {
+  const originalText = btnProjectSave.textContent;
+  btnProjectSave.textContent = "Saving...";
+  btnProjectSave.disabled = true;
+
   flushPendingCanvasEditsForManualSave();
   updateTimestamp();
   try {
     await saveProjectFiles({ saveTrigger: "manual" });
+    btnProjectSave.textContent = "Saved!";
+    setTimeout(() => {
+      btnProjectSave.textContent = originalText;
+    }, 2000);
   } catch (error) {
+    btnProjectSave.textContent = originalText;
     setSaveStatus(error?.message || "Save failed", true);
+  } finally {
+    btnProjectSave.disabled = false;
   }
 });
 
@@ -9069,12 +9093,6 @@ async function initialize() {
       await loadArchitectureValidationStatus({ silent: true });
     } catch {
       // Keep status refresh non-blocking.
-    }
-
-    try {
-      await verifyFoundryAgentsAndThreads();
-    } catch {
-      // Keep verification non-blocking.
     }
   }, AUTOSAVE_INTERVAL_MS);
 
