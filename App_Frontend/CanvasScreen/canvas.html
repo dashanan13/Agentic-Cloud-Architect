@@ -203,11 +203,30 @@
 
       <div id="panel-new-tip" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-new-tip" hidden>
         <div class="tips-content">
-          <div class="tab-placeholder">
-            <div class="tab-placeholder-icon">&#128161;</div>
-            <p class="tab-placeholder-title">New Tip</p>
-            <p class="tab-placeholder-sub">New Tip content will appear here.</p>
-          </div>
+          <details class="new-tip-progress" id="new-tip-progress">
+            <summary class="new-tip-progress__summary">
+              <div class="new-tip-progress__summary-top">
+                <span class="new-tip-progress__title">Validation Pipeline Progress</span>
+                <span class="new-tip-progress__percent">45%</span>
+              </div>
+              <div class="new-tip-progress__heatbar" style="--new-tip-progress: 45%;" aria-label="Validation pipeline progress">
+                <span class="new-tip-progress__fill" aria-hidden="true"></span>
+                <span class="new-tip-progress__in-progress-band" aria-hidden="true"></span>
+                <span class="new-tip-progress__marker" aria-hidden="true"></span>
+              </div>
+            </summary>
+            <div class="new-tip-progress__body">
+              <ul class="new-tip-progress__milestones" aria-label="Validation milestones">
+                <li class="new-tip-progress__milestone is-completed">🧱 Graph Builder</li>
+                <li class="new-tip-progress__milestone is-completed">⚡ Enricher</li>
+                <li class="new-tip-progress__milestone is-completed">📏 Rule Engine</li>
+                <li class="new-tip-progress__milestone is-in-progress">📚 Azure Learn MCP</li>
+                <li class="new-tip-progress__milestone is-not-started">📊 Structured Findings</li>
+                <li class="new-tip-progress__milestone is-not-started">🧠 AI Validation Agent</li>
+                <li class="new-tip-progress__milestone is-not-started">📄 Final Report</li>
+              </ul>
+            </div>
+          </details>
         </div>
       </div>
 
