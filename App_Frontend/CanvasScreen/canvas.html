@@ -34,6 +34,11 @@
   <!-- RIGHT -->
   <div class="section right-tools">
 
+    <button id="btn-new-validate" class="icon-btn new-validate-btn" title="New Validate" type="button">
+      <img src="/Assets/Icons/reset.png" class="icon" alt="" aria-hidden="true" />
+      <span>New Validate</span>
+    </button>
+
     <button id="btn-export-diagram" class="icon-btn" title="Export Diagram" type="button">
       <img src="/Assets/Icons/export.png" class="icon" />
     </button>
@@ -157,6 +162,7 @@
       <div id="tab-properties" class="tab is-active" data-tab="properties" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-properties">Properties</div>
       <div id="tab-chat" class="tab" data-tab="chat" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-chat">AI Chat</div>
       <div id="tab-tips" class="tab" data-tab="tips" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-tips">Tips</div>
+      <div id="tab-new-tip" class="tab" data-tab="new-tip" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-new-tip">New Tip</div>
     </div>
 
     <div class="tab-content">
@@ -191,6 +197,16 @@
             <div class="tab-placeholder-icon">&#128161;</div>
             <p class="tab-placeholder-title">Architecture Tips</p>
             <p class="tab-placeholder-sub">Click <strong>Validate</strong> in the toolbar to analyse your architecture against the Azure Well-Architected Framework.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-new-tip" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-new-tip" hidden>
+        <div class="tips-content">
+          <div class="tab-placeholder">
+            <div class="tab-placeholder-icon">&#128161;</div>
+            <p class="tab-placeholder-title">New Tip</p>
+            <p class="tab-placeholder-sub">New Tip content will appear here.</p>
           </div>
         </div>
       </div>

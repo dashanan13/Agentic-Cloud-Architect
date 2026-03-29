@@ -180,6 +180,18 @@ body {
   border-radius: 0;
 }
 
+.new-validate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.new-validate-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
 /* MAIN */
 .main {
   display: flex;

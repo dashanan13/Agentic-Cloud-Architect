@@ -1,6 +1,6 @@
-fastapi==0.115.8
-uvicorn==0.34.0
-azure-identity==1.17.1
-azure-ai-projects==2.0.0b3
+fastapi==0.135.2
+uvicorn==0.42.0
+azure-identity==1.25.3
+azure-ai-projects==2.0.1
 agent-framework-azure-ai>=0.0.0b0
 mcp==1.26.0
