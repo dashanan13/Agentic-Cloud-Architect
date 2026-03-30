@@ -34,11 +34,6 @@
   <!-- RIGHT -->
   <div class="section right-tools">
 
-    <button id="btn-new-validate" class="icon-btn new-validate-btn" title="New Validate" type="button">
-      <img src="/Assets/Icons/reset.png" class="icon" alt="" aria-hidden="true" />
-      <span>New Validate</span>
-    </button>
-
     <button id="btn-export-diagram" class="icon-btn" title="Export Diagram" type="button">
       <img src="/Assets/Icons/export.png" class="icon" />
     </button>
@@ -162,7 +157,6 @@
       <div id="tab-properties" class="tab is-active" data-tab="properties" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-properties">Properties</div>
       <div id="tab-chat" class="tab" data-tab="chat" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-chat">AI Chat</div>
       <div id="tab-tips" class="tab" data-tab="tips" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-tips">Tips</div>
-      <div id="tab-new-tip" class="tab" data-tab="new-tip" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-new-tip">New Tip</div>
     </div>
 
     <div class="tab-content">
@@ -198,35 +192,6 @@
             <p class="tab-placeholder-title">Architecture Tips</p>
             <p class="tab-placeholder-sub">Click <strong>Validate</strong> in the toolbar to analyse your architecture against the Azure Well-Architected Framework.</p>
           </div>
-        </div>
-      </div>
-
-      <div id="panel-new-tip" class="tab-pane tab-panel right-tab-panel is-hidden" role="tabpanel" aria-labelledby="tab-new-tip" hidden>
-        <div class="tips-content">
-          <details class="new-tip-progress" id="new-tip-progress">
-            <summary class="new-tip-progress__summary">
-              <div class="new-tip-progress__summary-top">
-                <span class="new-tip-progress__title">Validation Pipeline Progress</span>
-                <span id="new-tip-progress-percent" class="new-tip-progress__percent">0%</span>
-              </div>
-              <div id="new-tip-progress-heatbar" class="new-tip-progress__heatbar" style="--new-tip-progress: 0%; --new-tip-stage-width: 14.2857%;" aria-label="Validation pipeline progress">
-                <span class="new-tip-progress__fill" aria-hidden="true"></span>
-                <span class="new-tip-progress__in-progress-band" aria-hidden="true"></span>
-                <span class="new-tip-progress__marker" aria-hidden="true"></span>
-              </div>
-            </summary>
-            <div class="new-tip-progress__body">
-              <ul class="new-tip-progress__milestones" aria-label="Validation milestones">
-                <li class="new-tip-progress__milestone is-not-started" data-stage="graph-builder">🧱 Graph Builder</li>
-                <li class="new-tip-progress__milestone is-not-started" data-stage="enricher">⚡ Enricher</li>
-                <li class="new-tip-progress__milestone is-not-started" data-stage="rule-engine">📏 Rule Engine</li>
-                <li class="new-tip-progress__milestone is-not-started" data-stage="azure-learn-mcp">📚 Azure Learn MCP</li>
-                <li class="new-tip-progress__milestone is-not-started" data-stage="structured-findings">📊 Structured Findings</li>
-                <li class="new-tip-progress__milestone is-not-started" data-stage="ai-validation-agent">🧠 AI Validation Agent</li>
-                <li class="new-tip-progress__milestone is-not-started" data-stage="final-report">📄 Final Report</li>
-              </ul>
-            </div>
-          </details>
         </div>
       </div>
 
