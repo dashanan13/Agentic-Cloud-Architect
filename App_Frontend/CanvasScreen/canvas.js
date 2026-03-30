@@ -7041,7 +7041,7 @@ btnProjectSave?.addEventListener("click", async () => {
 });
 
 const VALIDATION_PIPELINE_STAGES = [
-  { key: "validate", label: "Input varification" },
+  { key: "validate", label: "Input Verification" },
   { key: "graph-builder", label: "🧱 Graph Builder" },
   { key: "enricher", label: "⚡ Enricher" },
   { key: "rule-engine", label: "📏 Rule Engine" },
@@ -7186,6 +7186,175 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function requestInputVerification(canvasStatePayload) {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Input Verification Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/input-verification`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+    body: JSON.stringify({
+      canvasState: canvasStatePayload,
+    }),
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Input Verification request failed").trim();
+    throw new Error(`Validation: Input Verification Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { isValid: false, errors: ["Invalid verification response"], warnings: [] };
+}
+
+function postInputVerificationMessage(message, isError = false) {
+  setSaveStatus(message, isError);
+}
+
+async function requestGraphBuilder(canvasStatePayload) {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Graph Builder Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/graph-builder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+    body: JSON.stringify({
+      canvasState: canvasStatePayload,
+    }),
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Graph Builder request failed").trim();
+    throw new Error(`Validation: Graph Builder Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, errors: ["Invalid graph builder response"], warnings: [] };
+}
+
+async function runInputVerificationStage() {
+  const stageKey = "validate";
+  const stageProgressWeight = VALIDATION_STAGE_WEIGHT;
+  const substeps = [
+    { key: "json", message: "Validation: Input Verification Validating JSON" },
+    { key: "structure", message: "Validation: Input Verification Validating Structure" },
+    { key: "resources", message: "Validation: Input Verification Validating Resources" },
+    { key: "references", message: "Validation: Input Verification Validating References" },
+    { key: "connections", message: "Validation: Input Verification Validating Connections" },
+    { key: "environment", message: "Validation: Input Verification Validating Environment" },
+  ];
+
+  postInputVerificationMessage("Validation: Input Verification Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageProgressWeight * 0.08, stageProgressWeight), 240);
+
+  const verificationPayload = await requestInputVerification(buildCurrentCanvasStatePayload());
+  const verificationErrors = Array.isArray(verificationPayload.errors) ? verificationPayload.errors : [];
+  const stepResults = Array.isArray(verificationPayload.stepResults) ? verificationPayload.stepResults : [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = (completedSubsteps / substeps.length) * stageProgressWeight;
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(stepRecord.error || verificationErrors[0] || "Unknown error").trim();
+      throw new Error(`Validation: Input Verification Failed - ${reason}`);
+    }
+  }
+
+  if (!verificationPayload.isValid) {
+    const reason = String(verificationErrors[0] || "Input verification failed").trim();
+    throw new Error(`Validation: Input Verification Failed - ${reason}`);
+  }
+
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageProgressWeight, 280);
+  postInputVerificationMessage("Validation: Input Verification Completed");
+}
+
+async function runGraphBuilderStage() {
+  const stageKey = "graph-builder";
+  const stageStart = VALIDATION_STAGE_WEIGHT;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 2;
+  const stageSpan = stageEnd - stageStart;
+  const substeps = [
+    { key: "normalize-types", message: "Validation: Graph Builder Normalizing Resource Types" },
+    { key: "build-nodes", message: "Validation: Graph Builder Building Nodes" },
+    { key: "resolve-hierarchy", message: "Validation: Graph Builder Resolving Hierarchy" },
+    { key: "build-connections", message: "Validation: Graph Builder Building Connections" },
+    { key: "detect-relationships", message: "Validation: Graph Builder Detecting Relationships" },
+    { key: "finalize-graph", message: "Validation: Graph Builder Finalizing Graph" },
+  ];
+
+  postInputVerificationMessage("Validation: Graph Builder Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
+
+  const graphPayload = await requestGraphBuilder(buildCurrentCanvasStatePayload());
+  const graphErrors = Array.isArray(graphPayload.errors) ? graphPayload.errors : [];
+  const stepResults = Array.isArray(graphPayload.stepResults) ? graphPayload.stepResults : [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(stepRecord.error || graphErrors[0] || "Unknown error").trim();
+      throw new Error(`Validation: Graph Builder Failed - ${reason}`);
+    }
+  }
+
+  if (!graphPayload.ok) {
+    const reason = String(graphErrors[0] || "Graph Builder failed").trim();
+    throw new Error(`Validation: Graph Builder Failed - ${reason}`);
+  }
+
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageEnd, 280);
+  postInputVerificationMessage("Validation: Graph Builder Completed");
+  postInputVerificationMessage("Validation: Graph Builder Artifact: /Documentation/architecture-graph.json");
+}
+
 async function runValidationProcessStub() {
   if (!btnValidate || validationPipelineStubInFlight) {
     return;
@@ -7203,27 +7372,23 @@ async function runValidationProcessStub() {
   let currentStageKey = "";
 
   try {
-    setSaveStatus("Validation Started", false, "validation-activity");
-
-    for (let index = 0; index < VALIDATION_PIPELINE_STAGES.length; index += 1) {
-      const stage = VALIDATION_PIPELINE_STAGES[index];
-      currentStageKey = stage.key;
-
-      setValidationStageStatus(stage.key, "in-progress");
-      const inProgressTarget = Math.min((index + 0.85) * VALIDATION_STAGE_WEIGHT, 99.5);
-      await animateValidationProgressTo(inProgressTarget, 900);
-      await wait(300);
-
-      setValidationStageStatus(stage.key, "completed");
-      await animateValidationProgressTo((index + 1) * VALIDATION_STAGE_WEIGHT, 280);
-    }
-
-    setSaveStatus("Validation finished", false, "validation-activity");
-  } catch (_error) {
+    currentStageKey = "validate";
+    await runInputVerificationStage();
+    currentStageKey = "graph-builder";
+    await runGraphBuilderStage();
+  } catch (error) {
+    const reason = String(error?.message || "Validation: Input Verification Failed - Unknown error").trim();
     if (currentStageKey) {
       setValidationStageStatus(currentStageKey, "failed");
     }
-    setSaveStatus("Validation failed", true, "validation-activity");
+    if (reason.startsWith("Validation: Graph Builder Failed -") || reason.startsWith("Validation: Input Verification Failed -")) {
+      postInputVerificationMessage(reason, true);
+    } else {
+      const fallbackPrefix = currentStageKey === "graph-builder"
+        ? "Validation: Graph Builder Failed -"
+        : "Validation: Input Verification Failed -";
+      postInputVerificationMessage(`${fallbackPrefix} ${reason}`, true);
+    }
   } finally {
     btnValidate.disabled = false;
     btnValidate.style.opacity = "1";

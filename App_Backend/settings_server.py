@@ -249,6 +249,10 @@ class ArchitectureValidatePayload(BaseModel):
     projectDescription: str | None = None
 
 
+class ValidationInputVerificationPayload(BaseModel):
+    canvasState: Any = None
+
+
 class ArchitectureValidationFixAuditPayload(BaseModel):
     validationRunId: str
     findingId: str
@@ -462,6 +466,679 @@ def _write_project_validation_text_log(
     documentation_dir.mkdir(parents=True, exist_ok=True)
     target_path = documentation_dir / "validation.log"
     return target_path
+
+
+def _reset_input_verification_log(project_dir: Path) -> Path:
+    documentation_dir = project_dir / "Documentation"
+    if documentation_dir.exists():
+        shutil.rmtree(documentation_dir, ignore_errors=True)
+    documentation_dir.mkdir(parents=True, exist_ok=True)
+    log_path = documentation_dir / "validation.log"
+    log_path.write_text("", encoding="utf-8")
+    return log_path
+
+
+def _append_input_verification_log(log_path: Path, level: str, message: str) -> None:
+    safe_level = str(level or "INFO").strip().upper() or "INFO"
+    safe_message = str(message or "").strip()
+    if not safe_message:
+        return
+    try:
+        with log_path.open("a", encoding="utf-8") as handle:
+            handle.write(f"[{safe_level}] {safe_message}\n")
+            handle.flush()
+    except Exception:
+        pass
+
+
+def _ensure_validation_log_path(project_dir: Path) -> Path:
+    documentation_dir = project_dir / "Documentation"
+    documentation_dir.mkdir(parents=True, exist_ok=True)
+    log_path = documentation_dir / "validation.log"
+    if not log_path.exists():
+        log_path.write_text("", encoding="utf-8")
+    return log_path
+
+
+def _gb_normalize_resource_type(raw_type: str) -> str:
+    normalized = str(raw_type or "").strip().lower()
+    alias_map = {
+        "virtual networks": "Azure Virtual Network",
+        "virtual network": "Azure Virtual Network",
+        "vnet": "Azure Virtual Network",
+        "subnet": "Azure Subnet",
+        "subnets": "Azure Subnet",
+        "network security group": "Azure Network Security Group",
+        "network security groups": "Azure Network Security Group",
+        "nsg": "Azure Network Security Group",
+        "route table": "Azure Route Table",
+        "route tables": "Azure Route Table",
+        "public ip": "Azure Public IP Address",
+        "public ip address": "Azure Public IP Address",
+        "public ip addresses": "Azure Public IP Address",
+    }
+    if normalized in alias_map:
+        return alias_map[normalized]
+    if normalized.startswith("azure "):
+        return str(raw_type or "").strip() or "Azure Resource"
+    if not normalized:
+        return "Azure Resource"
+    return f"Azure {str(raw_type).strip()}"
+
+
+def _gb_normalize_resource_types(canvas_items: list[Any]) -> list[dict[str, Any]]:
+    normalized_items: list[dict[str, Any]] = []
+    for item in canvas_items:
+        if not isinstance(item, Mapping):
+            continue
+        copied = dict(item)
+        copied["resourceType"] = _gb_normalize_resource_type(str(item.get("resourceType") or ""))
+        normalized_items.append(copied)
+    return normalized_items
+
+
+def _gb_build_nodes(canvas_items: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    nodes: dict[str, dict[str, Any]] = {}
+    for item in canvas_items:
+        item_id = str(item.get("id") or "").strip()
+        if not item_id:
+            continue
+        properties = item.get("properties") if isinstance(item.get("properties"), Mapping) else {}
+        nodes[item_id] = {
+            "id": item_id,
+            "name": str(item.get("name") or item.get("resourceName") or item_id),
+            "type": str(item.get("resourceType") or "Azure Resource"),
+            "category": str(item.get("category") or "other"),
+            "properties": dict(properties),
+            "parentId": (str(item.get("parentId") or "").strip() or None),
+            "children": [],
+        }
+    return nodes
+
+
+def _gb_resolve_hierarchy(nodes: dict[str, dict[str, Any]]) -> list[str]:
+    warnings: list[str] = []
+    for node in nodes.values():
+        parent_id = node.get("parentId")
+        if not parent_id:
+            continue
+        if parent_id not in nodes:
+            warnings.append(f"Broken parentId reference: {node.get('id')} -> {parent_id}")
+            node["parentId"] = None
+            continue
+        parent_children = nodes[parent_id].setdefault("children", [])
+        if node["id"] not in parent_children:
+            parent_children.append(node["id"])
+    return warnings
+
+
+def _gb_extract_ref_edges_from_properties(
+    source_id: str,
+    value: Any,
+    *,
+    path_key: str = "",
+) -> list[dict[str, str]]:
+    edges: list[dict[str, str]] = []
+    if isinstance(value, Mapping):
+        for key, child in value.items():
+            key_text = str(key or "").strip()
+            child_path = f"{path_key}.{key_text}" if path_key else key_text
+            if key_text.endswith("Ref"):
+                ref_value = str(child or "").strip()
+                if ref_value:
+                    edges.append({"from": source_id, "to": ref_value, "type": "reference"})
+            edges.extend(_gb_extract_ref_edges_from_properties(source_id, child, path_key=child_path))
+    elif isinstance(value, list):
+        for child in value:
+            edges.extend(_gb_extract_ref_edges_from_properties(source_id, child, path_key=path_key))
+    return edges
+
+
+def _gb_build_connections(
+    canvas_connections: list[Any],
+    nodes: dict[str, dict[str, Any]],
+) -> tuple[list[dict[str, str]], list[str]]:
+    edges: list[dict[str, str]] = []
+    warnings: list[str] = []
+
+    for connection in canvas_connections:
+        if not isinstance(connection, Mapping):
+            continue
+        from_id = str(connection.get("fromId") or "").strip()
+        to_id = str(connection.get("toId") or "").strip()
+        if not from_id or not to_id:
+            continue
+        if from_id not in nodes or to_id not in nodes:
+            warnings.append(f"Broken connection edge: {from_id} -> {to_id}")
+            continue
+        edges.append({"from": from_id, "to": to_id})
+
+    for node_id, node in nodes.items():
+        properties = node.get("properties")
+        if not isinstance(properties, Mapping):
+            continue
+        ref_edges = _gb_extract_ref_edges_from_properties(node_id, properties)
+        for edge in ref_edges:
+            if edge["to"] not in nodes:
+                warnings.append(f"Broken property reference: {edge['from']} -> {edge['to']}")
+                continue
+            edges.append(edge)
+
+    seen: set[tuple[str, str, str]] = set()
+    unique_edges: list[dict[str, str]] = []
+    for edge in edges:
+        edge_type = str(edge.get("type") or "").strip()
+        key = (str(edge.get("from") or "").strip(), str(edge.get("to") or "").strip(), edge_type)
+        if not key[0] or not key[1] or key in seen:
+            continue
+        seen.add(key)
+        if edge_type:
+            unique_edges.append({"from": key[0], "to": key[1], "type": edge_type})
+        else:
+            unique_edges.append({"from": key[0], "to": key[1]})
+
+    return unique_edges, warnings
+
+
+def _gb_detect_relationships_and_anomalies(
+    nodes: dict[str, dict[str, Any]],
+    edges: list[dict[str, str]],
+) -> dict[str, list[str]]:
+    incoming: dict[str, int] = {node_id: 0 for node_id in nodes}
+    outgoing: dict[str, int] = {node_id: 0 for node_id in nodes}
+    broken_edges: list[str] = []
+
+    for edge in edges:
+        src = str(edge.get("from") or "").strip()
+        dst = str(edge.get("to") or "").strip()
+        if src not in nodes or dst not in nodes:
+            broken_edges.append(f"{src}->{dst}")
+            continue
+        outgoing[src] += 1
+        incoming[dst] += 1
+
+    orphan_nodes = [
+        node_id
+        for node_id, node in nodes.items()
+        if not node.get("parentId") and incoming.get(node_id, 0) == 0 and outgoing.get(node_id, 0) == 0
+    ]
+
+    unused_resources = [
+        node_id
+        for node_id in nodes
+        if incoming.get(node_id, 0) == 0 and outgoing.get(node_id, 0) == 0
+    ]
+
+    return {
+        "orphanNodes": orphan_nodes,
+        "brokenReferences": broken_edges,
+        "unusedResources": unused_resources,
+    }
+
+
+def _gb_finalize_graph(
+    nodes: dict[str, dict[str, Any]],
+    edges: list[dict[str, str]],
+) -> dict[str, Any]:
+    return {
+        "nodes": nodes,
+        "edges": edges,
+    }
+
+
+def _run_graph_builder_stage(
+    *,
+    project_dir: Path,
+    canvas_state_input: Any,
+) -> dict[str, Any]:
+    log_path = _ensure_validation_log_path(project_dir)
+    errors: list[str] = []
+    warnings: list[str] = []
+    step_results: list[dict[str, Any]] = []
+
+    def _start(step_key: str, message: str) -> None:
+        _append_input_verification_log(log_path, "INFO", message)
+        step_results.append({"step": step_key, "status": "started"})
+
+    def _done(step_key: str, message: str) -> None:
+        _append_input_verification_log(log_path, "INFO", message)
+        step_results.append({"step": step_key, "status": "completed"})
+
+    def _fail(step_key: str, message: str) -> dict[str, Any]:
+        _append_input_verification_log(log_path, "ERROR", message)
+        step_results.append({"step": step_key, "status": "failed", "error": message})
+        return {
+            "ok": False,
+            "errors": [message],
+            "warnings": warnings,
+            "stepResults": step_results,
+            "artifactPath": "/Documentation/architecture-graph.json",
+            "logFile": str(log_path),
+        }
+
+    _append_input_verification_log(log_path, "INFO", "Graph Builder started")
+
+    parsed_json, iv_errors, iv_warnings = _iv_validate_json(canvas_state_input)
+    if iv_errors:
+        return _fail("normalize-types", f"Input Verification prerequisite failed: {iv_errors[0]}")
+    warnings.extend(iv_warnings)
+
+    iv_errors, _ = _iv_validate_structure(parsed_json)
+    if iv_errors:
+        return _fail("normalize-types", f"Input Verification prerequisite failed: {iv_errors[0]}")
+
+    canvas_items = parsed_json.get("canvasItems") if isinstance(parsed_json.get("canvasItems"), list) else []
+    canvas_connections = parsed_json.get("canvasConnections") if isinstance(parsed_json.get("canvasConnections"), list) else []
+
+    iv_errors, _ = _iv_validate_resources(canvas_items)
+    if iv_errors:
+        return _fail("build-nodes", f"Input Verification prerequisite failed: {iv_errors[0]}")
+
+    iv_errors, _ = _iv_validate_references(canvas_items)
+    if iv_errors:
+        return _fail("build-connections", f"Input Verification prerequisite failed: {iv_errors[0]}")
+
+    resource_ids = {
+        str(item.get("id") or "").strip()
+        for item in canvas_items
+        if isinstance(item, Mapping) and str(item.get("id") or "").strip()
+    }
+    iv_errors, _ = _iv_validate_connections(canvas_connections, resource_ids)
+    if iv_errors:
+        return _fail("build-connections", f"Input Verification prerequisite failed: {iv_errors[0]}")
+
+    _start("normalize-types", "Graph Builder Normalizing Resource Types")
+    normalized_items = _gb_normalize_resource_types(canvas_items)
+    _done("normalize-types", "Graph Builder resource types normalized")
+
+    _start("build-nodes", "Graph Builder Building Nodes")
+    nodes = _gb_build_nodes(normalized_items)
+    _append_input_verification_log(log_path, "INFO", f"Nodes created: {len(nodes)}")
+    _done("build-nodes", "Graph Builder nodes built")
+
+    _start("resolve-hierarchy", "Graph Builder Resolving Hierarchy")
+    hierarchy_warnings = _gb_resolve_hierarchy(nodes)
+    warnings.extend(hierarchy_warnings)
+    for warn in hierarchy_warnings:
+        _append_input_verification_log(log_path, "WARN", warn)
+    _done("resolve-hierarchy", "Graph Builder hierarchy resolved")
+
+    _start("build-connections", "Graph Builder Building Connections")
+    edges, edge_warnings = _gb_build_connections(canvas_connections, nodes)
+    warnings.extend(edge_warnings)
+    for warn in edge_warnings:
+        _append_input_verification_log(log_path, "WARN", warn)
+    _append_input_verification_log(log_path, "INFO", f"Edges created: {len(edges)}")
+    _done("build-connections", "Graph Builder connections built")
+
+    _start("detect-relationships", "Graph Builder Detecting Relationships")
+    anomalies = _gb_detect_relationships_and_anomalies(nodes, edges)
+    for orphan in anomalies.get("orphanNodes", []):
+        _append_input_verification_log(log_path, "WARN", f"Orphan node detected: {orphan}")
+    _done("detect-relationships", "Graph Builder relationships detected")
+
+    _start("finalize-graph", "Graph Builder Finalizing Graph")
+    graph_payload = _gb_finalize_graph(nodes, edges)
+    documentation_dir = project_dir / "Documentation"
+    documentation_dir.mkdir(parents=True, exist_ok=True)
+    artifact_path = documentation_dir / "architecture-graph.json"
+    artifact_path.write_text(json.dumps(graph_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    _done("finalize-graph", "Graph Builder graph finalized")
+
+    _append_input_verification_log(log_path, "INFO", "Graph Builder completed")
+
+    return {
+        "ok": True,
+        "errors": errors,
+        "warnings": warnings,
+        "stepResults": step_results,
+        "artifactPath": "/Documentation/architecture-graph.json",
+        "logFile": str(log_path),
+        "graph": {
+            "nodeCount": len(nodes),
+            "edgeCount": len(edges),
+            "anomalies": anomalies,
+        },
+    }
+
+
+def _iv_validate_json(input_json: Any) -> tuple[dict[str, Any], list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if input_json is None:
+        errors.append("Input JSON is missing.")
+        return {}, errors, warnings
+
+    if isinstance(input_json, str):
+        try:
+            parsed = json.loads(input_json)
+        except Exception:
+            errors.append("Input JSON is not parseable.")
+            return {}, errors, warnings
+    else:
+        try:
+            parsed = json.loads(json.dumps(input_json))
+        except Exception:
+            errors.append("Input JSON is not serializable.")
+            return {}, errors, warnings
+
+    if not isinstance(parsed, Mapping):
+        errors.append("Input JSON root must be an object.")
+        return {}, errors, warnings
+
+    return dict(parsed), errors, warnings
+
+
+def _iv_validate_structure(parsed_json: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    canvas_items = parsed_json.get("canvasItems")
+    canvas_connections = parsed_json.get("canvasConnections")
+
+    if not isinstance(canvas_items, list):
+        errors.append("canvasItems must exist and be an array.")
+    if not isinstance(canvas_connections, list):
+        errors.append("canvasConnections must exist and be an array.")
+
+    return errors, warnings
+
+
+def _iv_validate_resources(canvas_items: list[Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    for index, item in enumerate(canvas_items):
+        if not isinstance(item, Mapping):
+            errors.append(f"canvasItems[{index}] must be an object.")
+            continue
+
+        item_id = str(item.get("id") or "").strip()
+        resource_type = str(item.get("resourceType") or "").strip()
+        properties = item.get("properties")
+
+        if not item_id:
+            errors.append(f"canvasItems[{index}] missing required field 'id'.")
+        if not resource_type:
+            errors.append(f"canvasItems[{index}] missing required field 'resourceType'.")
+        if not isinstance(properties, Mapping):
+            errors.append(f"canvasItems[{index}] missing required field 'properties'.")
+
+    return errors, warnings
+
+
+def _iv_validate_references(canvas_items: list[Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    resource_ids = {
+        str(item.get("id") or "").strip()
+        for item in canvas_items
+        if isinstance(item, Mapping) and str(item.get("id") or "").strip()
+    }
+
+    for index, item in enumerate(canvas_items):
+        if not isinstance(item, Mapping):
+            continue
+
+        parent_id = item.get("parentId")
+        if parent_id not in (None, ""):
+            parent_id_text = str(parent_id).strip()
+            if parent_id_text and parent_id_text not in resource_ids:
+                errors.append(f"canvasItems[{index}].parentId '{parent_id_text}' does not reference a valid resource.")
+
+        properties = item.get("properties")
+        if not isinstance(properties, Mapping):
+            continue
+
+        for key, value in properties.items():
+            key_text = str(key or "").strip()
+            if not key_text.endswith("Ref"):
+                continue
+            ref_value = str(value or "").strip()
+            if ref_value and ref_value not in resource_ids:
+                errors.append(f"canvasItems[{index}].properties.{key_text} '{ref_value}' does not reference a valid resource.")
+
+    return errors, warnings
+
+
+def _iv_validate_connections(canvas_connections: list[Any], resource_ids: set[str]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    for index, connection in enumerate(canvas_connections):
+        if not isinstance(connection, Mapping):
+            errors.append(f"canvasConnections[{index}] must be an object.")
+            continue
+
+        from_id = str(connection.get("fromId") or "").strip()
+        to_id = str(connection.get("toId") or "").strip()
+
+        if not from_id:
+            errors.append(f"canvasConnections[{index}] missing required field 'fromId'.")
+        elif from_id not in resource_ids:
+            errors.append(f"canvasConnections[{index}].fromId '{from_id}' does not reference a valid resource.")
+
+        if not to_id:
+            errors.append(f"canvasConnections[{index}] missing required field 'toId'.")
+        elif to_id not in resource_ids:
+            errors.append(f"canvasConnections[{index}].toId '{to_id}' does not reference a valid resource.")
+
+    return errors, warnings
+
+
+def _iv_validate_environment(settings: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    provider = str(settings.get("modelProvider") or "").strip()
+    llm_model = str(
+        settings.get("foundryModelReasoning")
+        or settings.get("foundryModelFast")
+        or settings.get("foundryModelCoding")
+        or ""
+    ).strip()
+
+    if not provider:
+        errors.append("LLM backend configuration is missing (modelProvider).")
+    if not llm_model:
+        errors.append("LLM backend model configuration is missing.")
+
+    required_mcp_keys = [
+        "azureTenantId",
+        "azureClientId",
+        "azureClientSecret",
+        "azureSubscriptionId",
+    ]
+    missing_mcp_keys = [key for key in required_mcp_keys if not str(settings.get(key) or "").strip()]
+    if missing_mcp_keys:
+        errors.append(f"MCP server configuration is missing: {', '.join(missing_mcp_keys)}")
+
+    return errors, warnings
+
+
+def _run_input_verification_stage(
+    *,
+    project_dir: Path,
+    canvas_state_input: Any,
+    settings: Mapping[str, Any],
+) -> dict[str, Any]:
+    log_path = _reset_input_verification_log(project_dir)
+    step_results: list[dict[str, Any]] = []
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    def _record_step_start(step_key: str, message: str) -> None:
+        _append_input_verification_log(log_path, "INFO", message)
+        step_results.append({"step": step_key, "status": "started"})
+
+    def _record_step_complete(step_key: str, message: str) -> None:
+        _append_input_verification_log(log_path, "INFO", message)
+        step_results.append({"step": step_key, "status": "completed"})
+
+    def _record_step_failed(step_key: str, message: str) -> None:
+        _append_input_verification_log(log_path, "ERROR", message)
+        step_results.append({"step": step_key, "status": "failed", "error": message})
+
+    _append_input_verification_log(log_path, "INFO", "Input Verification started")
+
+    _record_step_start("json", "Validating JSON")
+    parsed_json, step_errors, step_warnings = _iv_validate_json(canvas_state_input)
+    if step_errors:
+        errors.extend(step_errors)
+        for reason in step_errors:
+            _record_step_failed("json", reason)
+        _append_input_verification_log(log_path, "INFO", "Validation failed")
+        return {
+            "isValid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "stepResults": step_results,
+            "logFile": str(log_path),
+        }
+    warnings.extend(step_warnings)
+    _record_step_complete("json", "JSON is valid")
+
+    _record_step_start("structure", "Validating Structure")
+    step_errors, step_warnings = _iv_validate_structure(parsed_json)
+    if step_errors:
+        errors.extend(step_errors)
+        for reason in step_errors:
+            _record_step_failed("structure", reason)
+        _append_input_verification_log(log_path, "INFO", "Validation failed")
+        return {
+            "isValid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "stepResults": step_results,
+            "logFile": str(log_path),
+        }
+    warnings.extend(step_warnings)
+    _record_step_complete("structure", "Structure is valid")
+
+    canvas_items = parsed_json.get("canvasItems") if isinstance(parsed_json, Mapping) else []
+    canvas_connections = parsed_json.get("canvasConnections") if isinstance(parsed_json, Mapping) else []
+
+    _record_step_start("resources", "Validating Resources")
+    step_errors, step_warnings = _iv_validate_resources(canvas_items if isinstance(canvas_items, list) else [])
+    if step_errors:
+        errors.extend(step_errors)
+        for reason in step_errors:
+            _record_step_failed("resources", reason)
+        _append_input_verification_log(log_path, "INFO", "Validation failed")
+        return {
+            "isValid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "stepResults": step_results,
+            "logFile": str(log_path),
+        }
+    warnings.extend(step_warnings)
+    _record_step_complete("resources", "Resources are valid")
+
+    _record_step_start("references", "Validating References")
+    step_errors, step_warnings = _iv_validate_references(canvas_items if isinstance(canvas_items, list) else [])
+    if step_errors:
+        errors.extend(step_errors)
+        for reason in step_errors:
+            _record_step_failed("references", reason)
+        _append_input_verification_log(log_path, "INFO", "Validation failed")
+        return {
+            "isValid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "stepResults": step_results,
+            "logFile": str(log_path),
+        }
+    warnings.extend(step_warnings)
+    _record_step_complete("references", "References are valid")
+
+    _record_step_start("connections", "Validating Connections")
+    resource_ids = {
+        str(item.get("id") or "").strip()
+        for item in (canvas_items if isinstance(canvas_items, list) else [])
+        if isinstance(item, Mapping) and str(item.get("id") or "").strip()
+    }
+    step_errors, step_warnings = _iv_validate_connections(
+        canvas_connections if isinstance(canvas_connections, list) else [],
+        resource_ids,
+    )
+    if step_errors:
+        errors.extend(step_errors)
+        for reason in step_errors:
+            _record_step_failed("connections", reason)
+        _append_input_verification_log(log_path, "INFO", "Validation failed")
+        return {
+            "isValid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "stepResults": step_results,
+            "logFile": str(log_path),
+        }
+    warnings.extend(step_warnings)
+    _record_step_complete("connections", "Connections are valid")
+
+    _record_step_start("environment", "Validating Environment")
+    step_errors, step_warnings = _iv_validate_environment(settings)
+    if step_errors:
+        errors.extend(step_errors)
+        for reason in step_errors:
+            _record_step_failed("environment", reason)
+        _append_input_verification_log(log_path, "INFO", "Validation failed")
+        return {
+            "isValid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "stepResults": step_results,
+            "logFile": str(log_path),
+        }
+    warnings.extend(step_warnings)
+    _record_step_complete("environment", "Environment is valid")
+
+    _append_input_verification_log(log_path, "INFO", "Validation completed")
+    return {
+        "isValid": True,
+        "errors": errors,
+        "warnings": warnings,
+        "stepResults": step_results,
+        "logFile": str(log_path),
+    }
+
+
+@app.post("/api/project/{project_id}/validation/input-verification")
+def run_input_verification(project_id: str, body: ValidationInputVerificationPayload | None = None):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    payload_canvas_state = body.canvasState if body else None
+    if payload_canvas_state in (None, {}):
+        payload_canvas_state = read_json_file(entry["statePath"], {})
+
+    settings = load_app_settings()
+    result = _run_input_verification_stage(
+        project_dir=entry["projectDir"],
+        canvas_state_input=payload_canvas_state,
+        settings=settings,
+    )
+    return result
+
+
+@app.post("/api/project/{project_id}/validation/graph-builder")
+def run_graph_builder(project_id: str, body: ValidationInputVerificationPayload | None = None):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    payload_canvas_state = body.canvasState if body else None
+    if payload_canvas_state in (None, {}):
+        payload_canvas_state = read_json_file(entry["statePath"], {})
+
+    result = _run_graph_builder_stage(
+        project_dir=entry["projectDir"],
+        canvas_state_input=payload_canvas_state,
+    )
+    return result
 
 
 def _sanitize_iac_stage_detail_items(value: Any) -> list[dict[str, str]]:
