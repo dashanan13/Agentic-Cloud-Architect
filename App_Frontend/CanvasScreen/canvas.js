@@ -7254,6 +7254,62 @@ async function requestGraphBuilder(canvasStatePayload) {
   return payload && typeof payload === "object" ? payload : { ok: false, errors: ["Invalid graph builder response"], warnings: [] };
 }
 
+async function requestEnricher() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Enricher Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/enricher`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Enricher request failed").trim();
+    throw new Error(`Validation: Enricher Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid enricher response" };
+}
+
+async function requestRuleEngine() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Rule Engine Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/rule-engine`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Rule Engine request failed").trim();
+    throw new Error(`Validation: Rule Engine Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid rule engine response" };
+}
+
 async function runInputVerificationStage() {
   const stageKey = "validate";
   const stageProgressWeight = VALIDATION_STAGE_WEIGHT;
@@ -7355,6 +7411,108 @@ async function runGraphBuilderStage() {
   postInputVerificationMessage("Validation: Graph Builder Artifact: /Documentation/architecture-graph.json");
 }
 
+async function runEnricherStage() {
+  const stageKey = "enricher";
+  const stageStart = VALIDATION_STAGE_WEIGHT * 2;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 3;
+  const stageSpan = stageEnd - stageStart;
+  const substeps = [
+    { key: "generate-summary", message: "Validation: Enricher Generating Summary" },
+    { key: "process-resources", message: "Validation: Enricher Processing Resources" },
+    { key: "run-detectors", message: "Validation: Enricher Running Detectors" },
+    { key: "detect-global-risks", message: "Validation: Enricher Detecting Global Risks" },
+    { key: "generate-assumptions", message: "Validation: Enricher Generating Assumptions" },
+    { key: "generate-unknowns", message: "Validation: Enricher Generating Unknowns" },
+    { key: "finalize-output", message: "Validation: Enricher Finalizing Output" },
+  ];
+
+  postInputVerificationMessage("Validation: Enricher Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
+
+  const enricherPayload = await requestEnricher();
+  const stepResults = Array.isArray(enricherPayload.stepResults) ? enricherPayload.stepResults : [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(stepRecord.error || enricherPayload.error || "Unknown error").trim();
+      throw new Error(`Validation: Enricher Failed - ${reason}`);
+    }
+  }
+
+  if (!enricherPayload.ok) {
+    const reason = String(enricherPayload.error || "Enricher failed").trim();
+    throw new Error(`Validation: Enricher Failed - ${reason}`);
+  }
+
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageEnd, 280);
+  postInputVerificationMessage("Validation: Enricher Completed");
+  postInputVerificationMessage("Validation: Enricher Artifact: /Documentation/enriched-architecture.json");
+}
+
+async function runRuleEngineStage() {
+  const stageKey = "rule-engine";
+  const stageStart = VALIDATION_STAGE_WEIGHT * 3;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 4;
+  const stageSpan = stageEnd - stageStart;
+  const substeps = [
+    { key: "load-enriched-data", message: "Validation: Rule Engine Loading Enriched Data" },
+    { key: "initialize-rules", message: "Validation: Rule Engine Initializing Rules" },
+    { key: "evaluate-rules", message: "Validation: Rule Engine Evaluating Rules" },
+    { key: "aggregate-violations", message: "Validation: Rule Engine Aggregating Violations" },
+    { key: "finalize-output", message: "Validation: Rule Engine Finalizing Output" },
+  ];
+
+  postInputVerificationMessage("Validation: Rule Engine Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
+
+  const ruleEnginePayload = await requestRuleEngine();
+  const stepResults = Array.isArray(ruleEnginePayload.stepResults) ? ruleEnginePayload.stepResults : [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(stepRecord.error || ruleEnginePayload.error || "Unknown error").trim();
+      throw new Error(`Validation: Rule Engine Failed - ${reason}`);
+    }
+  }
+
+  if (!ruleEnginePayload.ok) {
+    const reason = String(ruleEnginePayload.error || "Rule Engine failed").trim();
+    throw new Error(`Validation: Rule Engine Failed - ${reason}`);
+  }
+
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageEnd, 280);
+  postInputVerificationMessage("Validation: Rule Engine Completed");
+  postInputVerificationMessage("Validation: Rule Engine Artifact: /Documentation/rule-results.json");
+}
+
 async function runValidationProcessStub() {
   if (!btnValidate || validationPipelineStubInFlight) {
     return;
@@ -7376,17 +7534,30 @@ async function runValidationProcessStub() {
     await runInputVerificationStage();
     currentStageKey = "graph-builder";
     await runGraphBuilderStage();
+    currentStageKey = "enricher";
+    await runEnricherStage();
+    currentStageKey = "rule-engine";
+    await runRuleEngineStage();
   } catch (error) {
     const reason = String(error?.message || "Validation: Input Verification Failed - Unknown error").trim();
     if (currentStageKey) {
       setValidationStageStatus(currentStageKey, "failed");
     }
-    if (reason.startsWith("Validation: Graph Builder Failed -") || reason.startsWith("Validation: Input Verification Failed -")) {
+    if (
+      reason.startsWith("Validation: Graph Builder Failed -")
+      || reason.startsWith("Validation: Input Verification Failed -")
+      || reason.startsWith("Validation: Enricher Failed -")
+      || reason.startsWith("Validation: Rule Engine Failed -")
+    ) {
       postInputVerificationMessage(reason, true);
     } else {
       const fallbackPrefix = currentStageKey === "graph-builder"
         ? "Validation: Graph Builder Failed -"
-        : "Validation: Input Verification Failed -";
+        : currentStageKey === "enricher"
+          ? "Validation: Enricher Failed -"
+          : currentStageKey === "rule-engine"
+            ? "Validation: Rule Engine Failed -"
+          : "Validation: Input Verification Failed -";
       postInputVerificationMessage(`${fallbackPrefix} ${reason}`, true);
     }
   } finally {

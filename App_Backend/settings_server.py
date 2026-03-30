@@ -1141,6 +1141,1138 @@ def run_graph_builder(project_id: str, body: ValidationInputVerificationPayload 
     return result
 
 
+def _en_detect_security_risks(resource: Mapping[str, Any], graph_data: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    risks: list[dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
+    resource_type = str(resource.get("resourceType") or "").lower()
+    properties = resource.get("properties") if isinstance(resource.get("properties"), Mapping) else {}
+
+    if "subnet" in resource_type:
+        if not str(properties.get("nsgRef") or properties.get("networkSecurityGroupRef") or "").strip():
+            risks.append({
+                "type": "security",
+                "message": "Subnet is missing Network Security Group association.",
+            })
+
+        subnet_private_value = properties.get("subnetPrivate")
+        if subnet_private_value in (False, "false", "False", 0, "0", "no", "No"):
+            risks.append({
+                "type": "security",
+                "message": "Subnet is configured as public.",
+            })
+
+    if "virtual network" in resource_type or resource_type.endswith("/virtualnetworks"):
+        ddos_enabled = properties.get("ddosProtectionEnabled")
+        if ddos_enabled in (None, False, "false", "False", 0, "0", "no", "No"):
+            risks.append({
+                "type": "security",
+                "message": "DDoS protection is not enabled for VNet.",
+            })
+
+    return risks, insights
+
+
+def _en_detect_networking_risks(resource: Mapping[str, Any], graph_data: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    risks: list[dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
+    resource_type = str(resource.get("resourceType") or "").lower()
+    properties = resource.get("properties") if isinstance(resource.get("properties"), Mapping) else {}
+
+    if "virtual network" in resource_type or resource_type.endswith("/virtualnetworks"):
+        address_space = properties.get("addressSpace")
+        if not (isinstance(address_space, list) and address_space):
+            risks.append({
+                "type": "networking",
+                "message": "Virtual network has no address space configured.",
+            })
+
+    if "subnet" in resource_type:
+        if not str(properties.get("routeTableRef") or "").strip():
+            risks.append({
+                "type": "networking",
+                "message": "Subnet has no route table association.",
+            })
+
+    if "route table" in resource_type or resource_type.endswith("/routetables"):
+        routes = properties.get("routes")
+        if not (isinstance(routes, list) and routes):
+            risks.append({
+                "type": "networking",
+                "message": "Route table has no routes configured.",
+            })
+
+    return risks, insights
+
+
+def _en_detect_connectivity_risks(resource: Mapping[str, Any], graph_data: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    risks: list[dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
+    resource_type = str(resource.get("resourceType") or "").lower()
+    resource_id = str(resource.get("id") or "").strip()
+    properties = resource.get("properties") if isinstance(resource.get("properties"), Mapping) else {}
+
+    nodes = graph_data.get("nodes") if isinstance(graph_data.get("nodes"), Mapping) else {}
+    edges = graph_data.get("connections") if isinstance(graph_data.get("connections"), list) else []
+
+    if "public ip" in resource_type or resource_type.endswith("/publicipaddresses"):
+        has_association = any(
+            str(edge.get("from") or "").strip() == resource_id or str(edge.get("to") or "").strip() == resource_id
+            for edge in edges
+            if isinstance(edge, Mapping)
+        )
+        if not has_association:
+            risks.append({
+                "type": "connectivity",
+                "message": "Public IP is not associated with any resource.",
+            })
+
+    missing_refs: list[str] = []
+    for key, value in properties.items():
+        key_text = str(key or "").strip()
+        if not key_text.endswith("Ref"):
+            continue
+        ref_value = str(value or "").strip()
+        if ref_value and ref_value not in nodes:
+            missing_refs.append(f"{key_text}={ref_value}")
+
+    if missing_refs:
+        risks.append({
+            "type": "connectivity",
+            "message": f"Resource has unresolved references: {', '.join(missing_refs)}.",
+        })
+
+    return risks, insights
+
+
+def _en_detect_structure_risks(
+    resource: Mapping[str, Any],
+    graph_data: Mapping[str, Any],
+    duplicate_names: set[str],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    risks: list[dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
+    resource_id = str(resource.get("id") or "").strip()
+    resource_name = str(resource.get("name") or "").strip()
+
+    nodes = graph_data.get("nodes") if isinstance(graph_data.get("nodes"), Mapping) else {}
+    edges = graph_data.get("connections") if isinstance(graph_data.get("connections"), list) else []
+
+    node = nodes.get(resource_id) if isinstance(nodes.get(resource_id), Mapping) else {}
+    parent_id = str(node.get("parentId") or "").strip()
+    has_edges = any(
+        str(edge.get("from") or "").strip() == resource_id or str(edge.get("to") or "").strip() == resource_id
+        for edge in edges
+        if isinstance(edge, Mapping)
+    )
+    if not parent_id and not has_edges:
+        risks.append({
+            "type": "structure",
+            "message": "Resource is an orphan node with no parent or connections.",
+        })
+
+    location = str(resource.get("location") or resource.get("region") or "").strip()
+    if not location:
+        risks.append({
+            "type": "structure",
+            "message": "Resource location is not defined.",
+        })
+
+    if resource_name and resource_name.lower() in duplicate_names:
+        risks.append({
+            "type": "structure",
+            "message": "Duplicate resource name detected.",
+        })
+
+    return risks, insights
+
+
+def _en_detect_configuration_risks(resource: Mapping[str, Any], graph_data: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    risks: list[dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
+    resource_type = str(resource.get("resourceType") or "").lower()
+    properties = resource.get("properties") if isinstance(resource.get("properties"), Mapping) else {}
+
+    tags = resource.get("tags")
+    if tags in (None, ""):
+        risks.append({
+            "type": "configuration",
+            "message": "Resource has no tags configured.",
+        })
+    elif isinstance(tags, Mapping) and not tags:
+        risks.append({
+            "type": "configuration",
+            "message": "Resource has empty tags.",
+        })
+
+    default_like_values = {"default", "standard", "basic"}
+    used_defaults = [
+        str(key)
+        for key, value in properties.items()
+        if str(value or "").strip().lower() in default_like_values
+    ]
+    if used_defaults:
+        risks.append({
+            "type": "configuration",
+            "message": f"Default configuration values are used: {', '.join(used_defaults)}.",
+        })
+
+    if "dns" in resource_type:
+        has_dns_config = any(
+            str(key or "").lower().startswith("dns") or str(key or "").lower().endswith("dns")
+            for key in properties.keys()
+        )
+        if not has_dns_config:
+            risks.append({
+                "type": "configuration",
+                "message": "DNS configuration is missing.",
+            })
+
+    return risks, insights
+
+
+def _en_detect_global_risks(resources: list[dict[str, Any]]) -> list[str]:
+    global_risks: list[str] = []
+    has_security_control = any(
+        "network security group" in str(resource.get("resourceType") or "").lower()
+        or "firewall" in str(resource.get("resourceType") or "").lower()
+        or (
+            isinstance(resource.get("properties"), Mapping)
+            and resource["properties"].get("ddosProtectionEnabled") in (True, "true", "True", 1, "1", "yes", "Yes")
+        )
+        for resource in resources
+    )
+    if not has_security_control:
+        global_risks.append("No explicit security controls found (NSG/Firewall/DDoS).")
+
+    subnet_count = sum(
+        1
+        for resource in resources
+        if "subnet" in str(resource.get("resourceType") or "").lower()
+    )
+    if subnet_count <= 1:
+        global_risks.append("Network segmentation appears insufficient (single or no subnet).")
+
+    return global_risks
+
+
+def _en_generate_assumptions(resources: list[dict[str, Any]]) -> list[str]:
+    assumptions: list[str] = []
+
+    if all(not str(resource.get("location") or resource.get("region") or "").strip() for resource in resources):
+        assumptions.append("Deployment region is assumed to be selected at deployment time.")
+
+    has_scaling = any(
+        isinstance(resource.get("properties"), Mapping)
+        and any(
+            "scale" in str(key or "").lower() or "sku" in str(key or "").lower()
+            for key in resource["properties"].keys()
+        )
+        for resource in resources
+    )
+    if not has_scaling:
+        assumptions.append("Workload is assumed to use baseline capacity with no autoscaling configured.")
+
+    return assumptions
+
+
+def _en_generate_unknowns(resources: list[dict[str, Any]]) -> list[str]:
+    unknowns: list[str] = []
+
+    has_availability = any(
+        isinstance(resource.get("properties"), Mapping)
+        and any("availability" in str(key or "").lower() for key in resource["properties"].keys())
+        for resource in resources
+    )
+    if not has_availability:
+        unknowns.append("Availability and disaster recovery requirements are not defined.")
+
+    has_traffic = any(
+        isinstance(resource.get("properties"), Mapping)
+        and any("throughput" in str(key or "").lower() or "traffic" in str(key or "").lower() for key in resource["properties"].keys())
+        for resource in resources
+    )
+    if not has_traffic:
+        unknowns.append("Traffic profile and expected load are not specified.")
+
+    return unknowns
+
+
+def _run_enricher_stage(*, project_dir: Path) -> dict[str, Any]:
+    log_path = _ensure_validation_log_path(project_dir)
+    graph_path = project_dir / "Documentation" / "architecture-graph.json"
+    output_path = project_dir / "Documentation" / "enriched-architecture.json"
+
+    step_results: list[dict[str, Any]] = []
+
+    def _record(step: str, status: str, message: str, *, error: str | None = None) -> None:
+        level = "INFO" if status != "failed" else "ERROR"
+        _append_input_verification_log(log_path, level, message)
+        payload: dict[str, Any] = {"step": step, "status": status}
+        if error:
+            payload["error"] = error
+        step_results.append(payload)
+
+    _append_input_verification_log(log_path, "INFO", "Enricher started")
+
+    _record("generate-summary", "started", "Generating Summary")
+    if not graph_path.exists():
+        reason = "Missing /Documentation/architecture-graph.json. Run Graph Builder first."
+        _record("generate-summary", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": str(output_path),
+        }
+
+    try:
+        graph_data = read_json_file(graph_path, {})
+    except Exception as exc:
+        reason = f"Failed to read architecture graph: {exc}"
+        _record("generate-summary", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": str(output_path),
+        }
+
+    if not isinstance(graph_data, Mapping):
+        reason = "Invalid architecture graph format."
+        _record("generate-summary", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": str(output_path),
+        }
+
+    nodes = graph_data.get("nodes") if isinstance(graph_data.get("nodes"), Mapping) else {}
+    connections = graph_data.get("connections") if isinstance(graph_data.get("connections"), list) else []
+    _record("generate-summary", "completed", "Summary Generated")
+
+    _record("process-resources", "started", "Processing Resources")
+    resources: list[dict[str, Any]] = []
+    duplicate_name_count: dict[str, int] = {}
+    for node_id, node_data in nodes.items():
+        if not isinstance(node_data, Mapping):
+            continue
+        node_name = str(node_data.get("name") or "").strip()
+        if node_name:
+            key = node_name.lower()
+            duplicate_name_count[key] = duplicate_name_count.get(key, 0) + 1
+        resources.append(
+            {
+                "id": str(node_id),
+                "name": node_name,
+                "resourceType": str(node_data.get("resourceType") or node_data.get("type") or "").strip(),
+                "location": str(node_data.get("location") or node_data.get("region") or "").strip(),
+                "properties": node_data.get("properties") if isinstance(node_data.get("properties"), Mapping) else {},
+                "tags": node_data.get("tags"),
+            }
+        )
+    duplicate_names = {name for name, count in duplicate_name_count.items() if count > 1}
+    _record("process-resources", "completed", f"Processed {len(resources)} resources")
+
+    _record("run-detectors", "started", "Running Detectors")
+    enriched_resources: list[dict[str, Any]] = []
+    total_risks = 0
+    detector_count = 0
+    for resource in resources:
+        all_risks: list[dict[str, Any]] = []
+        all_insights: list[dict[str, Any]] = []
+
+        detector_groups = [
+            _en_detect_security_risks(resource, graph_data),
+            _en_detect_networking_risks(resource, graph_data),
+            _en_detect_connectivity_risks(resource, graph_data),
+            _en_detect_structure_risks(resource, graph_data, duplicate_names),
+            _en_detect_configuration_risks(resource, graph_data),
+        ]
+
+        for risks, insights in detector_groups:
+            detector_count += 1
+            all_risks.extend(risks)
+            all_insights.extend(insights)
+
+        total_risks += len(all_risks)
+        enriched_resources.append(
+            {
+                "id": resource["id"],
+                "name": resource["name"],
+                "resourceType": resource["resourceType"],
+                "insights": all_insights,
+                "risks": all_risks,
+            }
+        )
+    _record("run-detectors", "completed", f"Detectors completed: {detector_count} runs, {total_risks} risks found")
+
+    _record("detect-global-risks", "started", "Detecting Global Risks")
+    global_risks = _en_detect_global_risks(resources)
+    _record("detect-global-risks", "completed", f"Global risks detected: {len(global_risks)}")
+
+    _record("generate-assumptions", "started", "Generating Assumptions")
+    assumptions = _en_generate_assumptions(resources)
+    _record("generate-assumptions", "completed", f"Assumptions generated: {len(assumptions)}")
+
+    _record("generate-unknowns", "started", "Generating Unknowns")
+    unknowns = _en_generate_unknowns(resources)
+    _record("generate-unknowns", "completed", f"Unknowns generated: {len(unknowns)}")
+
+    _record("finalize-output", "started", "Finalizing Output")
+    architecture_type = str(graph_data.get("architectureType") or "Unknown")
+    summary = (
+        f"Detected architecture with {len(resources)} resources, {len(connections)} connections, "
+        f"{total_risks} resource-level risks, and {len(global_risks)} global risks."
+    )
+
+    enriched_output = {
+        "summary": summary,
+        "architectureType": architecture_type,
+        "resources": enriched_resources,
+        "globalRisks": global_risks,
+        "assumptions": assumptions,
+        "unknowns": unknowns,
+        "generatedAt": datetime.utcnow().isoformat() + "Z",
+    }
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(enriched_output, indent=2), encoding="utf-8")
+    _record("finalize-output", "completed", f"Enriched architecture written to {output_path}")
+
+    _append_input_verification_log(log_path, "INFO", "Enricher completed")
+    return {
+        "ok": True,
+        "summary": summary,
+        "artifactPath": str(output_path),
+        "stepResults": step_results,
+    }
+
+
+@app.post("/api/project/{project_id}/validation/enricher")
+def run_enricher(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    result = _run_enricher_stage(project_dir=entry["projectDir"])
+    return result
+
+
+def _re_normalize_risk_messages(resource: Mapping[str, Any]) -> list[str]:
+    risks = resource.get("risks") if isinstance(resource.get("risks"), list) else []
+    messages: list[str] = []
+    for risk in risks:
+        if not isinstance(risk, Mapping):
+            continue
+        message = str(risk.get("message") or "").strip()
+        if message:
+            messages.append(message)
+    return messages
+
+
+def _re_resource_type_contains(resource: Mapping[str, Any], token: str) -> bool:
+    resource_type = str(resource.get("resourceType") or "").strip().lower()
+    return str(token or "").strip().lower() in resource_type
+
+
+def _re_has_risk_message(resource: Mapping[str, Any], token: str) -> bool:
+    token_text = str(token or "").strip().lower()
+    if not token_text:
+        return False
+    risk_messages = resource.get("_riskMessages") if isinstance(resource.get("_riskMessages"), list) else []
+    return any(token_text in str(message).lower() for message in risk_messages)
+
+
+def _re_get_context_resources(ctx: Mapping[str, Any]) -> list[dict[str, Any]]:
+    payload = ctx.get("allResources")
+    return payload if isinstance(payload, list) else []
+
+
+def _re_count_resources(ctx: Mapping[str, Any], token: str) -> int:
+    token_text = str(token or "").strip().lower()
+    if not token_text:
+        return 0
+    return sum(
+        1
+        for resource in _re_get_context_resources(ctx)
+        if _re_resource_type_contains(resource, token_text)
+    )
+
+
+def _re_find_resource_by_id(ctx: Mapping[str, Any], resource_id: str) -> dict[str, Any] | None:
+    safe_id = str(resource_id or "").strip()
+    if not safe_id:
+        return None
+    for resource in _re_get_context_resources(ctx):
+        if str(resource.get("id") or "").strip() == safe_id:
+            return resource
+    return None
+
+
+def _re_get_resource_connections(ctx: Mapping[str, Any], resource_id: str) -> list[dict[str, Any]]:
+    graph = ctx.get("graph") if isinstance(ctx.get("graph"), Mapping) else {}
+    edges_raw = graph.get("edges") or graph.get("connections")
+    edges = edges_raw if isinstance(edges_raw, list) else []
+    safe_id = str(resource_id or "").strip()
+    if not safe_id:
+        return []
+    return [
+        edge
+        for edge in edges
+        if isinstance(edge, Mapping)
+        and (
+            str(edge.get("from") or "").strip() == safe_id
+            or str(edge.get("to") or "").strip() == safe_id
+        )
+    ]
+
+
+def _re_has_global_risk(ctx: Mapping[str, Any], token: str) -> bool:
+    token_text = str(token or "").strip().lower()
+    if not token_text:
+        return False
+    global_risks = ctx.get("globalRisks") if isinstance(ctx.get("globalRisks"), list) else []
+    return any(token_text in str(item).lower() for item in global_risks)
+
+
+def _re_get_properties(resource: Mapping[str, Any]) -> Mapping[str, Any]:
+    properties = resource.get("properties")
+    return properties if isinstance(properties, Mapping) else {}
+
+
+def _re_value_is_disabled(value: Any) -> bool:
+    return value in (False, "false", "False", 0, "0", "no", "No", "disabled", "Disabled")
+
+
+def _re_contains_default_name(name: str) -> bool:
+    return bool(re.fullmatch(r"resource\s+\d+", str(name or "").strip(), flags=re.IGNORECASE))
+
+
+def _re_security_rules() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "security-subnet-nsg-required",
+            "category": "security",
+            "severity": "high",
+            "message": "Subnet is missing Network Security Group association.",
+            "recommendation": "Associate a Network Security Group to each subnet.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "subnet") and _re_has_risk_message(resource, "missing network security group association"),
+            "scope": "resource",
+        },
+        {
+            "id": "security-public-subnet-nsg",
+            "category": "security",
+            "severity": "high",
+            "message": "Public subnet must have an NSG.",
+            "recommendation": "Attach NSG rules to restrict public subnet traffic.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "subnet") and _re_has_risk_message(resource, "subnet is configured as public") and _re_has_risk_message(resource, "missing network security group association"),
+            "scope": "resource",
+        },
+        {
+            "id": "security-nsg-unrestricted-inbound",
+            "category": "security",
+            "severity": "high",
+            "message": "NSG has potentially unrestricted inbound access (0.0.0.0/0).",
+            "recommendation": "Restrict inbound NSG rules to required source ranges only.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "network security group") and (
+                _re_has_risk_message(resource, "0.0.0.0/0")
+                or "0.0.0.0/0" in json.dumps(_re_get_properties(resource), ensure_ascii=False)
+            ),
+            "scope": "resource",
+        },
+        {
+            "id": "security-vnet-ddos-enabled",
+            "category": "security",
+            "severity": "medium",
+            "message": "DDoS protection is not enabled for VNet.",
+            "recommendation": "Enable DDoS protection for VNets hosting critical workloads.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "virtual network") and _re_has_risk_message(resource, "ddos protection is not enabled"),
+            "scope": "resource",
+        },
+        {
+            "id": "security-public-ip-associated",
+            "category": "security",
+            "severity": "medium",
+            "message": "Public IP should be associated to a protected endpoint.",
+            "recommendation": "Associate Public IPs only with protected resources behind security controls.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "public ip") and _re_has_risk_message(resource, "not associated with any resource"),
+            "scope": "resource",
+        },
+        {
+            "id": "security-private-endpoint-policy-review",
+            "category": "security",
+            "severity": "medium",
+            "message": "Private endpoint network policies are disabled and require review.",
+            "recommendation": "Review private endpoint policy settings and justify disabled state.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "private endpoint") and _re_value_is_disabled(_re_get_properties(resource).get("privateEndpointNetworkPolicies")),
+            "scope": "resource",
+        },
+        {
+            "id": "security-no-network-segmentation",
+            "category": "security",
+            "severity": "high",
+            "message": "Network segmentation is insufficient (single subnet architecture).",
+            "recommendation": "Use separate subnets for application tiers and security boundaries.",
+            "evaluate": lambda _resource, ctx: _re_count_resources(ctx, "subnet") <= 1,
+            "scope": "global",
+        },
+        {
+            "id": "security-public-exposure-without-protection",
+            "category": "security",
+            "severity": "high",
+            "message": "Public exposure detected without adequate network protection.",
+            "recommendation": "Add NSG/firewall controls before exposing workloads publicly.",
+            "evaluate": lambda _resource, ctx: (
+                any(_re_has_risk_message(resource, "subnet is configured as public") for resource in _re_get_context_resources(ctx))
+                and not any(
+                    _re_resource_type_contains(resource, "network security group")
+                    or _re_resource_type_contains(resource, "firewall")
+                    for resource in _re_get_context_resources(ctx)
+                )
+            ),
+            "scope": "global",
+        },
+    ]
+
+
+def _re_networking_rules() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "networking-vnet-address-space",
+            "category": "reliability",
+            "severity": "high",
+            "message": "VNet has no address space configured.",
+            "recommendation": "Define valid CIDR address spaces for each VNet.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "virtual network") and _re_has_risk_message(resource, "no address space configured"),
+            "scope": "resource",
+        },
+        {
+            "id": "networking-subnet-belongs-to-vnet",
+            "category": "reliability",
+            "severity": "high",
+            "message": "Subnet is not associated with a virtual network.",
+            "recommendation": "Assign the subnet to a parent VNet via parentId or vnetRef.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "subnet") and not str(resource.get("parentId") or _re_get_properties(resource).get("vnetRef") or "").strip(),
+            "scope": "resource",
+        },
+        {
+            "id": "networking-subnet-route-table",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "Subnet has no route table association.",
+            "recommendation": "Associate the subnet with an explicit route table.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "subnet") and _re_has_risk_message(resource, "no route table association"),
+            "scope": "resource",
+        },
+        {
+            "id": "networking-route-table-has-routes",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "Route table has no routes configured.",
+            "recommendation": "Configure required route entries in each route table.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "route table") and _re_has_risk_message(resource, "no routes configured"),
+            "scope": "resource",
+        },
+        {
+            "id": "networking-multiple-subnets-recommended",
+            "category": "performance",
+            "severity": "low",
+            "message": "Multiple subnets are recommended for tier isolation.",
+            "recommendation": "Add separate subnets for frontend, application, and data tiers.",
+            "evaluate": lambda _resource, ctx: _re_count_resources(ctx, "subnet") < 2,
+            "scope": "global",
+        },
+        {
+            "id": "networking-dns-missing",
+            "category": "operations",
+            "severity": "medium",
+            "message": "DNS configuration is missing.",
+            "recommendation": "Configure required DNS settings or DNS zones.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "dns") and _re_has_risk_message(resource, "dns configuration is missing"),
+            "scope": "resource",
+        },
+    ]
+
+
+def _re_connectivity_rules() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "connectivity-public-ip-unused",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "Public IP is unused.",
+            "recommendation": "Associate the Public IP or remove it to reduce attack surface.",
+            "evaluate": lambda resource, _ctx: _re_resource_type_contains(resource, "public ip") and _re_has_risk_message(resource, "not associated with any resource"),
+            "scope": "resource",
+        },
+        {
+            "id": "connectivity-broken-reference",
+            "category": "reliability",
+            "severity": "high",
+            "message": "Resource has broken references.",
+            "recommendation": "Resolve invalid references to existing dependent resources.",
+            "evaluate": lambda resource, _ctx: _re_has_risk_message(resource, "unresolved references"),
+            "scope": "resource",
+        },
+        {
+            "id": "connectivity-route-association-inconsistent",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "Route table association is inconsistent.",
+            "recommendation": "Ensure all routeTableRef values point to existing route tables.",
+            "evaluate": lambda resource, ctx: (
+                _re_resource_type_contains(resource, "subnet")
+                and bool(str(_re_get_properties(resource).get("routeTableRef") or "").strip())
+                and _re_find_resource_by_id(ctx, str(_re_get_properties(resource).get("routeTableRef") or "").strip()) is None
+            ),
+            "scope": "resource",
+        },
+        {
+            "id": "connectivity-resource-not-connected",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "Resource is not connected to any other component.",
+            "recommendation": "Validate dependency links and add missing connections.",
+            "evaluate": lambda resource, ctx: (
+                str(resource.get("id") or "").strip() not in {"", "global"}
+                and len(_re_get_resource_connections(ctx, str(resource.get("id") or "").strip())) == 0
+            ),
+            "scope": "resource",
+        },
+    ]
+
+
+def _re_operations_rules() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "operations-missing-location",
+            "category": "operations",
+            "severity": "medium",
+            "message": "Resource location is missing.",
+            "recommendation": "Specify a deployment location/region for each resource.",
+            "evaluate": lambda resource, _ctx: _re_has_risk_message(resource, "location is not defined"),
+            "scope": "resource",
+        },
+        {
+            "id": "operations-missing-tags",
+            "category": "operations",
+            "severity": "low",
+            "message": "Resource tags are missing.",
+            "recommendation": "Apply mandatory governance and ownership tags.",
+            "evaluate": lambda resource, _ctx: _re_has_risk_message(resource, "no tags configured") or _re_has_risk_message(resource, "empty tags"),
+            "scope": "resource",
+        },
+        {
+            "id": "operations-rg-location-inconsistent",
+            "category": "operations",
+            "severity": "medium",
+            "message": "Resource group location usage is inconsistent.",
+            "recommendation": "Align resource deployments with regional governance standards.",
+            "evaluate": lambda _resource, ctx: (
+                len(
+                    {
+                        str(res.get("location") or "").strip().lower()
+                        for res in _re_get_context_resources(ctx)
+                        if _re_resource_type_contains(res, "resource group") and str(res.get("location") or "").strip()
+                    }
+                ) > 1
+            ),
+            "scope": "global",
+        },
+        {
+            "id": "operations-default-naming",
+            "category": "operations",
+            "severity": "low",
+            "message": "Default naming pattern detected.",
+            "recommendation": "Use meaningful and standardized naming conventions.",
+            "evaluate": lambda resource, _ctx: _re_contains_default_name(str(resource.get("name") or "")) or str(resource.get("name") or "").strip().lower() == "default",
+            "scope": "resource",
+        },
+    ]
+
+
+def _re_cost_rules() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "cost-unused-resources",
+            "category": "cost",
+            "severity": "medium",
+            "message": "Unused resource detected.",
+            "recommendation": "Remove or repurpose unused resources to reduce cost.",
+            "evaluate": lambda resource, _ctx: _re_has_risk_message(resource, "orphan node"),
+            "scope": "resource",
+        },
+        {
+            "id": "cost-standard-public-ip",
+            "category": "cost",
+            "severity": "low",
+            "message": "Standard SKU Public IP has no clear associated need.",
+            "recommendation": "Validate Standard SKU necessity or downgrade/remove if unused.",
+            "evaluate": lambda resource, _ctx: (
+                _re_resource_type_contains(resource, "public ip")
+                and str(_re_get_properties(resource).get("sku") or "").strip().lower() == "standard"
+                and _re_has_risk_message(resource, "not associated with any resource")
+            ),
+            "scope": "resource",
+        },
+        {
+            "id": "cost-default-config-not-optimized",
+            "category": "cost",
+            "severity": "low",
+            "message": "Default configuration values may not be cost-optimized.",
+            "recommendation": "Review default settings and optimize for workload demand.",
+            "evaluate": lambda resource, _ctx: _re_has_risk_message(resource, "default configuration values are used"),
+            "scope": "resource",
+        },
+        {
+            "id": "cost-overprovisioned-networking",
+            "category": "cost",
+            "severity": "medium",
+            "message": "Networking components appear over-provisioned.",
+            "recommendation": "Right-size network components based on actual usage patterns.",
+            "evaluate": lambda _resource, ctx: (
+                _re_count_resources(ctx, "public ip") > 2 and _re_count_resources(ctx, "subnet") <= 1
+            ) or (
+                _re_count_resources(ctx, "route table") > 2 and _re_count_resources(ctx, "subnet") <= 1
+            ),
+            "scope": "global",
+        },
+    ]
+
+
+def _re_performance_reliability_rules() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "performance-single-subnet-architecture",
+            "category": "performance",
+            "severity": "medium",
+            "message": "Single-subnet architecture limits performance isolation.",
+            "recommendation": "Introduce multi-subnet segmentation for workload tiers.",
+            "evaluate": lambda _resource, ctx: _re_count_resources(ctx, "subnet") <= 1,
+            "scope": "global",
+        },
+        {
+            "id": "reliability-no-zone-redundancy",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "No zone redundancy detected for applicable resources.",
+            "recommendation": "Enable zone redundancy or multi-zone deployment where supported.",
+            "evaluate": lambda resource, _ctx: (
+                (
+                    _re_resource_type_contains(resource, "virtual machine")
+                    or _re_resource_type_contains(resource, "scale set")
+                    or _re_resource_type_contains(resource, "sql")
+                    or _re_resource_type_contains(resource, "app service")
+                )
+                and not any(
+                    str(_re_get_properties(resource).get(key) or "").strip()
+                    for key in ("zone", "zones", "zoneRedundant", "availabilityZones")
+                )
+            ),
+            "scope": "resource",
+        },
+        {
+            "id": "performance-no-load-distribution",
+            "category": "performance",
+            "severity": "medium",
+            "message": "No load distribution mechanism detected.",
+            "recommendation": "Add load balancing components (Load Balancer/Application Gateway/Front Door).",
+            "evaluate": lambda _resource, ctx: not any(
+                _re_resource_type_contains(resource, "load balancer")
+                or _re_resource_type_contains(resource, "application gateway")
+                or _re_resource_type_contains(resource, "front door")
+                for resource in _re_get_context_resources(ctx)
+            ),
+            "scope": "global",
+        },
+        {
+            "id": "reliability-no-traffic-routing-strategy",
+            "category": "reliability",
+            "severity": "medium",
+            "message": "No traffic routing strategy detected.",
+            "recommendation": "Define routing using Route Tables, DNS, or traffic manager patterns.",
+            "evaluate": lambda _resource, ctx: not any(
+                _re_resource_type_contains(resource, "route table")
+                or _re_resource_type_contains(resource, "dns")
+                or _re_resource_type_contains(resource, "traffic manager")
+                or _re_resource_type_contains(resource, "front door")
+                for resource in _re_get_context_resources(ctx)
+            ),
+            "scope": "global",
+        },
+    ]
+
+
+def _re_initialize_rules() -> list[dict[str, Any]]:
+    rules = (
+        _re_security_rules()
+        + _re_networking_rules()
+        + _re_connectivity_rules()
+        + _re_operations_rules()
+        + _re_cost_rules()
+        + _re_performance_reliability_rules()
+    )
+    return rules
+
+
+def _re_build_violation(*, rule: Mapping[str, Any], resource: Mapping[str, Any], sequence: int) -> dict[str, Any]:
+    resource_id = str(resource.get("id") or "global") or "global"
+    violation = {
+        "id": f"{str(rule.get('id') or 'rule')}:{resource_id}:{sequence}",
+        "resourceId": resource_id,
+        "resourceName": str(resource.get("name") or "Architecture") or "Architecture",
+        "resourceType": str(resource.get("resourceType") or "Global") or "Global",
+        "message": str(rule.get("message") or "Rule violation detected."),
+        "severity": str(rule.get("severity") or "low"),
+        "category": str(rule.get("category") or "operations"),
+        "recommendation": str(rule.get("recommendation") or "Review and remediate this rule violation.").strip() or "Review and remediate this rule violation.",
+    }
+    return violation
+
+
+def _re_evaluate_rules(
+    *,
+    resources: list[dict[str, Any]],
+    rules: list[dict[str, Any]],
+    global_risks: list[str],
+    graph: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    violations: list[dict[str, Any]] = []
+    sequence = 1
+
+    enriched_resources: list[dict[str, Any]] = []
+    for resource in resources:
+        if not isinstance(resource, Mapping):
+            continue
+        normalized = dict(resource)
+        normalized["_riskMessages"] = _re_normalize_risk_messages(resource)
+        enriched_resources.append(normalized)
+
+    context = {
+        "allResources": enriched_resources,
+        "resources": enriched_resources,
+        "globalRisks": global_risks,
+        "graph": graph,
+        "summary": {
+            "resourceCount": len(enriched_resources),
+            "subnetCount": sum(1 for resource in enriched_resources if _re_resource_type_contains(resource, "subnet")),
+            "vnetCount": sum(1 for resource in enriched_resources if _re_resource_type_contains(resource, "virtual network")),
+            "publicIpCount": sum(1 for resource in enriched_resources if _re_resource_type_contains(resource, "public ip")),
+            "routeTableCount": sum(1 for resource in enriched_resources if _re_resource_type_contains(resource, "route table")),
+        },
+    }
+
+    for resource in enriched_resources:
+        for rule in rules:
+            if str(rule.get("scope") or "resource") != "resource":
+                continue
+            evaluator = rule.get("evaluate")
+            if not callable(evaluator):
+                continue
+            try:
+                is_violation = bool(evaluator(resource, context))
+            except Exception:
+                is_violation = False
+            if not is_violation:
+                continue
+            violations.append(_re_build_violation(rule=rule, resource=resource, sequence=sequence))
+            sequence += 1
+
+    global_resource = {
+        "id": "global",
+        "name": "Architecture",
+        "resourceType": "Global",
+    }
+    for rule in rules:
+        if str(rule.get("scope") or "resource") != "global":
+            continue
+        evaluator = rule.get("evaluate")
+        if not callable(evaluator):
+            continue
+        try:
+            is_violation = bool(evaluator(global_resource, context))
+        except Exception:
+            is_violation = False
+        if not is_violation:
+            continue
+        violations.append(_re_build_violation(rule=rule, resource=global_resource, sequence=sequence))
+        sequence += 1
+
+    return violations
+
+
+def _re_aggregate_violations(violations: list[dict[str, Any]]) -> dict[str, Any]:
+    severity_keys = ["low", "medium", "high"]
+    category_keys = ["security", "reliability", "cost", "performance", "operations"]
+
+    by_severity = {key: 0 for key in severity_keys}
+    by_category = {key: 0 for key in category_keys}
+
+    for violation in violations:
+        severity = str(violation.get("severity") or "").strip().lower()
+        category = str(violation.get("category") or "").strip().lower()
+        if severity in by_severity:
+            by_severity[severity] += 1
+        if category in by_category:
+            by_category[category] += 1
+
+    return {
+        "total": len(violations),
+        "bySeverity": by_severity,
+        "byCategory": by_category,
+    }
+
+
+def _run_rule_engine_stage(*, project_dir: Path) -> dict[str, Any]:
+    log_path = _ensure_validation_log_path(project_dir)
+    input_path = project_dir / "Documentation" / "enriched-architecture.json"
+    graph_path = project_dir / "Documentation" / "architecture-graph.json"
+    output_path = project_dir / "Documentation" / "rule-results.json"
+    output_artifact_ref = "/Documentation/rule-results.json"
+
+    step_results: list[dict[str, Any]] = []
+
+    def _record(step: str, status: str, message: str, *, error: str | None = None) -> None:
+        level = "INFO" if status != "failed" else "ERROR"
+        _append_input_verification_log(log_path, level, message)
+        row: dict[str, Any] = {"step": step, "status": status}
+        if error:
+            row["error"] = error
+        step_results.append(row)
+
+    _append_input_verification_log(log_path, "INFO", "Rule Engine started")
+
+    _record("load-enriched-data", "started", "Loading Enriched Data")
+    if not input_path.exists():
+        reason = "Missing /Documentation/enriched-architecture.json. Run Enricher first."
+        _record("load-enriched-data", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+        }
+
+    enriched_payload = read_json_file(input_path, {})
+    if not isinstance(enriched_payload, Mapping):
+        reason = "Invalid enriched architecture structure."
+        _record("load-enriched-data", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+        }
+
+    resources = enriched_payload.get("resources") if isinstance(enriched_payload.get("resources"), list) else None
+    global_risks = enriched_payload.get("globalRisks") if isinstance(enriched_payload.get("globalRisks"), list) else []
+    if resources is None:
+        reason = "Invalid enriched architecture structure: resources array is required."
+        _record("load-enriched-data", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+        }
+
+    normalized_resources: list[dict[str, Any]] = []
+    for index, item in enumerate(resources):
+        if not isinstance(item, Mapping):
+            reason = f"Invalid enriched architecture structure: resources[{index}] must be an object."
+            _record("load-enriched-data", "failed", reason, error=reason)
+            return {
+                "ok": False,
+                "error": reason,
+                "stepResults": step_results,
+                "artifactPath": output_artifact_ref,
+            }
+
+        resource_id = str(item.get("id") or "").strip()
+        resource_name = str(item.get("name") or "").strip()
+        resource_type = str(item.get("resourceType") or "").strip()
+        risks = item.get("risks")
+        if not resource_id or not resource_name or not resource_type or not isinstance(risks, list):
+            reason = (
+                f"Invalid enriched architecture structure: resources[{index}] requires "
+                "id, name, resourceType, and risks[]."
+            )
+            _record("load-enriched-data", "failed", reason, error=reason)
+            return {
+                "ok": False,
+                "error": reason,
+                "stepResults": step_results,
+                "artifactPath": output_artifact_ref,
+            }
+
+        normalized_resources.append(dict(item))
+
+    graph_payload = read_json_file(graph_path, {})
+    if not isinstance(graph_payload, Mapping):
+        graph_payload = {}
+
+    _record("load-enriched-data", "completed", f"Loaded Enriched Data: {len(resources)} resources")
+
+    _record("initialize-rules", "started", "Initializing Rules")
+    rules = _re_initialize_rules()
+    if len(rules) < 25:
+        reason = f"Rule initialization failed: expected at least 25 rules, got {len(rules)}."
+        _record("initialize-rules", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+        }
+    _append_input_verification_log(log_path, "INFO", f"Rules loaded: {len(rules)}")
+    _record("initialize-rules", "completed", f"Initialized Rules: {len(rules)}")
+
+    _record("evaluate-rules", "started", "Evaluating Rules")
+    violations = _re_evaluate_rules(
+        resources=normalized_resources,
+        rules=rules,
+        global_risks=[str(item) for item in global_risks],
+        graph=graph_payload,
+    )
+    _record("evaluate-rules", "completed", f"Rules Evaluated: {len(violations)} violations")
+
+    _record("aggregate-violations", "started", "Aggregating Violations")
+    summary = _re_aggregate_violations(violations)
+    _record("aggregate-violations", "completed", "Violations Aggregated")
+
+    _record("finalize-output", "started", "Finalizing Output")
+    result_payload = {
+        "violations": violations,
+        "summary": summary,
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(result_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    _record("finalize-output", "completed", f"Rule results written to {output_artifact_ref}")
+
+    _append_input_verification_log(log_path, "INFO", f"Violations detected: {summary['total']}")
+    _append_input_verification_log(log_path, "INFO", f"High severity: {summary['bySeverity']['high']}")
+    _append_input_verification_log(log_path, "INFO", "Rule Engine completed")
+
+    return {
+        "ok": True,
+        "artifactPath": output_artifact_ref,
+        "stepResults": step_results,
+        "violations": violations,
+        "summary": summary,
+    }
+
+
+@app.post("/api/project/{project_id}/validation/rule-engine")
+def run_rule_engine(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    result = _run_rule_engine_stage(project_dir=entry["projectDir"])
+    return result
+
+
 def _sanitize_iac_stage_detail_items(value: Any) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
