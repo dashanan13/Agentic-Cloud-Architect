@@ -7735,8 +7735,31 @@ btnProjectSave?.addEventListener("click", async () => {
   }
 });
 
+async function runValidationProcessStub() {
+  if (!btnValidate) {
+    return;
+  }
+
+  setActiveTabByName("tips");
+  btnValidate.disabled = true;
+  btnValidate.style.opacity = "0.5";
+  btnValidate.style.cursor = "not-allowed";
+
+  try {
+    setSaveStatus("Validation Started", false, "validation-activity");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setSaveStatus("Validation finished", false, "validation-activity");
+  } catch (_error) {
+    setSaveStatus("Validation failed", true, "validation-activity");
+  } finally {
+    btnValidate.disabled = false;
+    btnValidate.style.opacity = "1";
+    btnValidate.style.cursor = "pointer";
+  }
+}
+
 btnValidate?.addEventListener("click", async () => {
-  await runArchitectureValidation();
+  await runValidationProcessStub();
 });
 
 btnProjectSettings?.addEventListener("click", () => {
