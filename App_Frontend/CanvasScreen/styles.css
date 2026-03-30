@@ -2083,26 +2083,6 @@ circle.canvas-edge-midpoint:hover {
   background: #3b82f6;
 }
 
-.new-tip-progress__in-progress-band {
-  display: none;
-  position: absolute;
-  left: var(--new-tip-progress, 0%);
-  top: 0;
-  bottom: 0;
-  width: var(--new-tip-stage-width, 14.2857%);
-  border-radius: 0 999px 999px 0;
-  background: linear-gradient(to right, #3b82f6 0%, #f59e0b 52%, #f59e0b 100%);
-}
-
-.new-tip-progress__heatbar.has-active-stage .new-tip-progress__in-progress-band {
-  display: block;
-}
-
-.new-tip-progress__heatbar.is-origin-start .new-tip-progress__in-progress-band {
-  border-radius: 999px;
-  background: #f59e0b;
-}
-
 .new-tip-progress__marker {
   display: none;
 }
@@ -2115,10 +2095,16 @@ circle.canvas-edge-midpoint:hover {
 .new-tip-progress__milestone.is-in-progress {
   background: #f59e0b;
   color: #ffffff;
+  animation: milestone-orange-pulse 1s ease-in-out infinite;
 }
 
 .new-tip-progress__milestone.is-completed {
   background: #3b82f6;
+  color: #ffffff;
+}
+
+.new-tip-progress__milestone.is-failed {
+  background: #dc2626;
   color: #ffffff;
 }
 
@@ -2140,6 +2126,21 @@ circle.canvas-edge-midpoint:hover {
   border-radius: 6px;
   padding: 6px 8px;
   font-weight: 500;
+}
+
+@keyframes milestone-orange-pulse {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
+  }
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.1);
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
 }
 
 /* Running / loading state */

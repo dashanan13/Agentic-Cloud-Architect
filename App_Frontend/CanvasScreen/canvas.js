@@ -7735,26 +7735,195 @@ btnProjectSave?.addEventListener("click", async () => {
   }
 });
 
-async function runValidationProcessStub() {
-  if (!btnValidate) {
+const VALIDATION_PIPELINE_STAGES = [
+  { key: "validate", label: "✅ Validate" },
+  { key: "graph-builder", label: "🧱 Graph Builder" },
+  { key: "enricher", label: "⚡ Enricher" },
+  { key: "rule-engine", label: "📏 Rule Engine" },
+  { key: "azure-learn-mcp", label: "📚 Azure Learn MCP" },
+  { key: "structured-findings", label: "📊 Structured Findings" },
+  { key: "ai-validation-agent", label: "🧠 AI Validation Agent" },
+  { key: "final-report", label: "📄 Final Report" },
+];
+
+const VALIDATION_STAGE_WEIGHT = 100 / VALIDATION_PIPELINE_STAGES.length;
+let validationPipelineStubInFlight = false;
+let validationPipelineAnimationFrame = null;
+
+const validationPipelineUiState = {
+  percent: 0,
+  activeStageKey: "",
+  stageStatuses: Object.fromEntries(VALIDATION_PIPELINE_STAGES.map((stage) => [stage.key, "not-started"])),
+};
+
+function ensureValidationPipelinePanel() {
+  if (!tipsContentEl) {
     return;
   }
 
+  const existing = tipsContentEl.querySelector("#validation-pipeline-progress");
+  if (existing) {
+    return;
+  }
+
+  const milestoneMarkup = VALIDATION_PIPELINE_STAGES
+    .map((stage) => `<li class="new-tip-progress__milestone is-not-started" data-stage="${stage.key}">${stage.label}</li>`)
+    .join("");
+
+  tipsContentEl.innerHTML = `
+    <div class="new-tip-progress" id="validation-pipeline-progress">
+      <div class="new-tip-progress__summary">
+        <div class="new-tip-progress__summary-top">
+          <span class="new-tip-progress__title">Validation Pipeline Progress</span>
+          <span id="validation-pipeline-percent" class="new-tip-progress__percent">0%</span>
+        </div>
+        <div id="validation-pipeline-heatbar" class="new-tip-progress__heatbar" style="--new-tip-progress: 0%; --new-tip-stage-width: ${VALIDATION_STAGE_WEIGHT}%;" aria-label="Validation pipeline progress">
+          <span class="new-tip-progress__fill" aria-hidden="true"></span>
+          <span class="new-tip-progress__marker" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div class="new-tip-progress__body">
+        <ul class="new-tip-progress__milestones" aria-label="Validation milestones">
+          ${milestoneMarkup}
+        </ul>
+      </div>
+    </div>`;
+}
+
+function renderValidationPipelinePanel() {
+  const percentEl = document.getElementById("validation-pipeline-percent");
+  const heatbarEl = document.getElementById("validation-pipeline-heatbar");
+  const milestoneEls = tipsContentEl ? tipsContentEl.querySelectorAll(".new-tip-progress__milestone[data-stage]") : [];
+
+  if (percentEl) {
+    percentEl.textContent = `${Math.round(validationPipelineUiState.percent)}%`;
+  }
+
+  if (heatbarEl) {
+    heatbarEl.style.setProperty("--new-tip-progress", `${validationPipelineUiState.percent}%`);
+    heatbarEl.style.setProperty("--new-tip-stage-width", `${VALIDATION_STAGE_WEIGHT}%`);
+  }
+
+  milestoneEls.forEach((element) => {
+    const stageKey = element.dataset.stage;
+    const status = validationPipelineUiState.stageStatuses[stageKey] || "not-started";
+    element.classList.remove("is-not-started", "is-in-progress", "is-completed", "is-failed");
+
+    if (status === "in-progress") {
+      element.classList.add("is-in-progress");
+    } else if (status === "completed") {
+      element.classList.add("is-completed");
+    } else if (status === "failed") {
+      element.classList.add("is-failed");
+    } else {
+      element.classList.add("is-not-started");
+    }
+  });
+}
+
+function resetValidationPipelinePanel() {
+  validationPipelineUiState.percent = 0;
+  validationPipelineUiState.activeStageKey = "";
+  validationPipelineUiState.stageStatuses = Object.fromEntries(
+    VALIDATION_PIPELINE_STAGES.map((stage) => [stage.key, "not-started"])
+  );
+
+  if (validationPipelineAnimationFrame) {
+    cancelAnimationFrame(validationPipelineAnimationFrame);
+    validationPipelineAnimationFrame = null;
+  }
+
+  renderValidationPipelinePanel();
+}
+
+function setValidationStageStatus(stageKey, status) {
+  if (!(stageKey in validationPipelineUiState.stageStatuses)) {
+    return;
+  }
+
+  validationPipelineUiState.stageStatuses[stageKey] = status;
+  validationPipelineUiState.activeStageKey = status === "in-progress" ? stageKey : (validationPipelineUiState.activeStageKey === stageKey ? "" : validationPipelineUiState.activeStageKey);
+  renderValidationPipelinePanel();
+}
+
+function animateValidationProgressTo(targetPercent, durationMs = 900) {
+  const safeTarget = Math.max(0, Math.min(100, Number(targetPercent) || 0));
+  const start = validationPipelineUiState.percent;
+
+  if (validationPipelineAnimationFrame) {
+    cancelAnimationFrame(validationPipelineAnimationFrame);
+    validationPipelineAnimationFrame = null;
+  }
+
+  return new Promise((resolve) => {
+    const startedAt = performance.now();
+    const step = (now) => {
+      const progress = Math.min((now - startedAt) / Math.max(1, durationMs), 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      validationPipelineUiState.percent = start + (safeTarget - start) * eased;
+      renderValidationPipelinePanel();
+
+      if (progress < 1) {
+        validationPipelineAnimationFrame = requestAnimationFrame(step);
+      } else {
+        validationPipelineUiState.percent = safeTarget;
+        validationPipelineAnimationFrame = null;
+        renderValidationPipelinePanel();
+        resolve();
+      }
+    };
+
+    validationPipelineAnimationFrame = requestAnimationFrame(step);
+  });
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runValidationProcessStub() {
+  if (!btnValidate || validationPipelineStubInFlight) {
+    return;
+  }
+
+  validationPipelineStubInFlight = true;
   setActiveTabByName("tips");
+  ensureValidationPipelinePanel();
+  resetValidationPipelinePanel();
+
   btnValidate.disabled = true;
   btnValidate.style.opacity = "0.5";
   btnValidate.style.cursor = "not-allowed";
 
+  let currentStageKey = "";
+
   try {
     setSaveStatus("Validation Started", false, "validation-activity");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    for (let index = 0; index < VALIDATION_PIPELINE_STAGES.length; index += 1) {
+      const stage = VALIDATION_PIPELINE_STAGES[index];
+      currentStageKey = stage.key;
+
+      setValidationStageStatus(stage.key, "in-progress");
+      const inProgressTarget = Math.min((index + 0.85) * VALIDATION_STAGE_WEIGHT, 99.5);
+      await animateValidationProgressTo(inProgressTarget, 900);
+      await wait(300);
+
+      setValidationStageStatus(stage.key, "completed");
+      await animateValidationProgressTo((index + 1) * VALIDATION_STAGE_WEIGHT, 280);
+    }
+
     setSaveStatus("Validation finished", false, "validation-activity");
   } catch (_error) {
+    if (currentStageKey) {
+      setValidationStageStatus(currentStageKey, "failed");
+    }
     setSaveStatus("Validation failed", true, "validation-activity");
   } finally {
     btnValidate.disabled = false;
     btnValidate.style.opacity = "1";
     btnValidate.style.cursor = "pointer";
+    validationPipelineStubInFlight = false;
   }
 }
 
