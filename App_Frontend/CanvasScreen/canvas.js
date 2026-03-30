@@ -7041,7 +7041,7 @@ btnProjectSave?.addEventListener("click", async () => {
 });
 
 const VALIDATION_PIPELINE_STAGES = [
-  { key: "validate", label: "✅ Validate" },
+  { key: "validate", label: "Input varification" },
   { key: "graph-builder", label: "🧱 Graph Builder" },
   { key: "enricher", label: "⚡ Enricher" },
   { key: "rule-engine", label: "📏 Rule Engine" },
