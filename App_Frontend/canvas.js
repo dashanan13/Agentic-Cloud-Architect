@@ -7468,6 +7468,26 @@ function appendLoadingMessage() {
   return messageEl;
 }
 
+function appendStartupStageMessage(status, label) {
+  const normalizedStatus = String(status || "").trim().toLowerCase();
+  const stageLabel = String(label || "").trim();
+  if (!stageLabel) {
+    return;
+  }
+
+  let prefix = "ℹ️";
+  if (normalizedStatus === "working") {
+    prefix = "⏳";
+  } else if (normalizedStatus === "completed") {
+    prefix = "✅";
+  } else if (normalizedStatus === "failed") {
+    prefix = "⚠️";
+  }
+
+  // Show in the status bar next to the Reset button
+  setSaveStatus(`${prefix} ${stageLabel}`);
+}
+
 async function loadArchitectureChatHistory() {
   if (!chatHistoryEl) {
     return;
@@ -7701,6 +7721,8 @@ btnProjectSave?.addEventListener("click", async () => {
   const originalText = btnProjectSave.textContent;
   btnProjectSave.textContent = "Saving...";
   btnProjectSave.disabled = true;
+  btnProjectSave.style.opacity = "0.5";
+  btnProjectSave.style.cursor = "not-allowed";
 
   flushPendingCanvasEditsForManualSave();
   updateTimestamp();
@@ -7709,12 +7731,16 @@ btnProjectSave?.addEventListener("click", async () => {
     btnProjectSave.textContent = "Saved!";
     setTimeout(() => {
       btnProjectSave.textContent = originalText;
+      btnProjectSave.disabled = false;
+      btnProjectSave.style.opacity = "1";
+      btnProjectSave.style.cursor = "pointer";
     }, 2000);
   } catch (error) {
     btnProjectSave.textContent = originalText;
-    setSaveStatus(error?.message || "Save failed", true);
-  } finally {
     btnProjectSave.disabled = false;
+    btnProjectSave.style.opacity = "1";
+    btnProjectSave.style.cursor = "pointer";
+    setSaveStatus(error?.message || "Save failed", true);
   }
 });
 
@@ -8962,7 +8988,7 @@ propertyContentEl?.addEventListener("change", (event) => {
 
 // ===== Initialization =====
 async function initialize() {
-  // Get projectId from URL params
+  // 1. Get projectId from URL params
   const params = new URLSearchParams(window.location.search);
   const projectId = params.get("projectId");
 
@@ -8972,65 +8998,61 @@ async function initialize() {
     return;
   }
 
-  setSaveStatus("Initializing canvas...");
-  await bootstrapFoundryDefaultsOnLoad();
-  setSaveStatus("Connecting to AI services...");
-
-  try {
-    await verifyFoundryAgentsAndThreads();
-    setSaveStatus("AI agents verified.");
-  } catch {
-    // Keep startup verification non-blocking.
-    setSaveStatus("AI agent verification skipped.");
+  // Initialize chat panel for startup messages (empty initial state)
+  if (chatHistoryEl) {
+    chatHistoryEl.innerHTML = chatInitialMarkup;
   }
 
-  // Load this specific project from backend files
+  // ===== PHASE 1: Freeze UI & Show Status =====
+  appendStartupStageMessage("working", "Freezing heavy feature buttons...");
+  if (btnValidate) { btnValidate.disabled = true; btnValidate.style.opacity = "0.5"; btnValidate.style.cursor = "not-allowed"; }
+  if (btnGenerateCode) { btnGenerateCode.disabled = true; btnGenerateCode.style.opacity = "0.5"; btnGenerateCode.style.cursor = "not-allowed"; }
+  if (btnProjectSave) { btnProjectSave.disabled = true; btnProjectSave.style.opacity = "0.5"; btnProjectSave.style.cursor = "not-allowed"; }
+  if (chatInputEl) { chatInputEl.disabled = true; chatInputEl.style.opacity = "0.5"; chatInputEl.style.cursor = "not-allowed"; }
+  if (chatSendBtn) { chatSendBtn.disabled = true; chatSendBtn.style.opacity = "0.5"; chatSendBtn.style.cursor = "not-allowed"; }
+  appendStartupStageMessage("completed", "Completed: Buttons frozen");
+
   setSaveStatus("Loading project data...");
-  if (!await loadCurrentProject(projectId)) {
+  appendStartupStageMessage("working", "Loading project data from backend");
+
+  // ===== PHASE 2: Load Project & Render Canvas (Blocking) =====
+  const isLoaded = await loadCurrentProject(projectId);
+  if (!isLoaded) {
     console.error("Project not found");
     window.location.href = "./LandingScreen/index.html";
     return;
   }
-
-  await Promise.allSettled([
-    resetChatPanel(),
-    loadArchitectureValidationStatus({ silent: true })
-  ]);
-  setSaveStatus("Chat and validation status loaded.");
+  appendStartupStageMessage("completed", "Completed: Project data loaded");
+  appendStartupStageMessage("working", "Rendering canvas and layout...");
 
   const { prefix, suffix } = splitProjectName(state.currentProject.cloud, state.currentProject.name);
   state.currentProject.name = `${prefix}${suffix}`;
-  // Use the layout default for left width on project load to preserve global UI setting
+  
+  // Apply visual layout settings instantly
   state.leftWidth = clamp(layoutConfig.leftDefault, constraints.leftMin, constraints.leftMax);
   state.rightWidth = clamp(Number(state.currentProject.rightWidth) || layoutConfig.rightDefault, constraints.rightMin, constraints.rightMax);
   state.bottomHeight = clamp(Number(state.currentProject.bottomHeight) || layoutConfig.bottomDefault, constraints.bottomMin, constraints.bottomMax);
   state.bottomRightWidth = clamp(Number(state.currentProject.bottomRightWidth) || layoutConfig.bottomRightDefault, constraints.bottomRightMin, constraints.bottomRightMax);
   state.searchTerm = String(state.currentProject.searchTerm || "");
   
-  // Calculate viewport dimensions for centering
   const viewportRect = canvasViewportEl?.getBoundingClientRect();
   const viewportWidth = viewportRect?.width || 800;
   const viewportHeight = viewportRect?.height || 600;
   
-  // Initialize canvasView with center-focused positioning
   const hasSavedView = Number.isFinite(Number(state.currentProject.canvasView?.x)) &&
                        Number.isFinite(Number(state.currentProject.canvasView?.y)) &&
                        Number.isFinite(Number(state.currentProject.canvasView?.zoom));
   
   if (hasSavedView) {
-    // Use saved view state
     state.canvasView = {
       x: Number(state.currentProject.canvasView.x),
       y: Number(state.currentProject.canvasView.y),
       zoom: clamp(Number(state.currentProject.canvasView.zoom), CANVAS_ZOOM.min, CANVAS_ZOOM.max)
     };
   } else {
-    // New project: center on canvas middle at zoom 0.5 for good initial fit
     const defaultZoom = 0.5;
     const canvasMiddleWorldX = CANVAS_WORLD.width / 2;
     const canvasMiddleWorldY = CANVAS_WORLD.height / 2;
-    
-    // Position so canvas middle appears at viewport center
     state.canvasView = {
       x: viewportWidth / 2 - canvasMiddleWorldX * defaultZoom,
       y: viewportHeight / 2 - canvasMiddleWorldY * defaultZoom,
@@ -9049,65 +9071,101 @@ async function initialize() {
     ? savedSelectedResource
     : null;
 
-  if (searchInput) {
-    searchInput.value = state.searchTerm;
-  }
+  if (searchInput) searchInput.value = state.searchTerm;
 
-  saveCurrentProject();
-
-  // Update UI with project info
+  // Initial UI hydration
   renderProjectName();
   renderIacIcon();
   updateTimestamp();
-
-  // Initialize layout
   applySizes();
-  // Ensure left width uses global layout default (avoid restoring legacy project value)
+  
   try {
     if (appEl) {
-      state.leftWidth = clamp(layoutConfig.leftDefault, constraints.leftMin, constraints.leftMax);
       appEl.style.setProperty("--left-width", `${state.leftWidth}%`);
     }
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) {}
+
   initializeCanvasInteractions();
-  setSaveStatus("Rendering canvas...");
   renderCanvasItems();
   renderCanvasView();
   updateCanvasStatus();
+  updatePropertyPanel(null);
 
-  // All core canvas data is ready — lift the skeleton loading state.
+  // ===== LIFT SKELETON - Canvas is NOW visible =====
   appEl.classList.remove("is-canvas-loading");
-  setSaveStatus(`Project ready: ${state.currentProject.name || "Untitled"}`);
+  setSaveStatus("Canvas ready. Booting AI...");
+  appendStartupStageMessage("completed", "Completed: Canvas rendered");
+  appendStartupStageMessage("working", "Loading resource catalog (background)...");
+  appendStartupStageMessage("working", "Booting AI services (background)...");
+
+  // ===== PHASE 3: Background Tasks (Non-Blocking) =====
+  
+  // 3a. Load resource catalog in background
+  loadCatalogForCloud(state.currentProject.cloud)
+    .then(() => {
+      renderResources();
+      setSaveStatus("Resources loaded.");
+      appendStartupStageMessage("completed", "Completed: Resource catalog loaded");
+    })
+    .catch(() => {
+      renderResources();
+      setSaveStatus("Resource catalog unavailable.", true);
+      appendStartupStageMessage("failed", "Resource catalog unavailable (using cache)");
+    });
+
+  // 3b. Boot up AI services
+  (async function bootAI() {
+    try {
+      appendStartupStageMessage("working", "Loading chat runtime status...");
+      await loadArchitectureChatStatus();
+      appendStartupStageMessage("completed", "Completed: Chat runtime status loaded");
+
+      appendStartupStageMessage("working", "Restoring chat history...");
+      // Skip chat history load during bootstrap to preserve startup messages
+      // await loadArchitectureChatHistory();
+      appendStartupStageMessage("completed", "Completed: Chat history loaded (startup messages preserved)");
+
+      appendStartupStageMessage("working", "Initializing AI defaults...");
+      await bootstrapFoundryDefaultsOnLoad();
+      appendStartupStageMessage("completed", "Completed: AI defaults initialized");
+
+      appendStartupStageMessage("working", "Verifying AI agents and threads...");
+      await verifyFoundryAgentsAndThreads();
+      appendStartupStageMessage("completed", "Completed: AI agents verified");
+
+      appendStartupStageMessage("working", "Loading architecture validation status...");
+      await loadArchitectureValidationStatus({ silent: true });
+      appendStartupStageMessage("completed", "Completed: Validation status loaded");
+      
+      // ===== PHASE 4: Unlock Features =====
+      setSaveStatus(`Project ready: ${state.currentProject.name || "Untitled"}`);
+      appendStartupStageMessage("working", "Unfreezing feature buttons...");
+      if (btnValidate) { btnValidate.disabled = false; btnValidate.style.opacity = "1"; btnValidate.style.cursor = "pointer"; }
+      if (btnGenerateCode) { btnGenerateCode.disabled = false; btnGenerateCode.style.opacity = "1"; btnGenerateCode.style.cursor = "pointer"; }
+      if (btnProjectSave) { btnProjectSave.disabled = false; btnProjectSave.style.opacity = "1"; btnProjectSave.style.cursor = "pointer"; }
+      if (chatInputEl) { chatInputEl.disabled = false; chatInputEl.style.opacity = "1"; chatInputEl.style.cursor = "text"; }
+      if (chatSendBtn) { chatSendBtn.disabled = false; chatSendBtn.style.opacity = "1"; chatSendBtn.style.cursor = "pointer"; }
+      appendStartupStageMessage("completed", `✨ Completed: All systems ready! Project fully unlocked.`);
+    } catch (e) {
+      console.warn("AI bootstrap failed or skipped", e);
+      setSaveStatus("Offline Mode.");
+      appendStartupStageMessage("failed", "AI bootstrap encountered errors⚠️");
+      appendStartupStageMessage("working", "Unfreezing buttons (offline mode)...");
+      if (btnValidate) { btnValidate.disabled = false; btnValidate.style.opacity = "1"; btnValidate.style.cursor = "pointer"; }
+      if (btnGenerateCode) { btnGenerateCode.disabled = false; btnGenerateCode.style.opacity = "1"; btnGenerateCode.style.cursor = "pointer"; }
+      if (btnProjectSave) { btnProjectSave.disabled = false; btnProjectSave.style.opacity = "1"; btnProjectSave.style.cursor = "pointer"; }
+      if (chatInputEl) { chatInputEl.disabled = false; chatInputEl.style.opacity = "1"; chatInputEl.style.cursor = "text"; }
+      if (chatSendBtn) { chatSendBtn.disabled = false; chatSendBtn.style.opacity = "1"; chatSendBtn.style.cursor = "pointer"; }
+      appendStartupStageMessage("completed", "Completed: Running in offline mode (limited functionality)");
+    }
+  })();
+
+  // 4. Background autosave & status refresh interval
   window.setInterval(async () => {
     updateTimestamp();
-
-    try {
-      await saveProjectFiles({ silent: true, saveTrigger: "autosave" });
-    } catch {
-      // Keep autosave non-blocking.
-    }
-
-    try {
-      await loadArchitectureValidationStatus({ silent: true });
-    } catch {
-      // Keep status refresh non-blocking.
-    }
+    try { await saveProjectFiles({ silent: true, saveTrigger: "autosave" }); } catch {}
+    try { await loadArchitectureValidationStatus({ silent: true }); } catch {}
   }, AUTOSAVE_INTERVAL_MS);
-
-  // Load catalog and render resources
-  setSaveStatus("Loading resource catalog...");
-  loadCatalogForCloud(state.currentProject.cloud).then(() => {
-    renderResources();
-    setSaveStatus("Resources loaded.");
-  }).catch(() => {
-    renderResources();
-    setSaveStatus("Resource catalog unavailable — using cached data.", true);
-  });
-
-  // Initialize properties panel
-  updatePropertyPanel(null);
 }
 
 initialize().catch((error) => {
