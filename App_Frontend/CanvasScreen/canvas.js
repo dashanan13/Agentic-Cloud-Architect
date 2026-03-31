@@ -5270,10 +5270,6 @@ function setSaveStatus(message, isError = false, key = null) {
       item.dataset.statusKey = key;
     }
     feed.prepend(item);
-    // Keep feed bounded to last 30 messages
-    while (feed.children.length > 30) {
-      feed.removeChild(feed.lastChild);
-    }
     return;
   }
 
@@ -7310,6 +7306,34 @@ async function requestRuleEngine() {
   return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid rule engine response" };
 }
 
+async function requestKnowledgeRetrieval() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Knowledge Retrieval Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/knowledge-retrieval`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Knowledge Retrieval request failed").trim();
+    throw new Error(`Validation: Knowledge Retrieval Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid knowledge retrieval response" };
+}
+
 async function runInputVerificationStage() {
   const stageKey = "validate";
   const stageProgressWeight = VALIDATION_STAGE_WEIGHT;
@@ -7513,6 +7537,64 @@ async function runRuleEngineStage() {
   postInputVerificationMessage("Validation: Rule Engine Artifact: /Documentation/rule-results.json");
 }
 
+async function runKnowledgeRetrievalStage() {
+  const stageKey = "azure-learn-mcp";
+  const stageStart = VALIDATION_STAGE_WEIGHT * 4;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 5;
+  const stageSpan = stageEnd - stageStart;
+  const substeps = [
+    { key: "check-mcp-availability", message: "Validation: Knowledge Retrieval Checking MCP Availability" },
+    { key: "load-inputs", message: "Validation: Knowledge Retrieval Loading Inputs" },
+    { key: "map-issues-to-topics", message: "Validation: Knowledge Retrieval Mapping Issues to Topics" },
+    { key: "query-azure-learn-mcp", message: "Validation: Knowledge Retrieval Querying Azure Learn MCP" },
+    { key: "process-results", message: "Validation: Knowledge Retrieval Processing Results" },
+    { key: "finalize-output", message: "Validation: Knowledge Retrieval Finalizing Output" },
+  ];
+
+  postInputVerificationMessage("Validation: Knowledge Retrieval Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
+
+  const knowledgePayload = await requestKnowledgeRetrieval();
+  const stepResults = Array.isArray(knowledgePayload.stepResults) ? knowledgePayload.stepResults : [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(stepRecord.error || knowledgePayload.error || "Unknown error").trim();
+      throw new Error(`Validation: Knowledge Retrieval Failed - ${reason}`);
+    }
+  }
+
+  if (String(knowledgePayload.status || "").trim().toLowerCase() === "mcp_unavailable") {
+    postInputVerificationMessage("Validation: Knowledge Retrieval MCP Unavailable - Skipping retrieval");
+    setValidationStageStatus(stageKey, "completed");
+    await animateValidationProgressTo(stageEnd, 280);
+    return;
+  }
+
+  if (!knowledgePayload.ok) {
+    const reason = String(knowledgePayload.error || "Knowledge Retrieval failed").trim();
+    throw new Error(`Validation: Knowledge Retrieval Failed - ${reason}`);
+  }
+
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageEnd, 280);
+  postInputVerificationMessage("Validation: Knowledge Retrieval Completed");
+  postInputVerificationMessage("Validation: Knowledge Retrieval Artifact: /Documentation/knowledge-base.json");
+}
+
 async function runValidationProcessStub() {
   if (!btnValidate || validationPipelineStubInFlight) {
     return;
@@ -7538,6 +7620,8 @@ async function runValidationProcessStub() {
     await runEnricherStage();
     currentStageKey = "rule-engine";
     await runRuleEngineStage();
+    currentStageKey = "azure-learn-mcp";
+    await runKnowledgeRetrievalStage();
   } catch (error) {
     const reason = String(error?.message || "Validation: Input Verification Failed - Unknown error").trim();
     if (currentStageKey) {
@@ -7548,6 +7632,7 @@ async function runValidationProcessStub() {
       || reason.startsWith("Validation: Input Verification Failed -")
       || reason.startsWith("Validation: Enricher Failed -")
       || reason.startsWith("Validation: Rule Engine Failed -")
+      || reason.startsWith("Validation: Knowledge Retrieval Failed -")
     ) {
       postInputVerificationMessage(reason, true);
     } else {
@@ -7557,6 +7642,8 @@ async function runValidationProcessStub() {
           ? "Validation: Enricher Failed -"
           : currentStageKey === "rule-engine"
             ? "Validation: Rule Engine Failed -"
+            : currentStageKey === "azure-learn-mcp"
+              ? "Validation: Knowledge Retrieval Failed -"
           : "Validation: Input Verification Failed -";
       postInputVerificationMessage(`${fallbackPrefix} ${reason}`, true);
     }

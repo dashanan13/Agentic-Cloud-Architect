@@ -1,6 +1,8 @@
 from pathlib import Path
+import asyncio
 import base64
 import hashlib
+import importlib
 import io
 import json
 import os
@@ -2270,6 +2272,441 @@ def run_rule_engine(project_id: str):
         raise HTTPException(status_code=404, detail="Project not found")
 
     result = _run_rule_engine_stage(project_dir=entry["projectDir"])
+    return result
+
+
+def _kr_extract_text(content: Any) -> str:
+    if isinstance(content, list):
+        return "\n".join(str(getattr(item, "text", item)) for item in content)
+    return str(content or "")
+
+
+def _kr_try_json(raw: str) -> Any:
+    try:
+        return json.loads(raw)
+    except Exception:
+        return None
+
+
+def _kr_normalize_issue_title(violation: Mapping[str, Any]) -> str:
+    message = str(violation.get("message") or "").strip()
+    if message:
+        return message
+    rule_id = str(violation.get("id") or "").strip()
+    if rule_id:
+        return rule_id
+    return "Azure architecture guidance topic"
+
+
+def _kr_build_query_for_violation(violation: Mapping[str, Any]) -> str:
+    issue_id = str(violation.get("id") or "").lower()
+    message = str(violation.get("message") or "").lower()
+    category = str(violation.get("category") or "").lower()
+    resource_type = str(violation.get("resourceType") or "").lower()
+
+    if "subnet" in message and "network security group" in message:
+        return "Azure subnet network security group best practices"
+    if "ddos" in message:
+        return "Azure DDoS protection when to enable"
+    if "public ip" in message and "associated" in message:
+        return "Azure public IP best practices cost optimization"
+    if "tag" in message:
+        return "Azure resource tagging strategy best practices"
+    if "route table" in message and "routes" in message:
+        return "Azure route table configuration guidelines"
+    if "route table" in message and "association" in message:
+        return "Azure subnet route table association best practices"
+    if "address space" in message or "vnet" in message:
+        return "Azure virtual network address space planning best practices"
+    if "dns" in message:
+        return "Azure DNS architecture and configuration best practices"
+    if "load distribution" in message or "load balancer" in message:
+        return "Azure load balancing architecture best practices"
+    if "traffic routing" in message:
+        return "Azure traffic routing strategy best practices"
+    if "zone redundancy" in message:
+        return "Azure availability zones high availability best practices"
+    if "location" in message:
+        return "Azure region selection and resource location governance"
+    if "broken reference" in message or "unresolved references" in message:
+        return "Azure resource dependency and reference validation best practices"
+
+    if "security" in category:
+        return f"Azure {resource_type or 'resource'} security best practices"
+    if "reliability" in category:
+        return f"Azure {resource_type or 'resource'} reliability best practices"
+    if "cost" in category:
+        return f"Azure {resource_type or 'resource'} cost optimization best practices"
+    if "performance" in category:
+        return f"Azure {resource_type or 'resource'} performance best practices"
+
+    token = issue_id.split(":", 1)[0].replace("-", " ").strip()
+    if token:
+        return f"Azure {token} best practices"
+    return f"Azure {resource_type or 'resource'} architecture best practices"
+
+
+def _kr_build_topics(violations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    dedupe: dict[str, dict[str, Any]] = {}
+    for violation in violations:
+        if not isinstance(violation, Mapping):
+            continue
+        query = _kr_build_query_for_violation(violation)
+        normalized_query = re.sub(r"\s+", " ", query).strip().lower()
+        if not normalized_query:
+            continue
+
+        if normalized_query not in dedupe:
+            dedupe[normalized_query] = {
+                "issueId": str(violation.get("id") or "").strip() or "unknown-issue",
+                "title": _kr_normalize_issue_title(violation),
+                "query": query.strip(),
+                "documents": [],
+                "_issueIds": [str(violation.get("id") or "").strip() or "unknown-issue"],
+            }
+        else:
+            dedupe[normalized_query]["_issueIds"].append(str(violation.get("id") or "").strip() or "unknown-issue")
+
+    return list(dedupe.values())
+
+
+def _kr_parse_documents_from_payload(payload: Any, *, raw_text: str) -> list[dict[str, Any]]:
+    documents: list[dict[str, Any]] = []
+
+    def _append_document(source: str, content: str, relevance: Any = None) -> None:
+        clean_source = str(source or "Azure Learn").strip() or "Azure Learn"
+        clean_content = re.sub(r"\s+", " ", str(content or "")).strip()
+        if not clean_content:
+            return
+        if len(clean_content) > 700:
+            clean_content = clean_content[:697].rstrip() + "..."
+        row: dict[str, Any] = {
+            "source": clean_source,
+            "content": clean_content,
+        }
+        if isinstance(relevance, (int, float)):
+            row["relevanceScore"] = float(relevance)
+        documents.append(row)
+
+    candidate_results: list[Any] = []
+    if isinstance(payload, Mapping):
+        for key in ("results", "items", "value", "documents", "data"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                candidate_results = value
+                break
+    elif isinstance(payload, list):
+        candidate_results = payload
+
+    if candidate_results:
+        for item in candidate_results:
+            if not isinstance(item, Mapping):
+                continue
+            source = str(item.get("source") or item.get("url") or item.get("title") or "Azure Learn").strip()
+            content = (
+                item.get("content")
+                or item.get("snippet")
+                or item.get("summary")
+                or item.get("description")
+                or ""
+            )
+            relevance = item.get("relevanceScore")
+            _append_document(source, str(content), relevance)
+            if len(documents) >= 3:
+                break
+
+    if not documents:
+        _append_document("Azure Learn MCP", raw_text)
+
+    return documents[:3]
+
+
+def _kr_is_tool_not_found_text(raw_text: str) -> bool:
+    text = str(raw_text or "").strip().lower()
+    if not text:
+        return False
+    return "tool" in text and "not found" in text
+
+
+async def _kr_query_azure_learn_mcp(
+    *,
+    queries: list[str],
+    settings: Mapping[str, Any],
+) -> tuple[dict[str, list[dict[str, Any]]], int, int]:
+    try:
+        mcp_module = importlib.import_module("mcp")
+        mcp_http_module = importlib.import_module("mcp.client.streamable_http")
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("Python package 'mcp' is required for Knowledge Retrieval stage") from exc
+
+    ClientSession = getattr(mcp_module, "ClientSession")
+    streamable_http_client = getattr(mcp_http_module, "streamable_http_client")
+
+    endpoint = str(settings.get("azureLearnMcpEndpoint") or "").strip() or "https://learn.microsoft.com/api/mcp"
+
+    results_by_query: dict[str, list[dict[str, Any]]] = {}
+    executed_queries = 0
+    warning_count = 0
+
+    async with streamable_http_client(endpoint) as (read_stream, write_stream, _):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+
+            tool_candidates: list[str] = []
+            explicit = [
+                "microsoft_docs_search",
+                "microsoft_docs_fetch",
+                "microsoft_code_sample_search",
+            ]
+
+            listed_tools = []
+            try:
+                listed = await session.list_tools()
+                listed_tools = getattr(listed, "tools", []) if listed is not None else []
+            except Exception:
+                listed_tools = []
+
+            discovered_names = [
+                str(getattr(tool, "name", "") or "").strip()
+                for tool in listed_tools
+                if str(getattr(tool, "name", "") or "").strip()
+            ]
+            discovered_pref = [
+                name
+                for name in discovered_names
+                if "search" in name.lower() and ("learn" in name.lower() or "docs" in name.lower() or "microsoft" in name.lower())
+            ]
+
+            for name in explicit + discovered_pref:
+                if name and name not in tool_candidates:
+                    tool_candidates.append(name)
+
+            if not tool_candidates:
+                raise RuntimeError("No Microsoft Learn search tool discovered in MCP session")
+
+            for query in queries:
+                executed_queries += 1
+                successful = False
+                last_error = ""
+                for tool_name in tool_candidates:
+                    arg_variants = [
+                        {"query": query},
+                        {"query": query, "top": 3},
+                        {"searchQuery": query},
+                        {"q": query},
+                    ]
+                    for args in arg_variants:
+                        try:
+                            response = await session.call_tool(tool_name, arguments=args)
+                            raw_text = _kr_extract_text(getattr(response, "content", response))
+                            if _kr_is_tool_not_found_text(raw_text):
+                                last_error = raw_text
+                                continue
+                            payload = _kr_try_json(raw_text)
+                            docs = _kr_parse_documents_from_payload(payload, raw_text=raw_text)
+                            results_by_query[query] = docs
+                            successful = True
+                            break
+                        except Exception as exc:
+                            last_error = f"{tool_name}: {exc}"
+                    if successful:
+                        break
+
+                if not successful:
+                    warning_count += 1
+                    results_by_query[query] = [
+                        {
+                            "source": "Azure Learn MCP",
+                            "content": f"MCP query failed: {last_error or 'unknown error'}",
+                        }
+                    ]
+
+    return results_by_query, executed_queries, warning_count
+
+
+def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, Any]) -> dict[str, Any]:
+    log_path = _ensure_validation_log_path(project_dir)
+    rule_results_path = project_dir / "Documentation" / "rule-results.json"
+    enriched_path = project_dir / "Documentation" / "enriched-architecture.json"
+    output_path = project_dir / "Documentation" / "knowledge-base.json"
+    output_artifact_ref = "/Documentation/knowledge-base.json"
+
+    step_results: list[dict[str, Any]] = []
+
+    def _record(step: str, status: str, message: str, *, error: str | None = None) -> None:
+        level = "INFO" if status != "failed" else "ERROR"
+        _append_input_verification_log(log_path, level, message)
+        item: dict[str, Any] = {"step": step, "status": status}
+        if error:
+            item["error"] = error
+        step_results.append(item)
+
+    _append_input_verification_log(log_path, "INFO", "Knowledge Retrieval started")
+
+    if not rule_results_path.exists():
+        reason = "Missing /Documentation/rule-results.json. Run Rule Engine first."
+        _record("load-inputs", "started", "Loading Inputs")
+        _record("load-inputs", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+            "status": "mcp_available",
+        }
+    if not enriched_path.exists():
+        reason = "Missing /Documentation/enriched-architecture.json. Run Enricher first."
+        _record("load-inputs", "started", "Loading Inputs")
+        _record("load-inputs", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+            "status": "mcp_available",
+        }
+
+    _record("check-mcp-availability", "started", "Checking MCP Availability")
+    mcp_status = "mcp_available"
+    try:
+        mcp_probe_results, mcp_probe_executed, mcp_probe_warnings = asyncio.run(
+            _kr_query_azure_learn_mcp(
+                queries=["Azure architecture best practices"],
+                settings=settings,
+            )
+        )
+        probe_docs = mcp_probe_results.get("Azure architecture best practices") if isinstance(mcp_probe_results, Mapping) else []
+        has_probe_docs = isinstance(probe_docs, list) and len(probe_docs) > 0
+        if mcp_probe_executed <= 0 or mcp_probe_warnings > 0 or not has_probe_docs:
+            mcp_status = "mcp_unavailable"
+    except Exception as exc:
+        mcp_status = "mcp_unavailable"
+        _append_input_verification_log(log_path, "WARN", f"Knowledge Retrieval MCP connectivity check failed: {exc}")
+
+    _append_input_verification_log(
+        log_path,
+        "INFO" if mcp_status == "mcp_available" else "WARN",
+        f"MCP connectivity checked: {'available' if mcp_status == 'mcp_available' else 'unavailable'}",
+    )
+    _record(
+        "check-mcp-availability",
+        "completed",
+        "MCP Availability Checked",
+    )
+
+    if mcp_status == "mcp_unavailable":
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps({"topics": [], "status": "mcp_unavailable"}, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        _append_input_verification_log(log_path, "INFO", "Knowledge Retrieval completed")
+        return {
+            "ok": True,
+            "artifactPath": output_artifact_ref,
+            "stepResults": step_results,
+            "topics": [],
+            "status": "mcp_unavailable",
+        }
+
+    _record("load-inputs", "started", "Loading Inputs")
+
+    rule_results = read_json_file(rule_results_path, {})
+    enriched_payload = read_json_file(enriched_path, {})
+    if not isinstance(rule_results, Mapping) or not isinstance(enriched_payload, Mapping):
+        reason = "Invalid input structure in rule-results or enriched-architecture files."
+        _record("load-inputs", "failed", reason, error=reason)
+        return {
+            "ok": False,
+            "error": reason,
+            "stepResults": step_results,
+            "artifactPath": output_artifact_ref,
+            "status": "mcp_available",
+        }
+
+    violations = rule_results.get("violations") if isinstance(rule_results.get("violations"), list) else []
+    _record("load-inputs", "completed", f"Loaded Inputs: {len(violations)} violations")
+
+    _record("map-issues-to-topics", "started", "Mapping Issues to Topics")
+    topics = _kr_build_topics([dict(item) for item in violations if isinstance(item, Mapping)])
+    _append_input_verification_log(log_path, "INFO", f"Issues processed: {len(violations)}")
+    _append_input_verification_log(log_path, "INFO", f"Topics generated: {len(topics)}")
+    _record("map-issues-to-topics", "completed", f"Mapped Topics: {len(topics)}")
+
+    _record("query-azure-learn-mcp", "started", "Querying Azure Learn MCP")
+    query_list = [str(topic.get("query") or "").strip() for topic in topics if str(topic.get("query") or "").strip()]
+    query_results: dict[str, list[dict[str, Any]]] = {}
+    executed_queries = 0
+    warning_count = 0
+    if query_list:
+        try:
+            query_results, executed_queries, warning_count = asyncio.run(
+                _kr_query_azure_learn_mcp(
+                    queries=query_list,
+                    settings=settings,
+                )
+            )
+        except Exception as exc:
+            warning_count = max(warning_count, 1)
+            _append_input_verification_log(log_path, "WARN", f"Knowledge Retrieval MCP call failed: {exc}")
+            for query in query_list:
+                query_results[query] = [
+                    {
+                        "source": "Azure Learn MCP",
+                        "content": f"MCP unavailable for this query: {exc}",
+                    }
+                ]
+            executed_queries = len(query_list)
+
+    _append_input_verification_log(log_path, "INFO", f"MCP queries executed: {executed_queries}")
+    if warning_count > 0:
+        _append_input_verification_log(log_path, "WARN", f"MCP query warnings: {warning_count}")
+    _record("query-azure-learn-mcp", "completed", f"MCP Queries Executed: {executed_queries}")
+
+    _record("process-results", "started", "Processing Results")
+    output_topics: list[dict[str, Any]] = []
+    for topic in topics:
+        query = str(topic.get("query") or "").strip()
+        documents = query_results.get(query) if isinstance(query_results.get(query), list) else []
+        output_topics.append(
+            {
+                "issueId": str(topic.get("issueId") or "unknown-issue"),
+                "title": str(topic.get("title") or "Azure guidance topic"),
+                "query": query,
+                "documents": documents[:3],
+            }
+        )
+    _record("process-results", "completed", f"Processed Topics: {len(output_topics)}")
+
+    _record("finalize-output", "started", "Finalizing Output")
+    knowledge_payload = {
+        "topics": output_topics,
+        "status": "mcp_available",
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(knowledge_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    _record("finalize-output", "completed", f"Knowledge base written to {output_artifact_ref}")
+
+    _append_input_verification_log(log_path, "INFO", "Knowledge Retrieval completed")
+    return {
+        "ok": True,
+        "artifactPath": output_artifact_ref,
+        "stepResults": step_results,
+        "topics": output_topics,
+        "status": "mcp_available",
+    }
+
+
+@app.post("/api/project/{project_id}/validation/knowledge-retrieval")
+def run_knowledge_retrieval(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    result = _run_knowledge_retrieval_stage(
+        project_dir=entry["projectDir"],
+        settings=load_app_settings(),
+    )
     return result
 
 
