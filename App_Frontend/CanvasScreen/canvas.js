@@ -7056,6 +7056,189 @@ const validationPipelineUiState = {
   activeStageKey: "",
   stageStatuses: Object.fromEntries(VALIDATION_PIPELINE_STAGES.map((stage) => [stage.key, "not-started"])),
 };
+const validationPipelineStageDetails = Object.fromEntries(
+  VALIDATION_PIPELINE_STAGES.map((stage) => [stage.key, {
+    statusMessage: "",
+    error: "",
+    artifactPath: "",
+    substeps: [],
+  }])
+);
+
+function formatValidationSubstepLabel(stepKey) {
+  const text = String(stepKey || "").trim();
+  if (!text) {
+    return "Substep";
+  }
+  return text
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function normalizeValidationSubstepStatus(status) {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (
+    normalized === "completed"
+    || normalized === "success"
+    || normalized === "ok"
+  ) {
+    return "completed";
+  }
+  if (normalized === "failed" || normalized === "error") {
+    return "failed";
+  }
+  if (normalized === "unavailable" || normalized === "warning") {
+    return "warning";
+  }
+  if (normalized === "in-progress" || normalized === "running") {
+    return "in-progress";
+  }
+  if (normalized === "skipped") {
+    return "skipped";
+  }
+  return "not-started";
+}
+
+function getValidationSubstepStatusLabel(status) {
+  const normalized = normalizeValidationSubstepStatus(status);
+  if (normalized === "completed") {
+    return "Completed";
+  }
+  if (normalized === "failed") {
+    return "Failed";
+  }
+  if (normalized === "warning") {
+    return "Warning";
+  }
+  if (normalized === "in-progress") {
+    return "Running";
+  }
+  if (normalized === "skipped") {
+    return "Skipped";
+  }
+  return "Not started";
+}
+
+function setValidationStageDetails(stageKey, details = {}) {
+  if (!(stageKey in validationPipelineStageDetails)) {
+    return;
+  }
+
+  const incomingSubsteps = Array.isArray(details.substeps)
+    ? details.substeps
+      .map((substep) => {
+        if (!substep || typeof substep !== "object") {
+          return null;
+        }
+        const key = String(substep.key || "").trim();
+        return {
+          key,
+          label: formatValidationSubstepLabel(substep.label || key),
+          status: normalizeValidationSubstepStatus(substep.status),
+          reason: String(substep.reason || "").trim(),
+        };
+      })
+      .filter(Boolean)
+    : validationPipelineStageDetails[stageKey].substeps;
+
+  validationPipelineStageDetails[stageKey] = {
+    statusMessage: String((details.statusMessage ?? validationPipelineStageDetails[stageKey].statusMessage) || "").trim(),
+    error: String((details.error ?? validationPipelineStageDetails[stageKey].error) || "").trim(),
+    artifactPath: String((details.artifactPath ?? validationPipelineStageDetails[stageKey].artifactPath) || "").trim(),
+    substeps: incomingSubsteps,
+  };
+}
+
+function setValidationStageDetailsFromPayload(stageKey, payload, substeps) {
+  if (!(stageKey in validationPipelineStageDetails)) {
+    return;
+  }
+
+  const rawStepResults = Array.isArray(payload?.stepResults) ? payload.stepResults : [];
+  const mappedSubsteps = Array.isArray(substeps)
+    ? substeps.map((substep) => {
+      const key = String(substep?.key || "").trim();
+      const matchingRecords = rawStepResults.filter((item) => String(item?.step || "").trim() === key);
+      const record = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      return {
+        key,
+        label: formatValidationSubstepLabel(key),
+        status: normalizeValidationSubstepStatus(record?.status || "not-started"),
+        reason: String(record?.error || record?.message || "").trim(),
+      };
+    })
+    : [];
+
+  const artifactPath = String(payload?.artifactPath || "").trim();
+  const payloadStatus = String(payload?.status || "").trim();
+  const payloadError = String(payload?.error || "").trim();
+  setValidationStageDetails(stageKey, {
+    statusMessage: payloadStatus,
+    error: payloadError,
+    artifactPath,
+    substeps: mappedSubsteps,
+  });
+}
+
+function renderValidationPipelineStageDetails() {
+  if (!tipsContentEl) {
+    return;
+  }
+
+  const detailsEl = tipsContentEl.querySelector("#validation-pipeline-details");
+  if (!detailsEl) {
+    return;
+  }
+
+  const stageSections = VALIDATION_PIPELINE_STAGES.map((stage) => {
+    const detail = validationPipelineStageDetails[stage.key] || {};
+    const substeps = Array.isArray(detail.substeps) ? detail.substeps : [];
+    const failureStep = substeps.find((item) => item.status === "failed");
+    const warningStep = substeps.find((item) => item.status === "warning");
+    const stageStatus = validationPipelineUiState.stageStatuses[stage.key] || "not-started";
+    const stageReason = String(detail.error || failureStep?.reason || warningStep?.reason || "").trim();
+
+    const substepMarkup = substeps.length
+      ? substeps.map((substep) => {
+        const statusClass = normalizeValidationSubstepStatus(substep.status);
+        const statusLabel = getValidationSubstepStatusLabel(substep.status);
+        return [
+          '<li class="validation-stage-details__substep">',
+          '<div class="validation-stage-details__substep-top">',
+          `<span class="validation-stage-details__substep-name">${escapeHtml(substep.label || "Substep")}</span>`,
+          `<span class="validation-stage-details__substep-status validation-stage-details__substep-status--${statusClass}">${escapeHtml(statusLabel)}</span>`,
+          '</div>',
+          substep.reason
+            ? `<p class="validation-stage-details__substep-reason">${escapeHtml(substep.reason)}</p>`
+            : "",
+          '</li>'
+        ].join("");
+      }).join("")
+      : '<li class="validation-stage-details__empty">No substeps available yet.</li>';
+
+    const bodyMarkup = [
+      `<p class="validation-stage-details__summary">Stage status: ${escapeHtml(stageStatus)}</p>`,
+      stageReason ? `<p class="validation-stage-details__reason">Reason: ${escapeHtml(stageReason)}</p>` : "",
+      detail.artifactPath ? `<p class="validation-stage-details__artifact">Artifact: ${escapeHtml(detail.artifactPath)}</p>` : "",
+      `<ul class="validation-stage-details__substeps">${substepMarkup}</ul>`
+    ].join("");
+
+    return renderValidationCollapsibleSection({
+      sectionKey: `validation-stage:${stage.key}`,
+      title: stage.label,
+      count: substeps.length,
+      bodyMarkup,
+      modifier: stageStatus === "failed" ? "failed" : (stageStatus === "completed" ? "completed" : ""),
+    });
+  }).join("");
+
+  detailsEl.innerHTML = `
+    <div class="validation-stage-details__header">Stage Details</div>
+    <div class="validation-stage-details__list">${stageSections}</div>
+  `;
+}
 
 function ensureValidationPipelinePanel() {
   if (!tipsContentEl) {
@@ -7088,6 +7271,7 @@ function ensureValidationPipelinePanel() {
           ${milestoneMarkup}
         </ul>
       </div>
+      <div id="validation-pipeline-details" class="validation-stage-details" aria-label="Validation stage details"></div>
     </div>`;
 }
 
@@ -7120,6 +7304,8 @@ function renderValidationPipelinePanel() {
       element.classList.add("is-not-started");
     }
   });
+
+  renderValidationPipelineStageDetails();
 }
 
 function resetValidationPipelinePanel() {
@@ -7133,6 +7319,15 @@ function resetValidationPipelinePanel() {
     cancelAnimationFrame(validationPipelineAnimationFrame);
     validationPipelineAnimationFrame = null;
   }
+
+  VALIDATION_PIPELINE_STAGES.forEach((stage) => {
+    setValidationStageDetails(stage.key, {
+      statusMessage: "",
+      error: "",
+      artifactPath: "",
+      substeps: [],
+    });
+  });
 
   renderValidationPipelinePanel();
 }
@@ -7362,6 +7557,34 @@ async function requestStructuredFindings() {
   return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid structured findings response" };
 }
 
+async function requestAiValidationAgent() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: AI Validation Agent Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/ai-validation-agent`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "AI Validation Agent request failed").trim();
+    throw new Error(`Validation: AI Validation Agent Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid AI validation response" };
+}
+
 async function runInputVerificationStage() {
   const stageKey = "validate";
   const stageProgressWeight = VALIDATION_STAGE_WEIGHT;
@@ -7379,6 +7602,7 @@ async function runInputVerificationStage() {
   await animateValidationProgressTo(Math.min(stageProgressWeight * 0.08, stageProgressWeight), 240);
 
   const verificationPayload = await requestInputVerification(buildCurrentCanvasStatePayload());
+  setValidationStageDetailsFromPayload(stageKey, verificationPayload, substeps);
   const verificationErrors = Array.isArray(verificationPayload.errors) ? verificationPayload.errors : [];
   const stepResults = Array.isArray(verificationPayload.stepResults) ? verificationPayload.stepResults : [];
 
@@ -7403,9 +7627,14 @@ async function runInputVerificationStage() {
 
   if (!verificationPayload.isValid) {
     const reason = String(verificationErrors[0] || "Input verification failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
     throw new Error(`Validation: Input Verification Failed - ${reason}`);
   }
 
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(verificationPayload?.artifactPath || "").trim(),
+  });
   setValidationStageStatus(stageKey, "completed");
   await animateValidationProgressTo(stageProgressWeight, 280);
   postInputVerificationMessage("Validation: Input Verification Completed");
@@ -7430,6 +7659,7 @@ async function runGraphBuilderStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const graphPayload = await requestGraphBuilder(buildCurrentCanvasStatePayload());
+  setValidationStageDetailsFromPayload(stageKey, graphPayload, substeps);
   const graphErrors = Array.isArray(graphPayload.errors) ? graphPayload.errors : [];
   const stepResults = Array.isArray(graphPayload.stepResults) ? graphPayload.stepResults : [];
 
@@ -7454,9 +7684,14 @@ async function runGraphBuilderStage() {
 
   if (!graphPayload.ok) {
     const reason = String(graphErrors[0] || "Graph Builder failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
     throw new Error(`Validation: Graph Builder Failed - ${reason}`);
   }
 
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(graphPayload?.artifactPath || "/Documentation/architecture-graph.json").trim(),
+  });
   setValidationStageStatus(stageKey, "completed");
   await animateValidationProgressTo(stageEnd, 280);
   postInputVerificationMessage("Validation: Graph Builder Completed");
@@ -7483,6 +7718,7 @@ async function runEnricherStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const enricherPayload = await requestEnricher();
+  setValidationStageDetailsFromPayload(stageKey, enricherPayload, substeps);
   const stepResults = Array.isArray(enricherPayload.stepResults) ? enricherPayload.stepResults : [];
 
   let completedSubsteps = 0;
@@ -7506,9 +7742,14 @@ async function runEnricherStage() {
 
   if (!enricherPayload.ok) {
     const reason = String(enricherPayload.error || "Enricher failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
     throw new Error(`Validation: Enricher Failed - ${reason}`);
   }
 
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(enricherPayload?.artifactPath || "/Documentation/enriched-architecture.json").trim(),
+  });
   setValidationStageStatus(stageKey, "completed");
   await animateValidationProgressTo(stageEnd, 280);
   postInputVerificationMessage("Validation: Enricher Completed");
@@ -7533,6 +7774,7 @@ async function runRuleEngineStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const ruleEnginePayload = await requestRuleEngine();
+  setValidationStageDetailsFromPayload(stageKey, ruleEnginePayload, substeps);
   const stepResults = Array.isArray(ruleEnginePayload.stepResults) ? ruleEnginePayload.stepResults : [];
 
   let completedSubsteps = 0;
@@ -7556,9 +7798,14 @@ async function runRuleEngineStage() {
 
   if (!ruleEnginePayload.ok) {
     const reason = String(ruleEnginePayload.error || "Rule Engine failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
     throw new Error(`Validation: Rule Engine Failed - ${reason}`);
   }
 
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(ruleEnginePayload?.artifactPath || "/Documentation/rule-results.json").trim(),
+  });
   setValidationStageStatus(stageKey, "completed");
   await animateValidationProgressTo(stageEnd, 280);
   postInputVerificationMessage("Validation: Rule Engine Completed");
@@ -7584,6 +7831,7 @@ async function runKnowledgeRetrievalStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const knowledgePayload = await requestKnowledgeRetrieval();
+  setValidationStageDetailsFromPayload(stageKey, knowledgePayload, substeps);
   const stepResults = Array.isArray(knowledgePayload.stepResults) ? knowledgePayload.stepResults : [];
 
   let completedSubsteps = 0;
@@ -7607,6 +7855,10 @@ async function runKnowledgeRetrievalStage() {
 
   if (String(knowledgePayload.status || "").trim().toLowerCase() === "mcp_unavailable") {
     postInputVerificationMessage("Validation: Knowledge Retrieval MCP Unavailable - Skipping retrieval");
+    setValidationStageDetails(stageKey, {
+      statusMessage: "mcp_unavailable",
+      artifactPath: String(knowledgePayload?.artifactPath || "").trim(),
+    });
     setValidationStageStatus(stageKey, "completed");
     await animateValidationProgressTo(stageEnd, 280);
     return;
@@ -7614,9 +7866,14 @@ async function runKnowledgeRetrievalStage() {
 
   if (!knowledgePayload.ok) {
     const reason = String(knowledgePayload.error || "Knowledge Retrieval failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
     throw new Error(`Validation: Knowledge Retrieval Failed - ${reason}`);
   }
 
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(knowledgePayload?.artifactPath || "/Documentation/knowledge-base.json").trim(),
+  });
   setValidationStageStatus(stageKey, "completed");
   await animateValidationProgressTo(stageEnd, 280);
   postInputVerificationMessage("Validation: Knowledge Retrieval Completed");
@@ -7641,6 +7898,7 @@ async function runStructuredFindingsStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const structuredPayload = await requestStructuredFindings();
+  setValidationStageDetailsFromPayload(stageKey, structuredPayload, substeps);
   const stepResults = Array.isArray(structuredPayload.stepResults) ? structuredPayload.stepResults : [];
 
   let completedSubsteps = 0;
@@ -7664,13 +7922,123 @@ async function runStructuredFindingsStage() {
 
   if (!structuredPayload.ok) {
     const reason = String(structuredPayload.error || "Structured Findings failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
     throw new Error(`Validation: Structured Findings Failed - ${reason}`);
   }
 
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(structuredPayload?.artifactPath || "/Documentation/structured-findings.json").trim(),
+  });
   setValidationStageStatus(stageKey, "completed");
   await animateValidationProgressTo(stageEnd, 280);
   postInputVerificationMessage("Validation: Structured Findings Completed");
   postInputVerificationMessage("Validation: Structured Findings Artifact: /Documentation/structured-findings.json");
+}
+
+async function runAiValidationAgentStage() {
+  const stageKey = "ai-validation-agent";
+  const stageStart = VALIDATION_STAGE_WEIGHT * 6;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 7;
+  const stageSpan = stageEnd - stageStart;
+  const substeps = [
+    { key: "initialize-agent-state", message: "Validation: AI Validation Agent Initializing Agent State" },
+    { key: "call-waf-mcp", message: "Validation: AI Validation Agent Calling WAF MCP" },
+    { key: "call-learn-mcp", message: "Validation: AI Validation Agent Calling Learn MCP" },
+    { key: "run-llm-reasoning", message: "Validation: AI Validation Agent Running LLM Reasoning" },
+    { key: "finalize-output", message: "Validation: AI Validation Agent Finalizing Output" },
+  ];
+
+  postInputVerificationMessage("Validation: AI Validation Agent Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
+
+  const aiPayload = await requestAiValidationAgent();
+  setValidationStageDetailsFromPayload(stageKey, aiPayload, substeps);
+  const stepResults = Array.isArray(aiPayload.stepResults) ? aiPayload.stepResults : [];
+  const failedSubsteps = [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(
+        stepRecord.error
+        || stepRecord.message
+        || aiPayload.error
+        || (stepRecord.status ? `Substep failed: ${String(stepRecord.status)}` : "Unknown error")
+      ).trim();
+      failedSubsteps.push({ key: substep.key, reason });
+    }
+  }
+
+  if (!aiPayload.ok) {
+    const reason = String(aiPayload.error || "AI Validation Agent failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
+    throw new Error(`Validation: AI Validation Agent Failed - ${reason}`);
+  }
+
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: String(aiPayload?.artifactPath || "/Documentation/final_intelligent_report.json").trim(),
+  });
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageEnd, 280);
+  if (failedSubsteps.length) {
+    const firstFailure = failedSubsteps[0];
+    setValidationStageDetails(stageKey, { error: firstFailure.reason });
+    postInputVerificationMessage(`Validation: AI Validation Agent Warning - ${firstFailure.reason}`, true);
+  }
+  postInputVerificationMessage("Validation: AI Validation Agent Completed");
+  postInputVerificationMessage("Validation: AI Validation Agent Artifact: /Documentation/final_intelligent_report.json");
+  return aiPayload;
+}
+
+async function runFinalReportStage(aiPayload) {
+  const stageKey = "final-report";
+  const stageStart = VALIDATION_STAGE_WEIGHT * 7;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 8;
+  const stageSpan = stageEnd - stageStart;
+
+  postInputVerificationMessage("Validation: Final Report Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.35), stageEnd), 220);
+
+  const report = aiPayload && typeof aiPayload === "object" && aiPayload.report && typeof aiPayload.report === "object"
+    ? aiPayload.report
+    : null;
+  if (!report) {
+    setValidationStageDetails(stageKey, { error: "missing final report payload" });
+    throw new Error("Validation: Final Report Failed - missing final report payload");
+  }
+
+  setValidationStageDetails(stageKey, {
+    statusMessage: "completed",
+    artifactPath: "/Documentation/final_intelligent_report.json",
+    substeps: [
+      {
+        key: "publish-final-report",
+        label: "Publish Final Report",
+        status: "completed",
+        reason: "Final intelligent report generated and persisted.",
+      },
+    ],
+  });
+
+  await animateValidationProgressTo(stageEnd, 260);
+  setValidationStageStatus(stageKey, "completed");
+  postInputVerificationMessage("Validation: Final Report Completed");
+  postInputVerificationMessage("Validation: Final Report Artifact: /Documentation/final_intelligent_report.json");
 }
 
 async function runValidationProcessStub() {
@@ -7702,10 +8070,17 @@ async function runValidationProcessStub() {
     await runStructuredFindingsStage();
     currentStageKey = "azure-learn-mcp";
     await runKnowledgeRetrievalStage();
+    currentStageKey = "ai-validation-agent";
+    const aiPayload = await runAiValidationAgentStage();
+    currentStageKey = "final-report";
+    await runFinalReportStage(aiPayload);
   } catch (error) {
     const reason = String(error?.message || "Validation: Input Verification Failed - Unknown error").trim();
     if (currentStageKey) {
       setValidationStageStatus(currentStageKey, "failed");
+      setValidationStageDetails(currentStageKey, {
+        error: reason,
+      });
     }
     if (
       reason.startsWith("Validation: Graph Builder Failed -")
@@ -7714,6 +8089,8 @@ async function runValidationProcessStub() {
       || reason.startsWith("Validation: Rule Engine Failed -")
       || reason.startsWith("Validation: Structured Findings Failed -")
       || reason.startsWith("Validation: Knowledge Retrieval Failed -")
+      || reason.startsWith("Validation: AI Validation Agent Failed -")
+      || reason.startsWith("Validation: Final Report Failed -")
     ) {
       postInputVerificationMessage(reason, true);
     } else {
@@ -7727,6 +8104,10 @@ async function runValidationProcessStub() {
               ? "Validation: Structured Findings Failed -"
             : currentStageKey === "azure-learn-mcp"
               ? "Validation: Knowledge Retrieval Failed -"
+                : currentStageKey === "ai-validation-agent"
+                  ? "Validation: AI Validation Agent Failed -"
+                  : currentStageKey === "final-report"
+                    ? "Validation: Final Report Failed -"
           : "Validation: Input Verification Failed -";
       postInputVerificationMessage(`${fallbackPrefix} ${reason}`, true);
     }

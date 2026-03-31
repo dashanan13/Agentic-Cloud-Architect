@@ -3101,6 +3101,96 @@ def run_knowledge_retrieval(project_id: str):
     return result
 
 
+@app.post("/api/project/{project_id}/validation/ai-validation-agent")
+def run_ai_validation_agent_stage(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    settings = load_app_settings()
+    bootstrap_result = bootstrap_default_foundry_resources(settings)
+    if bootstrap_result.get("settingsUpdated"):
+        write_app_settings_file(settings)
+
+    metadata = read_json_file(entry["metadataPath"], {})
+    if not isinstance(metadata, Mapping):
+        metadata = {}
+
+    project_name = str(metadata.get("name") or entry.get("name") or entry.get("id") or "Project").strip() or "Project"
+    project_description = str(metadata.get("applicationDescription") or "").strip()
+    canvas_state = read_json_file(entry["statePath"], {})
+    if not isinstance(canvas_state, Mapping):
+        canvas_state = {}
+
+    foundry_agent_id = _resolve_foundry_validation_agent_id(settings) or None
+    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="validation")
+
+    try:
+        result = run_architecture_validation_agent(
+            app_settings=settings,
+            canvas_state=canvas_state,
+            project_name=project_name,
+            project_id=entry["id"],
+            project_description=project_description,
+            foundry_agent_id=foundry_agent_id,
+            foundry_thread_id=foundry_thread_id,
+            validation_run_id=f"ai-stage-{_timestamp_ms()}-{uuid4().hex[:6]}",
+            project_dir=entry["projectDir"],
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"AI Validation Agent failed: {exc}") from exc
+
+    sources = result.get("sources") if isinstance(result.get("sources"), Mapping) else {}
+    azure_mcp_state = str((sources.get("azureMcp") or {}).get("connectionState") or "partial").strip().lower()
+    learn_mcp_state = str((sources.get("learnMcp") or {}).get("connectionState") or "partial").strip().lower()
+    reasoning_state = str((sources.get("reasoningModel") or {}).get("connectionState") or "partial").strip().lower()
+
+    def _step_status(connection_state: str) -> str:
+        safe = str(connection_state or "").strip().lower()
+        if safe in {"failed", "error"}:
+            return "failed"
+        return "completed"
+
+    azure_mcp_explanation = str((sources.get("azureMcp") or {}).get("explanation") or "").strip()
+    learn_mcp_explanation = str((sources.get("learnMcp") or {}).get("explanation") or "").strip()
+    reasoning_explanation = str((sources.get("reasoningModel") or {}).get("explanation") or "").strip()
+
+    waf_status = _step_status(azure_mcp_state)
+    learn_status = _step_status(learn_mcp_state)
+    reasoning_status = _step_status(reasoning_state)
+
+    step_results: list[dict[str, Any]] = [
+        {"step": "initialize-agent-state", "status": "completed"},
+        {
+            "step": "call-waf-mcp",
+            "status": waf_status,
+            **({"error": azure_mcp_explanation or f"WAF MCP state: {azure_mcp_state}"} if waf_status == "failed" else {}),
+        },
+        {
+            "step": "call-learn-mcp",
+            "status": learn_status,
+            **({"error": learn_mcp_explanation or f"Learn MCP state: {learn_mcp_state}"} if learn_status == "failed" else {}),
+        },
+        {
+            "step": "run-llm-reasoning",
+            "status": reasoning_status,
+            **({"error": reasoning_explanation or f"Reasoning model state: {reasoning_state}"} if reasoning_status == "failed" else {}),
+        },
+        {"step": "finalize-output", "status": "completed"},
+    ]
+
+    artifact_path = "/Documentation/final_intelligent_report.json"
+    return {
+        "ok": bool(result.get("ok")),
+        "artifactPath": artifact_path,
+        "stepResults": step_results,
+        "status": "completed",
+        "runId": str(result.get("runId") or ""),
+        "evaluation": result.get("evaluation") if isinstance(result.get("evaluation"), Mapping) else {},
+        "report": result.get("final_intelligent_report") if isinstance(result.get("final_intelligent_report"), Mapping) else {},
+    }
+
+
 def _sanitize_iac_stage_detail_items(value: Any) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
@@ -5887,6 +5977,7 @@ def run_project_architecture_validation(project_id: str, body: ArchitectureValid
                 foundry_agent_id=foundry_agent_id,
                 foundry_thread_id=foundry_thread_id,
                 validation_run_id=validation_run_id,
+                project_dir=entry["projectDir"],
             )
 
             _record_validation_thread_payload(

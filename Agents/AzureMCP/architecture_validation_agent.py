@@ -8,6 +8,7 @@ import time
 import urllib.request as _urllib_request
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Mapping
 from uuid import uuid4
 
@@ -31,6 +32,8 @@ WELL_ARCHITECTED_PILLARS = [
     "operational_excellence",
     "performance_efficiency",
 ]
+AI_VALIDATION_MAX_ITERATIONS = 5
+AI_VALIDATION_MIN_ITERATIONS = 3
 
 WAF_SUPPORTED_SERVICE_SLUGS = {
     "application-insights",
@@ -2352,6 +2355,434 @@ class ValidationDiagnostics:
     tools: list[dict[str, Any]] | None = None
 
 
+def _read_json_file(path: Path, fallback: Any) -> Any:
+    try:
+        if not path.exists():
+            return fallback
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return fallback
+
+
+def _append_stage_validation_log(project_dir: Path | None, message: str) -> None:
+    if not isinstance(project_dir, Path):
+        return
+    try:
+        log_path = project_dir / "Documentation" / "validation.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        ts = _timestamp_utc()
+        safe_message = str(message or "").strip()
+        if not safe_message:
+            return
+        with log_path.open("a", encoding="utf-8") as handle:
+            handle.write(f"[{ts}] {safe_message}\n")
+    except Exception:
+        return
+
+
+def _load_ai_validation_inputs(project_dir: Path | None) -> dict[str, Any]:
+    if not isinstance(project_dir, Path):
+        return {
+            "architecture_graph": {},
+            "enricher_findings": {},
+            "rule_engine_findings": {},
+            "azure_learn_docs": {},
+            "mcp_findings": {},
+            "project_metadata": {},
+        }
+
+    doc_dir = project_dir / "Documentation"
+    metadata_path = project_dir / "project.settings.env"
+
+    architecture_graph = _read_json_file(doc_dir / "architecture-graph.json", {})
+    enricher_findings = _read_json_file(doc_dir / "enricher_findings.json", None)
+    if not isinstance(enricher_findings, Mapping):
+        enricher_findings = _read_json_file(doc_dir / "enriched-architecture.json", {})
+
+    rule_engine_findings = _read_json_file(doc_dir / "rule_engine_findings.json", None)
+    if not isinstance(rule_engine_findings, Mapping):
+        rule_engine_findings = _read_json_file(doc_dir / "rule-results.json", {})
+
+    azure_learn_docs = _read_json_file(doc_dir / "azure_learn_docs.json", None)
+    if not isinstance(azure_learn_docs, Mapping):
+        azure_learn_docs = _read_json_file(doc_dir / "knowledge-base.json", {})
+
+    mcp_findings = _read_json_file(doc_dir / "mcp_findings.json", {})
+
+    project_metadata: dict[str, Any] = {}
+    try:
+        if metadata_path.exists():
+            project_metadata = {"projectSettingsPath": str(metadata_path)}
+    except Exception:
+        project_metadata = {}
+
+    return {
+        "architecture_graph": architecture_graph if isinstance(architecture_graph, Mapping) else {},
+        "enricher_findings": enricher_findings if isinstance(enricher_findings, Mapping) else {},
+        "rule_engine_findings": rule_engine_findings if isinstance(rule_engine_findings, Mapping) else {},
+        "azure_learn_docs": azure_learn_docs if isinstance(azure_learn_docs, Mapping) else {},
+        "mcp_findings": mcp_findings if isinstance(mcp_findings, Mapping) else {},
+        "project_metadata": project_metadata,
+    }
+
+
+def _collect_detected_services(architecture_context: Mapping[str, Any]) -> list[str]:
+    resources = architecture_context.get("resources") if isinstance(architecture_context.get("resources"), list) else []
+    names: list[str] = []
+    seen: set[str] = set()
+    for resource in resources:
+        if not isinstance(resource, Mapping):
+            continue
+        text = str(resource.get("resourceType") or resource.get("name") or "").strip()
+        if not text:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        names.append(text)
+    return names[:30]
+
+
+async def _learn_mcp_search_async(*, queries: list[str], app_settings: Mapping[str, Any]) -> tuple[list[dict[str, Any]], int]:
+    try:
+        mcp_module = importlib.import_module("mcp")
+        mcp_http_module = importlib.import_module("mcp.client.streamable_http")
+    except Exception:
+        return [], 0
+
+    ClientSession = getattr(mcp_module, "ClientSession")
+    streamable_http_client = getattr(mcp_http_module, "streamable_http_client")
+    endpoint = str(app_settings.get("azureLearnMcpEndpoint") or "").strip() or "https://learn.microsoft.com/api/mcp"
+
+    documents: list[dict[str, Any]] = []
+    executed = 0
+    seen_signature: set[str] = set()
+
+    async with streamable_http_client(endpoint) as (read_stream, write_stream, _):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+            tool_name = "microsoft_docs_search"
+            for query in queries[:5]:
+                safe_query = str(query or "").strip()
+                if not safe_query:
+                    continue
+                executed += 1
+                raw_text = ""
+                payload = None
+                try:
+                    response = await session.call_tool(tool_name, arguments={"query": safe_query})
+                    raw_text = _extract_tool_text(getattr(response, "content", response))
+                    payload = _extract_json_from_text(raw_text)
+                except Exception:
+                    payload = None
+
+                rows = payload if isinstance(payload, list) else []
+                if not rows and isinstance(payload, Mapping):
+                    for key in ("results", "items", "value", "data"):
+                        value = payload.get(key)
+                        if isinstance(value, list):
+                            rows = value
+                            break
+
+                for row in rows[:6]:
+                    if not isinstance(row, Mapping):
+                        continue
+                    title = str(row.get("title") or row.get("name") or "Azure Learn").strip() or "Azure Learn"
+                    url = str(row.get("url") or row.get("source") or "").strip()
+                    excerpt = str(row.get("content") or row.get("snippet") or row.get("summary") or "").strip()
+                    signature = f"{title.lower()}|{url.lower()}"
+                    if signature in seen_signature:
+                        continue
+                    seen_signature.add(signature)
+                    documents.append(
+                        {
+                            "query": safe_query,
+                            "title": title,
+                            "url": url,
+                            "content": _truncate_text(excerpt, max_chars=700),
+                        }
+                    )
+
+                if not rows and raw_text:
+                    signature = f"fallback|{safe_query.lower()}"
+                    if signature not in seen_signature:
+                        seen_signature.add(signature)
+                        documents.append(
+                            {
+                                "query": safe_query,
+                                "title": "Azure Learn MCP",
+                                "url": "",
+                                "content": _truncate_text(raw_text, max_chars=700),
+                            }
+                        )
+
+    return documents[:24], executed
+
+
+def _derive_learn_queries_from_findings(
+    architecture_context: Mapping[str, Any],
+    findings: list[dict[str, Any]],
+) -> list[str]:
+    queries: list[str] = []
+    services = _extract_waf_services_from_architecture_context(architecture_context)
+    for service in services[:3]:
+        queries.append(f"Azure Well-Architected best practices for {service}")
+
+    for finding in findings[:6]:
+        if not isinstance(finding, Mapping):
+            continue
+        title = str(finding.get("title") or "").strip()
+        pillar = str(finding.get("pillar") or "").strip().replace("_", " ")
+        if title and pillar:
+            queries.append(f"Azure {pillar} guidance for {title}")
+        elif title:
+            queries.append(f"Azure architecture guidance for {title}")
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for query in queries:
+        normalized = re.sub(r"\s+", " ", str(query or "").strip().lower())
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped.append(query)
+    return deduped[:5]
+
+
+def _determine_next_agent_action(
+    *,
+    state: Mapping[str, Any],
+    app_settings: Mapping[str, Any],
+    architecture_context: Mapping[str, Any],
+    foundry_agent_id: str | None,
+    foundry_thread_id: str | None,
+) -> dict[str, Any]:
+    actions_taken = state.get("actionsTaken") if isinstance(state.get("actionsTaken"), list) else []
+    if "CALL_WAF" not in actions_taken:
+        return {"action": "CALL_WAF", "reason": "WAF is mandatory and has not run yet."}
+
+    if state.get("iteration", 0) < AI_VALIDATION_MIN_ITERATIONS and "ANALYZE" not in actions_taken:
+        return {"action": "ANALYZE", "reason": "Need at least one analysis iteration before completion."}
+
+    if state.get("iteration", 0) >= AI_VALIDATION_MAX_ITERATIONS:
+        return {"action": "COMPLETE", "reason": "Reached max iterations."}
+
+    provider = str(app_settings.get("modelProvider") or "").strip().lower()
+    model_name = _first_non_empty(
+        app_settings,
+        "foundryModelReasoning",
+        "modelReasoning",
+        "foundryModelFast",
+        "modelFast",
+    )
+    safe_agent_id = str(foundry_agent_id or app_settings.get("foundryValidationAgentId") or "").strip()
+    safe_thread_id = str(foundry_thread_id or app_settings.get("foundryDefaultThreadId") or "").strip()
+    if provider == "azure-foundry" and model_name and safe_agent_id and safe_thread_id:
+        try:
+            base_connection = FoundryConnectionSettings.from_app_settings(app_settings)
+            connection = FoundryConnectionSettings(
+                endpoint=base_connection.endpoint,
+                tenant_id=base_connection.tenant_id,
+                client_id=base_connection.client_id,
+                client_secret=base_connection.client_secret,
+                model_deployment=str(model_name).strip(),
+                api_version=base_connection.api_version,
+            )
+            runner = FoundryAssistantRunner(connection, timeout_seconds=45, agent_name="architecture-validation-agent")
+            prompt_payload = {
+                "iteration": int(state.get("iteration") or 1),
+                "actionsTaken": actions_taken,
+                "hasWafResults": bool(state.get("wafResults")),
+                "knowledgeCount": len(state.get("knowledge") if isinstance(state.get("knowledge"), list) else []),
+                "insightCount": len(state.get("insights") if isinstance(state.get("insights"), list) else []),
+                "detectedServices": _extract_waf_services_from_architecture_context(architecture_context),
+            }
+            prompt = "\n".join(
+                [
+                    "You are controlling an Azure architecture validation agent loop.",
+                    "Return strict JSON only.",
+                    '{"action":"CALL_WAF|CALL_LEARN|ANALYZE|COMPLETE","reason":"..."}',
+                    "Rules: CALL_WAF must happen at least once. CALL_LEARN only if extra docs are needed. Prefer COMPLETE when sufficient context exists.",
+                    json.dumps(prompt_payload, ensure_ascii=False),
+                ]
+            )
+            response = runner.run_assistant(
+                assistant_id=safe_agent_id,
+                thread_id=safe_thread_id,
+                content=prompt,
+                allow_stateless_retry=True,
+            )
+            parsed = _extract_json_from_text(str(response.response_text or ""))
+            if isinstance(parsed, Mapping):
+                action = str(parsed.get("action") or "").strip().upper()
+                if action in {"CALL_WAF", "CALL_LEARN", "ANALYZE", "COMPLETE"}:
+                    return {
+                        "action": action,
+                        "reason": str(parsed.get("reason") or "Reasoning-model decision").strip() or "Reasoning-model decision",
+                    }
+        except Exception:
+            pass
+
+    knowledge = state.get("knowledge") if isinstance(state.get("knowledge"), list) else []
+    insights = state.get("insights") if isinstance(state.get("insights"), list) else []
+    if not knowledge and len(insights) < 2:
+        return {"action": "CALL_LEARN", "reason": "Need additional Azure guidance evidence."}
+    if len(insights) < 2:
+        return {"action": "ANALYZE", "reason": "Need one more analysis pass before completion."}
+    return {"action": "COMPLETE", "reason": "Sufficient findings and insights collected."}
+
+
+def _build_final_intelligent_report(
+    *,
+    architecture_context: Mapping[str, Any],
+    deterministic_findings: list[dict[str, Any]],
+    waf_findings: list[dict[str, Any]],
+    model_findings: list[dict[str, Any]],
+    learn_documents: list[dict[str, Any]],
+    project_name: str,
+    dual_pass_complete: bool,
+) -> dict[str, Any]:
+    all_findings = _dedupe_findings(deterministic_findings + waf_findings + model_findings)
+    grouped = _group_findings(all_findings)
+    organized = _organize_into_recommendations_and_quick_fixes(all_findings)
+
+    detected_services = _collect_detected_services(architecture_context)
+    config_issues: list[dict[str, Any]] = []
+    anti_patterns: list[dict[str, Any]] = []
+    missing_capabilities: list[dict[str, Any]] = []
+    recommended_patterns: list[dict[str, Any]] = []
+    priority_improvements: list[dict[str, Any]] = []
+    quick_fixes: list[dict[str, Any]] = []
+
+    for idx, finding in enumerate(all_findings[:60]):
+        if not isinstance(finding, Mapping):
+            continue
+        severity = _normalize_severity(finding.get("severity"))
+        pillar = str(finding.get("pillar") or "operational_excellence").strip() or "operational_excellence"
+        title = _normalize_string(finding.get("title"), "Validation finding")
+        message = _normalize_string(finding.get("message"))
+        target = finding.get("target") if isinstance(finding.get("target"), Mapping) else {}
+        resource_ref = _normalize_string(target.get("resourceId") or target.get("connectionId"), "global")
+
+        config_issues.append(
+            {
+                "id": _normalize_string(finding.get("id"), f"issue-{idx + 1}"),
+                "resource": resource_ref,
+                "issue": title,
+                "impact": message or "Architectural risk detected.",
+                "resolution": _normalize_string((finding.get("fix") or {}).get("label") if isinstance(finding.get("fix"), Mapping) else "Apply Azure best-practice remediation."),
+            }
+        )
+
+        if severity in {"failure", "warning"}:
+            anti_patterns.append(
+                {
+                    "name": title,
+                    "affected_components": [resource_ref],
+                    "risk": message or "High-impact anti-pattern.",
+                    "recommendation": "Refactor to an Azure Well-Architected pattern and enforce guardrails.",
+                }
+            )
+
+        if severity == "failure":
+            missing_capabilities.append(
+                {
+                    "capability": title,
+                    "importance": "critical",
+                    "reason": message or "Critical capability gap detected.",
+                    "suggested_services": _extract_waf_services_from_architecture_context(architecture_context)[:3],
+                }
+            )
+
+        if len(priority_improvements) < 10 and severity in {"failure", "warning"}:
+            priority_improvements.append(
+                {
+                    "rank": len(priority_improvements) + 1,
+                    "title": title,
+                    "description": message or "Improve architecture quality for this area.",
+                    "pillar": pillar,
+                    "impact": "high" if severity == "failure" else "medium",
+                    "effort": "medium",
+                    "azure_services": _extract_waf_services_from_architecture_context(architecture_context)[:4],
+                }
+            )
+
+        if len(quick_fixes) < 12 and severity in {"warning", "info"}:
+            quick_fixes.append(
+                {
+                    "title": title,
+                    "resource": resource_ref,
+                    "current_state": message or "Configuration needs improvement.",
+                    "target_state": "Aligned with Azure Well-Architected and service configuration guidance.",
+                    "impact": "medium" if severity == "warning" else "low",
+                }
+            )
+
+    for service in _extract_waf_services_from_architecture_context(architecture_context)[:8]:
+        recommended_patterns.append(
+            {
+                "name": f"{service} well-architected implementation",
+                "reason": f"Improve {service} alignment with Azure Well-Architected Framework recommendations.",
+                "components": [service],
+                "azure_services": [service],
+            }
+        )
+
+    if not recommended_patterns:
+        recommended_patterns.append(
+            {
+                "name": "Well-Architected baseline",
+                "reason": "Establish Azure architecture guardrails across reliability, security, and operations.",
+                "components": [project_name],
+                "azure_services": detected_services[:5],
+            }
+        )
+
+    recommendations_by_pillar = organized.get("recommendations") if isinstance(organized.get("recommendations"), Mapping) else {}
+    pillar_assessment: dict[str, dict[str, Any]] = {}
+    for pillar in WELL_ARCHITECTED_PILLARS:
+        items = recommendations_by_pillar.get(pillar) if isinstance(recommendations_by_pillar.get(pillar), list) else []
+        severities = {_normalize_severity(item.get("severity")) for item in items if isinstance(item, Mapping)}
+        pillar_assessment[pillar] = {
+            "status": "at_risk" if "failure" in severities else ("needs_improvement" if "warning" in severities else "acceptable"),
+            "findings": len(items),
+            "top_recommendations": [
+                _normalize_string(item.get("title"), "Recommendation")
+                for item in items[:3]
+                if isinstance(item, Mapping)
+            ],
+        }
+
+    architecture_maturity = {
+        "reliability": "needs-improvement" if pillar_assessment.get("reliability", {}).get("status") != "acceptable" else "good",
+        "security": "needs-improvement" if pillar_assessment.get("security", {}).get("status") != "acceptable" else "good",
+        "observability": "needs-improvement" if grouped.get("warning") else "good",
+        "scalability": "needs-improvement" if pillar_assessment.get("performance_efficiency", {}).get("status") != "acceptable" else "good",
+        "operational_maturity": "needs-improvement" if pillar_assessment.get("operational_excellence", {}).get("status") != "acceptable" else "good",
+        "overall_assessment": "maturing" if dual_pass_complete else "baseline",
+    }
+
+    architecture_summary = (
+        f"{project_name} architecture validation analyzed {len(detected_services)} detected services, "
+        f"{len(all_findings)} total findings, and {len(learn_documents)} supporting knowledge documents. "
+        "The report combines deterministic checks, Azure WAF evidence, and reasoning-model insights."
+    )
+
+    return {
+        "architecture_summary": architecture_summary,
+        "detected_services": detected_services,
+        "configuration_issues": config_issues[:40],
+        "architecture_antipatterns": anti_patterns[:25],
+        "recommended_patterns": recommended_patterns[:20],
+        "missing_capabilities": missing_capabilities[:25],
+        "architecture_maturity": architecture_maturity,
+        "pillar_assessment": pillar_assessment,
+        "priority_improvements": priority_improvements[:12],
+        "quick_configuration_fixes": quick_fixes[:20],
+    }
+
+
 def _collect_findings_from_mcp(
     *,
     app_settings: Mapping[str, Any],
@@ -2621,6 +3052,7 @@ def run_architecture_validation_agent(
     foundry_agent_id: str | None = None,
     foundry_thread_id: str | None = None,
     validation_run_id: str | None = None,
+    project_dir: Path | None = None,
 ) -> dict[str, Any]:
     safe_project_name = _normalize_string(project_name, "Project")
     safe_project_id = _normalize_string(project_id)
@@ -2629,8 +3061,50 @@ def run_architecture_validation_agent(
     if not run_id:
         run_id = f"val-{int(time.time() * 1000)}-{uuid4().hex[:6]}"
 
+    _append_stage_validation_log(project_dir, "Validation: AI Validation Agent Started")
+
     items = _coerce_canvas_items(canvas_state)
     connections = _coerce_canvas_connections(canvas_state)
+
+    ai_inputs = _load_ai_validation_inputs(project_dir)
+    graph_payload = ai_inputs.get("architecture_graph") if isinstance(ai_inputs.get("architecture_graph"), Mapping) else {}
+    if isinstance(graph_payload.get("nodes"), Mapping):
+        node_map = graph_payload.get("nodes") if isinstance(graph_payload.get("nodes"), Mapping) else {}
+        edge_rows = graph_payload.get("edges") if isinstance(graph_payload.get("edges"), list) else []
+
+        if not items:
+            synthetic_items: list[dict[str, Any]] = []
+            for node_id, node in node_map.items():
+                if not isinstance(node, Mapping):
+                    continue
+                synthetic_items.append(
+                    {
+                        "id": str(node_id),
+                        "name": str(node.get("name") or node_id),
+                        "resourceType": str(node.get("type") or node.get("resourceType") or "Azure Resource"),
+                        "properties": node.get("properties") if isinstance(node.get("properties"), Mapping) else {},
+                    }
+                )
+            items = synthetic_items
+
+        if not connections:
+            synthetic_connections: list[dict[str, Any]] = []
+            for index, edge in enumerate(edge_rows):
+                if not isinstance(edge, Mapping):
+                    continue
+                source = str(edge.get("from") or edge.get("source") or edge.get("fromId") or "").strip()
+                target = str(edge.get("to") or edge.get("target") or edge.get("toId") or "").strip()
+                if not source or not target:
+                    continue
+                synthetic_connections.append(
+                    {
+                        "id": str(edge.get("id") or f"edge-{index + 1}"),
+                        "fromId": source,
+                        "toId": target,
+                        "direction": str(edge.get("direction") or "one-way"),
+                    }
+                )
+            connections = synthetic_connections
 
     valid_resource_ids = {str(item.get("id") or "").strip() for item in items if str(item.get("id") or "").strip()}
     valid_connection_ids = {
@@ -2662,22 +3136,209 @@ def run_architecture_validation_agent(
     )
 
     deterministic = _deterministic_findings(items=items, connections=connections)
-    # Tag deterministic findings as quick fixes (canvas configuration issues)
     for finding in deterministic:
         finding.setdefault("source", "deterministic")
-        # Configuration issues typically relate to operational excellence or reliability
         if not finding.get("pillar"):
             if finding.get("severity") == "failure":
-                finding["pillar"] = "reliability"  # Missing required config affects reliability
+                finding["pillar"] = "reliability"
             else:
-                finding["pillar"] = "operational_excellence"  # Best practice config
+                finding["pillar"] = "operational_excellence"
 
-    mcp_findings, mcp_diagnostics = _collect_findings_from_mcp(
-        app_settings=app_settings,
-        architecture_context=architecture_context,
+    pre_mcp = ai_inputs.get("mcp_findings") if isinstance(ai_inputs.get("mcp_findings"), Mapping) else {}
+    pre_mcp_rows = pre_mcp.get("findings") if isinstance(pre_mcp.get("findings"), list) else []
+    normalized_pre_mcp = _extract_and_normalize_findings(
+        pre_mcp_rows,
         valid_resource_ids=valid_resource_ids,
         valid_connection_ids=valid_connection_ids,
-        project_id=safe_project_id,
+    )
+
+    pre_learn_docs = ai_inputs.get("azure_learn_docs") if isinstance(ai_inputs.get("azure_learn_docs"), Mapping) else {}
+    pre_learn_topics = pre_learn_docs.get("topics") if isinstance(pre_learn_docs.get("topics"), list) else []
+    initial_knowledge: list[dict[str, Any]] = []
+    for topic in pre_learn_topics:
+        if not isinstance(topic, Mapping):
+            continue
+        docs = topic.get("documents") if isinstance(topic.get("documents"), list) else []
+        for doc in docs[:3]:
+            if not isinstance(doc, Mapping):
+                continue
+            initial_knowledge.append(
+                {
+                    "query": str(topic.get("query") or "").strip(),
+                    "title": str(doc.get("source") or "Azure Learn").strip() or "Azure Learn",
+                    "url": str(doc.get("url") or "").strip(),
+                    "content": _truncate_text(doc.get("content") or "", max_chars=700),
+                }
+            )
+
+    state: dict[str, Any] = {
+        "context": {
+            "architecture_graph": ai_inputs.get("architecture_graph"),
+            "enricher_findings": ai_inputs.get("enricher_findings"),
+            "rule_engine_findings": ai_inputs.get("rule_engine_findings"),
+            "azure_learn_docs": ai_inputs.get("azure_learn_docs"),
+            "mcp_findings": ai_inputs.get("mcp_findings"),
+            "project_metadata": ai_inputs.get("project_metadata"),
+            "architecture_context": architecture_context,
+        },
+        "wafResults": None,
+        "knowledge": initial_knowledge,
+        "insights": [],
+        "actionsTaken": [],
+        "isComplete": False,
+        "iteration": 0,
+    }
+
+    mcp_findings: list[dict[str, Any]] = list(normalized_pre_mcp)
+    mcp_diagnostics = ValidationDiagnostics(
+        connection_state="connected" if normalized_pre_mcp else "partial",
+        explanation="Loaded pre-analyzed MCP findings." if normalized_pre_mcp else "No pre-analyzed MCP findings provided.",
+        finding_count=len(normalized_pre_mcp),
+        tools=[],
+    )
+    model_findings: list[dict[str, Any]] = []
+    model_diagnostics = ValidationDiagnostics(
+        connection_state="partial",
+        explanation="Reasoning engine not executed yet.",
+        finding_count=0,
+        tools=[],
+    )
+
+    iteration_steps: list[dict[str, Any]] = []
+    while not state["isComplete"] and int(state.get("iteration") or 0) < AI_VALIDATION_MAX_ITERATIONS:
+        state["iteration"] = int(state.get("iteration") or 0) + 1
+        decision = _determine_next_agent_action(
+            state=state,
+            app_settings=app_settings,
+            architecture_context=architecture_context,
+            foundry_agent_id=foundry_agent_id,
+            foundry_thread_id=foundry_thread_id,
+        )
+        action = str(decision.get("action") or "ANALYZE").strip().upper()
+        reason = str(decision.get("reason") or "").strip()
+        state["actionsTaken"].append(action)
+        _append_stage_validation_log(project_dir, f"Validation: AI Validation Agent Iteration {state['iteration']} Action={action} Reason={reason}")
+
+        if action == "CALL_WAF":
+            _append_stage_validation_log(project_dir, "Validation: AI Validation Agent Tool Call: WAF MCP")
+            waf_rows, waf_diag = _collect_findings_from_mcp(
+                app_settings=app_settings,
+                architecture_context=architecture_context,
+                valid_resource_ids=valid_resource_ids,
+                valid_connection_ids=valid_connection_ids,
+                project_id=safe_project_id,
+            )
+            mcp_findings = _dedupe_findings(mcp_findings + waf_rows)
+            mcp_diagnostics = waf_diag
+            state["wafResults"] = {
+                "connectionState": waf_diag.connection_state,
+                "findingCount": waf_diag.finding_count,
+                "explanation": waf_diag.explanation,
+            }
+            iteration_steps.append(
+                {
+                    "name": "waf-mcp",
+                    "state": waf_diag.connection_state,
+                    "findingCount": waf_diag.finding_count,
+                    "explanation": waf_diag.explanation,
+                    "details": {"iteration": state["iteration"], "decision": reason},
+                    "tools": waf_diag.tools or [],
+                }
+            )
+            continue
+
+        if action == "CALL_LEARN":
+            _append_stage_validation_log(project_dir, "Validation: AI Validation Agent Tool Call: LEARN MCP")
+            learn_queries = _derive_learn_queries_from_findings(architecture_context, mcp_findings or deterministic)
+            docs: list[dict[str, Any]] = []
+            executed_queries = 0
+            try:
+                docs, executed_queries = _run_async(_learn_mcp_search_async(queries=learn_queries, app_settings=app_settings))
+            except Exception:
+                docs, executed_queries = [], 0
+            state["knowledge"] = list(state.get("knowledge") or []) + docs
+            iteration_steps.append(
+                {
+                    "name": "learn-mcp",
+                    "state": "connected" if docs else "partial",
+                    "findingCount": len(docs),
+                    "explanation": f"Executed {executed_queries} Learn MCP queries.",
+                    "details": {
+                        "iteration": state["iteration"],
+                        "queries": learn_queries,
+                    },
+                    "tools": [],
+                }
+            )
+            continue
+
+        if action == "COMPLETE":
+            state["isComplete"] = True
+            iteration_steps.append(
+                {
+                    "name": "agent-complete",
+                    "state": "completed",
+                    "findingCount": len(mcp_findings) + len(model_findings),
+                    "explanation": reason or "Agent completed decision loop.",
+                    "details": {"iteration": state["iteration"]},
+                    "tools": [],
+                }
+            )
+            continue
+
+        _append_stage_validation_log(project_dir, "Validation: AI Validation Agent Tool Call: LLM Reasoning")
+        model_rows, model_diag = _collect_findings_from_reasoning_model(
+            app_settings=app_settings,
+            architecture_context=architecture_context,
+            valid_resource_ids=valid_resource_ids,
+            valid_connection_ids=valid_connection_ids,
+            mcp_findings=mcp_findings,
+            foundry_agent_id=foundry_agent_id,
+            foundry_thread_id=foundry_thread_id,
+        )
+        for finding in model_rows:
+            finding.setdefault("source", "reasoning_model")
+        model_findings = _dedupe_findings(model_findings + model_rows)
+        model_diagnostics = model_diag
+        state["insights"].append(
+            {
+                "iteration": state["iteration"],
+                "findingCount": len(model_rows),
+                "reason": reason,
+                "status": model_diag.connection_state,
+            }
+        )
+        iteration_steps.append(
+            {
+                "name": "analyze",
+                "state": model_diag.connection_state,
+                "findingCount": model_diag.finding_count,
+                "explanation": model_diag.explanation,
+                "details": {"iteration": state["iteration"], "decision": reason},
+                "tools": model_diag.tools or [],
+            }
+        )
+
+    if "CALL_WAF" not in state.get("actionsTaken", []):
+        _append_stage_validation_log(project_dir, "Validation: AI Validation Agent Tool Call: WAF MCP (forced)")
+        waf_rows, waf_diag = _collect_findings_from_mcp(
+            app_settings=app_settings,
+            architecture_context=architecture_context,
+            valid_resource_ids=valid_resource_ids,
+            valid_connection_ids=valid_connection_ids,
+            project_id=safe_project_id,
+        )
+        mcp_findings = _dedupe_findings(mcp_findings + waf_rows)
+        mcp_diagnostics = waf_diag
+        state["wafResults"] = {
+            "connectionState": waf_diag.connection_state,
+            "findingCount": waf_diag.finding_count,
+            "explanation": waf_diag.explanation,
+        }
+
+    dual_pass_complete = (
+        mcp_diagnostics.connection_state == "connected"
+        and model_diagnostics.connection_state == "connected"
     )
 
     _log_validation_event(
@@ -2694,19 +3355,6 @@ def run_architecture_validation_agent(
         },
     )
 
-    model_findings, model_diagnostics = _collect_findings_from_reasoning_model(
-        app_settings=app_settings,
-        architecture_context=architecture_context,
-        valid_resource_ids=valid_resource_ids,
-        valid_connection_ids=valid_connection_ids,
-        mcp_findings=mcp_findings,
-        foundry_agent_id=foundry_agent_id,
-        foundry_thread_id=foundry_thread_id,
-    )
-    # Tag model findings as recommendations from reasoning engine
-    for finding in model_findings:
-        finding.setdefault("source", "reasoning_model")
-
     _log_validation_event(
         "validation.channel",
         level="info" if model_diagnostics.connection_state == "connected" else "warning",
@@ -2720,11 +3368,6 @@ def run_architecture_validation_agent(
             "explanation": model_diagnostics.explanation,
             "usedMcpContext": bool(mcp_findings),
         },
-    )
-
-    dual_pass_complete = (
-        mcp_diagnostics.connection_state == "connected"
-        and model_diagnostics.connection_state == "connected"
     )
 
     normalized: list[dict[str, Any]] = []
@@ -2766,6 +3409,26 @@ def run_architecture_validation_agent(
         model_findings=model_findings,
     )
 
+    final_report = _build_final_intelligent_report(
+        architecture_context=architecture_context,
+        deterministic_findings=deterministic,
+        waf_findings=mcp_findings,
+        model_findings=model_findings,
+        learn_documents=state.get("knowledge") if isinstance(state.get("knowledge"), list) else [],
+        project_name=safe_project_name,
+        dual_pass_complete=dual_pass_complete,
+    )
+
+    if isinstance(project_dir, Path):
+        try:
+            report_path = project_dir / "Documentation" / "final_intelligent_report.json"
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(json.dumps(final_report, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+
+    _append_stage_validation_log(project_dir, "Validation: AI Validation Agent Completed")
+
     _log_validation_event(
         "validation.run",
         level="info",
@@ -2787,9 +3450,10 @@ def run_architecture_validation_agent(
         "ok": True,
         "runId": run_id,
         "evaluation": {
-            "mode": "azure-dual-pass",
+            "mode": "azure-ai-agent-loop",
             "dualPassComplete": dual_pass_complete,
             "steps": [
+                *iteration_steps,
                 {
                     "name": "azure-mcp",
                     "state": mcp_diagnostics.connection_state,
@@ -2817,6 +3481,7 @@ def run_architecture_validation_agent(
         "quick_configuration_fixes": organized["quick_fixes"]["quick_configuration_fixes"],
         "recommendations": organized["recommendations"],
         "quick_fixes": organized["quick_fixes"],
+        "final_intelligent_report": final_report,
         "sources": {
             "deterministic": {
                 "connectionState": "connected",
@@ -2833,6 +3498,11 @@ def run_architecture_validation_agent(
                 "findingCount": model_diagnostics.finding_count,
                 "explanation": model_diagnostics.explanation,
                 "usedMcpContext": bool(mcp_findings),
+            },
+            "learnMcp": {
+                "connectionState": "connected" if state.get("knowledge") else "partial",
+                "findingCount": len(state.get("knowledge") if isinstance(state.get("knowledge"), list) else []),
+                "explanation": "Azure Learn MCP knowledge retrieved during AI agent loop.",
             },
         },
     }
