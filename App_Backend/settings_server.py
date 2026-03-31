@@ -3420,6 +3420,14 @@ def run_ai_validation_agent_stage(project_id: str):
 
     step_results.append({"step": "finalize-output", "status": "completed"})
 
+    report_payload = result.get("final_intelligent_report") if isinstance(result.get("final_intelligent_report"), Mapping) else {}
+    if isinstance(report_payload, Mapping):
+        final_report_json_path = entry["projectDir"] / "Documentation" / "final-report.json"
+        try:
+            final_report_json_path.write_text(json.dumps(report_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
     artifact_path = "/Documentation/final_intelligent_report.json"
     return {
         "ok": bool(result.get("ok")),
@@ -3428,7 +3436,282 @@ def run_ai_validation_agent_stage(project_id: str):
         "status": "completed",
         "runId": str(result.get("runId") or ""),
         "evaluation": evaluation_payload,
-        "report": result.get("final_intelligent_report") if isinstance(result.get("final_intelligent_report"), Mapping) else {},
+        "report": report_payload,
+    }
+
+
+def _final_report_required_sections() -> list[str]:
+    return [
+        "architecture_summary",
+        "configuration_issues",
+        "architecture_antipatterns",
+        "recommended_patterns",
+        "missing_capabilities",
+        "pillar_assessment",
+        "priority_improvements",
+        "quick_configuration_fixes",
+    ]
+
+
+def _as_list(value: Any) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    if value in (None, ""):
+        return []
+    return [value]
+
+
+def _as_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _render_bullets(values: list[Any], *, fallback: str = "Not provided") -> list[str]:
+    items = [_as_text(value) for value in values if _as_text(value)]
+    if not items:
+        return [f"- {fallback}"]
+    return [f"- {item}" for item in items]
+
+
+def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
+    lines: list[str] = [
+        "# Azure Architecture Validation Report",
+        "",
+        "## Executive Summary",
+    ]
+
+    summary = _as_text(payload.get("architecture_summary"))
+    if summary:
+        lines.append(summary)
+    else:
+        lines.append("No executive summary provided.")
+
+    lines.extend(["", "## Detected Services"])
+    services = _as_list(payload.get("detected_services"))
+    if not services:
+        lines.append("- None")
+    else:
+        for service in services:
+            if isinstance(service, Mapping):
+                name = _as_text(service.get("name") or service.get("service") or service.get("type"))
+                detail = _as_text(service.get("description") or service.get("role"))
+                lines.append(f"- {name or 'Service'}{f': {detail}' if detail else ''}")
+            else:
+                lines.append(f"- {_as_text(service)}")
+
+    lines.extend(["", "## Configuration Issues"])
+    config_issues = _as_list(payload.get("configuration_issues"))
+    if not config_issues:
+        lines.append("- None")
+    else:
+        for index, issue in enumerate(config_issues, start=1):
+            if isinstance(issue, Mapping):
+                resource = _as_text(issue.get("resource") or issue.get("resource_name") or issue.get("target")) or "Not specified"
+                issue_text = _as_text(issue.get("issue") or issue.get("title") or issue.get("description")) or "Not specified"
+                impact = _as_text(issue.get("impact") or issue.get("risk")) or "Not specified"
+                resolution = _as_text(issue.get("resolution") or issue.get("recommendation") or issue.get("fix")) or "Not specified"
+            else:
+                resource, issue_text, impact, resolution = "Not specified", _as_text(issue) or "Not specified", "Not specified", "Not specified"
+            lines.extend(
+                [
+                    f"### {index}. {issue_text}",
+                    f"- Resource: {resource}",
+                    f"- Issue: {issue_text}",
+                    f"- Impact: {impact}",
+                    f"- Resolution: {resolution}",
+                ]
+            )
+
+    lines.extend(["", "## Architecture Anti-Patterns"])
+    anti_patterns = _as_list(payload.get("architecture_antipatterns"))
+    if not anti_patterns:
+        lines.append("- None")
+    else:
+        for index, item in enumerate(anti_patterns, start=1):
+            if isinstance(item, Mapping):
+                name = _as_text(item.get("name") or item.get("title")) or f"Anti-Pattern {index}"
+                risk = _as_text(item.get("risk") or item.get("impact")) or "Not specified"
+                recommendation = _as_text(item.get("recommendation") or item.get("resolution")) or "Not specified"
+            else:
+                name, risk, recommendation = _as_text(item) or f"Anti-Pattern {index}", "Not specified", "Not specified"
+            lines.extend(
+                [
+                    f"### {index}. {name}",
+                    f"- Risk: {risk}",
+                    f"- Recommendation: {recommendation}",
+                ]
+            )
+
+    lines.extend(["", "## Recommended Patterns"])
+    recommended_patterns = _as_list(payload.get("recommended_patterns"))
+    lines.extend(_render_bullets(recommended_patterns, fallback="None"))
+
+    lines.extend(["", "## Missing Capabilities"])
+    missing_capabilities = _as_list(payload.get("missing_capabilities"))
+    lines.extend(_render_bullets(missing_capabilities, fallback="None"))
+
+    lines.extend(["", "## Well-Architected Assessment"])
+    pillar_assessment = payload.get("pillar_assessment")
+    if isinstance(pillar_assessment, Mapping) and pillar_assessment:
+        for pillar_name, pillar_data in pillar_assessment.items():
+            pillar_label = _as_text(pillar_name) or "Pillar"
+            details = pillar_data if isinstance(pillar_data, Mapping) else {}
+            score = _as_text(details.get("score") or details.get("rating") or "Not provided")
+            strengths = _as_list(details.get("strengths"))
+            weaknesses = _as_list(details.get("weaknesses"))
+            recommendations = _as_list(details.get("recommendations"))
+            lines.extend(
+                [
+                    f"### {pillar_label}",
+                    f"- Score: {score}",
+                    "- Strengths:",
+                    *[f"  - {item}" for item in (_as_text(v) for v in strengths) if item],
+                    "- Weaknesses:",
+                    *[f"  - {item}" for item in (_as_text(v) for v in weaknesses) if item],
+                    "- Recommendations:",
+                    *[f"  - {item}" for item in (_as_text(v) for v in recommendations) if item],
+                ]
+            )
+    else:
+        lines.append("- Not provided")
+
+    lines.extend(["", "## Priority Improvements"])
+    priority_improvements = _as_list(payload.get("priority_improvements"))
+    lines.extend(_render_bullets(priority_improvements, fallback="None"))
+
+    lines.extend(["", "## Quick Fixes"])
+    quick_fixes = _as_list(payload.get("quick_configuration_fixes"))
+    lines.extend(_render_bullets(quick_fixes, fallback="None"))
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _run_final_report_stage(*, project_dir: Path) -> dict[str, Any]:
+    log_path = _ensure_validation_log_path(project_dir)
+    input_path = project_dir / "Documentation" / "final-report.json"
+    output_path = project_dir / "Documentation" / "final-report.md"
+
+    _append_input_verification_log(log_path, "INFO", "Final Report started")
+
+    step_results: list[dict[str, Any]] = []
+    step_results.append({"step": "load-ai-output", "status": "started"})
+
+    if not input_path.exists():
+        reason = "Input file not found: /Documentation/final-report.json"
+        step_results.append({"step": "load-ai-output", "status": "failed", "error": reason})
+        return {"ok": False, "errors": [reason], "stepResults": step_results}
+
+    try:
+        payload = json.loads(input_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        reason = f"Invalid JSON in /Documentation/final-report.json: {exc}"
+        step_results.append({"step": "load-ai-output", "status": "failed", "error": reason})
+        return {"ok": False, "errors": [reason], "stepResults": step_results}
+
+    if not isinstance(payload, Mapping):
+        reason = "Invalid JSON root: expected object"
+        step_results.append({"step": "load-ai-output", "status": "failed", "error": reason})
+        return {"ok": False, "errors": [reason], "stepResults": step_results}
+
+    _append_input_verification_log(log_path, "INFO", "AI output loaded")
+    step_results.append({"step": "load-ai-output", "status": "completed"})
+
+    required_sections = _final_report_required_sections()
+    missing_sections = [section for section in required_sections if section not in payload]
+    if missing_sections:
+        reason = f"Missing required fields: {', '.join(missing_sections)}"
+        step_results.append({"step": "format-report", "status": "failed", "error": reason})
+        return {"ok": False, "errors": [reason], "stepResults": step_results}
+
+    step_results.append({"step": "format-report", "status": "started"})
+    markdown_text = _format_final_report_markdown(payload)
+    step_results.append({"step": "format-report", "status": "completed"})
+
+    step_results.append({"step": "generate-artifacts", "status": "started"})
+    output_path.write_text(markdown_text, encoding="utf-8")
+    step_results.append({"step": "generate-artifacts", "status": "completed"})
+
+    _append_input_verification_log(log_path, "INFO", "Markdown report generated")
+    _append_input_verification_log(log_path, "INFO", "Final Report completed")
+
+    return {
+        "ok": True,
+        "artifactPath": "/Documentation/final-report.md",
+        "inputPath": "/Documentation/final-report.json",
+        "stepResults": step_results,
+    }
+
+
+@app.post("/api/project/{project_id}/validation/final-report")
+def run_final_report_stage(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    result = _run_final_report_stage(project_dir=entry["projectDir"])
+    if not result.get("ok"):
+        errors = result.get("errors") if isinstance(result.get("errors"), list) else []
+        detail = str(errors[0] if errors else "Final Report stage failed")
+        raise HTTPException(status_code=400, detail=detail)
+    return result
+
+
+@app.get("/api/project/{project_id}/validation/final-report/download")
+def download_final_report_markdown(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    report_path = entry["projectDir"] / "Documentation" / "final-report.md"
+    if not report_path.exists() or not report_path.is_file():
+        raise HTTPException(status_code=404, detail="Final report not found")
+
+    file_stem = sanitize_segment(str(entry.get("name") or entry["id"]), "project")
+    file_name = f"{file_stem}-final-report.md"
+
+    return FileResponse(
+        report_path,
+        media_type="text/markdown; charset=utf-8",
+        filename=file_name,
+    )
+
+
+@app.get("/api/project/{project_id}/validation/final-report/content")
+def get_final_report_content(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    report_path = entry["projectDir"] / "Documentation" / "final-report.md"
+    artifact_path = "/Documentation/final-report.md"
+    if not report_path.exists() or not report_path.is_file():
+        return {
+            "ok": True,
+            "exists": False,
+            "projectId": entry["id"],
+            "artifactPath": artifact_path,
+            "title": "",
+            "content": "",
+        }
+
+    try:
+        content = report_path.read_text(encoding="utf-8", errors="replace")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to read final report: {exc}") from exc
+
+    title = ""
+    for raw_line in content.splitlines():
+        line = str(raw_line or "").strip()
+        if line.startswith("# "):
+            title = line[2:].strip()
+            break
+
+    return {
+        "ok": True,
+        "exists": True,
+        "projectId": entry["id"],
+        "artifactPath": artifact_path,
+        "title": title,
+        "content": content,
     }
 
 

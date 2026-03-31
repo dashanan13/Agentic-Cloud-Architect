@@ -2028,6 +2028,11 @@ circle.canvas-edge-midpoint:hover {
   padding: 0;
 }
 
+.tips-content__stack {
+  display: grid;
+  gap: 10px;
+}
+
 .new-tip-progress {
   border: 1px solid #d9deea;
   border-radius: 8px;
@@ -2232,6 +2237,16 @@ circle.canvas-edge-midpoint:hover {
 
 .validation-stage-details__reason {
   color: #b91c1c;
+}
+
+.validation-stage-details__artifact-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.validation-stage-details__artifact-link:hover {
+  color: #1e40af;
 }
 
 .validation-stage-details__substeps {
@@ -2523,6 +2538,65 @@ circle.canvas-edge-midpoint:hover {
   line-height: 1.45;
   word-break: break-word;
   overflow-wrap: break-word;
+}
+
+.validation-report-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.validation-group--report-root .validation-group__toggle,
+.validation-group--report-section .validation-group__toggle {
+  background: #f4f7ff;
+}
+
+.validation-group--report-root .validation-group__toggle:hover,
+.validation-group--report-section .validation-group__toggle:hover {
+  background: #e9eefc;
+}
+
+.validation-group--report-subsection .validation-group__toggle {
+  background: #f8f9fb;
+}
+
+.validation-report__header {
+  display: grid;
+  gap: 6px;
+}
+
+.validation-report__meta,
+.validation-report__state,
+.validation-report__empty,
+.validation-report__paragraph {
+  margin: 0;
+  font-size: 0.69rem;
+  line-height: 1.5;
+  color: #4b5563;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.validation-report__state--error {
+  color: #b91c1c;
+}
+
+.validation-report__sections {
+  display: grid;
+  gap: 8px;
+}
+
+.validation-report__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: #374151;
+  font-size: 0.69rem;
+  line-height: 1.45;
+}
+
+.validation-report__list li {
+  margin: 0;
 }
 
 /* ---- Finding cards ---- */

@@ -118,6 +118,8 @@ let validationExpandedSections = new Set();
 let validationExpandedRunId = "";
 let validationRunInFlight = false;
 let validationPipelineCollapsed = false;
+let validationFinalReportState = null;
+let validationFinalReportLoading = false;
 // Live runtime status for validation steps
 let validationRuntimeState = {
   model: 'idle',
@@ -6616,9 +6618,335 @@ function renderValidationCollapsibleSection({
   ].join("");
 }
 
+function slugifyValidationReportKey(value, fallback = "section") {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return normalized || fallback;
+}
+
+function pushMarkdownBlock(targetBlocks, activeBlock) {
+  if (!activeBlock || !Array.isArray(targetBlocks)) {
+    return;
+  }
+
+  if (activeBlock.type === "paragraph") {
+    const text = Array.isArray(activeBlock.lines)
+      ? activeBlock.lines.map((line) => String(line || "").trim()).filter(Boolean).join(" ")
+      : "";
+    if (text) {
+      targetBlocks.push({ type: "paragraph", text });
+    }
+    return;
+  }
+
+  if (activeBlock.type === "list") {
+    const items = Array.isArray(activeBlock.items)
+      ? activeBlock.items.map((item) => String(item || "").trim()).filter(Boolean)
+      : [];
+    if (items.length) {
+      targetBlocks.push({ type: "list", items });
+    }
+  }
+}
+
+function parseFinalReportMarkdown(markdownText) {
+  const lines = String(markdownText || "").replace(/\r\n/g, "\n").split("\n");
+  const documentModel = {
+    title: "Final Report",
+    sections: [],
+  };
+
+  let currentSection = null;
+  let currentSubsection = null;
+  let activeBlock = null;
+
+  const getActiveBlocks = () => {
+    if (currentSubsection) {
+      return currentSubsection.blocks;
+    }
+    if (currentSection) {
+      return currentSection.blocks;
+    }
+    return null;
+  };
+
+  const flushActiveBlock = () => {
+    const targetBlocks = getActiveBlocks();
+    if (!targetBlocks || !activeBlock) {
+      activeBlock = null;
+      return;
+    }
+    pushMarkdownBlock(targetBlocks, activeBlock);
+    activeBlock = null;
+  };
+
+  lines.forEach((rawLine) => {
+    const line = String(rawLine || "");
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushActiveBlock();
+      return;
+    }
+
+    if (trimmed.startsWith("# ")) {
+      flushActiveBlock();
+      documentModel.title = trimmed.slice(2).trim() || documentModel.title;
+      return;
+    }
+
+    if (trimmed.startsWith("## ")) {
+      flushActiveBlock();
+      currentSubsection = null;
+      currentSection = {
+        key: `final-report:section:${slugifyValidationReportKey(trimmed.slice(3))}`,
+        title: trimmed.slice(3).trim() || "Section",
+        blocks: [],
+        subsections: [],
+      };
+      documentModel.sections.push(currentSection);
+      return;
+    }
+
+    if (trimmed.startsWith("### ")) {
+      flushActiveBlock();
+      if (!currentSection) {
+        currentSection = {
+          key: "final-report:section:general",
+          title: "General",
+          blocks: [],
+          subsections: [],
+        };
+        documentModel.sections.push(currentSection);
+      }
+
+      currentSubsection = {
+        key: `${currentSection.key}:sub:${slugifyValidationReportKey(trimmed.slice(4))}`,
+        title: trimmed.slice(4).trim() || "Subsection",
+        blocks: [],
+      };
+      currentSection.subsections.push(currentSubsection);
+      return;
+    }
+
+    const bulletMatch = trimmed.match(/^[-*]\s+(.*)$/);
+    if (bulletMatch) {
+      const itemText = String(bulletMatch[1] || "").trim();
+      if (!itemText) {
+        return;
+      }
+      if (!activeBlock || activeBlock.type !== "list") {
+        flushActiveBlock();
+        activeBlock = { type: "list", items: [] };
+      }
+      activeBlock.items.push(itemText);
+      return;
+    }
+
+    if (!activeBlock || activeBlock.type !== "paragraph") {
+      flushActiveBlock();
+      activeBlock = { type: "paragraph", lines: [] };
+    }
+    activeBlock.lines.push(trimmed);
+  });
+
+  flushActiveBlock();
+  return documentModel;
+}
+
+function renderFinalReportBlocks(blocks) {
+  const safeBlocks = Array.isArray(blocks) ? blocks : [];
+  if (!safeBlocks.length) {
+    return '<p class="validation-report__empty">No details available.</p>';
+  }
+
+  return safeBlocks.map((block) => {
+    if (block?.type === "list") {
+      const items = Array.isArray(block.items) ? block.items : [];
+      return `<ul class="validation-report__list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+    const text = String(block?.text || "").trim();
+    return text ? `<p class="validation-report__paragraph">${escapeHtml(text)}</p>` : "";
+  }).join("");
+}
+
+function buildFinalReportSectionMarkup(section) {
+  const safeSection = section && typeof section === "object" ? section : {};
+  const sectionBlocks = Array.isArray(safeSection.blocks) ? safeSection.blocks : [];
+  const subsections = Array.isArray(safeSection.subsections) ? safeSection.subsections : [];
+  const firstParagraphBlock = sectionBlocks.find((block) => block?.type === "paragraph" && String(block?.text || "").trim());
+  const summary = firstParagraphBlock ? String(firstParagraphBlock.text || "").trim() : "";
+  const remainingBlocks = summary ? sectionBlocks.filter((block) => block !== firstParagraphBlock) : sectionBlocks;
+  const bodySegments = [];
+
+  if (remainingBlocks.length) {
+    bodySegments.push(renderFinalReportBlocks(remainingBlocks));
+  }
+
+  if (subsections.length) {
+    bodySegments.push(
+      subsections.map((subsection) => {
+        const subsectionBlocks = Array.isArray(subsection.blocks) ? subsection.blocks : [];
+        const subsectionSummaryBlock = subsectionBlocks.find((block) => block?.type === "paragraph" && String(block?.text || "").trim());
+        const subsectionSummary = subsectionSummaryBlock ? String(subsectionSummaryBlock.text || "").trim() : "";
+        const subsectionRemainingBlocks = subsectionSummary ? subsectionBlocks.filter((block) => block !== subsectionSummaryBlock) : subsectionBlocks;
+        return renderValidationCollapsibleSection({
+          sectionKey: subsection.key,
+          title: subsection.title,
+          summary: subsectionSummary,
+          bodyMarkup: renderFinalReportBlocks(subsectionRemainingBlocks),
+          nested: true,
+          modifier: "report-subsection",
+        });
+      }).join("")
+    );
+  }
+
+  return renderValidationCollapsibleSection({
+    sectionKey: safeSection.key,
+    title: safeSection.title,
+    summary,
+    bodyMarkup: bodySegments.join(""),
+    modifier: "report-section",
+  });
+}
+
+function renderValidationFinalReportPanel() {
+  const panelEl = document.getElementById("validation-final-report-panel");
+  if (!panelEl) {
+    return;
+  }
+
+  const reportState = validationFinalReportState;
+  const hasReport = Boolean(reportState?.exists && reportState?.parsed && Array.isArray(reportState.parsed.sections));
+  const reportTitle = String(reportState?.title || reportState?.parsed?.title || "Final Report").trim() || "Final Report";
+  const artifactPath = String(reportState?.artifactPath || "/Documentation/final-report.md").trim();
+  const downloadHref = getFinalReportDownloadHref();
+
+  let bodyMarkup = '<p class="validation-report__empty">Run Final Report to generate a formatted architecture report.</p>';
+  if (validationFinalReportLoading) {
+    bodyMarkup = '<p class="validation-report__state">Loading final report...</p>';
+  } else if (reportState?.error) {
+    bodyMarkup = `<p class="validation-report__state validation-report__state--error">${escapeHtml(String(reportState.error || "Unable to load final report."))}</p>`;
+  } else if (hasReport) {
+    const sections = Array.isArray(reportState.parsed.sections) ? reportState.parsed.sections : [];
+    bodyMarkup = [
+      '<div class="validation-report__header">',
+      `<p class="validation-report__meta">Artifact: ${escapeHtml(artifactPath)}${downloadHref ? ` · <a class="validation-stage-details__artifact-link" href="${downloadHref}" download>Download</a>` : ""}</p>`,
+      '</div>',
+      sections.length
+        ? `<div class="validation-report__sections">${sections.map((section) => buildFinalReportSectionMarkup(section)).join("")}</div>`
+        : '<p class="validation-report__empty">No report sections were found.</p>',
+    ].join("");
+  }
+
+  panelEl.innerHTML = renderValidationCollapsibleSection({
+    sectionKey: "final-report:panel",
+    title: reportTitle,
+    summary: hasReport ? "Review each report area in its own collapsible section." : "The formatted validation report will appear here after Final Report completes.",
+    bodyMarkup,
+    modifier: "report-root",
+  });
+}
+
+async function requestFinalReportContent() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Final report content request failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/final-report/content`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Final report content request failed").trim();
+    throw new Error(detail);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, exists: false, content: "" };
+}
+
+async function maybeLoadValidationFinalReport(options = {}) {
+  const projectId = String(state.currentProject?.id || "").trim();
+  const force = Boolean(options.force);
+  const silent = Boolean(options.silent ?? true);
+
+  if (!projectId) {
+    validationFinalReportState = null;
+    renderValidationFinalReportPanel();
+    return;
+  }
+
+  if (validationFinalReportLoading) {
+    return;
+  }
+
+  const currentStateProjectId = String(validationFinalReportState?.projectId || "").trim();
+  if (!force && currentStateProjectId === projectId && (validationFinalReportState?.loaded || validationFinalReportState?.error)) {
+    return;
+  }
+
+  validationFinalReportLoading = true;
+  renderValidationFinalReportPanel();
+
+  try {
+    const payload = await requestFinalReportContent();
+    const content = String(payload?.content || "");
+    const parsed = payload?.exists ? parseFinalReportMarkdown(content) : null;
+    validationFinalReportState = {
+      loaded: true,
+      projectId,
+      exists: Boolean(payload?.exists),
+      title: String(payload?.title || parsed?.title || "").trim(),
+      artifactPath: String(payload?.artifactPath || "/Documentation/final-report.md").trim(),
+      content,
+      parsed,
+      error: "",
+    };
+
+    if (parsed?.sections?.length) {
+      validationExpandedSections.add("final-report:panel");
+      validationExpandedSections.add(parsed.sections[0].key);
+    }
+  } catch (error) {
+    validationFinalReportState = {
+      loaded: true,
+      projectId,
+      exists: false,
+      title: "Final Report",
+      artifactPath: "/Documentation/final-report.md",
+      content: "",
+      parsed: null,
+      error: error?.message || "Unable to load final report.",
+    };
+    if (!silent) {
+      setSaveStatus(validationFinalReportState.error, true);
+    }
+  } finally {
+    validationFinalReportLoading = false;
+    renderValidationFinalReportPanel();
+  }
+}
+
 function renderValidationTipsPanel() {
   ensureValidationPipelinePanel();
   renderValidationPipelinePanel();
+  renderValidationFinalReportPanel();
+  void maybeLoadValidationFinalReport({ silent: true });
 }
 
 async function loadArchitectureValidationStatus(options = {}) {
@@ -7206,6 +7534,14 @@ function setValidationStageDetailsFromPayload(stageKey, payload, substeps) {
   });
 }
 
+function getFinalReportDownloadHref() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    return "";
+  }
+  return `/api/project/${encodeURIComponent(projectId)}/validation/final-report/download`;
+}
+
 function renderValidationPipelineMilestone(stage) {
   const detail = validationPipelineStageDetails[stage.key] || {};
   const substeps = Array.isArray(detail.substeps) ? detail.substeps : [];
@@ -7216,15 +7552,20 @@ function renderValidationPipelineMilestone(stage) {
   const sectionKey = `validation-stage:${stage.key}`;
   const expanded = isValidationSectionExpanded(sectionKey);
   const stageReason = String(detail.error || failureStep?.reason || warningStep?.reason || "").trim();
-  const summaryBits = [];
-
-  if (detail.statusMessage) {
-    summaryBits.push(`Status: ${String(detail.statusMessage).trim()}`);
-  } else {
-    summaryBits.push(`Status: ${effectiveStageStatus}`);
-  }
-  if (detail.artifactPath) {
-    summaryBits.push(`Artifact: ${String(detail.artifactPath).trim()}`);
+  const statusSummary = detail.statusMessage
+    ? `Status: ${String(detail.statusMessage).trim()}`
+    : `Status: ${effectiveStageStatus}`;
+  const artifactPath = String(detail.artifactPath || "").trim();
+  let artifactMarkup = "";
+  if (artifactPath) {
+    if (stage.key === "final-report") {
+      const downloadHref = getFinalReportDownloadHref();
+      artifactMarkup = downloadHref
+        ? `<p class="validation-stage-details__artifact">Artifact: ${escapeHtml(artifactPath)} · <a class="validation-stage-details__artifact-link" href="${downloadHref}" download>Download</a></p>`
+        : `<p class="validation-stage-details__artifact">Artifact: ${escapeHtml(artifactPath)}</p>`;
+    } else {
+      artifactMarkup = `<p class="validation-stage-details__artifact">Artifact: ${escapeHtml(artifactPath)}</p>`;
+    }
   }
 
   const substepMarkup = substeps.length
@@ -7253,7 +7594,8 @@ function renderValidationPipelineMilestone(stage) {
     `<span class="new-tip-progress__milestone-chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
     '</button>',
     `<div class="new-tip-progress__milestone-body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>`,
-    summaryBits.length ? `<p class="validation-stage-details__summary">${escapeHtml(summaryBits.join(" · "))}</p>` : "",
+    `<p class="validation-stage-details__summary">${escapeHtml(statusSummary)}</p>`,
+    artifactMarkup,
     stageReason ? `<p class="validation-stage-details__reason">Reason: ${escapeHtml(stageReason)}</p>` : "",
     `<ul class="validation-stage-details__substeps">${substepMarkup}</ul>`,
     '</div>',
@@ -7272,23 +7614,26 @@ function ensureValidationPipelinePanel() {
   }
 
   tipsContentEl.innerHTML = `
-    <div class="new-tip-progress" id="validation-pipeline-progress">
-      <div class="new-tip-progress__summary">
-        <div class="new-tip-progress__summary-top" data-validation-pipeline-toggle role="button" tabindex="0" aria-expanded="true" aria-controls="validation-pipeline-body">
-          <span class="new-tip-progress__collapse-toggle">
-            <span class="new-tip-progress__title">Validation Pipeline Progress</span>
-            <span class="new-tip-progress__collapse-chevron" aria-hidden="true">▾</span>
-          </span>
-          <span id="validation-pipeline-percent" class="new-tip-progress__percent">0%</span>
+    <div class="tips-content__stack">
+      <div class="new-tip-progress" id="validation-pipeline-progress">
+        <div class="new-tip-progress__summary">
+          <div class="new-tip-progress__summary-top" data-validation-pipeline-toggle role="button" tabindex="0" aria-expanded="true" aria-controls="validation-pipeline-body">
+            <span class="new-tip-progress__collapse-toggle">
+              <span class="new-tip-progress__title">Validation Pipeline Progress</span>
+              <span class="new-tip-progress__collapse-chevron" aria-hidden="true">▾</span>
+            </span>
+            <span id="validation-pipeline-percent" class="new-tip-progress__percent">0%</span>
+          </div>
+          <div id="validation-pipeline-heatbar" data-validation-pipeline-toggle class="new-tip-progress__heatbar" style="--new-tip-progress: 0%; --new-tip-stage-width: ${VALIDATION_STAGE_WEIGHT}%;" aria-label="Validation pipeline progress" role="button" tabindex="0" aria-expanded="true" aria-controls="validation-pipeline-body">
+            <span class="new-tip-progress__fill" aria-hidden="true"></span>
+            <span class="new-tip-progress__marker" aria-hidden="true"></span>
+          </div>
         </div>
-        <div id="validation-pipeline-heatbar" data-validation-pipeline-toggle class="new-tip-progress__heatbar" style="--new-tip-progress: 0%; --new-tip-stage-width: ${VALIDATION_STAGE_WEIGHT}%;" aria-label="Validation pipeline progress" role="button" tabindex="0" aria-expanded="true" aria-controls="validation-pipeline-body">
-          <span class="new-tip-progress__fill" aria-hidden="true"></span>
-          <span class="new-tip-progress__marker" aria-hidden="true"></span>
+        <div id="validation-pipeline-body" class="new-tip-progress__body">
+          <ul id="validation-pipeline-milestones" class="new-tip-progress__milestones" aria-label="Validation milestones"></ul>
         </div>
       </div>
-      <div id="validation-pipeline-body" class="new-tip-progress__body">
-        <ul id="validation-pipeline-milestones" class="new-tip-progress__milestones" aria-label="Validation milestones"></ul>
-      </div>
+      <div id="validation-final-report-panel" class="validation-report-panel"></div>
     </div>`;
 }
 
@@ -7603,6 +7948,34 @@ async function requestAiValidationAgent() {
   }
 
   return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid AI validation response" };
+}
+
+async function requestFinalReport() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Final Report Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/final-report`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Final Report request failed").trim();
+    throw new Error(`Validation: Final Report Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid final report response" };
 }
 
 async function runInputVerificationStage() {
@@ -8048,7 +8421,7 @@ async function runAiValidationAgentStage() {
   return aiPayload;
 }
 
-async function runFinalReportStage(aiPayload) {
+async function runFinalReportStage() {
   const stageKey = "final-report";
   const stageStart = VALIDATION_STAGE_WEIGHT * 7;
   const stageEnd = VALIDATION_STAGE_WEIGHT * 8;
@@ -8056,33 +8429,53 @@ async function runFinalReportStage(aiPayload) {
 
   postInputVerificationMessage("Validation: Final Report Started");
   setValidationStageStatus(stageKey, "in-progress");
-  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.35), stageEnd), 220);
+  postInputVerificationMessage("Validation: Final Report Loading AI Output");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.2), stageEnd), 220);
 
-  const report = aiPayload && typeof aiPayload === "object" && aiPayload.report && typeof aiPayload.report === "object"
-    ? aiPayload.report
-    : null;
-  if (!report) {
-    setValidationStageDetails(stageKey, { error: "missing final report payload" });
-    throw new Error("Validation: Final Report Failed - missing final report payload");
+  const finalReportPayload = await requestFinalReport();
+
+  postInputVerificationMessage("Validation: Final Report Formatting Report");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.55), stageEnd), 220);
+
+  postInputVerificationMessage("Validation: Final Report Generating Artifacts");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.85), stageEnd), 220);
+
+  const substeps = [
+    {
+      key: "load-ai-output",
+      label: "Loading AI Output",
+      message: "Validation: Final Report Loading AI Output",
+    },
+    {
+      key: "format-report",
+      label: "Formatting Report",
+      message: "Validation: Final Report Formatting Report",
+    },
+    {
+      key: "generate-artifacts",
+      label: "Generating Artifacts",
+      message: "Validation: Final Report Generating Artifacts",
+    },
+  ];
+
+  setValidationStageDetailsFromPayload(stageKey, finalReportPayload, substeps);
+
+  if (!finalReportPayload.ok) {
+    const reason = String(finalReportPayload.error || "Final report generation failed").trim();
+    setValidationStageDetails(stageKey, { error: reason });
+    throw new Error(`Validation: Final Report Failed - ${reason}`);
   }
 
   setValidationStageDetails(stageKey, {
     statusMessage: "completed",
-    artifactPath: "/Documentation/final_intelligent_report.json",
-    substeps: [
-      {
-        key: "publish-final-report",
-        label: "Publish Final Report",
-        status: "completed",
-        reason: "Final intelligent report generated and persisted.",
-      },
-    ],
+    artifactPath: "/Documentation/final-report.md",
   });
 
   await animateValidationProgressTo(stageEnd, 260);
   setValidationStageStatus(stageKey, "completed");
   postInputVerificationMessage("Validation: Final Report Completed");
-  postInputVerificationMessage("Validation: Final Report Artifact: /Documentation/final_intelligent_report.json");
+  postInputVerificationMessage("Validation: Final Report Artifact: /Documentation/final-report.md");
+  await maybeLoadValidationFinalReport({ force: true, silent: true });
 }
 
 async function runValidationProcessStub() {
@@ -8117,7 +8510,7 @@ async function runValidationProcessStub() {
     currentStageKey = "ai-validation-agent";
     const aiPayload = await runAiValidationAgentStage();
     currentStageKey = "final-report";
-    await runFinalReportStage(aiPayload);
+    await runFinalReportStage();
   } catch (error) {
     const reason = String(error?.message || "Validation: Input Verification Failed - Unknown error").trim();
     if (currentStageKey) {
