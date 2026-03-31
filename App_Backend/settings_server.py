@@ -2275,6 +2275,321 @@ def run_rule_engine(project_id: str):
     return result
 
 
+def _sf_normalize_severity(value: Any) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized in {"high", "medium", "low"}:
+        return normalized
+    if normalized in {"critical"}:
+        return "high"
+    return "medium"
+
+
+def _sf_severity_rank(value: str) -> int:
+    order = {"low": 1, "medium": 2, "high": 3}
+    return order.get(str(value or "").strip().lower(), 1)
+
+
+def _sf_merge_severity(current: str, incoming: str) -> str:
+    return incoming if _sf_severity_rank(incoming) > _sf_severity_rank(current) else current
+
+
+def _sf_normalize_category(value: Any, *, message: str = "") -> str:
+    normalized = str(value or "").strip().lower()
+    allowed = {"security", "reliability", "cost", "performance", "operations", "networking", "connectivity", "configuration", "structure"}
+    if normalized in allowed:
+        if normalized == "networking" or normalized == "connectivity":
+            return "reliability"
+        if normalized in {"configuration", "structure"}:
+            return "operations"
+        return normalized
+
+    text = str(message or "").strip().lower()
+    if any(token in text for token in ("security", "nsg", "firewall", "ddos", "public")):
+        return "security"
+    if any(token in text for token in ("route", "connect", "reference", "network", "subnet", "vnet")):
+        return "reliability"
+    if any(token in text for token in ("cost", "unused", "optimiz", "sku")):
+        return "cost"
+    if any(token in text for token in ("latency", "throughput", "performance", "slow")):
+        return "performance"
+    return "operations"
+
+
+def _sf_issue_token(issue_id: Any, message: Any) -> str:
+    issue_id_value = str(issue_id or "").strip()
+    if issue_id_value:
+        return issue_id_value.split(":", 1)[0]
+
+    words = re.findall(r"[a-z0-9]+", str(message or "").lower())
+    if not words:
+        return "issue"
+    return "-".join(words[:6])
+
+
+def _sf_risk_title(*, category: str, resource_name: str, related_issues: list[str]) -> str:
+    title_map = {
+        "security": "Unprotected public network surface",
+        "reliability": "Network configuration reliability gaps",
+        "operations": "Operational governance and configuration gaps",
+        "cost": "Cost optimization and unused resource risk",
+        "performance": "Performance and scaling risk",
+    }
+    base = title_map.get(category, "Architecture risk cluster")
+    if resource_name:
+        return f"{base} ({resource_name})"
+    if related_issues:
+        return base
+    return "Architecture risk cluster"
+
+
+def _run_structured_findings_stage(*, project_dir: Path) -> dict[str, Any]:
+    log_path = _ensure_validation_log_path(project_dir)
+    graph_path = project_dir / "Documentation" / "architecture-graph.json"
+    enriched_path = project_dir / "Documentation" / "enriched-architecture.json"
+    rule_results_path = project_dir / "Documentation" / "rule-results.json"
+    output_path = project_dir / "Documentation" / "structured-findings.json"
+    output_artifact_ref = "/Documentation/structured-findings.json"
+
+    step_results: list[dict[str, Any]] = []
+
+    def _record(step: str, status: str, message: str, *, error: str | None = None) -> None:
+        level = "INFO" if status != "failed" else "ERROR"
+        _append_input_verification_log(log_path, level, message)
+        row: dict[str, Any] = {"step": step, "status": status}
+        if error:
+            row["error"] = error
+        step_results.append(row)
+
+    _append_input_verification_log(log_path, "INFO", "Structured Findings started")
+
+    _record("load-inputs", "started", "Loading Inputs")
+    if not graph_path.exists():
+        reason = "Missing /Documentation/architecture-graph.json. Run Graph Builder first."
+        _record("load-inputs", "failed", reason, error=reason)
+        return {"ok": False, "error": reason, "stepResults": step_results, "artifactPath": output_artifact_ref}
+    if not enriched_path.exists():
+        reason = "Missing /Documentation/enriched-architecture.json. Run Enricher first."
+        _record("load-inputs", "failed", reason, error=reason)
+        return {"ok": False, "error": reason, "stepResults": step_results, "artifactPath": output_artifact_ref}
+    if not rule_results_path.exists():
+        reason = "Missing /Documentation/rule-results.json. Run Rule Engine first."
+        _record("load-inputs", "failed", reason, error=reason)
+        return {"ok": False, "error": reason, "stepResults": step_results, "artifactPath": output_artifact_ref}
+
+    graph_payload = read_json_file(graph_path, {})
+    enriched_payload = read_json_file(enriched_path, {})
+    rules_payload = read_json_file(rule_results_path, {})
+
+    if not isinstance(graph_payload, Mapping) or not isinstance(enriched_payload, Mapping) or not isinstance(rules_payload, Mapping):
+        reason = "Invalid JSON structure in one or more input artifacts."
+        _record("load-inputs", "failed", reason, error=reason)
+        return {"ok": False, "error": reason, "stepResults": step_results, "artifactPath": output_artifact_ref}
+
+    nodes = graph_payload.get("nodes") if isinstance(graph_payload.get("nodes"), Mapping) else {}
+    edges = graph_payload.get("edges") if isinstance(graph_payload.get("edges"), list) else []
+    enriched_resources = enriched_payload.get("resources") if isinstance(enriched_payload.get("resources"), list) else []
+    rule_violations = rules_payload.get("violations") if isinstance(rules_payload.get("violations"), list) else []
+    _record("load-inputs", "completed", "Inputs loaded")
+
+    _record("normalize-data", "started", "Normalizing Data")
+    resources: list[dict[str, Any]] = []
+    resource_index: dict[str, dict[str, Any]] = {}
+    for node_id in sorted(str(key) for key in nodes.keys()):
+        node = nodes.get(node_id)
+        if not isinstance(node, Mapping):
+            continue
+        row = {
+            "id": node_id,
+            "type": _gb_normalize_resource_type(str(node.get("type") or node.get("resourceType") or "")),
+            "name": str(node.get("name") or node_id),
+        }
+        resources.append(row)
+        resource_index[node_id] = row
+
+    violation_seen: set[tuple[str, str]] = set()
+    violations: list[dict[str, Any]] = []
+    for violation in rule_violations:
+        if not isinstance(violation, Mapping):
+            continue
+        resource_id = str(violation.get("resourceId") or "global").strip() or "global"
+        message = str(violation.get("message") or "").strip()
+        if not message:
+            continue
+        dedupe_key = (resource_id, message.lower())
+        if dedupe_key in violation_seen:
+            continue
+        violation_seen.add(dedupe_key)
+        violations.append(
+            {
+                "id": str(violation.get("id") or _sf_issue_token("", message)).strip() or _sf_issue_token("", message),
+                "resourceId": resource_id,
+                "message": message,
+                "severity": _sf_normalize_severity(violation.get("severity")),
+                "category": _sf_normalize_category(violation.get("category"), message=message),
+            }
+        )
+
+    signal_seen: set[tuple[str, str, str]] = set()
+    signals: list[dict[str, Any]] = []
+    for resource in enriched_resources:
+        if not isinstance(resource, Mapping):
+            continue
+        resource_id = str(resource.get("id") or "").strip() or "global"
+        risks = resource.get("risks") if isinstance(resource.get("risks"), list) else []
+        for risk in risks:
+            if not isinstance(risk, Mapping):
+                continue
+            signal_type = str(risk.get("type") or "operations").strip().lower() or "operations"
+            message = str(risk.get("message") or "").strip()
+            if not message:
+                continue
+            dedupe_key = (signal_type, resource_id, message.lower())
+            if dedupe_key in signal_seen:
+                continue
+            signal_seen.add(dedupe_key)
+            signals.append({"type": signal_type, "resourceId": resource_id, "message": message})
+
+    global_risks = enriched_payload.get("globalRisks") if isinstance(enriched_payload.get("globalRisks"), list) else []
+    for item in global_risks:
+        message = str(item or "").strip()
+        if not message:
+            continue
+        dedupe_key = ("global", "global", message.lower())
+        if dedupe_key in signal_seen:
+            continue
+        signal_seen.add(dedupe_key)
+        signals.append({"type": "global", "resourceId": "global", "message": message})
+
+    _record("normalize-data", "completed", "Data normalized")
+
+    _record("group-issues", "started", "Grouping Issues")
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for violation in violations:
+        resource_id = str(violation.get("resourceId") or "global")
+        category = _sf_normalize_category(violation.get("category"), message=str(violation.get("message") or ""))
+        key = (resource_id, category)
+        group = grouped.setdefault(
+            key,
+            {
+                "resourceId": resource_id,
+                "category": category,
+                "severity": "low",
+                "related_issues": [],
+                "resources": set(),
+            },
+        )
+        group["severity"] = _sf_merge_severity(str(group.get("severity") or "low"), _sf_normalize_severity(violation.get("severity")))
+        group["resources"].add(resource_id)
+        token = _sf_issue_token(violation.get("id"), violation.get("message"))
+        if token not in group["related_issues"]:
+            group["related_issues"].append(token)
+
+    for signal in signals:
+        resource_id = str(signal.get("resourceId") or "global")
+        category = _sf_normalize_category(signal.get("type"), message=str(signal.get("message") or ""))
+        key = (resource_id, category)
+        group = grouped.setdefault(
+            key,
+            {
+                "resourceId": resource_id,
+                "category": category,
+                "severity": "low",
+                "related_issues": [],
+                "resources": set(),
+            },
+        )
+        signal_severity = "medium" if category in {"security", "reliability"} else "low"
+        group["severity"] = _sf_merge_severity(str(group.get("severity") or "low"), signal_severity)
+        group["resources"].add(resource_id)
+        token = _sf_issue_token("", signal.get("message"))
+        if token not in group["related_issues"]:
+            group["related_issues"].append(token)
+
+    risks: list[dict[str, Any]] = []
+    risk_index: dict[str, int] = {}
+    for (resource_id, category), group in sorted(grouped.items(), key=lambda item: (item[0][1], item[0][0])):
+        related_issues = [str(item) for item in group.get("related_issues") if str(item).strip()]
+        if not related_issues:
+            continue
+        risk_index[category] = risk_index.get(category, 0) + 1
+        resource_name = str(resource_index.get(resource_id, {}).get("name") or resource_id)
+        risks.append(
+            {
+                "id": f"risk-{category}-{risk_index[category]}",
+                "title": _sf_risk_title(category=category, resource_name=resource_name, related_issues=related_issues),
+                "severity": _sf_normalize_severity(group.get("severity")),
+                "category": category,
+                "resources": sorted({str(item) for item in group.get("resources", set()) if str(item).strip()}),
+                "related_issues": related_issues,
+            }
+        )
+    _record("group-issues", "completed", "Issues grouped")
+
+    _record("build-risk-summary", "started", "Building Risk Summary")
+    risk_summary: dict[str, list[str]] = {"high": [], "medium": [], "low": []}
+    for risk in risks:
+        severity = _sf_normalize_severity(risk.get("severity"))
+        risk_summary[severity].append(str(risk.get("id") or ""))
+    _record("build-risk-summary", "completed", "Risk summary built")
+
+    _record("finalize-output", "started", "Finalizing Output")
+    resource_types = sorted({str(resource.get("type") or "Azure Resource") for resource in resources})
+    assumptions = [str(item).strip() for item in (enriched_payload.get("assumptions") if isinstance(enriched_payload.get("assumptions"), list) else []) if str(item).strip()]
+    unknowns = [str(item).strip() for item in (enriched_payload.get("unknowns") if isinstance(enriched_payload.get("unknowns"), list) else []) if str(item).strip()]
+
+    architecture_notes: list[str] = []
+    architecture_notes.append(f"Graph edges detected: {len(edges)}")
+    if global_risks:
+        architecture_notes.append(f"Global risks detected: {len(global_risks)}")
+
+    output_payload = {
+        "architecture_summary": {
+            "resourceCount": len(resources),
+            "resourceTypes": resource_types,
+            "notes": architecture_notes,
+        },
+        "resources": resources,
+        "violations": violations,
+        "signals": signals,
+        "risks": risks,
+        "risk_summary": risk_summary,
+        "assumptions": assumptions,
+        "unknowns": unknowns,
+    }
+
+    if not resources and not violations and not signals and not risks:
+        reason = "Structured findings output is empty."
+        _record("finalize-output", "failed", reason, error=reason)
+        return {"ok": False, "error": reason, "stepResults": step_results, "artifactPath": output_artifact_ref}
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(output_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    _record("finalize-output", "completed", f"Structured findings written to {output_artifact_ref}")
+
+    _append_input_verification_log(log_path, "INFO", "Inputs loaded")
+    _append_input_verification_log(log_path, "INFO", f"Violations processed: {len(violations)}")
+    _append_input_verification_log(log_path, "INFO", f"Signals processed: {len(signals)}")
+    _append_input_verification_log(log_path, "INFO", f"Risks generated: {len(risks)}")
+    _append_input_verification_log(log_path, "INFO", "Structured Findings completed")
+
+    return {
+        "ok": True,
+        "artifactPath": output_artifact_ref,
+        "stepResults": step_results,
+        "structuredFindings": output_payload,
+    }
+
+
+@app.post("/api/project/{project_id}/validation/structured-findings")
+def run_structured_findings(project_id: str):
+    entry = find_project_entry(project_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    result = _run_structured_findings_stage(project_dir=entry["projectDir"])
+    return result
+
+
 def _kr_extract_text(content: Any) -> str:
     if isinstance(content, list):
         return "\n".join(str(getattr(item, "text", item)) for item in content)
@@ -2288,86 +2603,157 @@ def _kr_try_json(raw: str) -> Any:
         return None
 
 
-def _kr_normalize_issue_title(violation: Mapping[str, Any]) -> str:
-    message = str(violation.get("message") or "").strip()
-    if message:
-        return message
-    rule_id = str(violation.get("id") or "").strip()
-    if rule_id:
-        return rule_id
-    return "Azure architecture guidance topic"
+def _kr_normalize_risk_title(risk: Mapping[str, Any]) -> str:
+    title = str(risk.get("title") or "").strip()
+    if title:
+        return title
+    risk_id = str(risk.get("id") or "").strip()
+    if risk_id:
+        return risk_id
+    return "Azure architecture risk guidance"
 
 
-def _kr_build_query_for_violation(violation: Mapping[str, Any]) -> str:
-    issue_id = str(violation.get("id") or "").lower()
-    message = str(violation.get("message") or "").lower()
-    category = str(violation.get("category") or "").lower()
-    resource_type = str(violation.get("resourceType") or "").lower()
-
-    if "subnet" in message and "network security group" in message:
-        return "Azure subnet network security group best practices"
-    if "ddos" in message:
-        return "Azure DDoS protection when to enable"
-    if "public ip" in message and "associated" in message:
-        return "Azure public IP best practices cost optimization"
-    if "tag" in message:
-        return "Azure resource tagging strategy best practices"
-    if "route table" in message and "routes" in message:
-        return "Azure route table configuration guidelines"
-    if "route table" in message and "association" in message:
-        return "Azure subnet route table association best practices"
-    if "address space" in message or "vnet" in message:
-        return "Azure virtual network address space planning best practices"
-    if "dns" in message:
-        return "Azure DNS architecture and configuration best practices"
-    if "load distribution" in message or "load balancer" in message:
-        return "Azure load balancing architecture best practices"
-    if "traffic routing" in message:
-        return "Azure traffic routing strategy best practices"
-    if "zone redundancy" in message:
-        return "Azure availability zones high availability best practices"
-    if "location" in message:
-        return "Azure region selection and resource location governance"
-    if "broken reference" in message or "unresolved references" in message:
-        return "Azure resource dependency and reference validation best practices"
-
-    if "security" in category:
-        return f"Azure {resource_type or 'resource'} security best practices"
-    if "reliability" in category:
-        return f"Azure {resource_type or 'resource'} reliability best practices"
-    if "cost" in category:
-        return f"Azure {resource_type or 'resource'} cost optimization best practices"
-    if "performance" in category:
-        return f"Azure {resource_type or 'resource'} performance best practices"
-
-    token = issue_id.split(":", 1)[0].replace("-", " ").strip()
-    if token:
-        return f"Azure {token} best practices"
-    return f"Azure {resource_type or 'resource'} architecture best practices"
-
-
-def _kr_build_topics(violations: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    dedupe: dict[str, dict[str, Any]] = {}
-    for violation in violations:
-        if not isinstance(violation, Mapping):
+def _kr_compact_terms(values: list[str], *, max_items: int = 3) -> list[str]:
+    compact: list[str] = []
+    seen: set[str] = set()
+    for raw in values:
+        value = re.sub(r"\s+", " ", str(raw or "").strip())
+        if not value:
             continue
-        query = _kr_build_query_for_violation(violation)
+        key = value.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        compact.append(value)
+        if len(compact) >= max_items:
+            break
+    return compact
+
+
+def _kr_issue_terms(risk: Mapping[str, Any], *, max_items: int = 3) -> list[str]:
+    related = risk.get("related_issues") if isinstance(risk.get("related_issues"), list) else []
+    normalized: list[str] = []
+    for item in related:
+        token = str(item or "").strip().lower()
+        if not token:
+            continue
+        token = re.sub(r"[-_:]+", " ", token)
+        token = re.sub(r"\s+", " ", token).strip()
+        if token:
+            normalized.append(token)
+    return _kr_compact_terms(normalized, max_items=max_items)
+
+
+def _kr_resource_context(
+    risk: Mapping[str, Any],
+    *,
+    resource_lookup: Mapping[str, Mapping[str, Any]],
+    architecture_resource_types: list[str],
+) -> tuple[list[str], list[str]]:
+    resource_ids = risk.get("resources") if isinstance(risk.get("resources"), list) else []
+    resource_types: list[str] = []
+    resource_names: list[str] = []
+
+    for resource_id in resource_ids:
+        row = resource_lookup.get(str(resource_id)) if isinstance(resource_lookup, Mapping) else None
+        if not isinstance(row, Mapping):
+            continue
+        resource_type = str(row.get("type") or "").strip()
+        resource_name = str(row.get("name") or "").strip()
+        if resource_type:
+            resource_types.append(resource_type)
+        if resource_name:
+            resource_names.append(resource_name)
+
+    compact_types = _kr_compact_terms(resource_types, max_items=3)
+    compact_names = _kr_compact_terms(resource_names, max_items=2)
+
+    if not compact_types:
+        compact_types = _kr_compact_terms([str(item) for item in architecture_resource_types], max_items=2)
+
+    return compact_types, compact_names
+
+
+def _kr_build_query_for_risk(
+    risk: Mapping[str, Any],
+    *,
+    resource_lookup: Mapping[str, Mapping[str, Any]],
+    architecture_resource_types: list[str],
+) -> str:
+    title = _kr_normalize_risk_title(risk)
+    category = str(risk.get("category") or "").strip().lower()
+    severity = str(risk.get("severity") or "").strip().lower()
+    issue_terms = _kr_issue_terms(risk, max_items=3)
+    resource_types, resource_names = _kr_resource_context(
+        risk,
+        resource_lookup=resource_lookup,
+        architecture_resource_types=architecture_resource_types,
+    )
+
+    base_by_category = {
+        "security": "Azure security best practices for network exposure, identity access, and threat protection",
+        "reliability": "Azure reliability best practices for resilient dependencies, routing, and service continuity",
+        "cost": "Azure cost optimization best practices for right-sizing, idle resource cleanup, and SKU governance",
+        "performance": "Azure performance and scalability best practices for latency, throughput, and scaling",
+        "operations": "Azure operational excellence best practices for governance, tagging, monitoring, and policy",
+    }
+
+    base = base_by_category.get(category, "Azure architecture best practices for resilient and secure cloud design")
+    detail_parts: list[str] = [f"risk: {title}"]
+    if severity in {"high", "medium", "low"}:
+        detail_parts.append(f"severity: {severity}")
+    if resource_types:
+        detail_parts.append(f"resource types: {', '.join(resource_types)}")
+    if resource_names:
+        detail_parts.append(f"resource names: {', '.join(resource_names)}")
+    if issue_terms:
+        detail_parts.append(f"related issues: {', '.join(issue_terms)}")
+
+    query = f"{base}; {'; '.join(detail_parts)}"
+    query = re.sub(r"\s+", " ", query).strip()
+    return query[:320].rstrip("; ,")
+
+
+def _kr_build_topics(
+    risks: list[dict[str, Any]],
+    *,
+    resource_lookup: Mapping[str, Mapping[str, Any]],
+    architecture_resource_types: list[str],
+) -> list[dict[str, Any]]:
+    dedupe: dict[str, dict[str, Any]] = {}
+    sorted_risks = sorted(
+        risks,
+        key=lambda item: (
+            -_sf_severity_rank(str(item.get("severity") or "low")),
+            str(item.get("id") or ""),
+        ),
+    )
+    for risk in sorted_risks:
+        if not isinstance(risk, Mapping):
+            continue
+        query = _kr_build_query_for_risk(
+            risk,
+            resource_lookup=resource_lookup,
+            architecture_resource_types=architecture_resource_types,
+        )
         normalized_query = re.sub(r"\s+", " ", query).strip().lower()
         if not normalized_query:
             continue
 
         if normalized_query not in dedupe:
             dedupe[normalized_query] = {
-                "issueId": str(violation.get("id") or "").strip() or "unknown-issue",
-                "title": _kr_normalize_issue_title(violation),
+                "riskId": str(risk.get("id") or "").strip() or "unknown-risk",
+                "title": _kr_normalize_risk_title(risk),
                 "query": query.strip(),
                 "documents": [],
-                "_issueIds": [str(violation.get("id") or "").strip() or "unknown-issue"],
+                "_riskIds": [str(risk.get("id") or "").strip() or "unknown-risk"],
             }
         else:
-            dedupe[normalized_query]["_issueIds"].append(str(violation.get("id") or "").strip() or "unknown-issue")
+            dedupe[normalized_query]["_riskIds"].append(str(risk.get("id") or "").strip() or "unknown-risk")
 
-    return list(dedupe.values())
+    topics = list(dedupe.values())
+    max_topics = 12
+    return topics[:max_topics]
 
 
 def _kr_parse_documents_from_payload(payload: Any, *, raw_text: str) -> list[dict[str, Any]]:
@@ -2526,8 +2912,7 @@ async def _kr_query_azure_learn_mcp(
 
 def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, Any]) -> dict[str, Any]:
     log_path = _ensure_validation_log_path(project_dir)
-    rule_results_path = project_dir / "Documentation" / "rule-results.json"
-    enriched_path = project_dir / "Documentation" / "enriched-architecture.json"
+    structured_findings_path = project_dir / "Documentation" / "structured-findings.json"
     output_path = project_dir / "Documentation" / "knowledge-base.json"
     output_artifact_ref = "/Documentation/knowledge-base.json"
 
@@ -2543,21 +2928,10 @@ def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, 
 
     _append_input_verification_log(log_path, "INFO", "Knowledge Retrieval started")
 
-    if not rule_results_path.exists():
-        reason = "Missing /Documentation/rule-results.json. Run Rule Engine first."
-        _record("load-inputs", "started", "Loading Inputs")
-        _record("load-inputs", "failed", reason, error=reason)
-        return {
-            "ok": False,
-            "error": reason,
-            "stepResults": step_results,
-            "artifactPath": output_artifact_ref,
-            "status": "mcp_available",
-        }
-    if not enriched_path.exists():
-        reason = "Missing /Documentation/enriched-architecture.json. Run Enricher first."
-        _record("load-inputs", "started", "Loading Inputs")
-        _record("load-inputs", "failed", reason, error=reason)
+    if not structured_findings_path.exists():
+        reason = "Missing /Documentation/structured-findings.json. Run Structured Findings first."
+        _record("load-structured-findings", "started", "Loading Structured Findings")
+        _record("load-structured-findings", "failed", reason, error=reason)
         return {
             "ok": False,
             "error": reason,
@@ -2586,7 +2960,7 @@ def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, 
     _append_input_verification_log(
         log_path,
         "INFO" if mcp_status == "mcp_available" else "WARN",
-        f"MCP connectivity checked: {'available' if mcp_status == 'mcp_available' else 'unavailable'}",
+        f"MCP connectivity: {'available' if mcp_status == 'mcp_available' else 'unavailable'}",
     )
     _record(
         "check-mcp-availability",
@@ -2609,13 +2983,12 @@ def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, 
             "status": "mcp_unavailable",
         }
 
-    _record("load-inputs", "started", "Loading Inputs")
+    _record("load-structured-findings", "started", "Loading Structured Findings")
 
-    rule_results = read_json_file(rule_results_path, {})
-    enriched_payload = read_json_file(enriched_path, {})
-    if not isinstance(rule_results, Mapping) or not isinstance(enriched_payload, Mapping):
-        reason = "Invalid input structure in rule-results or enriched-architecture files."
-        _record("load-inputs", "failed", reason, error=reason)
+    structured_findings = read_json_file(structured_findings_path, {})
+    if not isinstance(structured_findings, Mapping):
+        reason = "Invalid structured findings artifact structure."
+        _record("load-structured-findings", "failed", reason, error=reason)
         return {
             "ok": False,
             "error": reason,
@@ -2624,14 +2997,32 @@ def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, 
             "status": "mcp_available",
         }
 
-    violations = rule_results.get("violations") if isinstance(rule_results.get("violations"), list) else []
-    _record("load-inputs", "completed", f"Loaded Inputs: {len(violations)} violations")
+    risks = structured_findings.get("risks") if isinstance(structured_findings.get("risks"), list) else []
+    resources = structured_findings.get("resources") if isinstance(structured_findings.get("resources"), list) else []
+    architecture_summary = structured_findings.get("architecture_summary") if isinstance(structured_findings.get("architecture_summary"), Mapping) else {}
+    architecture_resource_types = architecture_summary.get("resourceTypes") if isinstance(architecture_summary.get("resourceTypes"), list) else []
+    resource_lookup: dict[str, dict[str, Any]] = {}
+    for item in resources:
+        if not isinstance(item, Mapping):
+            continue
+        resource_id = str(item.get("id") or "").strip()
+        if not resource_id:
+            continue
+        resource_lookup[resource_id] = {
+            "type": str(item.get("type") or "").strip(),
+            "name": str(item.get("name") or "").strip(),
+        }
+    _record("load-structured-findings", "completed", f"Loaded Structured Findings: {len(risks)} risks")
 
-    _record("map-issues-to-topics", "started", "Mapping Issues to Topics")
-    topics = _kr_build_topics([dict(item) for item in violations if isinstance(item, Mapping)])
-    _append_input_verification_log(log_path, "INFO", f"Issues processed: {len(violations)}")
+    _record("map-risks-to-topics", "started", "Mapping Risks to Topics")
+    topics = _kr_build_topics(
+        [dict(item) for item in risks if isinstance(item, Mapping)],
+        resource_lookup=resource_lookup,
+        architecture_resource_types=[str(item) for item in architecture_resource_types if str(item).strip()],
+    )
+    _append_input_verification_log(log_path, "INFO", f"Risks processed: {len(risks)}")
     _append_input_verification_log(log_path, "INFO", f"Topics generated: {len(topics)}")
-    _record("map-issues-to-topics", "completed", f"Mapped Topics: {len(topics)}")
+    _record("map-risks-to-topics", "completed", f"Mapped Topics: {len(topics)}")
 
     _record("query-azure-learn-mcp", "started", "Querying Azure Learn MCP")
     query_list = [str(topic.get("query") or "").strip() for topic in topics if str(topic.get("query") or "").strip()]
@@ -2670,7 +3061,7 @@ def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, 
         documents = query_results.get(query) if isinstance(query_results.get(query), list) else []
         output_topics.append(
             {
-                "issueId": str(topic.get("issueId") or "unknown-issue"),
+                "riskId": str(topic.get("riskId") or "unknown-risk"),
                 "title": str(topic.get("title") or "Azure guidance topic"),
                 "query": query,
                 "documents": documents[:3],

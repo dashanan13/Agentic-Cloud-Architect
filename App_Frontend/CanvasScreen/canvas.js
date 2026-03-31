@@ -7041,8 +7041,8 @@ const VALIDATION_PIPELINE_STAGES = [
   { key: "graph-builder", label: "🧱 Graph Builder" },
   { key: "enricher", label: "⚡ Enricher" },
   { key: "rule-engine", label: "📏 Rule Engine" },
-  { key: "azure-learn-mcp", label: "📚 Azure Learn MCP" },
   { key: "structured-findings", label: "📊 Structured Findings" },
+  { key: "azure-learn-mcp", label: "📚 Azure Learn MCP" },
   { key: "ai-validation-agent", label: "🧠 AI Validation Agent" },
   { key: "final-report", label: "📄 Final Report" },
 ];
@@ -7334,6 +7334,34 @@ async function requestKnowledgeRetrieval() {
   return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid knowledge retrieval response" };
 }
 
+async function requestStructuredFindings() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    throw new Error("Validation: Structured Findings Failed - missing project ID");
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/structured-findings`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail = String(payload?.detail || "Structured Findings request failed").trim();
+    throw new Error(`Validation: Structured Findings Failed - ${detail}`);
+  }
+
+  return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid structured findings response" };
+}
+
 async function runInputVerificationStage() {
   const stageKey = "validate";
   const stageProgressWeight = VALIDATION_STAGE_WEIGHT;
@@ -7539,13 +7567,13 @@ async function runRuleEngineStage() {
 
 async function runKnowledgeRetrievalStage() {
   const stageKey = "azure-learn-mcp";
-  const stageStart = VALIDATION_STAGE_WEIGHT * 4;
-  const stageEnd = VALIDATION_STAGE_WEIGHT * 5;
+  const stageStart = VALIDATION_STAGE_WEIGHT * 5;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 6;
   const stageSpan = stageEnd - stageStart;
   const substeps = [
     { key: "check-mcp-availability", message: "Validation: Knowledge Retrieval Checking MCP Availability" },
-    { key: "load-inputs", message: "Validation: Knowledge Retrieval Loading Inputs" },
-    { key: "map-issues-to-topics", message: "Validation: Knowledge Retrieval Mapping Issues to Topics" },
+    { key: "load-structured-findings", message: "Validation: Knowledge Retrieval Loading Structured Findings" },
+    { key: "map-risks-to-topics", message: "Validation: Knowledge Retrieval Mapping Risks to Topics" },
     { key: "query-azure-learn-mcp", message: "Validation: Knowledge Retrieval Querying Azure Learn MCP" },
     { key: "process-results", message: "Validation: Knowledge Retrieval Processing Results" },
     { key: "finalize-output", message: "Validation: Knowledge Retrieval Finalizing Output" },
@@ -7595,6 +7623,56 @@ async function runKnowledgeRetrievalStage() {
   postInputVerificationMessage("Validation: Knowledge Retrieval Artifact: /Documentation/knowledge-base.json");
 }
 
+async function runStructuredFindingsStage() {
+  const stageKey = "structured-findings";
+  const stageStart = VALIDATION_STAGE_WEIGHT * 4;
+  const stageEnd = VALIDATION_STAGE_WEIGHT * 5;
+  const stageSpan = stageEnd - stageStart;
+  const substeps = [
+    { key: "load-inputs", message: "Validation: Structured Findings Loading Inputs" },
+    { key: "normalize-data", message: "Validation: Structured Findings Normalizing Data" },
+    { key: "group-issues", message: "Validation: Structured Findings Grouping Issues" },
+    { key: "build-risk-summary", message: "Validation: Structured Findings Building Risk Summary" },
+    { key: "finalize-output", message: "Validation: Structured Findings Finalizing Output" },
+  ];
+
+  postInputVerificationMessage("Validation: Structured Findings Started");
+  setValidationStageStatus(stageKey, "in-progress");
+  await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
+
+  const structuredPayload = await requestStructuredFindings();
+  const stepResults = Array.isArray(structuredPayload.stepResults) ? structuredPayload.stepResults : [];
+
+  let completedSubsteps = 0;
+  for (const substep of substeps) {
+    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+    if (!stepRecord) {
+      break;
+    }
+
+    postInputVerificationMessage(substep.message);
+    completedSubsteps += 1;
+    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+    await animateValidationProgressTo(target, 280);
+
+    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+      const reason = String(stepRecord.error || structuredPayload.error || "Unknown error").trim();
+      throw new Error(`Validation: Structured Findings Failed - ${reason}`);
+    }
+  }
+
+  if (!structuredPayload.ok) {
+    const reason = String(structuredPayload.error || "Structured Findings failed").trim();
+    throw new Error(`Validation: Structured Findings Failed - ${reason}`);
+  }
+
+  setValidationStageStatus(stageKey, "completed");
+  await animateValidationProgressTo(stageEnd, 280);
+  postInputVerificationMessage("Validation: Structured Findings Completed");
+  postInputVerificationMessage("Validation: Structured Findings Artifact: /Documentation/structured-findings.json");
+}
+
 async function runValidationProcessStub() {
   if (!btnValidate || validationPipelineStubInFlight) {
     return;
@@ -7620,6 +7698,8 @@ async function runValidationProcessStub() {
     await runEnricherStage();
     currentStageKey = "rule-engine";
     await runRuleEngineStage();
+    currentStageKey = "structured-findings";
+    await runStructuredFindingsStage();
     currentStageKey = "azure-learn-mcp";
     await runKnowledgeRetrievalStage();
   } catch (error) {
@@ -7632,6 +7712,7 @@ async function runValidationProcessStub() {
       || reason.startsWith("Validation: Input Verification Failed -")
       || reason.startsWith("Validation: Enricher Failed -")
       || reason.startsWith("Validation: Rule Engine Failed -")
+      || reason.startsWith("Validation: Structured Findings Failed -")
       || reason.startsWith("Validation: Knowledge Retrieval Failed -")
     ) {
       postInputVerificationMessage(reason, true);
@@ -7642,6 +7723,8 @@ async function runValidationProcessStub() {
           ? "Validation: Enricher Failed -"
           : currentStageKey === "rule-engine"
             ? "Validation: Rule Engine Failed -"
+            : currentStageKey === "structured-findings"
+              ? "Validation: Structured Findings Failed -"
             : currentStageKey === "azure-learn-mcp"
               ? "Validation: Knowledge Retrieval Failed -"
           : "Validation: Input Verification Failed -";
