@@ -3555,20 +3555,48 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
         for pillar_name, pillar_data in pillar_assessment.items():
             pillar_label = _as_text(pillar_name) or "Pillar"
             details = pillar_data if isinstance(pillar_data, Mapping) else {}
-            score = _as_text(details.get("score") or details.get("rating") or "Not provided")
+            status = _as_text(details.get("status") or details.get("score") or details.get("rating") or "Not provided")
+            findings_value = details.get("findings")
+            findings_count = "Not provided" if findings_value is None else str(findings_value).strip()
+            if not findings_count:
+                findings_count = "Not provided"
+            top_recommendations = _as_list(details.get("top_recommendations"))
+
             strengths = _as_list(details.get("strengths"))
             weaknesses = _as_list(details.get("weaknesses"))
             recommendations = _as_list(details.get("recommendations"))
+
+            if not strengths and status.lower() in {"acceptable", "good", "healthy", "passed"}:
+                strengths = ["Current architecture controls are broadly aligned for this pillar."]
+
+            if not weaknesses and status.lower() in {"needs_improvement", "needs-improvement", "warning", "poor", "critical"}:
+                weaknesses = top_recommendations
+
+            if not recommendations:
+                recommendations = top_recommendations
+
+            strength_lines = [f"  - {item}" for item in (_as_text(v) for v in strengths) if item]
+            weakness_lines = [f"  - {item}" for item in (_as_text(v) for v in weaknesses) if item]
+            recommendation_lines = [f"  - {item}" for item in (_as_text(v) for v in recommendations) if item]
+
+            if not strength_lines:
+                strength_lines = ["  - None"]
+            if not weakness_lines:
+                weakness_lines = ["  - None"]
+            if not recommendation_lines:
+                recommendation_lines = ["  - None"]
+
             lines.extend(
                 [
                     f"### {pillar_label}",
-                    f"- Score: {score}",
+                    f"- Status: {status}",
+                    f"- Findings: {findings_count}",
                     "- Strengths:",
-                    *[f"  - {item}" for item in (_as_text(v) for v in strengths) if item],
+                    *strength_lines,
                     "- Weaknesses:",
-                    *[f"  - {item}" for item in (_as_text(v) for v in weaknesses) if item],
+                    *weakness_lines,
                     "- Recommendations:",
-                    *[f"  - {item}" for item in (_as_text(v) for v in recommendations) if item],
+                    *recommendation_lines,
                 ]
             )
     else:
