@@ -117,6 +117,7 @@ let validationResultState = null;
 let validationExpandedSections = new Set();
 let validationExpandedRunId = "";
 let validationRunInFlight = false;
+let validationPipelineCollapsed = false;
 // Live runtime status for validation steps
 let validationRuntimeState = {
   model: 'idle',
@@ -6709,6 +6710,13 @@ async function runArchitectureValidation() {
 }
 
 tipsContentEl?.addEventListener("click", async (event) => {
+  const pipelineToggleButton = event.target.closest("[data-validation-pipeline-toggle]");
+  if (pipelineToggleButton) {
+    validationPipelineCollapsed = !validationPipelineCollapsed;
+    renderValidationTipsPanel();
+    return;
+  }
+
   const toggleButton = event.target.closest("[data-validation-group-toggle]");
   if (toggleButton) {
     const toggleValue = String(toggleButton.dataset.validationGroupToggle || "").trim();
@@ -6723,6 +6731,22 @@ tipsContentEl?.addEventListener("click", async (event) => {
     return;
   }
 
+});
+
+tipsContentEl?.addEventListener("keydown", (event) => {
+  const key = String(event.key || "").toLowerCase();
+  if (key !== "enter" && key !== " ") {
+    return;
+  }
+
+  const pipelineToggleButton = event.target.closest("[data-validation-pipeline-toggle]");
+  if (!pipelineToggleButton) {
+    return;
+  }
+
+  event.preventDefault();
+  validationPipelineCollapsed = !validationPipelineCollapsed;
+  renderValidationTipsPanel();
 });
 
 function appendChatMessage(message, autoScroll = true) {
@@ -7182,62 +7206,59 @@ function setValidationStageDetailsFromPayload(stageKey, payload, substeps) {
   });
 }
 
-function renderValidationPipelineStageDetails() {
-  if (!tipsContentEl) {
-    return;
+function renderValidationPipelineMilestone(stage) {
+  const detail = validationPipelineStageDetails[stage.key] || {};
+  const substeps = Array.isArray(detail.substeps) ? detail.substeps : [];
+  const failureStep = substeps.find((item) => item.status === "failed");
+  const warningStep = substeps.find((item) => item.status === "warning");
+  const stageStatus = validationPipelineUiState.stageStatuses[stage.key] || "not-started";
+  const effectiveStageStatus = failureStep ? "failed" : stageStatus;
+  const sectionKey = `validation-stage:${stage.key}`;
+  const expanded = isValidationSectionExpanded(sectionKey);
+  const stageReason = String(detail.error || failureStep?.reason || warningStep?.reason || "").trim();
+  const summaryBits = [];
+
+  if (detail.statusMessage) {
+    summaryBits.push(`Status: ${String(detail.statusMessage).trim()}`);
+  } else {
+    summaryBits.push(`Status: ${effectiveStageStatus}`);
+  }
+  if (detail.artifactPath) {
+    summaryBits.push(`Artifact: ${String(detail.artifactPath).trim()}`);
   }
 
-  const detailsEl = tipsContentEl.querySelector("#validation-pipeline-details");
-  if (!detailsEl) {
-    return;
-  }
+  const substepMarkup = substeps.length
+    ? substeps.map((substep) => {
+      const statusClass = normalizeValidationSubstepStatus(substep.status);
+      const statusLabel = getValidationSubstepStatusLabel(substep.status);
+      return [
+        '<li class="validation-stage-details__substep">',
+        '<div class="validation-stage-details__substep-top">',
+        `<span class="validation-stage-details__substep-name">${escapeHtml(substep.label || "Substep")}</span>`,
+        `<span class="validation-stage-details__substep-status validation-stage-details__substep-status--${statusClass}">${escapeHtml(statusLabel)}</span>`,
+        '</div>',
+        substep.reason ? `<p class="validation-stage-details__substep-reason">${escapeHtml(substep.reason)}</p>` : "",
+        '</li>'
+      ].join("");
+    }).join("")
+    : '<li class="validation-stage-details__empty">No substeps available yet.</li>';
 
-  const stageSections = VALIDATION_PIPELINE_STAGES.map((stage) => {
-    const detail = validationPipelineStageDetails[stage.key] || {};
-    const substeps = Array.isArray(detail.substeps) ? detail.substeps : [];
-    const failureStep = substeps.find((item) => item.status === "failed");
-    const warningStep = substeps.find((item) => item.status === "warning");
-    const stageStatus = validationPipelineUiState.stageStatuses[stage.key] || "not-started";
-    const stageReason = String(detail.error || failureStep?.reason || warningStep?.reason || "").trim();
-
-    const substepMarkup = substeps.length
-      ? substeps.map((substep) => {
-        const statusClass = normalizeValidationSubstepStatus(substep.status);
-        const statusLabel = getValidationSubstepStatusLabel(substep.status);
-        return [
-          '<li class="validation-stage-details__substep">',
-          '<div class="validation-stage-details__substep-top">',
-          `<span class="validation-stage-details__substep-name">${escapeHtml(substep.label || "Substep")}</span>`,
-          `<span class="validation-stage-details__substep-status validation-stage-details__substep-status--${statusClass}">${escapeHtml(statusLabel)}</span>`,
-          '</div>',
-          substep.reason
-            ? `<p class="validation-stage-details__substep-reason">${escapeHtml(substep.reason)}</p>`
-            : "",
-          '</li>'
-        ].join("");
-      }).join("")
-      : '<li class="validation-stage-details__empty">No substeps available yet.</li>';
-
-    const bodyMarkup = [
-      `<p class="validation-stage-details__summary">Stage status: ${escapeHtml(stageStatus)}</p>`,
-      stageReason ? `<p class="validation-stage-details__reason">Reason: ${escapeHtml(stageReason)}</p>` : "",
-      detail.artifactPath ? `<p class="validation-stage-details__artifact">Artifact: ${escapeHtml(detail.artifactPath)}</p>` : "",
-      `<ul class="validation-stage-details__substeps">${substepMarkup}</ul>`
-    ].join("");
-
-    return renderValidationCollapsibleSection({
-      sectionKey: `validation-stage:${stage.key}`,
-      title: stage.label,
-      count: substeps.length,
-      bodyMarkup,
-      modifier: stageStatus === "failed" ? "failed" : (stageStatus === "completed" ? "completed" : ""),
-    });
-  }).join("");
-
-  detailsEl.innerHTML = `
-    <div class="validation-stage-details__header">Stage Details</div>
-    <div class="validation-stage-details__list">${stageSections}</div>
-  `;
+  return [
+    `<li class="new-tip-progress__milestone is-${effectiveStageStatus}" data-stage="${stage.key}">`,
+    `<button type="button" class="new-tip-progress__milestone-toggle" data-validation-group-toggle="${sectionKey}" aria-expanded="${expanded ? "true" : "false"}">`,
+    '<span class="new-tip-progress__milestone-main">',
+    `<span class="new-tip-progress__milestone-title">${escapeHtml(stage.label)}</span>`,
+    `<span class="new-tip-progress__milestone-meta">${escapeHtml(substeps.length ? `${substeps.length} substeps` : "No substeps")}</span>`,
+    '</span>',
+    `<span class="new-tip-progress__milestone-chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>`,
+    '</button>',
+    `<div class="new-tip-progress__milestone-body${expanded ? "" : " is-hidden"}" ${expanded ? "" : "hidden"}>`,
+    summaryBits.length ? `<p class="validation-stage-details__summary">${escapeHtml(summaryBits.join(" · "))}</p>` : "",
+    stageReason ? `<p class="validation-stage-details__reason">Reason: ${escapeHtml(stageReason)}</p>` : "",
+    `<ul class="validation-stage-details__substeps">${substepMarkup}</ul>`,
+    '</div>',
+    '</li>'
+  ].join("");
 }
 
 function ensureValidationPipelinePanel() {
@@ -7250,35 +7271,33 @@ function ensureValidationPipelinePanel() {
     return;
   }
 
-  const milestoneMarkup = VALIDATION_PIPELINE_STAGES
-    .map((stage) => `<li class="new-tip-progress__milestone is-not-started" data-stage="${stage.key}">${stage.label}</li>`)
-    .join("");
-
   tipsContentEl.innerHTML = `
     <div class="new-tip-progress" id="validation-pipeline-progress">
       <div class="new-tip-progress__summary">
-        <div class="new-tip-progress__summary-top">
-          <span class="new-tip-progress__title">Validation Pipeline Progress</span>
+        <div class="new-tip-progress__summary-top" data-validation-pipeline-toggle role="button" tabindex="0" aria-expanded="true" aria-controls="validation-pipeline-body">
+          <span class="new-tip-progress__collapse-toggle">
+            <span class="new-tip-progress__title">Validation Pipeline Progress</span>
+            <span class="new-tip-progress__collapse-chevron" aria-hidden="true">▾</span>
+          </span>
           <span id="validation-pipeline-percent" class="new-tip-progress__percent">0%</span>
         </div>
-        <div id="validation-pipeline-heatbar" class="new-tip-progress__heatbar" style="--new-tip-progress: 0%; --new-tip-stage-width: ${VALIDATION_STAGE_WEIGHT}%;" aria-label="Validation pipeline progress">
+        <div id="validation-pipeline-heatbar" data-validation-pipeline-toggle class="new-tip-progress__heatbar" style="--new-tip-progress: 0%; --new-tip-stage-width: ${VALIDATION_STAGE_WEIGHT}%;" aria-label="Validation pipeline progress" role="button" tabindex="0" aria-expanded="true" aria-controls="validation-pipeline-body">
           <span class="new-tip-progress__fill" aria-hidden="true"></span>
           <span class="new-tip-progress__marker" aria-hidden="true"></span>
         </div>
       </div>
-      <div class="new-tip-progress__body">
-        <ul class="new-tip-progress__milestones" aria-label="Validation milestones">
-          ${milestoneMarkup}
-        </ul>
+      <div id="validation-pipeline-body" class="new-tip-progress__body">
+        <ul id="validation-pipeline-milestones" class="new-tip-progress__milestones" aria-label="Validation milestones"></ul>
       </div>
-      <div id="validation-pipeline-details" class="validation-stage-details" aria-label="Validation stage details"></div>
     </div>`;
 }
 
 function renderValidationPipelinePanel() {
   const percentEl = document.getElementById("validation-pipeline-percent");
   const heatbarEl = document.getElementById("validation-pipeline-heatbar");
-  const milestoneEls = tipsContentEl ? tipsContentEl.querySelectorAll(".new-tip-progress__milestone[data-stage]") : [];
+  const milestoneListEl = document.getElementById("validation-pipeline-milestones");
+  const collapseToggleEls = document.querySelectorAll("[data-validation-pipeline-toggle]");
+  const pipelineBodyEl = document.getElementById("validation-pipeline-body");
 
   if (percentEl) {
     percentEl.textContent = `${Math.round(validationPipelineUiState.percent)}%`;
@@ -7289,23 +7308,24 @@ function renderValidationPipelinePanel() {
     heatbarEl.style.setProperty("--new-tip-stage-width", `${VALIDATION_STAGE_WEIGHT}%`);
   }
 
-  milestoneEls.forEach((element) => {
-    const stageKey = element.dataset.stage;
-    const status = validationPipelineUiState.stageStatuses[stageKey] || "not-started";
-    element.classList.remove("is-not-started", "is-in-progress", "is-completed", "is-failed");
+  if (milestoneListEl) {
+    milestoneListEl.innerHTML = VALIDATION_PIPELINE_STAGES.map((stage) => renderValidationPipelineMilestone(stage)).join("");
+  }
 
-    if (status === "in-progress") {
-      element.classList.add("is-in-progress");
-    } else if (status === "completed") {
-      element.classList.add("is-completed");
-    } else if (status === "failed") {
-      element.classList.add("is-failed");
-    } else {
-      element.classList.add("is-not-started");
+  if (collapseToggleEls.length) {
+    collapseToggleEls.forEach((element) => {
+      element.setAttribute("aria-expanded", validationPipelineCollapsed ? "false" : "true");
+    });
+    const chevronEl = document.querySelector(".new-tip-progress__collapse-chevron");
+    if (chevronEl) {
+      chevronEl.textContent = validationPipelineCollapsed ? "▸" : "▾";
     }
-  });
+  }
 
-  renderValidationPipelineStageDetails();
+  if (pipelineBodyEl) {
+    pipelineBodyEl.classList.toggle("is-hidden", validationPipelineCollapsed);
+    pipelineBodyEl.hidden = validationPipelineCollapsed;
+  }
 }
 
 function resetValidationPipelinePanel() {

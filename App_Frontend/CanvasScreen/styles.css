@@ -2054,6 +2054,29 @@ circle.canvas-edge-midpoint:hover {
   gap: 8px;
 }
 
+.new-tip-progress__summary-top[data-validation-pipeline-toggle],
+.new-tip-progress__heatbar[data-validation-pipeline-toggle] {
+  cursor: pointer;
+}
+
+.new-tip-progress__collapse-toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.new-tip-progress__collapse-chevron {
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
 .new-tip-progress__title {
   font-size: 0.78rem;
   font-weight: 600;
@@ -2109,7 +2132,11 @@ circle.canvas-edge-midpoint:hover {
 }
 
 .new-tip-progress__body {
-  padding: 0 10px 10px;
+  padding: 10px 10px 10px;
+}
+
+.new-tip-progress__body.is-hidden {
+  display: none;
 }
 
 .new-tip-progress__milestones {
@@ -2121,30 +2148,75 @@ circle.canvas-edge-midpoint:hover {
 }
 
 .new-tip-progress__milestone {
+  border-radius: 6px;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.new-tip-progress__milestone-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.new-tip-progress__milestone-main {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.new-tip-progress__milestone-title {
   font-size: 0.76rem;
   line-height: 1.35;
-  border-radius: 6px;
-  padding: 6px 8px;
-  font-weight: 500;
-}
-
-.validation-stage-details {
-  border-top: 1px solid #e5e7eb;
-  padding: 8px 10px 10px;
-  display: grid;
-  gap: 8px;
-}
-
-.validation-stage-details__header {
-  font-size: 0.76rem;
-  line-height: 1.3;
-  color: #374151;
   font-weight: 600;
 }
 
-.validation-stage-details__list {
+.new-tip-progress__milestone-meta {
+  font-size: 0.63rem;
+  line-height: 1.3;
+  opacity: 0.92;
+}
+
+.new-tip-progress__milestone-chevron {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+}
+
+.new-tip-progress__milestone-body {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 8px;
   display: grid;
   gap: 6px;
+}
+
+.new-tip-progress__milestone-body.is-hidden {
+  display: none;
+}
+
+.new-tip-progress__milestone.is-not-started .new-tip-progress__milestone-body {
+  border-top-color: #c7ccd3;
+}
+
+.new-tip-progress__milestone.is-in-progress .new-tip-progress__milestone-body {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+.new-tip-progress__milestone.is-completed .new-tip-progress__milestone-body {
+  border-top-color: rgba(255, 255, 255, 0.24);
+}
+
+.new-tip-progress__milestone.is-failed .new-tip-progress__milestone-body {
+  border-top-color: rgba(255, 255, 255, 0.24);
 }
 
 .validation-stage-details__summary,
