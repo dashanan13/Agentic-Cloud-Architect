@@ -1,8 +1,8 @@
 const btnBack = document.getElementById("btn-project-settings-back");
 const btnSave = document.getElementById("btn-project-settings-save");
 const messageEl = document.getElementById("project-settings-message");
-const githubRepoUrlInput = document.getElementById("ps-github-repo-url");
 const projectThreadInput = document.getElementById("ps-project-thread");
+const projectValidationThreadInput = document.getElementById("ps-validation-thread");
 const projectNameInput = document.getElementById("ps-project-name");
 const projectIdInput = document.getElementById("ps-project-id");
 const projectCloudInput = document.getElementById("ps-project-cloud");
@@ -28,8 +28,8 @@ const state = {
   projectId: "",
   project: null,
   settings: {
-    githubRepoUrl: "",
-    projectThreadId: "",
+     projectThreadId: "",
+     projectValidationLastThreadId: "",
     iacLanguage: "bicep",
     iacParameterFormat: "bicepparam",
     projectDescription: "",
@@ -358,9 +358,14 @@ async function loadProjectSettings(projectId) {
       || ""
   ).trim();
   state.settings = {
-    githubRepoUrl: String(incoming.githubRepoUrl || "").trim(),
-    projectThreadId: chatThreadId,
+      projectThreadId: chatThreadId,
     projectChatThreadId: chatThreadId,
+      projectValidationLastThreadId: String(
+        incoming.projectValidationLastThreadId
+          || incoming.projectValidationThreadId
+          || incoming.foundryValidationThreadId
+          || ""
+      ).trim(),
     iacLanguage: String(incoming.iacLanguage || incoming.projectIacLanguage || "").trim(),
     iacParameterFormat: String(incoming.iacParameterFormat || incoming.parameterFormat || "").trim(),
     projectDescription: String(incoming.projectDescription || "").trim(),
@@ -372,12 +377,12 @@ async function loadProjectSettings(projectId) {
 }
 
 function populateForm() {
-  if (githubRepoUrlInput) {
-    githubRepoUrlInput.value = state.settings.githubRepoUrl;
-  }
-
   if (projectThreadInput) {
     projectThreadInput.value = state.settings.projectThreadId;
+  }
+
+  if (projectValidationThreadInput) {
+    projectValidationThreadInput.value = state.settings.projectValidationLastThreadId;
   }
 
   if (projectNameInput) {
@@ -440,8 +445,7 @@ function collectSettings() {
   const applicationType = String(projectTypeInput?.value || "").trim();
   const quality = state.descriptionQuality || { index: 0, level: "", score: 0 };
   return {
-    githubRepoUrl: String(githubRepoUrlInput?.value || "").trim(),
-    projectThreadId: String(projectThreadInput?.value || "").trim(),
+     projectThreadId: String(projectThreadInput?.value || "").trim(),
     projectChatThreadId: String(projectThreadInput?.value || "").trim(),
     iacLanguage: getSelectedIacLanguage(projectIacLanguageInputs),
     iacParameterFormat: getSelectedParameterFormat(projectIacParameterFormatInputs),

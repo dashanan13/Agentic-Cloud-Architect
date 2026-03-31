@@ -7067,7 +7067,7 @@ const VALIDATION_PIPELINE_STAGES = [
   { key: "rule-engine", label: "📏 Rule Engine" },
   { key: "structured-findings", label: "📊 Structured Findings" },
   { key: "azure-learn-mcp", label: "📚 Azure Learn MCP" },
-  { key: "ai-validation-agent", label: "🧠 AI Validation Agent" },
+  { key: "ai-validation-agent", label: "🧠 AI Agent Validation" },
   { key: "final-report", label: "📄 Final Report" },
 ];
 
@@ -7188,7 +7188,7 @@ function setValidationStageDetailsFromPayload(stageKey, payload, substeps) {
       const record = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
       return {
         key,
-        label: formatValidationSubstepLabel(key),
+        label: formatValidationSubstepLabel(substep?.label || key),
         status: normalizeValidationSubstepStatus(record?.status || "not-started"),
         reason: String(record?.error || record?.message || "").trim(),
       };
@@ -7580,7 +7580,7 @@ async function requestStructuredFindings() {
 async function requestAiValidationAgent() {
   const projectId = String(state.currentProject?.id || "").trim();
   if (!projectId) {
-    throw new Error("Validation: AI Validation Agent Failed - missing project ID");
+    throw new Error("Validation: AI Agent Validation Failed - missing project ID");
   }
 
   const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/validation/ai-validation-agent`, {
@@ -7598,8 +7598,8 @@ async function requestAiValidationAgent() {
   }
 
   if (!response.ok) {
-    const detail = String(payload?.detail || "AI Validation Agent request failed").trim();
-    throw new Error(`Validation: AI Validation Agent Failed - ${detail}`);
+    const detail = String(payload?.detail || "AI Agent Validation request failed").trim();
+    throw new Error(`Validation: AI Agent Validation Failed - ${detail}`);
   }
 
   return payload && typeof payload === "object" ? payload : { ok: false, error: "Invalid AI validation response" };
@@ -7961,21 +7961,45 @@ async function runAiValidationAgentStage() {
   const stageStart = VALIDATION_STAGE_WEIGHT * 6;
   const stageEnd = VALIDATION_STAGE_WEIGHT * 7;
   const stageSpan = stageEnd - stageStart;
-  const substeps = [
-    { key: "initialize-agent-state", message: "Validation: AI Validation Agent Initializing Agent State" },
-    { key: "call-waf-mcp", message: "Validation: AI Validation Agent Calling WAF MCP" },
-    { key: "call-learn-mcp", message: "Validation: AI Validation Agent Calling Learn MCP" },
-    { key: "run-llm-reasoning", message: "Validation: AI Validation Agent Running LLM Reasoning" },
-    { key: "finalize-output", message: "Validation: AI Validation Agent Finalizing Output" },
+  const baseSubsteps = [
+    { key: "initialize-agent-state", label: "Initialize Agent State", message: "Validation: AI Agent Validation Initializing Agent State" },
+    { key: "call-waf-mcp", label: "Call WAF MCP", message: "Validation: AI Agent Validation Calling WAF MCP" },
+    { key: "call-learn-mcp", label: "Call Learn MCP", message: "Validation: AI Agent Validation Calling Learn MCP" },
+    { key: "run-llm-reasoning", label: "Run LLM Reasoning", message: "Validation: AI Agent Validation Running LLM Reasoning" },
+    { key: "finalize-output", label: "Finalize Output", message: "Validation: AI Agent Validation Finalizing Output" },
   ];
 
-  postInputVerificationMessage("Validation: AI Validation Agent Started");
+  postInputVerificationMessage("Validation: AI Agent Validation Started");
   setValidationStageStatus(stageKey, "in-progress");
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const aiPayload = await requestAiValidationAgent();
-  setValidationStageDetailsFromPayload(stageKey, aiPayload, substeps);
   const stepResults = Array.isArray(aiPayload.stepResults) ? aiPayload.stepResults : [];
+  const iterationSubsteps = stepResults
+    .map((item) => {
+      const stepKey = String(item?.step || "").trim();
+      if (!stepKey.startsWith("iteration-")) {
+        return null;
+      }
+
+      const rawIteration = Number.parseInt(String(item?.iteration || ""), 10);
+      const parsedFromKey = Number.parseInt((stepKey.match(/^iteration-(\d+)-/) || ["", ""])[1], 10);
+      const iteration = Number.isFinite(rawIteration) && rawIteration > 0
+        ? rawIteration
+        : (Number.isFinite(parsedFromKey) && parsedFromKey > 0 ? parsedFromKey : null);
+      const actionLabel = String(item?.action || "").trim() || formatValidationSubstepLabel(stepKey.replace(/^iteration-\d+-/, ""));
+      const label = iteration ? `Iteration ${iteration} · ${actionLabel}` : actionLabel;
+
+      return {
+        key: stepKey,
+        label,
+        message: `Validation: AI Agent Validation ${label}`,
+      };
+    })
+    .filter(Boolean);
+
+  const substeps = [...baseSubsteps, ...iterationSubsteps];
+  setValidationStageDetailsFromPayload(stageKey, aiPayload, substeps);
   const failedSubsteps = [];
 
   let completedSubsteps = 0;
@@ -8003,9 +8027,9 @@ async function runAiValidationAgentStage() {
   }
 
   if (!aiPayload.ok) {
-    const reason = String(aiPayload.error || "AI Validation Agent failed").trim();
+    const reason = String(aiPayload.error || "AI Agent Validation failed").trim();
     setValidationStageDetails(stageKey, { error: reason });
-    throw new Error(`Validation: AI Validation Agent Failed - ${reason}`);
+    throw new Error(`Validation: AI Agent Validation Failed - ${reason}`);
   }
 
   setValidationStageDetails(stageKey, {
@@ -8017,10 +8041,10 @@ async function runAiValidationAgentStage() {
   if (failedSubsteps.length) {
     const firstFailure = failedSubsteps[0];
     setValidationStageDetails(stageKey, { error: firstFailure.reason });
-    postInputVerificationMessage(`Validation: AI Validation Agent Warning - ${firstFailure.reason}`, true);
+    postInputVerificationMessage(`Validation: AI Agent Validation Warning - ${firstFailure.reason}`, true);
   }
-  postInputVerificationMessage("Validation: AI Validation Agent Completed");
-  postInputVerificationMessage("Validation: AI Validation Agent Artifact: /Documentation/final_intelligent_report.json");
+  postInputVerificationMessage("Validation: AI Agent Validation Completed");
+  postInputVerificationMessage("Validation: AI Agent Validation Artifact: /Documentation/final_intelligent_report.json");
   return aiPayload;
 }
 
@@ -8109,7 +8133,7 @@ async function runValidationProcessStub() {
       || reason.startsWith("Validation: Rule Engine Failed -")
       || reason.startsWith("Validation: Structured Findings Failed -")
       || reason.startsWith("Validation: Knowledge Retrieval Failed -")
-      || reason.startsWith("Validation: AI Validation Agent Failed -")
+      || reason.startsWith("Validation: AI Agent Validation Failed -")
       || reason.startsWith("Validation: Final Report Failed -")
     ) {
       postInputVerificationMessage(reason, true);
@@ -8125,7 +8149,7 @@ async function runValidationProcessStub() {
             : currentStageKey === "azure-learn-mcp"
               ? "Validation: Knowledge Retrieval Failed -"
                 : currentStageKey === "ai-validation-agent"
-                  ? "Validation: AI Validation Agent Failed -"
+                  ? "Validation: AI Agent Validation Failed -"
                   : currentStageKey === "final-report"
                     ? "Validation: Final Report Failed -"
           : "Validation: Input Verification Failed -";

@@ -22,6 +22,7 @@ from azure.ai.projects import AIProjectClient
 from Agents.AzureAIFoundry.foundry_bootstrap import (
     FoundryConfigurationError,
     FoundryRequestError,
+    delete_project_thread,
     ensure_app_agents_and_thread,
     ensure_project_thread_for_project,
 )
@@ -3088,6 +3089,180 @@ def _run_knowledge_retrieval_stage(*, project_dir: Path, settings: Mapping[str, 
     }
 
 
+def _manage_validation_thread_lifecycle(
+    project_dir: Path,
+    project_id: str,
+    project_name: str,
+    app_settings: dict,
+) -> str:
+    """
+    Rolling thread manager for validation.
+    
+    Logic:
+    1. Load project settings
+    2. Get last validation thread ID from settings (if exists)
+    3. Create a new validation thread
+    4. If creation succeeded, delete the old thread
+    5. Update project settings with new thread ID
+    6. Return new thread ID
+    
+    Returns: New validation thread ID
+    """
+    # Load project settings
+    project_settings = load_project_settings_file(project_dir)
+    last_validation_thread_id = str(
+        project_settings.get("projectValidationLastThreadId")
+        or project_settings.get("projectValidationThreadId")
+        or ""
+    ).strip() or None
+    log_path = _ensure_validation_log_path(project_dir)
+    
+    # Create new validation thread
+    from uuid import uuid4
+    new_thread_name = f"validation-{project_dir.name}-{uuid4().hex[:8]}"
+    
+    try:
+        thread_result = ensure_project_thread_for_project(
+            app_settings,
+            project_id=project_id,
+            known_thread_id=None,
+            thread_name=new_thread_name,
+        )
+        new_thread_id = str(getattr(thread_result, "thread_id", "") or "").strip() or None
+        if new_thread_id:
+            _append_validation_log_event(
+                log_path,
+                activity="validation.thread.created",
+                details={
+                    "projectId": project_id,
+                    "projectName": project_name,
+                    "threadId": new_thread_id,
+                    "previousThreadId": last_validation_thread_id or "",
+                },
+            )
+    except Exception as exc:
+        # If thread creation fails, continue with None (will use stateless) 
+        _append_app_activity(
+            "validation.thread",
+            status="warning",
+            project_id=project_id,
+            category="validation",
+            step="thread-creation-failed",
+            source="backend.validation",
+            details={"error": str(exc)[:200]},
+        )
+        _append_validation_log_event(
+            log_path,
+            activity="validation.thread.creation_failed",
+            details={
+                "projectId": project_id,
+                "projectName": project_name,
+                "error": str(exc)[:400],
+            },
+        )
+        new_thread_id = None
+    
+    # Delete old thread if we successfully created a new one
+    if new_thread_id and last_validation_thread_id:
+        try:
+            delete_success = delete_project_thread(app_settings, last_validation_thread_id)
+            if delete_success:
+                _append_app_activity(
+                    "validation.thread",
+                    status="info",
+                    project_id=project_id,
+                    category="validation",
+                    step="old-thread-deleted",
+                    source="backend.validation",
+                    details={"oldThreadId": last_validation_thread_id},
+                )
+                _append_validation_log_event(
+                    log_path,
+                    activity="validation.thread.deleted",
+                    details={
+                        "projectId": project_id,
+                        "projectName": project_name,
+                        "threadId": last_validation_thread_id,
+                    },
+                )
+        except Exception as exc:
+            # Log cleanup failure but don't block validation
+            _append_app_activity(
+                "validation.thread",
+                status="warning",
+                project_id=project_id,
+                category="validation",
+                step="old-thread-deletion-failed",
+                source="backend.validation",
+                details={"oldThreadId": last_validation_thread_id, "error": str(exc)[:200]},
+            )
+            _append_validation_log_event(
+                log_path,
+                activity="validation.thread.delete_failed",
+                details={
+                    "projectId": project_id,
+                    "projectName": project_name,
+                    "threadId": last_validation_thread_id,
+                    "error": str(exc)[:400],
+                },
+            )
+    
+    # Update project settings with new thread ID if we have one
+    if new_thread_id:
+        try:
+            project_settings["projectValidationThreadId"] = new_thread_id
+            project_settings["projectValidationLastThreadId"] = new_thread_id
+            updated_settings_payload = build_project_settings_payload(
+                str(project_settings.get("projectId") or project_id).strip() or project_id,
+                str(project_settings.get("projectName") or project_name).strip() or project_name,
+                str(project_settings.get("projectCloud") or "Azure").strip() or "Azure",
+                project_settings,
+            )
+            settings_path = project_dir / "project.settings.env"
+            settings_path.write_text(to_env_lines(updated_settings_payload), encoding="utf-8")
+            _append_app_activity(
+                "validation.thread",
+                status="info",
+                project_id=project_id,
+                category="validation",
+                step="settings-updated",
+                source="backend.validation",
+                details={"newThreadId": new_thread_id},
+            )
+            _append_validation_log_event(
+                log_path,
+                activity="validation.thread.active",
+                details={
+                    "projectId": project_id,
+                    "projectName": project_name,
+                    "threadId": new_thread_id,
+                },
+            )
+        except Exception as exc:
+            # Log settings update failure but continue with new thread
+            _append_app_activity(
+                "validation.thread",
+                status="warning",
+                project_id=project_id,
+                category="validation",
+                step="settings-update-failed",
+                source="backend.validation",
+                details={"newThreadId": new_thread_id, "error": str(exc)[:200]},
+            )
+            _append_validation_log_event(
+                log_path,
+                activity="validation.thread.settings_update_failed",
+                details={
+                    "projectId": project_id,
+                    "projectName": project_name,
+                    "threadId": new_thread_id,
+                    "error": str(exc)[:400],
+                },
+            )
+    
+    return new_thread_id
+
+
 @app.post("/api/project/{project_id}/validation/knowledge-retrieval")
 def run_knowledge_retrieval(project_id: str):
     entry = find_project_entry(project_id)
@@ -3123,7 +3298,13 @@ def run_ai_validation_agent_stage(project_id: str):
         canvas_state = {}
 
     foundry_agent_id = _resolve_foundry_validation_agent_id(settings) or None
-    foundry_thread_id = resolve_project_foundry_thread_id(entry, settings, purpose="validation")
+    # Use rolling thread manager: creates fresh thread, deletes old one, updates settings
+    foundry_thread_id = _manage_validation_thread_lifecycle(
+        entry["projectDir"],
+        entry["id"],
+        project_name,
+        settings,
+    )
 
     try:
         result = run_architecture_validation_agent(
@@ -3176,8 +3357,68 @@ def run_ai_validation_agent_stage(project_id: str):
             "status": reasoning_status,
             **({"error": reasoning_explanation or f"Reasoning model state: {reasoning_state}"} if reasoning_status == "failed" else {}),
         },
-        {"step": "finalize-output", "status": "completed"},
     ]
+
+    evaluation_payload = result.get("evaluation") if isinstance(result.get("evaluation"), Mapping) else {}
+    evaluation_steps = evaluation_payload.get("steps") if isinstance(evaluation_payload.get("steps"), list) else []
+
+    def _map_iteration_state_to_status(state: str) -> str:
+        safe = str(state or "").strip().lower()
+        if safe in {"failed", "error"}:
+            return "failed"
+        if safe in {"partial", "warning"}:
+            return "warning"
+        if safe in {"connected", "completed", "success", "ok"}:
+            return "completed"
+        if safe in {"running", "in-progress"}:
+            return "running"
+        if safe == "skipped":
+            return "skipped"
+        return "not-started"
+
+    def _format_iteration_action(name: str) -> tuple[str, str]:
+        safe_name = str(name or "action").strip().lower()
+        slug = re.sub(r"[^a-z0-9_-]+", "-", safe_name).strip("-") or "action"
+        friendly_map = {
+            "waf-mcp": "Call WAF MCP",
+            "learn-mcp": "Call Learn MCP",
+            "analyze": "Run LLM Reasoning",
+            "agent-complete": "Complete Iteration",
+            "complete": "Complete Iteration",
+        }
+        friendly = friendly_map.get(safe_name) or " ".join(part.capitalize() for part in slug.split("-") if part)
+        return slug, friendly or "Action"
+
+    for raw_step in evaluation_steps:
+        if not isinstance(raw_step, Mapping):
+            continue
+
+        details = raw_step.get("details") if isinstance(raw_step.get("details"), Mapping) else {}
+        raw_iteration = details.get("iteration") if details else None
+        if raw_iteration is None:
+            raw_iteration = raw_step.get("iteration")
+
+        try:
+            iteration_number = int(raw_iteration)
+        except Exception:
+            continue
+
+        if iteration_number <= 0:
+            continue
+
+        action_slug, action_label = _format_iteration_action(str(raw_step.get("name") or ""))
+        step_results.append(
+            {
+                "step": f"iteration-{iteration_number}-{action_slug}",
+                "status": _map_iteration_state_to_status(str(raw_step.get("state") or "")),
+                "message": str(raw_step.get("explanation") or "").strip(),
+                "iteration": iteration_number,
+                "action": action_label,
+                "label": f"Iteration {iteration_number} · {action_label}",
+            }
+        )
+
+    step_results.append({"step": "finalize-output", "status": "completed"})
 
     artifact_path = "/Documentation/final_intelligent_report.json"
     return {
@@ -3186,7 +3427,7 @@ def run_ai_validation_agent_stage(project_id: str):
         "stepResults": step_results,
         "status": "completed",
         "runId": str(result.get("runId") or ""),
-        "evaluation": result.get("evaluation") if isinstance(result.get("evaluation"), Mapping) else {},
+        "evaluation": evaluation_payload,
         "report": result.get("final_intelligent_report") if isinstance(result.get("final_intelligent_report"), Mapping) else {},
     }
 
@@ -3817,6 +4058,16 @@ def merge_project_settings(existing: dict, incoming: dict) -> dict:
         merged["projectValidationThreadId"] = existing_validation_thread
     else:
         merged.pop("projectValidationThreadId", None)
+
+    # Preserve last validation thread — always keep existing value, never let saves wipe it
+    existing_last_val_thread = str(existing.get("projectValidationLastThreadId") or "").strip()
+    incoming_last_val_thread = str(incoming.get("projectValidationLastThreadId") or "").strip()
+    if incoming_last_val_thread:
+        merged["projectValidationLastThreadId"] = incoming_last_val_thread
+    elif existing_last_val_thread:
+        merged["projectValidationLastThreadId"] = existing_last_val_thread
+    else:
+        merged.pop("projectValidationLastThreadId", None)
 
     return merged
 
@@ -6551,6 +6802,12 @@ def get_project_settings(project_id: str):
         metadata=metadata,
     )
     settings = validation_thread_state["settings"]
+    if not str(settings.get("projectValidationLastThreadId") or "").strip():
+        settings["projectValidationLastThreadId"] = str(
+            settings.get("projectValidationThreadId")
+            or validation_thread_state.get("threadId")
+            or ""
+        ).strip()
 
     target = project_dir / "project.settings.env"
     return {

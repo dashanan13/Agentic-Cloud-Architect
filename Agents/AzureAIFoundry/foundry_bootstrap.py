@@ -510,6 +510,31 @@ class FoundryBootstrapClient:
             raise FoundryRequestError("Foundry thread create response did not include id")
         return thread_id
 
+    async def _delete_thread_async(self, agents_client: AgentsClient, thread_id: str) -> bool:
+        """Delete a thread by ID. Returns True if deletion was attempted, False if thread not found."""
+        if not thread_id:
+            return False
+        
+        try:
+            await agents_client.threads.delete(thread_id)
+            return True
+        except HttpResponseError as exc:
+            if self._status_code(exc) == 404:
+                return False
+            self._raise_request_error(exc, "threads.delete")
+        except Exception as exc:
+            raise FoundryRequestError(f"Foundry request failed for threads.delete: {exc}") from exc
+
+    def delete_thread(self, thread_id: str) -> bool:
+        """Delete a thread. Returns True if successful, False if thread not found."""
+        if not thread_id:
+            return False
+        return _run_sync(self._delete_thread_async_wrapper(thread_id))
+
+    async def _delete_thread_async_wrapper(self, thread_id: str) -> bool:
+        async with self._agents_client_context() as agents_client:
+            return await self._delete_thread_async(agents_client, thread_id)
+
     @asynccontextmanager
     async def _agents_client_context(self):
         async with AsyncClientSecretCredential(
@@ -669,6 +694,24 @@ def ensure_app_agents_and_thread(
         known_validation_agent_id=known_validation_agent_id,
         known_thread_id=known_thread_id,
     )
+
+
+def delete_project_thread(
+    app_settings: Mapping[str, Any],
+    thread_id: str,
+) -> bool:
+    """Delete a project thread. Returns True if deletion was successful, False if thread not found or error."""
+    if not thread_id:
+        return False
+    try:
+        connection = FoundryConnectionSettings.from_app_settings(app_settings)
+        client = FoundryBootstrapClient(connection)
+        return client.delete_thread(thread_id)
+    except (FoundryConfigurationError, FoundryRequestError) as exc:
+        # Log but don't raise - thread cleanup should be non-blocking
+        return False
+    except Exception:
+        return False
 
 
 @dataclass(frozen=True)
