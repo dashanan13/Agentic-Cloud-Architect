@@ -3515,7 +3515,42 @@ def _pillar_label(value: Any) -> str:
     return mapping.get(raw, _normalize_report_text(value) or "Uncategorized")
 
 
-def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
+def _build_resource_display_lookup(project_dir: Path) -> dict[str, str]:
+    state_path = project_dir / "Architecture" / "canvas.state.json"
+    state_payload = read_json_file(state_path, {})
+    if not isinstance(state_payload, Mapping):
+        return {}
+
+    items = state_payload.get("canvasItems") if isinstance(state_payload.get("canvasItems"), list) else []
+    lookup: dict[str, str] = {}
+    for item in items:
+        if not isinstance(item, Mapping):
+            continue
+        resource_id = _as_text(item.get("id"))
+        if not resource_id:
+            continue
+        resource_name = _as_text(item.get("name")) or _as_text(item.get("resourceType"))
+        if resource_name:
+            lookup[resource_id] = resource_name
+    return lookup
+
+
+def _format_resource_reference(value: Any, resource_lookup: Mapping[str, str]) -> str:
+    resource_id = _normalize_report_text(value)
+    if not resource_id:
+        return "Not specified"
+
+    if _normalize_key(resource_id) == "global":
+        return "Global (global)"
+
+    resource_name = _normalize_report_text(resource_lookup.get(resource_id))
+    if resource_name and _normalize_key(resource_name) != _normalize_key(resource_id):
+        return f"{resource_name} ({resource_id})"
+    return resource_id
+
+
+def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup: Mapping[str, str] | None = None) -> str:
+    safe_resource_lookup = resource_lookup if isinstance(resource_lookup, Mapping) else {}
     lines: list[str] = [
         "# Azure Architecture Validation Report",
         "",
@@ -3545,7 +3580,10 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
     grouped_config_issues: dict[str, dict[str, Any]] = {}
     for issue in _as_list(payload.get("configuration_issues")):
         if isinstance(issue, Mapping):
-            resource = _normalize_report_text(issue.get("resource") or issue.get("resource_name") or issue.get("target")) or "Not specified"
+            resource = _format_resource_reference(
+                issue.get("resource") or issue.get("resource_name") or issue.get("target"),
+                safe_resource_lookup,
+            )
             issue_text = _normalize_report_text(issue.get("issue") or issue.get("title") or issue.get("description"), as_sentence=True) or "Not specified."
             impact = _normalize_report_text(issue.get("impact") or issue.get("risk"), as_sentence=True) or "Not specified."
             resolution = _normalize_report_text(issue.get("resolution") or issue.get("recommendation") or issue.get("fix"), as_sentence=True) or "Not specified."
@@ -3603,7 +3641,13 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
                 "recommendation": recommendation or "Not specified.",
                 "affected": [],
             }
-        grouped_antipatterns[key]["affected"].extend([_normalize_report_text(value) for value in affected if _normalize_report_text(value)])
+        grouped_antipatterns[key]["affected"].extend(
+            [
+                _format_resource_reference(value, safe_resource_lookup)
+                for value in affected
+                if _normalize_report_text(value)
+            ]
+        )
 
     if not grouped_antipatterns:
         lines.append("- No architecture anti-patterns were detected in this validation run.")
@@ -3823,7 +3867,7 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
         for index, item in enumerate(quick_fixes, start=1):
             if isinstance(item, Mapping):
                 title = _normalize_report_text(item.get("title"), as_sentence=True) or "Quick fix item."
-                resource = _normalize_report_text(item.get("resource")) or "Not specified"
+                resource = _format_resource_reference(item.get("resource"), safe_resource_lookup)
                 current_state = _normalize_report_text(item.get("current_state"), as_sentence=True) or "Not specified."
                 target_state = _normalize_report_text(item.get("target_state"), as_sentence=True) or "Not specified."
                 impact = _normalize_report_text(item.get("impact")) or "Not specified"
@@ -3933,7 +3977,8 @@ def _run_final_report_stage(*, project_dir: Path) -> dict[str, Any]:
         return {"ok": False, "errors": [reason], "stepResults": step_results}
 
     step_results.append({"step": "format-report", "status": "started"})
-    markdown_text = _format_final_report_markdown(payload)
+    resource_lookup = _build_resource_display_lookup(project_dir)
+    markdown_text = _format_final_report_markdown(payload, resource_lookup=resource_lookup)
     step_results.append({"step": "format-report", "status": "completed"})
 
     step_results.append({"step": "generate-artifacts", "status": "started"})
