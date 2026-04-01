@@ -3678,6 +3678,70 @@ def _format_final_report_markdown(
     else:
         lines.append("- Not provided")
 
+    lines.extend(["", "## Scenario findings"])
+    scenario_findings = _as_list(payload.get("scenario_findings"))
+    if scenario_findings:
+        for index, item in enumerate(scenario_findings, start=1):
+            if isinstance(item, Mapping):
+                scenario_title = _normalize_report_text(item.get("scenario") or item.get("title"), as_sentence=True) or f"Scenario {index}."
+                architecture_path = _normalize_report_text(item.get("architecture_path") or item.get("path") or "End-to-end architecture flow", as_sentence=True)
+                priority = _normalize_report_text(item.get("priority")) or "Not specified"
+                impact = _normalize_report_text(item.get("impact"), as_sentence=True) or "Not specified."
+                recommendation = _normalize_report_text(item.get("recommendation"), as_sentence=True) or "Not specified."
+                focus_pillars = _dedupe_by_key(_as_list(item.get("focus_pillars")), lambda value: _normalize_key(value))
+                controls = _dedupe_by_key(_as_list(item.get("existing_controls")), lambda value: _normalize_key(value))
+                gaps = _dedupe_by_key(_as_list(item.get("gaps")), lambda value: _normalize_key(value))
+                evidence_resources = _dedupe_by_key(_as_list(item.get("evidence_resources")), lambda value: _normalize_key(value))
+            else:
+                scenario_title = _normalize_report_text(item, as_sentence=True) or f"Scenario {index}."
+                architecture_path = "End-to-end architecture flow."
+                priority = "Not specified"
+                impact = "Not specified."
+                recommendation = "Not specified."
+                focus_pillars = []
+                controls = []
+                gaps = []
+                evidence_resources = []
+
+            pillar_lines = [f"  - {_pillar_label(value)}" for value in focus_pillars if _normalize_report_text(value)]
+            control_lines = [f"  - {_normalize_report_text(value, as_sentence=True)}" for value in controls if _normalize_report_text(value)]
+            gap_lines = [f"  - {_normalize_report_text(value, as_sentence=True)}" for value in gaps if _normalize_report_text(value)]
+            evidence_lines = [f"  - {_normalize_report_text(value)}" for value in evidence_resources if _normalize_report_text(value)]
+
+            if not pillar_lines:
+                pillar_lines = ["  - Not specified"]
+            if not control_lines:
+                control_lines = ["  - No explicit controls were supplied."]
+            if not gap_lines:
+                gap_lines = ["  - No explicit scenario-level gaps were supplied."]
+            if not evidence_lines:
+                evidence_lines = ["  - Not specified"]
+
+            lines.extend(
+                [
+                    f"### {index}. {scenario_title}",
+                    f"- Architecture Path: {architecture_path}",
+                    f"- Priority: {priority}",
+                    f"- Impact: {impact}",
+                    "- Focus Pillars:",
+                    *pillar_lines,
+                    "- Existing Controls:",
+                    *control_lines,
+                    "- Gaps:",
+                    *gap_lines,
+                    f"- Recommendation: {recommendation}",
+                    "- Evidence Resources:",
+                    *evidence_lines,
+                ]
+            )
+    else:
+        lines.extend(
+            [
+                "- No scenario-level findings were supplied in this run.",
+                "- Add scenario findings to capture end-to-end architecture risks (ingress flow, failover behavior, and operational response).",
+            ]
+        )
+
     lines.extend(["", "## Issues and Anti-Pattern"])
     unified_issues: dict[str, dict[str, Any]] = {}
 

@@ -2444,6 +2444,169 @@ def _collect_detected_services(architecture_context: Mapping[str, Any]) -> list[
     return names[:30]
 
 
+def _build_scenario_findings(
+    *,
+    architecture_context: Mapping[str, Any],
+    findings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    resources = architecture_context.get("resources") if isinstance(architecture_context.get("resources"), list) else []
+    connections = architecture_context.get("connections") if isinstance(architecture_context.get("connections"), list) else []
+    project = architecture_context.get("project") if isinstance(architecture_context.get("project"), Mapping) else {}
+
+    resource_by_id: dict[str, dict[str, str]] = {}
+    for resource in resources:
+        if not isinstance(resource, Mapping):
+            continue
+        resource_id = str(resource.get("id") or "").strip()
+        if not resource_id:
+            continue
+        resource_by_id[resource_id] = {
+            "name": _normalize_string(resource.get("name"), resource_id),
+            "type": _normalize_string(resource.get("resourceType"), "Resource"),
+        }
+
+    degrees: dict[str, int] = {}
+    for edge in connections:
+        if not isinstance(edge, Mapping):
+            continue
+        from_id = str(edge.get("fromId") or "").strip()
+        to_id = str(edge.get("toId") or "").strip()
+        if from_id:
+            degrees[from_id] = degrees.get(from_id, 0) + 1
+        if to_id:
+            degrees[to_id] = degrees.get(to_id, 0) + 1
+
+    hotspot_ids = [
+        resource_id
+        for resource_id, _ in sorted(degrees.items(), key=lambda kv: kv[1], reverse=True)[:4]
+        if resource_id in resource_by_id
+    ]
+
+    ingress_ids: list[str] = []
+    data_ids: list[str] = []
+    compute_ids: list[str] = []
+    for resource_id, details in resource_by_id.items():
+        probe = f"{details.get('type', '')} {details.get('name', '')}".lower()
+        if any(token in probe for token in ["public ip", "front door", "application gateway", "api management", "load balancer", "gateway"]):
+            ingress_ids.append(resource_id)
+        if any(token in probe for token in ["sql", "cosmos", "database", "storage", "postgres", "mysql"]):
+            data_ids.append(resource_id)
+        if any(token in probe for token in ["app service", "function", "container", "aks", "vm", "compute"]):
+            compute_ids.append(resource_id)
+
+    findings_by_pillar: dict[str, list[dict[str, Any]]] = {pillar: [] for pillar in WELL_ARCHITECTED_PILLARS}
+    for finding in findings:
+        if not isinstance(finding, Mapping):
+            continue
+        pillar = str(finding.get("pillar") or "operational_excellence").strip().lower()
+        if pillar not in findings_by_pillar:
+            pillar = "operational_excellence"
+        findings_by_pillar[pillar].append(dict(finding))
+
+    def _priority_for(pillars: list[str]) -> str:
+        severity_set: set[str] = set()
+        for pillar in pillars:
+            for item in findings_by_pillar.get(pillar, []):
+                severity_set.add(_normalize_severity(item.get("severity")))
+        if "failure" in severity_set:
+            return "high"
+        if "warning" in severity_set:
+            return "medium"
+        return "low"
+
+    def _gaps_for(pillars: list[str], *, limit: int = 3) -> list[str]:
+        output: list[str] = []
+        seen: set[str] = set()
+        for pillar in pillars:
+            for item in findings_by_pillar.get(pillar, []):
+                title = _normalize_string(item.get("title"), "Finding")
+                key = title.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                output.append(title)
+                if len(output) >= limit:
+                    return output
+        return output
+
+    def _resource_refs(resource_ids: list[str], *, limit: int = 5) -> list[str]:
+        output: list[str] = []
+        seen: set[str] = set()
+        for resource_id in resource_ids:
+            details = resource_by_id.get(resource_id)
+            if not details:
+                continue
+            value = f"{details.get('type', 'Resource')}: {details.get('name', resource_id)} ({resource_id})"
+            key = value.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            output.append(value)
+            if len(output) >= limit:
+                break
+        return output
+
+    project_name = _normalize_string(project.get("name"), "This architecture")
+    scenario_templates = [
+        {
+            "title": "Public request path resilience and security",
+            "pillars": ["reliability", "security"],
+            "path": "Internet ingress → API/compute tier → data tier",
+            "impact": "Service disruption or unauthorized access can affect all user submissions.",
+            "recommendation": "Introduce resilient ingress controls, segmented networking, and explicit failover validation for the full request path.",
+            "evidence": ingress_ids + compute_ids + data_ids,
+        },
+        {
+            "title": "Regional outage and recovery readiness",
+            "pillars": ["reliability", "operational_excellence"],
+            "path": "Primary region dependencies → recovery orchestration → restored service path",
+            "impact": "A regional dependency outage can extend downtime if failover paths and runbooks are incomplete.",
+            "recommendation": "Define RTO/RPO targets, automate failover steps, and test region-loss scenarios with drills.",
+            "evidence": hotspot_ids or (compute_ids + data_ids),
+        },
+        {
+            "title": "Scale, performance, and cost under peak load",
+            "pillars": ["performance_efficiency", "cost_optimization"],
+            "path": "Ingress burst handling → compute autoscale behavior → datastore throughput",
+            "impact": "Peak traffic can cause latency spikes and unplanned spend if scaling and throughput controls are not coordinated.",
+            "recommendation": "Set autoscale guardrails, define throughput budgets, and monitor saturation indicators across connected components.",
+            "evidence": compute_ids + data_ids + hotspot_ids,
+        },
+        {
+            "title": "Operational detection and incident response",
+            "pillars": ["operational_excellence", "security"],
+            "path": "Telemetry collection → alerting pipeline → incident triage and containment",
+            "impact": "Weak observability delays detection and increases mean time to recovery for security and reliability incidents.",
+            "recommendation": "Standardize diagnostic logs, alert thresholds, and response playbooks with ownership across architecture components.",
+            "evidence": hotspot_ids,
+        },
+    ]
+
+    scenario_findings: list[dict[str, Any]] = []
+    for index, scenario in enumerate(scenario_templates, start=1):
+        pillars = [str(pillar) for pillar in scenario.get("pillars") or []]
+        gaps = _gaps_for(pillars)
+        scenario_findings.append(
+            {
+                "id": f"scenario-{index}",
+                "scenario": str(scenario.get("title") or f"Scenario {index}"),
+                "architecture_path": str(scenario.get("path") or "End-to-end architecture flow"),
+                "priority": _priority_for(pillars),
+                "impact": str(scenario.get("impact") or "Architecture-level risk can affect system outcomes."),
+                "existing_controls": [
+                    f"{project_name} includes {len(resources)} modeled resources and {len(connections)} modeled connections.",
+                    "Resource-level validations are already captured in quick fixes and pillar recommendations.",
+                ],
+                "gaps": gaps or ["No explicit scenario-specific gaps were inferred from current findings."],
+                "recommendation": str(scenario.get("recommendation") or "Apply Well-Architected guidance to this end-to-end scenario."),
+                "evidence_resources": _resource_refs(list(scenario.get("evidence") or [])),
+                "focus_pillars": pillars,
+            }
+        )
+
+    return scenario_findings
+
+
 async def _learn_mcp_search_async(*, queries: list[str], app_settings: Mapping[str, Any]) -> tuple[list[dict[str, Any]], int]:
     try:
         mcp_module = importlib.import_module("mcp")
@@ -2646,6 +2809,10 @@ def _build_final_intelligent_report(
     all_findings = _dedupe_findings(deterministic_findings + waf_findings + model_findings)
     grouped = _group_findings(all_findings)
     organized = _organize_into_recommendations_and_quick_fixes(all_findings)
+    scenario_findings = _build_scenario_findings(
+        architecture_context=architecture_context,
+        findings=all_findings,
+    )
 
     detected_services = _collect_detected_services(architecture_context)
     config_issues: list[dict[str, Any]] = []
@@ -2772,6 +2939,7 @@ def _build_final_intelligent_report(
     return {
         "architecture_summary": architecture_summary,
         "detected_services": detected_services,
+        "scenario_findings": scenario_findings,
         "configuration_issues": config_issues[:40],
         "architecture_antipatterns": anti_patterns[:25],
         "recommended_patterns": recommended_patterns[:20],
