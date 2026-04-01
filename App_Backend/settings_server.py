@@ -3566,7 +3566,12 @@ def _format_resource_reference(value: Any, resource_lookup: Mapping[str, Any]) -
     return resource_id
 
 
-def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup: Mapping[str, str] | None = None) -> str:
+def _format_final_report_markdown(
+    payload: Mapping[str, Any],
+    *,
+    resource_lookup: Mapping[str, Any] | None = None,
+    project_description: str = "",
+) -> str:
     safe_resource_lookup = resource_lookup if isinstance(resource_lookup, Mapping) else {}
     lines: list[str] = [
         "# Azure Architecture Validation Report",
@@ -3579,6 +3584,10 @@ def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup
         lines.append(summary)
     else:
         lines.append("No executive summary provided.")
+
+    safe_project_description = _normalize_report_text(project_description, as_sentence=True)
+    if safe_project_description:
+        lines.extend(["", f"Project Description: {safe_project_description}"])
 
     lines.extend(["", "## Detected Services"])
     services = _as_list(payload.get("detected_services"))
@@ -3593,94 +3602,191 @@ def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup
             else:
                 lines.append(f"- {_as_text(service)}")
 
-    lines.extend(["", "## Configuration Issues"])
-    grouped_config_issues: dict[str, dict[str, Any]] = {}
+    lines.extend(["", "## Well-Architected Assessment"])
+    pillar_assessment = payload.get("pillar_assessment")
+    if isinstance(pillar_assessment, Mapping) and pillar_assessment:
+        for pillar_name, pillar_data in pillar_assessment.items():
+            pillar_label = _pillar_label(pillar_name)
+            details = pillar_data if isinstance(pillar_data, Mapping) else {}
+            status = _as_text(details.get("status") or details.get("score") or details.get("rating") or "Not provided")
+            findings_value = details.get("findings")
+            findings_count = "Not provided" if findings_value is None else str(findings_value).strip()
+            if not findings_count:
+                findings_count = "Not provided"
+            top_recommendations = _as_list(details.get("top_recommendations"))
+
+            strengths = _as_list(details.get("strengths"))
+            weaknesses = _as_list(details.get("weaknesses"))
+            recommendations = _as_list(details.get("recommendations"))
+
+            if not strengths and status.lower() in {"acceptable", "good", "healthy", "passed"}:
+                strengths = ["Current architecture controls are broadly aligned for this pillar."]
+
+            if not weaknesses and status.lower() in {"needs_improvement", "needs-improvement", "warning", "poor", "critical"}:
+                weaknesses = top_recommendations
+
+            if not recommendations:
+                recommendations = top_recommendations
+
+            strength_lines = [
+                f"  - {item}"
+                for item in (_normalize_report_text(v, as_sentence=True) for v in strengths)
+                if item
+            ]
+            weakness_lines = [
+                f"  - {item}"
+                for item in (_normalize_report_text(v, as_sentence=True) for v in weaknesses)
+                if item
+            ]
+            recommendation_lines = [
+                f"  - {item}"
+                for item in (_normalize_report_text(v, as_sentence=True) for v in recommendations)
+                if item
+            ]
+
+            weakness_keys = {_normalize_key(item) for item in weakness_lines}
+            recommendation_keys = {_normalize_key(item) for item in recommendation_lines}
+            if weakness_keys and recommendation_keys and weakness_keys == recommendation_keys:
+                recommendation_lines = ["  - No additional distinct recommendations were supplied beyond the weaknesses listed above."]
+
+            if not strength_lines:
+                strength_lines = ["  - No explicit strengths were supplied for this pillar in the current payload."]
+            if not weakness_lines:
+                if str(findings_count).strip() == "0":
+                    weakness_lines = ["  - No weaknesses were identified for this pillar in this run."]
+                else:
+                    weakness_lines = ["  - Weakness details were not explicitly provided; review associated findings for this pillar."]
+            if not recommendation_lines:
+                if str(findings_count).strip() == "0":
+                    recommendation_lines = ["  - No corrective recommendations are required at this time. Continue monitoring this pillar."]
+                else:
+                    recommendation_lines = ["  - Recommendations were not explicitly supplied; use next-step sections for remediation planning."]
+
+            lines.extend(
+                [
+                    f"### {pillar_label}",
+                    f"- Status: {status}",
+                    f"- Findings: {findings_count}",
+                    "- Strengths:",
+                    *strength_lines,
+                    "- Weaknesses:",
+                    *weakness_lines,
+                    "- Recommendations:",
+                    *recommendation_lines,
+                ]
+            )
+    else:
+        lines.append("- Not provided")
+
+    lines.extend(["", "## Issues and Anti-Pattern"])
+    unified_issues: dict[str, dict[str, Any]] = {}
+
     for issue in _as_list(payload.get("configuration_issues")):
         if isinstance(issue, Mapping):
-            resource = _format_resource_reference(
+            topic = _normalize_report_text(issue.get("issue") or issue.get("title") or issue.get("description"), as_sentence=True) or "Not specified."
+            impact = _normalize_report_text(issue.get("impact") or issue.get("risk"), as_sentence=True) or "Not specified."
+            recommendation = _normalize_report_text(issue.get("resolution") or issue.get("recommendation") or issue.get("fix"), as_sentence=True) or "Not specified."
+            affected = _format_resource_reference(
                 issue.get("resource") or issue.get("resource_name") or issue.get("target"),
                 safe_resource_lookup,
             )
-            issue_text = _normalize_report_text(issue.get("issue") or issue.get("title") or issue.get("description"), as_sentence=True) or "Not specified."
-            impact = _normalize_report_text(issue.get("impact") or issue.get("risk"), as_sentence=True) or "Not specified."
-            resolution = _normalize_report_text(issue.get("resolution") or issue.get("recommendation") or issue.get("fix"), as_sentence=True) or "Not specified."
         else:
-            resource = "Not specified"
-            issue_text = _normalize_report_text(issue, as_sentence=True) or "Not specified."
+            topic = _normalize_report_text(issue, as_sentence=True) or "Not specified."
             impact = "Not specified."
-            resolution = "Not specified."
+            recommendation = "Not specified."
+            affected = "Not specified"
 
-        key = "|".join([_normalize_key(issue_text), _normalize_key(impact), _normalize_key(resolution)])
-        if key not in grouped_config_issues:
-            grouped_config_issues[key] = {
-                "issue": issue_text,
+        key = _normalize_key(topic)
+        if key not in unified_issues:
+            unified_issues[key] = {
+                "topic": topic,
                 "impact": impact,
-                "resolution": resolution,
-                "resources": [],
-            }
-        grouped_config_issues[key]["resources"].append(resource)
-
-    if not grouped_config_issues:
-        lines.append("- No configuration issues were identified. The current configuration baseline appears aligned with input checks and rule outcomes.")
-    else:
-        for index, group in enumerate(grouped_config_issues.values(), start=1):
-            resources = _dedupe_by_key(group.get("resources") or [], lambda value: _normalize_key(value))
-            resource_lines = [f"  - {resource}" for resource in resources] if resources else ["  - Not specified"]
-            lines.extend(
-                [
-                    f"### {index}. {group['issue']}",
-                    "- Affected Resources:",
-                    *resource_lines,
-                    f"- Impact: {group['impact']}",
-                    f"- Recommended Action: {group['resolution']}",
-                ]
-            )
-
-    lines.extend(["", "## Architecture Anti-Patterns"])
-    grouped_antipatterns: dict[str, dict[str, Any]] = {}
-    for item in _as_list(payload.get("architecture_antipatterns")):
-        if isinstance(item, Mapping):
-            name = _normalize_report_text(item.get("name") or item.get("title"), as_sentence=True)
-            risk = _normalize_report_text(item.get("risk") or item.get("impact"), as_sentence=True)
-            recommendation = _normalize_report_text(item.get("recommendation") or item.get("resolution"), as_sentence=True)
-            affected = _as_list(item.get("affected_components"))
-        else:
-            name = _normalize_report_text(item, as_sentence=True)
-            risk = "Not specified."
-            recommendation = "Refactor this pattern to align with Azure Well-Architected recommendations."
-            affected = []
-
-        key = "|".join([_normalize_key(name), _normalize_key(risk), _normalize_key(recommendation)])
-        if key not in grouped_antipatterns:
-            grouped_antipatterns[key] = {
-                "name": name or "Anti-pattern",
-                "risk": risk or "Not specified.",
-                "recommendation": recommendation or "Not specified.",
+                "recommendation": recommendation,
                 "affected": [],
             }
-        grouped_antipatterns[key]["affected"].extend(
+        if len(impact) > len(unified_issues[key]["impact"]):
+            unified_issues[key]["impact"] = impact
+        if len(recommendation) > len(unified_issues[key]["recommendation"]):
+            unified_issues[key]["recommendation"] = recommendation
+        unified_issues[key]["affected"].append(affected)
+
+    for item in _as_list(payload.get("architecture_antipatterns")):
+        if isinstance(item, Mapping):
+            topic = _normalize_report_text(item.get("name") or item.get("title"), as_sentence=True) or "Anti-pattern."
+            impact = _normalize_report_text(item.get("risk") or item.get("impact"), as_sentence=True) or "Not specified."
+            recommendation = _normalize_report_text(item.get("recommendation") or item.get("resolution"), as_sentence=True) or "Not specified."
+            affected_components = _as_list(item.get("affected_components"))
+        else:
+            topic = _normalize_report_text(item, as_sentence=True) or "Anti-pattern."
+            impact = "Not specified."
+            recommendation = "Refactor this pattern to align with Azure Well-Architected recommendations."
+            affected_components = []
+
+        key = _normalize_key(topic)
+        if key not in unified_issues:
+            unified_issues[key] = {
+                "topic": topic,
+                "impact": impact,
+                "recommendation": recommendation,
+                "affected": [],
+            }
+        if len(impact) > len(unified_issues[key]["impact"]):
+            unified_issues[key]["impact"] = impact
+        if len(recommendation) > len(unified_issues[key]["recommendation"]):
+            unified_issues[key]["recommendation"] = recommendation
+        unified_issues[key]["affected"].extend(
             [
                 _format_resource_reference(value, safe_resource_lookup)
-                for value in affected
+                for value in affected_components
                 if _normalize_report_text(value)
             ]
         )
 
-    if not grouped_antipatterns:
-        lines.append("- No architecture anti-patterns were detected in this validation run.")
+    if not unified_issues:
+        lines.append("- No issues or anti-patterns were detected in this validation run.")
     else:
-        for index, item in enumerate(grouped_antipatterns.values(), start=1):
-            affected_components = _dedupe_by_key(item.get("affected") or [], lambda value: _normalize_key(value))
-            affected_lines = [f"  - {value}" for value in affected_components] if affected_components else ["  - Not specified"]
+        ranked_groups: list[dict[str, Any]] = []
+        for group in unified_issues.values():
+            affected = _dedupe_by_key(group.get("affected") or [], lambda value: _normalize_key(value))
+            has_specific_resource = any(
+                _normalize_key(value) not in {"", "not specified", "global (global)", "global"}
+                for value in affected
+            )
+            ranked_groups.append({
+                "group": group,
+                "affected": affected,
+                "has_specific_resource": has_specific_resource,
+            })
+
+        ranked_groups.sort(
+            key=lambda item: (
+                0 if item["has_specific_resource"] else 1,
+                -len(item["affected"]),
+                _normalize_key(item["group"].get("topic")),
+            )
+        )
+
+        max_issue_items = 12
+        visible_groups = ranked_groups[:max_issue_items]
+        hidden_count = max(0, len(ranked_groups) - len(visible_groups))
+
+        for index, item in enumerate(visible_groups, start=1):
+            group = item["group"]
+            affected = item["affected"]
+            affected = _dedupe_by_key(group.get("affected") or [], lambda value: _normalize_key(value))
+            affected_lines = [f"  - {value}" for value in affected] if affected else ["  - Not specified"]
             lines.extend(
                 [
-                    f"### {index}. {item['name']}",
-                    f"- Risk: {item['risk']}",
-                    f"- Recommendation: {item['recommendation']}",
-                    "- Affected Components:",
+                    f"### {index}. {group['topic']}",
+                    f"- Impact: {group['impact']}",
+                    f"- Recommendation: {group['recommendation']}",
+                    "- Affected Resources:",
                     *affected_lines,
                 ]
             )
+
+        if hidden_count:
+            lines.append(f"- Additional findings consolidated: {hidden_count} similar issue(s) were omitted here to keep this section focused. See final-report.json for full detail.")
 
     lines.extend(["", "## Recommended Patterns"])
     recommended_patterns = _as_list(payload.get("recommended_patterns"))
@@ -3735,85 +3841,33 @@ def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup
                 ]
             )
 
-    lines.extend(["", "## Missing Capabilities"])
-    missing_capabilities = _dedupe_by_key(_as_list(payload.get("missing_capabilities")), lambda value: _normalize_key(value))
-    if not missing_capabilities:
-        lines.append("- No missing capabilities were identified from the current evidence set and architecture scope.")
+    lines.extend(["", "## Questions to think about next"])
+    questions = _dedupe_by_key(
+        _as_list(
+            payload.get("questions_to_think_about_next")
+            or payload.get("questions_to_think_about")
+            or payload.get("open_questions")
+        ),
+        lambda value: _normalize_key(value),
+    )
+    if not questions:
+        lines.extend(
+            [
+                "- What scale profile (peak traffic and growth) should this architecture be sized for in the next 12 months?",
+                "- Which compliance controls require explicit evidence collection and audit trails in this design?",
+                "- Which failure scenarios require automated failover, and what are the RTO/RPO targets?",
+            ]
+        )
     else:
-        lines.extend([f"- {_normalize_report_text(value, as_sentence=True)}" for value in missing_capabilities if _normalize_report_text(value)])
-
-    lines.extend(["", "## Well-Architected Assessment"])
-    pillar_assessment = payload.get("pillar_assessment")
-    if isinstance(pillar_assessment, Mapping) and pillar_assessment:
-        for pillar_name, pillar_data in pillar_assessment.items():
-            pillar_label = _pillar_label(pillar_name)
-            details = pillar_data if isinstance(pillar_data, Mapping) else {}
-            status = _as_text(details.get("status") or details.get("score") or details.get("rating") or "Not provided")
-            findings_value = details.get("findings")
-            findings_count = "Not provided" if findings_value is None else str(findings_value).strip()
-            if not findings_count:
-                findings_count = "Not provided"
-            top_recommendations = _as_list(details.get("top_recommendations"))
-
-            strengths = _as_list(details.get("strengths"))
-            weaknesses = _as_list(details.get("weaknesses"))
-            recommendations = _as_list(details.get("recommendations"))
-
-            if not strengths and status.lower() in {"acceptable", "good", "healthy", "passed"}:
-                strengths = ["Current architecture controls are broadly aligned for this pillar."]
-
-            if not weaknesses and status.lower() in {"needs_improvement", "needs-improvement", "warning", "poor", "critical"}:
-                weaknesses = top_recommendations
-
-            if not recommendations:
-                recommendations = top_recommendations
-
-            strength_lines = [
-                f"  - {item}"
-                for item in (_normalize_report_text(v, as_sentence=True) for v in strengths)
-                if item
+        lines.extend(
+            [
+                f"- {_normalize_report_text(question, as_sentence=True)}"
+                for question in questions
+                if _normalize_report_text(question)
             ]
-            weakness_lines = [
-                f"  - {item}"
-                for item in (_normalize_report_text(v, as_sentence=True) for v in weaknesses)
-                if item
-            ]
-            recommendation_lines = [
-                f"  - {item}"
-                for item in (_normalize_report_text(v, as_sentence=True) for v in recommendations)
-                if item
-            ]
+        )
 
-            if not strength_lines:
-                strength_lines = ["  - No explicit strengths were supplied for this pillar in the current payload."]
-            if not weakness_lines:
-                if str(findings_count).strip() == "0":
-                    weakness_lines = ["  - No weaknesses were identified for this pillar in this run."]
-                else:
-                    weakness_lines = ["  - Weakness details were not explicitly provided; review associated findings for this pillar."]
-            if not recommendation_lines:
-                if str(findings_count).strip() == "0":
-                    recommendation_lines = ["  - No corrective recommendations are required at this time. Continue monitoring this pillar."]
-                else:
-                    recommendation_lines = ["  - Recommendations were not explicitly supplied; use priority improvements and quick fixes for remediation planning."]
-
-            lines.extend(
-                [
-                    f"### {pillar_label}",
-                    f"- Status: {status}",
-                    f"- Findings: {findings_count}",
-                    "- Strengths:",
-                    *strength_lines,
-                    "- Weaknesses:",
-                    *weakness_lines,
-                    "- Recommendations:",
-                    *recommendation_lines,
-                ]
-            )
-    else:
-        lines.append("- Not provided")
-
-    lines.extend(["", "## Priority Improvements"])
+    lines.extend(["", "## What to do next", "", "### Priority Improvements"])
     priority_improvements_raw = _as_list(payload.get("priority_improvements"))
     priority_improvements = _dedupe_by_key(
         priority_improvements_raw,
@@ -3847,26 +3901,26 @@ def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup
                 services = []
 
             service_lines = [
-                f"  - {_normalize_report_text(value)}"
+                f"    - {_normalize_report_text(value)}"
                 for value in services
                 if _normalize_report_text(value)
             ]
             if not service_lines:
-                service_lines = ["  - Not specified"]
+                service_lines = ["    - Not specified"]
 
             lines.extend(
                 [
-                    f"### {rank}. {title}",
-                    f"- Category: {pillar}",
-                    f"- Why It Matters: {description}",
-                    f"- Impact: {impact}",
-                    f"- Effort: {effort}",
-                    "- Related Azure Services:",
+                    f"- {rank}. {title}",
+                    f"  - Category: {pillar}",
+                    f"  - Why It Matters: {description}",
+                    f"  - Impact: {impact}",
+                    f"  - Effort: {effort}",
+                    "  - Related Azure Services:",
                     *service_lines,
                 ]
             )
 
-    lines.extend(["", "## Quick Fixes"])
+    lines.extend(["", "### Quick Fixes"])
     quick_fixes_raw = _as_list(payload.get("quick_configuration_fixes"))
     quick_fixes = _dedupe_by_key(
         quick_fixes_raw,
@@ -3897,61 +3951,13 @@ def _format_final_report_markdown(payload: Mapping[str, Any], *, resource_lookup
 
             lines.extend(
                 [
-                    f"### {index}. {title}",
-                    f"- Resource: {resource}",
-                    f"- Current State: {current_state}",
-                    f"- Target State: {target_state}",
-                    f"- Impact: {impact}",
+                    f"- {index}. {title}",
+                    f"  - Resource: {resource}",
+                    f"  - Current State: {current_state}",
+                    f"  - Target State: {target_state}",
+                    f"  - Impact: {impact}",
                 ]
             )
-
-    lines.extend(["", "## Verification Checklist by Category"])
-    category_groups: dict[str, list[str]] = {
-        "Reliability": [],
-        "Security": [],
-        "Cost Optimization": [],
-        "Operational Excellence": [],
-        "Performance Efficiency": [],
-        "Uncategorized": [],
-    }
-
-    title_to_category: dict[str, str] = {}
-
-    for item in priority_improvements:
-        if not isinstance(item, Mapping):
-            continue
-        category = _pillar_label(item.get("pillar"))
-        category_key = category if category in category_groups else "Uncategorized"
-        suggestion = _normalize_report_text(item.get("title"), as_sentence=True)
-        if suggestion:
-            category_groups[category_key].append(suggestion)
-            title_to_category[_normalize_key(suggestion)] = category_key
-
-    for item in quick_fixes:
-        if not isinstance(item, Mapping):
-            continue
-        suggestion = _normalize_report_text(item.get("title"), as_sentence=True)
-        if suggestion:
-            inferred_category = title_to_category.get(_normalize_key(suggestion), "Operational Excellence")
-            category_key = inferred_category if inferred_category in category_groups else "Operational Excellence"
-            category_groups[category_key].append(suggestion)
-
-    for pillar_name, pillar_data in (pillar_assessment.items() if isinstance(pillar_assessment, Mapping) else []):
-        details = pillar_data if isinstance(pillar_data, Mapping) else {}
-        category = _pillar_label(pillar_name)
-        category_key = category if category in category_groups else "Uncategorized"
-        for rec in _as_list(details.get("top_recommendations")):
-            suggestion = _normalize_report_text(rec, as_sentence=True)
-            if suggestion:
-                category_groups[category_key].append(suggestion)
-
-    for category_name in ["Reliability", "Security", "Cost Optimization", "Operational Excellence", "Performance Efficiency", "Uncategorized"]:
-        unique_suggestions = _dedupe_by_key(category_groups.get(category_name, []), lambda value: _normalize_key(value))
-        lines.extend([f"### {category_name}", f"- Total Suggestions: {len(unique_suggestions)}"])
-        if unique_suggestions:
-            lines.extend(["- Suggestions:", *[f"  - {item}" for item in unique_suggestions]])
-        else:
-            lines.append("- Suggestions: No actionable items were generated for this category in this run; continue monitoring and re-validate after architecture changes.")
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -3995,7 +4001,17 @@ def _run_final_report_stage(*, project_dir: Path) -> dict[str, Any]:
 
     step_results.append({"step": "format-report", "status": "started"})
     resource_lookup = _build_resource_display_lookup(project_dir)
-    markdown_text = _format_final_report_markdown(payload, resource_lookup=resource_lookup)
+    metadata_path = project_dir / "Architecture" / "project.metadata.json"
+    metadata = read_json_file(metadata_path, {})
+    project_description = ""
+    if isinstance(metadata, Mapping):
+        project_description = _as_text(metadata.get("applicationDescription"))
+
+    markdown_text = _format_final_report_markdown(
+        payload,
+        resource_lookup=resource_lookup,
+        project_description=project_description,
+    )
     step_results.append({"step": "format-report", "status": "completed"})
 
     step_results.append({"step": "generate-artifacts", "status": "started"})
