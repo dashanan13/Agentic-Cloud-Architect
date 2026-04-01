@@ -1845,7 +1845,7 @@ function getCloudFallbackIcon(cloudName) {
 }
 
 function getProjectPrefix(cloud) {
-  return `${cloud}-`;
+  return "";
 }
 
 function getMaxSuffixLength(cloud) {
@@ -10040,10 +10040,10 @@ async function initialize() {
 initialize().catch((error) => {
   console.error("Canvas initialization failed", error);
   if (projectNamePrefixDisplay) {
-    projectNamePrefixDisplay.textContent = "Project unavailable";
+    projectNamePrefixDisplay.textContent = "";
   }
   if (projectNameDisplay) {
-    projectNameDisplay.textContent = "";
+    projectNameDisplay.textContent = "Project unavailable";
   }
   if (resourceListEl) {
     resourceListEl.innerHTML = "";

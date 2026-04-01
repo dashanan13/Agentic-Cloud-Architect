@@ -48,7 +48,7 @@ function formatTimestamp(ms) {
 }
 
 function getProjectPrefix(cloud) {
-  return `${cloud}-`;
+  return "";
 }
 
 function normalizeProjectName(cloud, rawName) {
