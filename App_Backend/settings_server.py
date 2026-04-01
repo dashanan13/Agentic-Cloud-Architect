@@ -3472,6 +3472,49 @@ def _render_bullets(values: list[Any], *, fallback: str = "Not provided") -> lis
     return [f"- {item}" for item in items]
 
 
+def _normalize_report_text(value: Any, *, as_sentence: bool = False) -> str:
+    text = _as_text(value)
+    if not text:
+        return ""
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if "..." in normalized:
+        normalized = normalized.replace("...", " [truncated in source]")
+    if as_sentence and normalized and normalized[-1] not in ".!?":
+        normalized = f"{normalized}."
+    return normalized
+
+
+def _normalize_key(value: Any) -> str:
+    return re.sub(r"\s+", " ", _normalize_report_text(value).lower()).strip()
+
+
+def _dedupe_by_key(rows: list[Any], key_builder) -> list[Any]:
+    seen: set[str] = set()
+    output: list[Any] = []
+    for row in rows:
+        key = str(key_builder(row) or "").strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        output.append(row)
+    return output
+
+
+def _pillar_label(value: Any) -> str:
+    raw = _normalize_key(value)
+    mapping = {
+        "reliability": "Reliability",
+        "security": "Security",
+        "cost_optimization": "Cost Optimization",
+        "cost optimization": "Cost Optimization",
+        "operational_excellence": "Operational Excellence",
+        "operational excellence": "Operational Excellence",
+        "performance_efficiency": "Performance Efficiency",
+        "performance efficiency": "Performance Efficiency",
+    }
+    return mapping.get(raw, _normalize_report_text(value) or "Uncategorized")
+
+
 def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
     lines: list[str] = [
         "# Azure Architecture Validation Report",
@@ -3499,61 +3542,150 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
                 lines.append(f"- {_as_text(service)}")
 
     lines.extend(["", "## Configuration Issues"])
-    config_issues = _as_list(payload.get("configuration_issues"))
-    if not config_issues:
-        lines.append("- None")
+    grouped_config_issues: dict[str, dict[str, Any]] = {}
+    for issue in _as_list(payload.get("configuration_issues")):
+        if isinstance(issue, Mapping):
+            resource = _normalize_report_text(issue.get("resource") or issue.get("resource_name") or issue.get("target")) or "Not specified"
+            issue_text = _normalize_report_text(issue.get("issue") or issue.get("title") or issue.get("description"), as_sentence=True) or "Not specified."
+            impact = _normalize_report_text(issue.get("impact") or issue.get("risk"), as_sentence=True) or "Not specified."
+            resolution = _normalize_report_text(issue.get("resolution") or issue.get("recommendation") or issue.get("fix"), as_sentence=True) or "Not specified."
+        else:
+            resource = "Not specified"
+            issue_text = _normalize_report_text(issue, as_sentence=True) or "Not specified."
+            impact = "Not specified."
+            resolution = "Not specified."
+
+        key = "|".join([_normalize_key(issue_text), _normalize_key(impact), _normalize_key(resolution)])
+        if key not in grouped_config_issues:
+            grouped_config_issues[key] = {
+                "issue": issue_text,
+                "impact": impact,
+                "resolution": resolution,
+                "resources": [],
+            }
+        grouped_config_issues[key]["resources"].append(resource)
+
+    if not grouped_config_issues:
+        lines.append("- No configuration issues were identified. The current configuration baseline appears aligned with input checks and rule outcomes.")
     else:
-        for index, issue in enumerate(config_issues, start=1):
-            if isinstance(issue, Mapping):
-                resource = _as_text(issue.get("resource") or issue.get("resource_name") or issue.get("target")) or "Not specified"
-                issue_text = _as_text(issue.get("issue") or issue.get("title") or issue.get("description")) or "Not specified"
-                impact = _as_text(issue.get("impact") or issue.get("risk")) or "Not specified"
-                resolution = _as_text(issue.get("resolution") or issue.get("recommendation") or issue.get("fix")) or "Not specified"
-            else:
-                resource, issue_text, impact, resolution = "Not specified", _as_text(issue) or "Not specified", "Not specified", "Not specified"
+        for index, group in enumerate(grouped_config_issues.values(), start=1):
+            resources = _dedupe_by_key(group.get("resources") or [], lambda value: _normalize_key(value))
+            resource_lines = [f"  - {resource}" for resource in resources] if resources else ["  - Not specified"]
             lines.extend(
                 [
-                    f"### {index}. {issue_text}",
-                    f"- Resource: {resource}",
-                    f"- Issue: {issue_text}",
-                    f"- Impact: {impact}",
-                    f"- Resolution: {resolution}",
+                    f"### {index}. {group['issue']}",
+                    "- Affected Resources:",
+                    *resource_lines,
+                    f"- Impact: {group['impact']}",
+                    f"- Recommended Action: {group['resolution']}",
                 ]
             )
 
     lines.extend(["", "## Architecture Anti-Patterns"])
-    anti_patterns = _as_list(payload.get("architecture_antipatterns"))
-    if not anti_patterns:
-        lines.append("- None")
+    grouped_antipatterns: dict[str, dict[str, Any]] = {}
+    for item in _as_list(payload.get("architecture_antipatterns")):
+        if isinstance(item, Mapping):
+            name = _normalize_report_text(item.get("name") or item.get("title"), as_sentence=True)
+            risk = _normalize_report_text(item.get("risk") or item.get("impact"), as_sentence=True)
+            recommendation = _normalize_report_text(item.get("recommendation") or item.get("resolution"), as_sentence=True)
+            affected = _as_list(item.get("affected_components"))
+        else:
+            name = _normalize_report_text(item, as_sentence=True)
+            risk = "Not specified."
+            recommendation = "Refactor this pattern to align with Azure Well-Architected recommendations."
+            affected = []
+
+        key = "|".join([_normalize_key(name), _normalize_key(risk), _normalize_key(recommendation)])
+        if key not in grouped_antipatterns:
+            grouped_antipatterns[key] = {
+                "name": name or "Anti-pattern",
+                "risk": risk or "Not specified.",
+                "recommendation": recommendation or "Not specified.",
+                "affected": [],
+            }
+        grouped_antipatterns[key]["affected"].extend([_normalize_report_text(value) for value in affected if _normalize_report_text(value)])
+
+    if not grouped_antipatterns:
+        lines.append("- No architecture anti-patterns were detected in this validation run.")
     else:
-        for index, item in enumerate(anti_patterns, start=1):
-            if isinstance(item, Mapping):
-                name = _as_text(item.get("name") or item.get("title")) or f"Anti-Pattern {index}"
-                risk = _as_text(item.get("risk") or item.get("impact")) or "Not specified"
-                recommendation = _as_text(item.get("recommendation") or item.get("resolution")) or "Not specified"
-            else:
-                name, risk, recommendation = _as_text(item) or f"Anti-Pattern {index}", "Not specified", "Not specified"
+        for index, item in enumerate(grouped_antipatterns.values(), start=1):
+            affected_components = _dedupe_by_key(item.get("affected") or [], lambda value: _normalize_key(value))
+            affected_lines = [f"  - {value}" for value in affected_components] if affected_components else ["  - Not specified"]
             lines.extend(
                 [
-                    f"### {index}. {name}",
-                    f"- Risk: {risk}",
-                    f"- Recommendation: {recommendation}",
+                    f"### {index}. {item['name']}",
+                    f"- Risk: {item['risk']}",
+                    f"- Recommendation: {item['recommendation']}",
+                    "- Affected Components:",
+                    *affected_lines,
                 ]
             )
 
     lines.extend(["", "## Recommended Patterns"])
     recommended_patterns = _as_list(payload.get("recommended_patterns"))
-    lines.extend(_render_bullets(recommended_patterns, fallback="None"))
+    deduped_patterns = _dedupe_by_key(
+        recommended_patterns,
+        lambda item: "|".join(
+            [
+                _normalize_key(item.get("name") if isinstance(item, Mapping) else item),
+                _normalize_key(item.get("reason") if isinstance(item, Mapping) else ""),
+            ]
+        ),
+    )
+    if not deduped_patterns:
+        lines.append("- No additional architecture pattern substitutions are required at this stage.")
+    else:
+        for index, pattern in enumerate(deduped_patterns, start=1):
+            if isinstance(pattern, Mapping):
+                name = _normalize_report_text(pattern.get("name"), as_sentence=True) or f"Pattern {index}."
+                reason = _normalize_report_text(pattern.get("reason"), as_sentence=True) or "No rationale provided."
+                components = _dedupe_by_key(_as_list(pattern.get("components")), lambda value: _normalize_key(value))
+                azure_services = _dedupe_by_key(_as_list(pattern.get("azure_services")), lambda value: _normalize_key(value))
+            else:
+                name = _normalize_report_text(pattern, as_sentence=True) or f"Pattern {index}."
+                reason = "No rationale provided."
+                components = []
+                azure_services = []
+
+            component_lines = [
+                f"  - {_normalize_report_text(value)}"
+                for value in components
+                if _normalize_report_text(value)
+            ]
+            if not component_lines:
+                component_lines = ["  - Not specified"]
+
+            azure_service_lines = [
+                f"  - {_normalize_report_text(value)}"
+                for value in azure_services
+                if _normalize_report_text(value)
+            ]
+            if not azure_service_lines:
+                azure_service_lines = ["  - Not specified"]
+
+            lines.extend(
+                [
+                    f"### {index}. {name}",
+                    f"- Why: {reason}",
+                    "- Components in Scope:",
+                    *component_lines,
+                    "- Azure Services:",
+                    *azure_service_lines,
+                ]
+            )
 
     lines.extend(["", "## Missing Capabilities"])
-    missing_capabilities = _as_list(payload.get("missing_capabilities"))
-    lines.extend(_render_bullets(missing_capabilities, fallback="None"))
+    missing_capabilities = _dedupe_by_key(_as_list(payload.get("missing_capabilities")), lambda value: _normalize_key(value))
+    if not missing_capabilities:
+        lines.append("- No missing capabilities were identified from the current evidence set and architecture scope.")
+    else:
+        lines.extend([f"- {_normalize_report_text(value, as_sentence=True)}" for value in missing_capabilities if _normalize_report_text(value)])
 
     lines.extend(["", "## Well-Architected Assessment"])
     pillar_assessment = payload.get("pillar_assessment")
     if isinstance(pillar_assessment, Mapping) and pillar_assessment:
         for pillar_name, pillar_data in pillar_assessment.items():
-            pillar_label = _as_text(pillar_name) or "Pillar"
+            pillar_label = _pillar_label(pillar_name)
             details = pillar_data if isinstance(pillar_data, Mapping) else {}
             status = _as_text(details.get("status") or details.get("score") or details.get("rating") or "Not provided")
             findings_value = details.get("findings")
@@ -3575,16 +3707,34 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
             if not recommendations:
                 recommendations = top_recommendations
 
-            strength_lines = [f"  - {item}" for item in (_as_text(v) for v in strengths) if item]
-            weakness_lines = [f"  - {item}" for item in (_as_text(v) for v in weaknesses) if item]
-            recommendation_lines = [f"  - {item}" for item in (_as_text(v) for v in recommendations) if item]
+            strength_lines = [
+                f"  - {item}"
+                for item in (_normalize_report_text(v, as_sentence=True) for v in strengths)
+                if item
+            ]
+            weakness_lines = [
+                f"  - {item}"
+                for item in (_normalize_report_text(v, as_sentence=True) for v in weaknesses)
+                if item
+            ]
+            recommendation_lines = [
+                f"  - {item}"
+                for item in (_normalize_report_text(v, as_sentence=True) for v in recommendations)
+                if item
+            ]
 
             if not strength_lines:
-                strength_lines = ["  - None"]
+                strength_lines = ["  - No explicit strengths were supplied for this pillar in the current payload."]
             if not weakness_lines:
-                weakness_lines = ["  - None"]
+                if str(findings_count).strip() == "0":
+                    weakness_lines = ["  - No weaknesses were identified for this pillar in this run."]
+                else:
+                    weakness_lines = ["  - Weakness details were not explicitly provided; review associated findings for this pillar."]
             if not recommendation_lines:
-                recommendation_lines = ["  - None"]
+                if str(findings_count).strip() == "0":
+                    recommendation_lines = ["  - No corrective recommendations are required at this time. Continue monitoring this pillar."]
+                else:
+                    recommendation_lines = ["  - Recommendations were not explicitly supplied; use priority improvements and quick fixes for remediation planning."]
 
             lines.extend(
                 [
@@ -3603,12 +3753,144 @@ def _format_final_report_markdown(payload: Mapping[str, Any]) -> str:
         lines.append("- Not provided")
 
     lines.extend(["", "## Priority Improvements"])
-    priority_improvements = _as_list(payload.get("priority_improvements"))
-    lines.extend(_render_bullets(priority_improvements, fallback="None"))
+    priority_improvements_raw = _as_list(payload.get("priority_improvements"))
+    priority_improvements = _dedupe_by_key(
+        priority_improvements_raw,
+        lambda item: "|".join(
+            [
+                _normalize_key(item.get("title") if isinstance(item, Mapping) else item),
+                _normalize_key(item.get("pillar") if isinstance(item, Mapping) else ""),
+                _normalize_key(item.get("description") if isinstance(item, Mapping) else ""),
+            ]
+        ),
+    )
+    if not priority_improvements:
+        lines.append("- No priority improvements were identified after consolidation and de-duplication.")
+    else:
+        for index, item in enumerate(priority_improvements, start=1):
+            if isinstance(item, Mapping):
+                rank = str(index)
+                title = _normalize_report_text(item.get("title"), as_sentence=True) or "Improvement item."
+                description = _normalize_report_text(item.get("description"), as_sentence=True) or "No description provided."
+                pillar = _pillar_label(item.get("pillar"))
+                impact = _normalize_report_text(item.get("impact")) or "Not specified"
+                effort = _normalize_report_text(item.get("effort")) or "Not specified"
+                services = _dedupe_by_key(_as_list(item.get("azure_services")), lambda value: _normalize_key(value))
+            else:
+                rank = str(index)
+                title = _normalize_report_text(item, as_sentence=True) or "Improvement item."
+                description = "No description provided."
+                pillar = "Uncategorized"
+                impact = "Not specified"
+                effort = "Not specified"
+                services = []
+
+            service_lines = [
+                f"  - {_normalize_report_text(value)}"
+                for value in services
+                if _normalize_report_text(value)
+            ]
+            if not service_lines:
+                service_lines = ["  - Not specified"]
+
+            lines.extend(
+                [
+                    f"### {rank}. {title}",
+                    f"- Category: {pillar}",
+                    f"- Why It Matters: {description}",
+                    f"- Impact: {impact}",
+                    f"- Effort: {effort}",
+                    "- Related Azure Services:",
+                    *service_lines,
+                ]
+            )
 
     lines.extend(["", "## Quick Fixes"])
-    quick_fixes = _as_list(payload.get("quick_configuration_fixes"))
-    lines.extend(_render_bullets(quick_fixes, fallback="None"))
+    quick_fixes_raw = _as_list(payload.get("quick_configuration_fixes"))
+    quick_fixes = _dedupe_by_key(
+        quick_fixes_raw,
+        lambda item: "|".join(
+            [
+                _normalize_key(item.get("title") if isinstance(item, Mapping) else item),
+                _normalize_key(item.get("resource") if isinstance(item, Mapping) else ""),
+                _normalize_key(item.get("current_state") if isinstance(item, Mapping) else ""),
+            ]
+        ),
+    )
+    if not quick_fixes:
+        lines.append("- No quick fixes were required from the current configuration posture.")
+    else:
+        for index, item in enumerate(quick_fixes, start=1):
+            if isinstance(item, Mapping):
+                title = _normalize_report_text(item.get("title"), as_sentence=True) or "Quick fix item."
+                resource = _normalize_report_text(item.get("resource")) or "Not specified"
+                current_state = _normalize_report_text(item.get("current_state"), as_sentence=True) or "Not specified."
+                target_state = _normalize_report_text(item.get("target_state"), as_sentence=True) or "Not specified."
+                impact = _normalize_report_text(item.get("impact")) or "Not specified"
+            else:
+                title = _normalize_report_text(item, as_sentence=True) or "Quick fix item."
+                resource = "Not specified"
+                current_state = "Not specified."
+                target_state = "Not specified."
+                impact = "Not specified"
+
+            lines.extend(
+                [
+                    f"### {index}. {title}",
+                    f"- Resource: {resource}",
+                    f"- Current State: {current_state}",
+                    f"- Target State: {target_state}",
+                    f"- Impact: {impact}",
+                ]
+            )
+
+    lines.extend(["", "## Verification Checklist by Category"])
+    category_groups: dict[str, list[str]] = {
+        "Reliability": [],
+        "Security": [],
+        "Cost Optimization": [],
+        "Operational Excellence": [],
+        "Performance Efficiency": [],
+        "Uncategorized": [],
+    }
+
+    title_to_category: dict[str, str] = {}
+
+    for item in priority_improvements:
+        if not isinstance(item, Mapping):
+            continue
+        category = _pillar_label(item.get("pillar"))
+        category_key = category if category in category_groups else "Uncategorized"
+        suggestion = _normalize_report_text(item.get("title"), as_sentence=True)
+        if suggestion:
+            category_groups[category_key].append(suggestion)
+            title_to_category[_normalize_key(suggestion)] = category_key
+
+    for item in quick_fixes:
+        if not isinstance(item, Mapping):
+            continue
+        suggestion = _normalize_report_text(item.get("title"), as_sentence=True)
+        if suggestion:
+            inferred_category = title_to_category.get(_normalize_key(suggestion), "Operational Excellence")
+            category_key = inferred_category if inferred_category in category_groups else "Operational Excellence"
+            category_groups[category_key].append(suggestion)
+
+    for pillar_name, pillar_data in (pillar_assessment.items() if isinstance(pillar_assessment, Mapping) else []):
+        details = pillar_data if isinstance(pillar_data, Mapping) else {}
+        category = _pillar_label(pillar_name)
+        category_key = category if category in category_groups else "Uncategorized"
+        for rec in _as_list(details.get("top_recommendations")):
+            suggestion = _normalize_report_text(rec, as_sentence=True)
+            if suggestion:
+                category_groups[category_key].append(suggestion)
+
+    for category_name in ["Reliability", "Security", "Cost Optimization", "Operational Excellence", "Performance Efficiency", "Uncategorized"]:
+        unique_suggestions = _dedupe_by_key(category_groups.get(category_name, []), lambda value: _normalize_key(value))
+        lines.extend([f"### {category_name}", f"- Total Suggestions: {len(unique_suggestions)}"])
+        if unique_suggestions:
+            lines.extend(["- Suggestions:", *[f"  - {item}" for item in unique_suggestions]])
+        else:
+            lines.append("- Suggestions: No actionable items were generated for this category in this run; continue monitoring and re-validate after architecture changes.")
 
     return "\n".join(lines).rstrip() + "\n"
 

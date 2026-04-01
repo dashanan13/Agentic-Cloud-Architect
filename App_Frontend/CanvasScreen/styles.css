@@ -2599,6 +2599,12 @@ circle.canvas-edge-midpoint:hover {
   margin: 0;
 }
 
+.validation-report__list--nested {
+  margin-top: 4px;
+  padding-left: 16px;
+  gap: 3px;
+}
+
 /* ---- Finding cards ---- */
 .validation-finding {
   border: 1px solid #eef0f6;

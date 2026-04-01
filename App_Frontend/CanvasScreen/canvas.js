@@ -6644,7 +6644,17 @@ function pushMarkdownBlock(targetBlocks, activeBlock) {
 
   if (activeBlock.type === "list") {
     const items = Array.isArray(activeBlock.items)
-      ? activeBlock.items.map((item) => String(item || "").trim()).filter(Boolean)
+      ? activeBlock.items
+        .map((item) => {
+          if (item && typeof item === "object") {
+            const text = String(item.text || "").trim();
+            const level = Number.isFinite(Number(item.level)) ? Math.max(0, Number(item.level)) : 0;
+            return text ? { text, level } : null;
+          }
+          const text = String(item || "").trim();
+          return text ? { text, level: 0 } : null;
+        })
+        .filter(Boolean)
       : [];
     if (items.length) {
       targetBlocks.push({ type: "list", items });
@@ -6732,17 +6742,19 @@ function parseFinalReportMarkdown(markdownText) {
       return;
     }
 
-    const bulletMatch = trimmed.match(/^[-*]\s+(.*)$/);
+    const bulletMatch = line.match(/^(\s*)[-*]\s+(.*)$/);
     if (bulletMatch) {
-      const itemText = String(bulletMatch[1] || "").trim();
-      if (!itemText) {
+      const indent = String(bulletMatch[1] || "").replace(/\t/g, "    ").length;
+      const itemLevel = Math.floor(indent / 2);
+      const textValue = String(bulletMatch[2] || "").trim();
+      if (!textValue) {
         return;
       }
       if (!activeBlock || activeBlock.type !== "list") {
         flushActiveBlock();
         activeBlock = { type: "list", items: [] };
       }
-      activeBlock.items.push(itemText);
+      activeBlock.items.push({ text: textValue, level: itemLevel });
       return;
     }
 
@@ -6766,7 +6778,43 @@ function renderFinalReportBlocks(blocks) {
   return safeBlocks.map((block) => {
     if (block?.type === "list") {
       const items = Array.isArray(block.items) ? block.items : [];
-      return `<ul class="validation-report__list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+
+      const normalizedItems = items
+        .map((item) => {
+          if (item && typeof item === "object") {
+            const text = String(item.text || "").trim();
+            const level = Number.isFinite(Number(item.level)) ? Math.max(0, Number(item.level)) : 0;
+            return text ? { text, level } : null;
+          }
+          const text = String(item || "").trim();
+          return text ? { text, level: 0 } : null;
+        })
+        .filter(Boolean);
+
+      if (!normalizedItems.length) {
+        return "";
+      }
+
+      const root = [];
+      const stack = [{ level: -1, children: root }];
+
+      normalizedItems.forEach((item) => {
+        while (stack.length > 1 && item.level <= stack[stack.length - 1].level) {
+          stack.pop();
+        }
+        const node = { text: item.text, children: [] };
+        stack[stack.length - 1].children.push(node);
+        stack.push({ level: item.level, children: node.children });
+      });
+
+      const renderNodes = (nodes, nested = false) => {
+        if (!Array.isArray(nodes) || !nodes.length) {
+          return "";
+        }
+        return `<ul class="validation-report__list${nested ? " validation-report__list--nested" : ""}">${nodes.map((node) => `<li>${escapeHtml(node.text)}${renderNodes(node.children, true)}</li>`).join("")}</ul>`;
+      };
+
+      return renderNodes(root, false);
     }
     const text = String(block?.text || "").trim();
     return text ? `<p class="validation-report__paragraph">${escapeHtml(text)}</p>` : "";
