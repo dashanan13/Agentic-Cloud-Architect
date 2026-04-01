@@ -3515,27 +3515,30 @@ def _pillar_label(value: Any) -> str:
     return mapping.get(raw, _normalize_report_text(value) or "Uncategorized")
 
 
-def _build_resource_display_lookup(project_dir: Path) -> dict[str, str]:
+def _build_resource_display_lookup(project_dir: Path) -> dict[str, dict[str, str]]:
     state_path = project_dir / "Architecture" / "canvas.state.json"
     state_payload = read_json_file(state_path, {})
     if not isinstance(state_payload, Mapping):
         return {}
 
     items = state_payload.get("canvasItems") if isinstance(state_payload.get("canvasItems"), list) else []
-    lookup: dict[str, str] = {}
+    lookup: dict[str, dict[str, str]] = {}
     for item in items:
         if not isinstance(item, Mapping):
             continue
         resource_id = _as_text(item.get("id"))
         if not resource_id:
             continue
-        resource_name = _as_text(item.get("name")) or _as_text(item.get("resourceType"))
-        if resource_name:
-            lookup[resource_id] = resource_name
+        resource_name = _as_text(item.get("name"))
+        resource_type = _as_text(item.get("resourceType") or item.get("resourceName") or item.get("type"))
+        lookup[resource_id] = {
+            "name": resource_name,
+            "type": resource_type,
+        }
     return lookup
 
 
-def _format_resource_reference(value: Any, resource_lookup: Mapping[str, str]) -> str:
+def _format_resource_reference(value: Any, resource_lookup: Mapping[str, Any]) -> str:
     resource_id = _normalize_report_text(value)
     if not resource_id:
         return "Not specified"
@@ -3543,8 +3546,22 @@ def _format_resource_reference(value: Any, resource_lookup: Mapping[str, str]) -
     if _normalize_key(resource_id) == "global":
         return "Global (global)"
 
-    resource_name = _normalize_report_text(resource_lookup.get(resource_id))
-    if resource_name and _normalize_key(resource_name) != _normalize_key(resource_id):
+    resource_entry = resource_lookup.get(resource_id)
+    resource_name = ""
+    resource_type = ""
+    if isinstance(resource_entry, Mapping):
+        resource_name = _normalize_report_text(resource_entry.get("name"))
+        resource_type = _normalize_report_text(resource_entry.get("type"))
+    elif resource_entry is not None:
+        resource_name = _normalize_report_text(resource_entry)
+
+    if not resource_name:
+        resource_name = resource_id
+
+    if resource_type:
+        return f"{resource_type}: {resource_name} ({resource_id})"
+
+    if _normalize_key(resource_name) != _normalize_key(resource_id):
         return f"{resource_name} ({resource_id})"
     return resource_id
 
