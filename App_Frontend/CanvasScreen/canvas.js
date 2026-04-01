@@ -2732,6 +2732,15 @@ function buildSelectedResourcePropertyMarkup(selectedItem) {
     markup = buildGenericResourcePropertyMarkup(selectedItem);
   }
 
+  const resourceIdRowMarkup = [
+    '<label class="property-row">',
+    '<span class="property-label">Resource Id</span>',
+    `<input class="property-input" type="text" value="${escapeHtml(String(selectedItem.id || ""))}" readonly aria-readonly="true" />`,
+    '</label>'
+  ].join("");
+
+  markup = markup.replace('<div class="property-group__body">', `<div class="property-group__body">${resourceIdRowMarkup}`);
+
   return markup.replace('<div class="property-form">', '<div class="property-form">' + viewToggleMarkup);
 }
 
