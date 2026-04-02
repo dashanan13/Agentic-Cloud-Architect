@@ -3478,7 +3478,7 @@ def _normalize_report_text(value: Any, *, as_sentence: bool = False) -> str:
         return ""
     normalized = re.sub(r"\s+", " ", text).strip()
     if "..." in normalized:
-        normalized = normalized.replace("...", " [truncated in source]")
+        normalized = normalized.replace("...", "\u2026")
     if as_sentence and normalized and normalized[-1] not in ".!?":
         normalized = f"{normalized}."
     return normalized

@@ -780,7 +780,17 @@ def _parse_waf_markdown_to_findings(markdown_text: str, service_slug: str = "") 
         if len(raw) < 20:
             continue
 
-        title = raw[:120] + ("..." if len(raw) > 120 else "")
+        # Extract the first sentence (up to '. ') as a clean, non-truncated title.
+        # WAF guide bullets follow the pattern "Short imperative. Longer explanation..."
+        # so the first sentence is always a complete and meaningful label.
+        dot_pos = raw.find(". ")
+        if 0 < dot_pos < 160:
+            title = raw[:dot_pos + 1]  # include the period
+        elif len(raw) <= 160:
+            title = raw
+        else:
+            # No sentence break within 160 chars — take up to the last word boundary
+            title = raw[:157].rsplit(" ", 1)[0].rstrip(",;:") + "."
         finding: dict[str, Any] = {
             "title": title,
             "message": raw,
