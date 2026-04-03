@@ -1817,7 +1817,6 @@ circle.canvas-edge-midpoint:hover {
    CHAT & TIPS PANELS — restore inner padding
    ============================================================ */
 
-#panel-chat,
 #panel-tips {
   padding: 10px;
 }
@@ -1867,12 +1866,13 @@ circle.canvas-edge-midpoint:hover {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  padding: 0;
 }
 
 .chat-context-notice {
   flex: 0 0 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   padding: 8px 12px;
   background: #eef3fb;
@@ -1886,7 +1886,6 @@ circle.canvas-edge-midpoint:hover {
   flex-shrink: 0;
   font-size: 0.9rem;
   color: #3b82f6;
-  margin-top: 1px;
 }
 
 .chat-history {
@@ -1974,7 +1973,8 @@ circle.canvas-edge-midpoint:hover {
 .chat-compose {
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-end;
   gap: 6px;
   padding: 8px 10px;
   border-top: 1px solid #e5e8ef;
@@ -1982,7 +1982,7 @@ circle.canvas-edge-midpoint:hover {
 }
 
 .chat-input {
-  width: 100%;
+  flex: 1;
   resize: none;
   font-size: 0.82rem;
   padding: 7px 9px;
@@ -1994,6 +1994,9 @@ circle.canvas-edge-midpoint:hover {
   line-height: 1.4;
   box-sizing: border-box;
   outline: none;
+  min-height: calc(1.4em + 16px);
+  max-height: calc((1.4em * 5) + 16px);
+  overflow-y: auto;
 }
 
 .chat-input:focus {
@@ -2008,6 +2011,9 @@ circle.canvas-edge-midpoint:hover {
 
 .chat-compose .btn {
   align-self: flex-end;
+  flex: 0 0 auto;
+  height: 30px;
+  white-space: nowrap;
 }
 
 /* ============================================================

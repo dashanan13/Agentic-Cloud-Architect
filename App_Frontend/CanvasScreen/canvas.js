@@ -109,6 +109,7 @@ function formatContextWindow(modelName) {
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
+const CHAT_INPUT_MAX_LINES = 5;
 let saveRequestInFlight = false;
 let queuedSaveOptions = null;
 let activeSavePromise = Promise.resolve();
@@ -7259,6 +7260,23 @@ async function loadArchitectureChatHistory() {
   }
 }
 
+function resizeChatInput() {
+  if (!chatInputEl) {
+    return;
+  }
+
+  const styles = window.getComputedStyle(chatInputEl);
+  const lineHeight = Number.parseFloat(styles.lineHeight) || 18;
+  const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+  const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
+  const maxHeight = Math.round((lineHeight * CHAT_INPUT_MAX_LINES) + paddingTop + paddingBottom);
+
+  chatInputEl.style.height = "auto";
+  const nextHeight = Math.min(chatInputEl.scrollHeight, maxHeight);
+  chatInputEl.style.height = `${nextHeight}px`;
+  chatInputEl.style.overflowY = chatInputEl.scrollHeight > maxHeight ? "auto" : "hidden";
+}
+
 function setChatBusy(isBusy) {
   chatRequestInFlight = Boolean(isBusy);
   if (chatSendBtn) {
@@ -7279,6 +7297,11 @@ async function resetChatPanel() {
   if (chatHistoryEl) {
     chatHistoryEl.innerHTML = chatInitialMarkup;
     chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }
+
+  if (chatInputEl) {
+    chatInputEl.value = "";
+    resizeChatInput();
   }
 
   await Promise.allSettled([
@@ -7332,6 +7355,7 @@ async function sendChatMessage() {
 
   appendChatMessage(message);
   chatInputEl.value = "";
+  resizeChatInput();
 
   setChatBusy(true);
   const loadingMessageEl = appendLoadingMessage();
@@ -7362,12 +7386,14 @@ async function sendChatMessage() {
 }
 
 chatSendBtn?.addEventListener("click", sendChatMessage);
+chatInputEl?.addEventListener("input", resizeChatInput);
 chatInputEl?.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     sendChatMessage();
   }
 });
+resizeChatInput();
 
 // ===== Project Name Editing =====
 projectNameDisplay?.addEventListener("blur", () => {
