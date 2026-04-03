@@ -2324,6 +2324,19 @@ circle.canvas-edge-midpoint:hover {
   overflow-wrap: break-word;
 }
 
+.validation-stage-details__substep-notes {
+  margin: 2px 0 0 0;
+  padding: 0 0 0 12px;
+  list-style: disc;
+}
+
+.validation-stage-details__substep-notes li {
+  font-size: 0.63rem;
+  line-height: 1.4;
+  color: #9ca3af;
+  word-break: break-word;
+}
+
 .validation-stage-details__empty {
   margin: 0;
   font-size: 0.67rem;

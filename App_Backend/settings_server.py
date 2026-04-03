@@ -424,6 +424,40 @@ def _append_validation_log_event(
 
 def _parse_validation_log_line(line: str) -> dict[str, Any] | None:
     raw_line = str(line or "").strip()
+    if not raw_line:
+        return None
+
+    timestamp_line_match = re.match(r"^\[([^\]]+)\]\s+(.*)$", raw_line)
+    if timestamp_line_match:
+        timestamp_text = str(timestamp_line_match.group(1) or "").strip()
+        message = str(timestamp_line_match.group(2) or "").strip()
+        if not message:
+            return None
+        return {
+            "timestamp": timestamp_text,
+            "activity": "validation.log.line",
+            "details": {
+                "level": "INFO",
+                "message": message,
+            },
+        }
+
+    level_match = re.match(r"^\[(INFO|WARN|WARNING|ERROR|DEBUG)\]\s+(.*)$", raw_line, re.IGNORECASE)
+    if level_match:
+        raw_level = str(level_match.group(1) or "INFO").strip().upper()
+        level = "WARN" if raw_level == "WARNING" else raw_level
+        message = str(level_match.group(2) or "").strip()
+        if not message:
+            return None
+        return {
+            "timestamp": "",
+            "activity": "validation.log.line",
+            "details": {
+                "level": level,
+                "message": message,
+            },
+        }
+
     if not raw_line.startswith("timestamp="):
         return None
 

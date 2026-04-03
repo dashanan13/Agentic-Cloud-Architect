@@ -7459,6 +7459,21 @@ const VALIDATION_PIPELINE_STAGES = [
 const VALIDATION_STAGE_WEIGHT = 100 / VALIDATION_PIPELINE_STAGES.length;
 let validationPipelineStubInFlight = false;
 let validationPipelineAnimationFrame = null;
+const VALIDATION_LOG_POLL_INTERVAL_MS = 800;
+let validationLogPollingTimer = null;
+let validationLogPollingInFlight = false;
+let validationLogLastEventCount = 0;
+
+const VALIDATION_STAGE_SUBSTEPS_BY_STAGE = {
+  "validate": ["json", "structure", "resources", "references", "connections", "environment"],
+  "graph-builder": ["normalize-types", "build-nodes", "resolve-hierarchy", "build-connections", "detect-relationships", "finalize-graph"],
+  "enricher": ["generate-summary", "process-resources", "run-detectors", "detect-global-risks", "generate-assumptions", "generate-unknowns", "finalize-output"],
+  "rule-engine": ["load-enriched-data", "initialize-rules", "evaluate-rules", "aggregate-violations", "finalize-output"],
+  "structured-findings": ["load-inputs", "normalize-data", "group-issues", "build-risk-summary", "finalize-output"],
+  "azure-learn-mcp": ["check-mcp-availability", "load-structured-findings", "map-risks-to-topics", "query-azure-learn-mcp", "process-results", "finalize-output"],
+  "ai-validation-agent": ["initialize-agent-state", "call-waf-mcp", "call-learn-mcp", "run-llm-reasoning", "finalize-output"],
+  "final-report": ["load-ai-output", "format-report", "generate-artifacts"],
+};
 
 const validationPipelineUiState = {
   percent: 0,
@@ -7547,6 +7562,7 @@ function setValidationStageDetails(stageKey, details = {}) {
           label: formatValidationSubstepLabel(substep.label || key),
           status: normalizeValidationSubstepStatus(substep.status),
           reason: String(substep.reason || "").trim(),
+          notes: Array.isArray(substep.notes) ? substep.notes : [],
         };
       })
       .filter(Boolean)
@@ -7591,6 +7607,410 @@ function setValidationStageDetailsFromPayload(stageKey, payload, substeps) {
   });
 }
 
+function getValidationSubstepRank(status) {
+  const normalized = normalizeValidationSubstepStatus(status);
+  if (normalized === "failed") return 5;
+  if (normalized === "completed") return 4;
+  if (normalized === "warning") return 3;
+  if (normalized === "in-progress") return 2;
+  if (normalized === "skipped") return 1;
+  return 0;
+}
+
+function ensureValidationStageSubsteps(stageKey) {
+  const detail = validationPipelineStageDetails[stageKey] || { substeps: [] };
+  const existing = Array.isArray(detail.substeps) ? detail.substeps : [];
+  if (existing.length) {
+    return existing;
+  }
+  const keys = Array.isArray(VALIDATION_STAGE_SUBSTEPS_BY_STAGE[stageKey])
+    ? VALIDATION_STAGE_SUBSTEPS_BY_STAGE[stageKey]
+    : [];
+  return keys.map((key) => ({
+    key,
+    label: formatValidationSubstepLabel(key),
+    status: "not-started",
+    reason: "",
+    notes: [],
+  }));
+}
+
+function updateValidationSubstepFromLog(stageKey, substepKey, status, reason = "") {
+  if (!(stageKey in validationPipelineStageDetails) || !substepKey) {
+    return false;
+  }
+
+  const normalizedIncoming = normalizeValidationSubstepStatus(status);
+  const substeps = ensureValidationStageSubsteps(stageKey).map((item) => ({ ...item }));
+  const idx = substeps.findIndex((item) => String(item?.key || "").trim() === substepKey);
+  if (idx < 0) {
+    substeps.push({
+      key: substepKey,
+      label: formatValidationSubstepLabel(substepKey),
+      status: normalizedIncoming,
+      reason: String(reason || "").trim(),
+    });
+    setValidationStageDetails(stageKey, { substeps });
+    renderValidationPipelinePanel();
+    return true;
+  }
+
+  const current = substeps[idx];
+  const currentRank = getValidationSubstepRank(current.status);
+  const incomingRank = getValidationSubstepRank(normalizedIncoming);
+  if (
+    incomingRank < currentRank
+    && !(current.status === "warning" && normalizedIncoming === "failed")
+  ) {
+    return false;
+  }
+
+  substeps[idx] = {
+    ...current,
+    status: normalizedIncoming,
+    reason: String(reason || (normalizedIncoming === "failed" ? current.reason : "")).trim(),
+  };
+
+  setValidationStageDetails(stageKey, { substeps });
+  renderValidationPipelinePanel();
+  return true;
+}
+
+function addValidationSubstepNote(stageKey, substepKey, note) {
+  if (!(stageKey in validationPipelineStageDetails) || !substepKey || !note) {
+    return false;
+  }
+  const substeps = ensureValidationStageSubsteps(stageKey).map((item) => ({ ...item }));
+  const idx = substeps.findIndex((item) => String(item?.key || "").trim() === substepKey);
+  if (idx < 0) {
+    return false;
+  }
+  const current = substeps[idx];
+  const notes = Array.isArray(current.notes) ? [...current.notes] : [];
+  notes.push(String(note).trim());
+  substeps[idx] = { ...current, notes };
+  setValidationStageDetails(stageKey, { substeps });
+  renderValidationPipelinePanel();
+  return true;
+}
+
+function isValidationRealtimeSubstepsEnabled() {
+  return Boolean(validationLogPollingTimer);
+}
+
+function findValidationStageKeyFromLogMessage(message) {
+  const text = String(message || "").toLowerCase();
+  if (!text) return "";
+  if (text.includes("input verification") || text.includes("validating json") || text.includes("validating structure")) return "validate";
+  if (text.includes("graph builder")) return "graph-builder";
+  if (text.includes("enricher")) return "enricher";
+  if (text.includes("rule engine")) return "rule-engine";
+  if (text.includes("structured findings")) return "structured-findings";
+  if (text.includes("knowledge retrieval") || text.includes("mcp connectivity") || text.includes("mcp queries")) return "azure-learn-mcp";
+  if (text.includes("ai agent validation") || text.includes("ai validation agent") || text.includes("waf mcp") || text.includes("learn mcp") || text.includes("llm reasoning")) return "ai-validation-agent";
+  if (text.includes("final report") || text.includes("markdown report") || text.includes("ai output loaded")) return "final-report";
+  return "";
+}
+
+function applyValidationLogMessageToPipeline(message, level = "INFO") {
+  const text = String(message || "").trim();
+  const lowerText = text.toLowerCase();
+  if (!text) {
+    return false;
+  }
+
+  const stageFromMessage = findValidationStageKeyFromLogMessage(text);
+
+  const stageStartedRules = [
+    { match: "Input Verification started", stage: "validate" },
+    { match: "Graph Builder started", stage: "graph-builder" },
+    { match: "Enricher started", stage: "enricher" },
+    { match: "Rule Engine started", stage: "rule-engine" },
+    { match: "Structured Findings started", stage: "structured-findings" },
+    { match: "Knowledge Retrieval started", stage: "azure-learn-mcp" },
+    { match: "Final Report started", stage: "final-report" },
+  ];
+
+  for (const rule of stageStartedRules) {
+    if (lowerText.includes(rule.match.toLowerCase())) {
+      setValidationStageStatus(rule.stage, "in-progress");
+      return true;
+    }
+  }
+
+  const stageCompletedRules = [
+    { match: "Validation completed", stage: "validate" },
+    { match: "Graph Builder completed", stage: "graph-builder" },
+    { match: "Enricher completed", stage: "enricher" },
+    { match: "Rule Engine completed", stage: "rule-engine" },
+    { match: "Structured Findings completed", stage: "structured-findings" },
+    { match: "Knowledge Retrieval completed", stage: "azure-learn-mcp" },
+    { match: "Final Report completed", stage: "final-report" },
+  ];
+
+  for (const rule of stageCompletedRules) {
+    if (lowerText.includes(rule.match.toLowerCase())) {
+      setValidationStageStatus(rule.stage, "completed");
+      return true;
+    }
+  }
+
+  if (lowerText.includes("validation: ai validation agent started")) {
+    setValidationStageStatus("ai-validation-agent", "in-progress");
+    updateValidationSubstepFromLog("ai-validation-agent", "initialize-agent-state", "in-progress");
+    updateValidationSubstepFromLog("ai-validation-agent", "initialize-agent-state", "completed");
+    return true;
+  }
+
+  // Iteration lines: "Validation: AI Validation Agent Iteration N Action=X Reason=..."
+  const iterMatch = text.match(/Validation: AI Validation Agent Iteration (\d+)\s+Action=(\S+)/i);
+  if (iterMatch) {
+    const iterNum = iterMatch[1];
+    const action = iterMatch[2].toUpperCase();
+    addValidationSubstepNote("ai-validation-agent", "run-llm-reasoning", `Iteration ${iterNum}: ${action}`);
+    return true;
+  }
+
+  if (lowerText.includes("validation: ai validation agent tool call: waf mcp")) {
+    setValidationStageStatus("ai-validation-agent", "in-progress");
+    // Mark WAF MCP in-progress — completion happens when the next tool call fires
+    updateValidationSubstepFromLog("ai-validation-agent", "call-waf-mcp", "in-progress");
+    return true;
+  }
+
+  if (lowerText.includes("validation: ai validation agent tool call: learn mcp")) {
+    setValidationStageStatus("ai-validation-agent", "in-progress");
+    // WAF MCP is now done
+    updateValidationSubstepFromLog("ai-validation-agent", "call-waf-mcp", "completed");
+    updateValidationSubstepFromLog("ai-validation-agent", "call-learn-mcp", "in-progress");
+    return true;
+  }
+
+  if (lowerText.includes("validation: ai validation agent tool call: llm reasoning")) {
+    setValidationStageStatus("ai-validation-agent", "in-progress");
+    // Complete WAF MCP if it was in-progress (Learn MCP may or may not have been called)
+    updateValidationSubstepFromLog("ai-validation-agent", "call-waf-mcp", "completed");
+    // Only complete Learn MCP if it was actually started (not-started → stays not-started)
+    const aiDetailLlm = validationPipelineStageDetails["ai-validation-agent"] || {};
+    const aiSubstepsLlm = Array.isArray(aiDetailLlm.substeps) ? aiDetailLlm.substeps : [];
+    const learnSubstepLlm = aiSubstepsLlm.find((s) => s.key === "call-learn-mcp");
+    const learnStatusLlm = learnSubstepLlm ? normalizeValidationSubstepStatus(learnSubstepLlm.status) : "not-started";
+    if (learnStatusLlm === "in-progress") {
+      updateValidationSubstepFromLog("ai-validation-agent", "call-learn-mcp", "completed");
+    }
+    updateValidationSubstepFromLog("ai-validation-agent", "run-llm-reasoning", "in-progress");
+    return true;
+  }
+
+  if (lowerText.includes("validation: ai validation agent completed")) {
+    // If Learn MCP was never called, mark it skipped
+    const aiDetail = validationPipelineStageDetails["ai-validation-agent"] || {};
+    const aiSubsteps = Array.isArray(aiDetail.substeps) ? aiDetail.substeps : [];
+    const learnMcpSubstep = aiSubsteps.find((s) => s.key === "call-learn-mcp");
+    if (!learnMcpSubstep || normalizeValidationSubstepStatus(learnMcpSubstep.status) === "not-started") {
+      updateValidationSubstepFromLog("ai-validation-agent", "call-learn-mcp", "skipped", "Not called by agent");
+    }
+    updateValidationSubstepFromLog("ai-validation-agent", "run-llm-reasoning", "completed");
+    updateValidationSubstepFromLog("ai-validation-agent", "finalize-output", "completed");
+    setValidationStageStatus("ai-validation-agent", "completed");
+    return true;
+  }
+
+  const substepRules = [
+    ["Validating JSON", "validate", "json", "in-progress"],
+    ["JSON is valid", "validate", "json", "completed"],
+    ["Validating Structure", "validate", "structure", "in-progress"],
+    ["Structure is valid", "validate", "structure", "completed"],
+    ["Validating Resources", "validate", "resources", "in-progress"],
+    ["Resources are valid", "validate", "resources", "completed"],
+    ["Validating References", "validate", "references", "in-progress"],
+    ["References are valid", "validate", "references", "completed"],
+    ["Validating Connections", "validate", "connections", "in-progress"],
+    ["Connections are valid", "validate", "connections", "completed"],
+    ["Validating Environment", "validate", "environment", "in-progress"],
+    ["Environment is valid", "validate", "environment", "completed"],
+
+    ["Graph Builder Normalizing Resource Types", "graph-builder", "normalize-types", "in-progress"],
+    ["Graph Builder resource types normalized", "graph-builder", "normalize-types", "completed"],
+    ["Graph Builder Building Nodes", "graph-builder", "build-nodes", "in-progress"],
+    ["Graph Builder nodes built", "graph-builder", "build-nodes", "completed"],
+    ["Graph Builder Resolving Hierarchy", "graph-builder", "resolve-hierarchy", "in-progress"],
+    ["Graph Builder hierarchy resolved", "graph-builder", "resolve-hierarchy", "completed"],
+    ["Graph Builder Building Connections", "graph-builder", "build-connections", "in-progress"],
+    ["Graph Builder connections built", "graph-builder", "build-connections", "completed"],
+    ["Graph Builder Detecting Relationships", "graph-builder", "detect-relationships", "in-progress"],
+    ["Graph Builder relationships detected", "graph-builder", "detect-relationships", "completed"],
+    ["Graph Builder Finalizing Graph", "graph-builder", "finalize-graph", "in-progress"],
+    ["Graph Builder graph finalized", "graph-builder", "finalize-graph", "completed"],
+
+    ["Generating Summary", "enricher", "generate-summary", "in-progress"],
+    ["Summary Generated", "enricher", "generate-summary", "completed"],
+    ["Processing Resources", "enricher", "process-resources", "in-progress"],
+    ["Processed ", "enricher", "process-resources", "completed"],
+    ["Running Detectors", "enricher", "run-detectors", "in-progress"],
+    ["Detectors completed", "enricher", "run-detectors", "completed"],
+    ["Detecting Global Risks", "enricher", "detect-global-risks", "in-progress"],
+    ["Global risks detected", "enricher", "detect-global-risks", "completed"],
+    ["Generating Assumptions", "enricher", "generate-assumptions", "in-progress"],
+    ["Assumptions generated", "enricher", "generate-assumptions", "completed"],
+    ["Generating Unknowns", "enricher", "generate-unknowns", "in-progress"],
+    ["Unknowns generated", "enricher", "generate-unknowns", "completed"],
+    ["Finalizing Output", "enricher", "finalize-output", "in-progress"],
+    ["Enriched architecture written", "enricher", "finalize-output", "completed"],
+
+    ["Loading Enriched Data", "rule-engine", "load-enriched-data", "in-progress"],
+    ["Loaded Enriched Data", "rule-engine", "load-enriched-data", "completed"],
+    ["Initializing Rules", "rule-engine", "initialize-rules", "in-progress"],
+    ["Initialized Rules", "rule-engine", "initialize-rules", "completed"],
+    ["Evaluating Rules", "rule-engine", "evaluate-rules", "in-progress"],
+    ["Rules Evaluated", "rule-engine", "evaluate-rules", "completed"],
+    ["Aggregating Violations", "rule-engine", "aggregate-violations", "in-progress"],
+    ["Violations Aggregated", "rule-engine", "aggregate-violations", "completed"],
+    ["Rule results written", "rule-engine", "finalize-output", "completed"],
+
+    ["Loading Inputs", "structured-findings", "load-inputs", "in-progress"],
+    ["Inputs loaded", "structured-findings", "load-inputs", "completed"],
+    ["Normalizing Data", "structured-findings", "normalize-data", "in-progress"],
+    ["Data normalized", "structured-findings", "normalize-data", "completed"],
+    ["Grouping Issues", "structured-findings", "group-issues", "in-progress"],
+    ["Issues grouped", "structured-findings", "group-issues", "completed"],
+    ["Building Risk Summary", "structured-findings", "build-risk-summary", "in-progress"],
+    ["Risk summary built", "structured-findings", "build-risk-summary", "completed"],
+    ["Structured findings written", "structured-findings", "finalize-output", "completed"],
+
+    ["Checking MCP Availability", "azure-learn-mcp", "check-mcp-availability", "in-progress"],
+    ["MCP Availability Checked", "azure-learn-mcp", "check-mcp-availability", "completed"],
+    ["Loading Structured Findings", "azure-learn-mcp", "load-structured-findings", "in-progress"],
+    ["Loaded Structured Findings", "azure-learn-mcp", "load-structured-findings", "completed"],
+    ["Mapping Risks to Topics", "azure-learn-mcp", "map-risks-to-topics", "in-progress"],
+    ["Mapped Topics", "azure-learn-mcp", "map-risks-to-topics", "completed"],
+    ["Querying Azure Learn MCP", "azure-learn-mcp", "query-azure-learn-mcp", "in-progress"],
+    ["MCP Queries Executed", "azure-learn-mcp", "query-azure-learn-mcp", "completed"],
+    ["Processing Results", "azure-learn-mcp", "process-results", "in-progress"],
+    ["Processed Topics", "azure-learn-mcp", "process-results", "completed"],
+    ["Knowledge base written", "azure-learn-mcp", "finalize-output", "completed"],
+
+    ["AI output loaded", "final-report", "load-ai-output", "completed"],
+    ["Markdown report generated", "final-report", "generate-artifacts", "completed"],
+  ];
+
+  const inferredSubstepStage = stageFromMessage || validationPipelineUiState.activeStageKey || "";
+
+  for (const [matchText, stage, step, status] of substepRules) {
+    if (!lowerText.includes(String(matchText).toLowerCase())) {
+      continue;
+    }
+    if (inferredSubstepStage && stage !== inferredSubstepStage) {
+      continue;
+    }
+    return updateValidationSubstepFromLog(stage, step, status);
+  }
+
+  if (inferredSubstepStage) {
+    for (const [matchText, stage, step, status] of substepRules) {
+      if (lowerText.includes(String(matchText).toLowerCase())) {
+        return updateValidationSubstepFromLog(stage, step, status);
+      }
+    }
+  }
+
+  const normalizedLevel = String(level || "").trim().toUpperCase();
+  if (normalizedLevel === "ERROR") {
+    const failedStage = stageFromMessage || validationPipelineUiState.activeStageKey || "validate";
+    setValidationStageDetails(failedStage, { error: text });
+    setValidationStageStatus(failedStage, "failed");
+    renderValidationPipelinePanel();
+    return true;
+  }
+
+  return false;
+}
+
+async function requestValidationLogEvents() {
+  const projectId = String(state.currentProject?.id || "").trim();
+  if (!projectId) {
+    return [];
+  }
+
+  const response = await fetch(`/api/project/${encodeURIComponent(projectId)}/architecture/validation/log`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    return [];
+  }
+
+  return Array.isArray(payload?.events) ? payload.events : [];
+}
+
+function stopValidationLogPolling() {
+  if (validationLogPollingTimer) {
+    window.clearInterval(validationLogPollingTimer);
+    validationLogPollingTimer = null;
+  }
+  validationLogPollingInFlight = false;
+  validationLogLastEventCount = 0;
+}
+
+async function pollValidationLogOnce() {
+  if (!validationPipelineStubInFlight || validationLogPollingInFlight) {
+    return;
+  }
+
+  validationLogPollingInFlight = true;
+  try {
+    const events = await requestValidationLogEvents();
+    if (!Array.isArray(events) || !events.length) {
+      return;
+    }
+
+    if (validationLogLastEventCount > events.length) {
+      validationLogLastEventCount = 0;
+    }
+
+    const newEvents = events.slice(validationLogLastEventCount);
+    validationLogLastEventCount = events.length;
+
+    for (const event of newEvents) {
+      const details = event?.details;
+      const level = typeof details === "object" && details
+        ? String(details.level || "INFO").trim().toUpperCase()
+        : "INFO";
+      const message = typeof details === "object" && details
+        ? String(details.message || "").trim()
+        : String(details || "").trim();
+      applyValidationLogMessageToPipeline(message, level);
+    }
+  } catch {
+  } finally {
+    validationLogPollingInFlight = false;
+  }
+}
+
+async function startValidationLogPolling() {
+  stopValidationLogPolling();
+  try {
+    const events = await requestValidationLogEvents();
+    validationLogLastEventCount = Array.isArray(events) ? events.length : 0;
+  } catch {
+    validationLogLastEventCount = 0;
+  }
+
+  validationLogPollingTimer = window.setInterval(() => {
+    pollValidationLogOnce();
+  }, VALIDATION_LOG_POLL_INTERVAL_MS);
+}
+
 function getFinalReportDownloadHref() {
   const projectId = String(state.currentProject?.id || "").trim();
   if (!projectId) {
@@ -7629,6 +8049,9 @@ function renderValidationPipelineMilestone(stage) {
     ? substeps.map((substep) => {
       const statusClass = normalizeValidationSubstepStatus(substep.status);
       const statusLabel = getValidationSubstepStatusLabel(substep.status);
+      const substepNotes = Array.isArray(substep.notes) && substep.notes.length
+        ? `<ul class="validation-stage-details__substep-notes">${substep.notes.map((n) => `<li>${escapeHtml(n)}</li>`).join("")}</ul>`
+        : "";
       return [
         '<li class="validation-stage-details__substep">',
         '<div class="validation-stage-details__substep-top">',
@@ -7636,6 +8059,7 @@ function renderValidationPipelineMilestone(stage) {
         `<span class="validation-stage-details__substep-status validation-stage-details__substep-status--${statusClass}">${escapeHtml(statusLabel)}</span>`,
         '</div>',
         substep.reason ? `<p class="validation-stage-details__substep-reason">${escapeHtml(substep.reason)}</p>` : "",
+        substepNotes,
         '</li>'
       ].join("");
     }).join("")
@@ -7761,6 +8185,14 @@ function setValidationStageStatus(stageKey, status) {
 
   validationPipelineUiState.stageStatuses[stageKey] = status;
   validationPipelineUiState.activeStageKey = status === "in-progress" ? stageKey : (validationPipelineUiState.activeStageKey === stageKey ? "" : validationPipelineUiState.activeStageKey);
+
+  if (status === "in-progress" && isValidationRealtimeSubstepsEnabled()) {
+    const current = validationPipelineStageDetails[stageKey] || { substeps: [] };
+    if (!Array.isArray(current.substeps) || !current.substeps.length) {
+      setValidationStageDetails(stageKey, { substeps: ensureValidationStageSubsteps(stageKey) });
+    }
+  }
+
   renderValidationPipelinePanel();
 }
 
@@ -8052,26 +8484,28 @@ async function runInputVerificationStage() {
   await animateValidationProgressTo(Math.min(stageProgressWeight * 0.08, stageProgressWeight), 240);
 
   const verificationPayload = await requestInputVerification(buildCurrentCanvasStatePayload());
-  setValidationStageDetailsFromPayload(stageKey, verificationPayload, substeps);
   const verificationErrors = Array.isArray(verificationPayload.errors) ? verificationPayload.errors : [];
-  const stepResults = Array.isArray(verificationPayload.stepResults) ? verificationPayload.stepResults : [];
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, verificationPayload, substeps);
+    const stepResults = Array.isArray(verificationPayload.stepResults) ? verificationPayload.stepResults : [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = (completedSubsteps / substeps.length) * stageProgressWeight;
-    await animateValidationProgressTo(target, 280);
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = (completedSubsteps / substeps.length) * stageProgressWeight;
+      await animateValidationProgressTo(target, 280);
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(stepRecord.error || verificationErrors[0] || "Unknown error").trim();
-      throw new Error(`Validation: Input Verification Failed - ${reason}`);
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(stepRecord.error || verificationErrors[0] || "Unknown error").trim();
+        throw new Error(`Validation: Input Verification Failed - ${reason}`);
+      }
     }
   }
 
@@ -8109,26 +8543,28 @@ async function runGraphBuilderStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const graphPayload = await requestGraphBuilder(buildCurrentCanvasStatePayload());
-  setValidationStageDetailsFromPayload(stageKey, graphPayload, substeps);
   const graphErrors = Array.isArray(graphPayload.errors) ? graphPayload.errors : [];
-  const stepResults = Array.isArray(graphPayload.stepResults) ? graphPayload.stepResults : [];
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, graphPayload, substeps);
+    const stepResults = Array.isArray(graphPayload.stepResults) ? graphPayload.stepResults : [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
-    await animateValidationProgressTo(target, 280);
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+      await animateValidationProgressTo(target, 280);
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(stepRecord.error || graphErrors[0] || "Unknown error").trim();
-      throw new Error(`Validation: Graph Builder Failed - ${reason}`);
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(stepRecord.error || graphErrors[0] || "Unknown error").trim();
+        throw new Error(`Validation: Graph Builder Failed - ${reason}`);
+      }
     }
   }
 
@@ -8168,25 +8604,27 @@ async function runEnricherStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const enricherPayload = await requestEnricher();
-  setValidationStageDetailsFromPayload(stageKey, enricherPayload, substeps);
-  const stepResults = Array.isArray(enricherPayload.stepResults) ? enricherPayload.stepResults : [];
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, enricherPayload, substeps);
+    const stepResults = Array.isArray(enricherPayload.stepResults) ? enricherPayload.stepResults : [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
-    await animateValidationProgressTo(target, 280);
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+      await animateValidationProgressTo(target, 280);
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(stepRecord.error || enricherPayload.error || "Unknown error").trim();
-      throw new Error(`Validation: Enricher Failed - ${reason}`);
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(stepRecord.error || enricherPayload.error || "Unknown error").trim();
+        throw new Error(`Validation: Enricher Failed - ${reason}`);
+      }
     }
   }
 
@@ -8224,25 +8662,27 @@ async function runRuleEngineStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const ruleEnginePayload = await requestRuleEngine();
-  setValidationStageDetailsFromPayload(stageKey, ruleEnginePayload, substeps);
-  const stepResults = Array.isArray(ruleEnginePayload.stepResults) ? ruleEnginePayload.stepResults : [];
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, ruleEnginePayload, substeps);
+    const stepResults = Array.isArray(ruleEnginePayload.stepResults) ? ruleEnginePayload.stepResults : [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
-    await animateValidationProgressTo(target, 280);
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+      await animateValidationProgressTo(target, 280);
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(stepRecord.error || ruleEnginePayload.error || "Unknown error").trim();
-      throw new Error(`Validation: Rule Engine Failed - ${reason}`);
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(stepRecord.error || ruleEnginePayload.error || "Unknown error").trim();
+        throw new Error(`Validation: Rule Engine Failed - ${reason}`);
+      }
     }
   }
 
@@ -8281,25 +8721,27 @@ async function runKnowledgeRetrievalStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const knowledgePayload = await requestKnowledgeRetrieval();
-  setValidationStageDetailsFromPayload(stageKey, knowledgePayload, substeps);
-  const stepResults = Array.isArray(knowledgePayload.stepResults) ? knowledgePayload.stepResults : [];
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, knowledgePayload, substeps);
+    const stepResults = Array.isArray(knowledgePayload.stepResults) ? knowledgePayload.stepResults : [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
-    await animateValidationProgressTo(target, 280);
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+      await animateValidationProgressTo(target, 280);
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(stepRecord.error || knowledgePayload.error || "Unknown error").trim();
-      throw new Error(`Validation: Knowledge Retrieval Failed - ${reason}`);
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(stepRecord.error || knowledgePayload.error || "Unknown error").trim();
+        throw new Error(`Validation: Knowledge Retrieval Failed - ${reason}`);
+      }
     }
   }
 
@@ -8348,25 +8790,27 @@ async function runStructuredFindingsStage() {
   await animateValidationProgressTo(Math.min(stageStart + (stageSpan * 0.08), stageEnd), 220);
 
   const structuredPayload = await requestStructuredFindings();
-  setValidationStageDetailsFromPayload(stageKey, structuredPayload, substeps);
-  const stepResults = Array.isArray(structuredPayload.stepResults) ? structuredPayload.stepResults : [];
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, structuredPayload, substeps);
+    const stepResults = Array.isArray(structuredPayload.stepResults) ? structuredPayload.stepResults : [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
-    await animateValidationProgressTo(target, 280);
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+      await animateValidationProgressTo(target, 280);
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(stepRecord.error || structuredPayload.error || "Unknown error").trim();
-      throw new Error(`Validation: Structured Findings Failed - ${reason}`);
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(stepRecord.error || structuredPayload.error || "Unknown error").trim();
+        throw new Error(`Validation: Structured Findings Failed - ${reason}`);
+      }
     }
   }
 
@@ -8429,30 +8873,33 @@ async function runAiValidationAgentStage() {
     .filter(Boolean);
 
   const substeps = [...baseSubsteps, ...iterationSubsteps];
-  setValidationStageDetailsFromPayload(stageKey, aiPayload, substeps);
   const failedSubsteps = [];
 
-  let completedSubsteps = 0;
-  for (const substep of substeps) {
-    const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
-    const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
-    if (!stepRecord) {
-      break;
-    }
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, aiPayload, substeps);
 
-    postInputVerificationMessage(substep.message);
-    completedSubsteps += 1;
-    const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
-    await animateValidationProgressTo(target, 280);
+    let completedSubsteps = 0;
+    for (const substep of substeps) {
+      const matchingRecords = stepResults.filter((item) => String(item?.step || "").trim() === substep.key);
+      const stepRecord = matchingRecords.length ? matchingRecords[matchingRecords.length - 1] : null;
+      if (!stepRecord) {
+        break;
+      }
 
-    if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
-      const reason = String(
-        stepRecord.error
-        || stepRecord.message
-        || aiPayload.error
-        || (stepRecord.status ? `Substep failed: ${String(stepRecord.status)}` : "Unknown error")
-      ).trim();
-      failedSubsteps.push({ key: substep.key, reason });
+      postInputVerificationMessage(substep.message);
+      completedSubsteps += 1;
+      const target = stageStart + ((completedSubsteps / substeps.length) * stageSpan);
+      await animateValidationProgressTo(target, 280);
+
+      if (String(stepRecord.status || "").trim().toLowerCase() === "failed") {
+        const reason = String(
+          stepRecord.error
+          || stepRecord.message
+          || aiPayload.error
+          || (stepRecord.status ? `Substep failed: ${String(stepRecord.status)}` : "Unknown error")
+        ).trim();
+        failedSubsteps.push({ key: substep.key, reason });
+      }
     }
   }
 
@@ -8515,7 +8962,9 @@ async function runFinalReportStage() {
     },
   ];
 
-  setValidationStageDetailsFromPayload(stageKey, finalReportPayload, substeps);
+  if (!isValidationRealtimeSubstepsEnabled()) {
+    setValidationStageDetailsFromPayload(stageKey, finalReportPayload, substeps);
+  }
 
   if (!finalReportPayload.ok) {
     const reason = String(finalReportPayload.error || "Final report generation failed").trim();
@@ -8544,6 +8993,7 @@ async function runValidationProcessStub() {
   setActiveTabByName("tips");
   ensureValidationPipelinePanel();
   resetValidationPipelinePanel();
+  await startValidationLogPolling();
 
   validationFinalReportState = null;
   renderValidationFinalReportPanel();
@@ -8609,6 +9059,7 @@ async function runValidationProcessStub() {
       postInputVerificationMessage(`${fallbackPrefix} ${reason}`, true);
     }
   } finally {
+    stopValidationLogPolling();
     btnValidate.disabled = false;
     btnValidate.style.opacity = "1";
     btnValidate.style.cursor = "pointer";
