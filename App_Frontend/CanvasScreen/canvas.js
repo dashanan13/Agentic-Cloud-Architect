@@ -6890,17 +6890,9 @@ function renderValidationFinalReportPanel() {
     bodyMarkup = `<p class="validation-report__state validation-report__state--error">${escapeHtml(String(reportState.error || "Unable to load final report."))}</p>`;
   } else if (hasReport) {
     const sections = Array.isArray(reportState.parsed.sections) ? reportState.parsed.sections : [];
-    const fullReportBanner = downloadHref
-      ? `<div class="validation-report__full-report-banner">
-          <span class="validation-report__full-report-banner-icon">&#9432;</span>
-          <span>This view shows a <strong>summarised report</strong> — up to 12 issues and top findings only. The downloaded file contains the <strong>complete report</strong> with all findings, anti-patterns, and recommendations.</span>
-          <a class="validation-report__full-report-banner-link" href="${downloadHref}" download>Download full report</a>
-        </div>`
-      : "";
     bodyMarkup = [
       '<div class="validation-report__header">',
-      `<p class="validation-report__meta">Artifact: ${escapeHtml(artifactPath)}${downloadHref ? ` · <a class="validation-stage-details__artifact-link" href="${downloadHref}" download>Download full report</a>` : ""}</p>`,
-      fullReportBanner,
+      `<p class="validation-report__meta">Summarised view — up to 12 issues and top findings.${downloadHref ? ` <a class="validation-stage-details__artifact-link" href="${downloadHref}" download>Download full report</a> for complete findings.` : ""}</p>`,
       '</div>',
       sections.length
         ? `<div class="validation-report__sections">${sections.map((section) => buildFinalReportSectionMarkup(section)).join("")}</div>`
@@ -8552,6 +8544,9 @@ async function runValidationProcessStub() {
   setActiveTabByName("tips");
   ensureValidationPipelinePanel();
   resetValidationPipelinePanel();
+
+  validationFinalReportState = null;
+  renderValidationFinalReportPanel();
 
   btnValidate.disabled = true;
   btnValidate.style.opacity = "0.5";
