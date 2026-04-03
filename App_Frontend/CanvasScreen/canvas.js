@@ -31,6 +31,7 @@ const statusRightWidthEl = document.getElementById("status-right-width");
 const chatHistoryEl = document.getElementById("chat-history");
 const chatInputEl = document.getElementById("chat-input");
 const chatSendBtn = document.getElementById("chat-send");
+const chatAgentStatusEl = document.getElementById("chat-agent-status-value");
 const chatRuntimeModelEl = document.getElementById("chat-runtime-model");
 const chatRuntimeMcpEl = document.getElementById("chat-runtime-mcp");
 const chatRuntimeCtxEl = document.getElementById("chat-runtime-ctx");
@@ -5636,6 +5637,16 @@ function setChatRuntimeValue(targetEl, text, tone = "") {
   targetEl.textContent = String(text || "");
 }
 
+function setChatAgentConnectionStatus(text, isConnected) {
+  if (!chatAgentStatusEl) {
+    return;
+  }
+
+  chatAgentStatusEl.classList.remove("chat-agent-status__value--connected", "chat-agent-status__value--unavailable");
+  chatAgentStatusEl.classList.add(isConnected ? "chat-agent-status__value--connected" : "chat-agent-status__value--unavailable");
+  chatAgentStatusEl.textContent = String(text || "");
+}
+
 function formatConnectionLabel(connection) {
   if (!connection || typeof connection !== "object") {
     return { text: "Unknown", tone: "warn" };
@@ -5655,10 +5666,10 @@ function formatConnectionLabel(connection) {
 function updateChatRuntimeStatus(meta) {
   const runtime = meta && typeof meta === "object" ? meta : {};
   const model = runtime.model && typeof runtime.model === "object" ? runtime.model : {};
+  const provider = String(model.provider || "").trim();
 
   const configuredModel = String(model.configuredModel || "").trim();
   const activeModel = String(model.activeModel || configuredModel || "Rule-based Azure Architect").trim();
-  const provider = String(model.provider || "").trim();
   const usedFoundryModel = Boolean(model.usedFoundryModel);
 
   // Prefer the configured model name for display; fall back to activeModel if unavailable.
@@ -5678,6 +5689,17 @@ function updateChatRuntimeStatus(meta) {
     ? runtime.connections
     : {};
   const mcpStatus = formatConnectionLabel(connections.azureMcp);
+  const foundryStatus = connections.azureFoundry && typeof connections.azureFoundry === "object"
+    ? connections.azureFoundry
+    : {};
+
+  if (chatAgentStatusEl) {
+    const foundryConfigured = Boolean(foundryStatus.configured);
+    const foundryConnected = Boolean(foundryStatus.connected);
+    const providerIsFoundry = provider === "azure-foundry";
+    const isConnected = foundryConnected || (providerIsFoundry && foundryConfigured) || (!providerIsFoundry && provider.length > 0);
+    setChatAgentConnectionStatus(isConnected ? "Connected" : "Unavailable", isConnected);
+  }
 
   setChatRuntimeValue(chatRuntimeMcpEl, mcpStatus.text, mcpStatus.tone);
 
@@ -5707,6 +5729,7 @@ async function loadArchitectureChatStatus() {
     const payload = await response.json();
     updateChatRuntimeStatus(payload);
   } catch {
+    setChatAgentConnectionStatus("Unavailable", false);
     setChatRuntimeValue(chatRuntimeModelEl, "Unavailable", "warn");
     setChatRuntimeValue(chatRuntimeMcpEl, "Unknown", "warn");
     setChatRuntimeValue(chatRuntimeCtxEl, "—", "");
@@ -7291,6 +7314,10 @@ async function resetChatPanel() {
   chatAgentState = null;
   setChatBusy(false);
 
+  if (chatAgentStatusEl) {
+    chatAgentStatusEl.classList.remove("chat-agent-status__value--connected", "chat-agent-status__value--unavailable");
+    chatAgentStatusEl.textContent = "Checking…";
+  }
   setChatRuntimeValue(chatRuntimeModelEl, "Loading...", "warn");
   setChatRuntimeValue(chatRuntimeMcpEl, "Loading...", "warn");
 

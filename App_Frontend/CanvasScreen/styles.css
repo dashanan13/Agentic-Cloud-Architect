@@ -1869,6 +1869,42 @@ circle.canvas-edge-midpoint:hover {
   padding: 0;
 }
 
+.chat-agent-status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #e5e8ef;
+  background: #ffffff;
+  font-size: 0.74rem;
+  color: #4a5568;
+}
+
+.chat-agent-status__label {
+  font-weight: 600;
+  color: #5c637a;
+}
+
+.chat-agent-status__value {
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.chat-agent-status__value--connected {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.chat-agent-status__value--unavailable {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+
 .chat-context-notice {
   flex: 0 0 auto;
   display: flex;
