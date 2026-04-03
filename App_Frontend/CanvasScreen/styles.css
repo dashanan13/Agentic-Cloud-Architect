@@ -2564,6 +2564,44 @@ circle.canvas-edge-midpoint:hover {
   gap: 6px;
 }
 
+.validation-report__full-report-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: #1e40af;
+  flex-wrap: wrap;
+}
+
+.validation-report__full-report-banner-icon {
+  flex-shrink: 0;
+  font-style: normal;
+  font-size: 0.8rem;
+}
+
+.validation-report__full-report-banner span {
+  flex: 1;
+  min-width: 0;
+  color: #1e3a5f;
+}
+
+.validation-report__full-report-banner-link {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #1d4ed8;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.validation-report__full-report-banner-link:hover {
+  color: #1e40af;
+}
+
 .validation-report__meta,
 .validation-report__state,
 .validation-report__empty,

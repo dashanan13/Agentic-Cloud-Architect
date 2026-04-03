@@ -3,10 +3,12 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY App_Backend/requirements.txt ./requirements.txt
+COPY patch_agent_framework.py ./patch_agent_framework.py
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends nodejs npm \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& pip install --no-cache-dir -r requirements.txt
+	&& pip install --no-cache-dir -r requirements.txt \
+	&& python3 /app/patch_agent_framework.py
 
 COPY App_Backend/settings_server.py ./settings_server.py
 COPY Agents ./Agents

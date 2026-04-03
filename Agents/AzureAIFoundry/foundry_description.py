@@ -95,9 +95,9 @@ class FoundryAssistantRunner:
         try:
             from agent_framework import Agent
             from agent_framework import AgentSession
-            from agent_framework.azure import AzureAIAgentClient
+            from agent_framework_azure_ai import AzureAIAgentClient
             from azure.identity.aio import ClientSecretCredential as AsyncClientSecretCredential
-        except ModuleNotFoundError as exc:
+        except (ModuleNotFoundError, ImportError) as exc:
             raise FoundryConfigurationError(
                 "Python package 'agent-framework-azure-ai' is required for Foundry chat. "
                 "Install backend dependencies and rebuild the app container."
@@ -278,6 +278,8 @@ class FoundryAssistantRunner:
             "already has an active run",
             "while a run",
             "can't add messages to",
+            "cancelling",
+            "cannot cancel run",
         )
         return any(marker in text for marker in retry_markers)
 

@@ -2832,7 +2832,7 @@ def _build_final_intelligent_report(
     priority_improvements: list[dict[str, Any]] = []
     quick_fixes: list[dict[str, Any]] = []
 
-    for idx, finding in enumerate(all_findings[:60]):
+    for idx, finding in enumerate(all_findings):
         if not isinstance(finding, Mapping):
             continue
         severity = _normalize_severity(finding.get("severity"))
@@ -2872,7 +2872,7 @@ def _build_final_intelligent_report(
                 }
             )
 
-        if len(priority_improvements) < 10 and severity in {"failure", "warning"}:
+        if severity in {"failure", "warning"}:
             priority_improvements.append(
                 {
                     "rank": len(priority_improvements) + 1,
@@ -2885,7 +2885,7 @@ def _build_final_intelligent_report(
                 }
             )
 
-        if len(quick_fixes) < 12 and severity in {"warning", "info"}:
+        if severity in {"warning", "info"}:
             quick_fixes.append(
                 {
                     "title": title,
@@ -2950,14 +2950,14 @@ def _build_final_intelligent_report(
         "architecture_summary": architecture_summary,
         "detected_services": detected_services,
         "scenario_findings": scenario_findings,
-        "configuration_issues": config_issues[:40],
-        "architecture_antipatterns": anti_patterns[:25],
-        "recommended_patterns": recommended_patterns[:20],
-        "missing_capabilities": missing_capabilities[:25],
+        "configuration_issues": config_issues,
+        "architecture_antipatterns": anti_patterns,
+        "recommended_patterns": recommended_patterns,
+        "missing_capabilities": missing_capabilities,
         "architecture_maturity": architecture_maturity,
         "pillar_assessment": pillar_assessment,
-        "priority_improvements": priority_improvements[:12],
-        "quick_configuration_fixes": quick_fixes[:20],
+        "priority_improvements": priority_improvements,
+        "quick_configuration_fixes": quick_fixes,
     }
 
 

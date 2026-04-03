@@ -3571,6 +3571,7 @@ def _format_final_report_markdown(
     *,
     resource_lookup: Mapping[str, Any] | None = None,
     project_description: str = "",
+    full_report: bool = False,
 ) -> str:
     safe_resource_lookup = resource_lookup if isinstance(resource_lookup, Mapping) else {}
     lines: list[str] = [
@@ -3830,9 +3831,9 @@ def _format_final_report_markdown(
             )
         )
 
-        max_issue_items = 12
-        visible_groups = ranked_groups[:max_issue_items]
-        hidden_count = max(0, len(ranked_groups) - len(visible_groups))
+        max_issue_items = None if full_report else 12
+        visible_groups = ranked_groups if full_report else ranked_groups[:max_issue_items]
+        hidden_count = 0 if full_report else max(0, len(ranked_groups) - len(visible_groups))
 
         for index, item in enumerate(visible_groups, start=1):
             group = item["group"]
@@ -4075,11 +4076,20 @@ def _run_final_report_stage(*, project_dir: Path) -> dict[str, Any]:
         payload,
         resource_lookup=resource_lookup,
         project_description=project_description,
+        full_report=False,
+    )
+    full_markdown_text = _format_final_report_markdown(
+        payload,
+        resource_lookup=resource_lookup,
+        project_description=project_description,
+        full_report=True,
     )
     step_results.append({"step": "format-report", "status": "completed"})
 
     step_results.append({"step": "generate-artifacts", "status": "started"})
     output_path.write_text(markdown_text, encoding="utf-8")
+    full_output_path = project_dir / "Documentation" / "final-report-full.md"
+    full_output_path.write_text(full_markdown_text, encoding="utf-8")
     step_results.append({"step": "generate-artifacts", "status": "completed"})
 
     _append_input_verification_log(log_path, "INFO", "Markdown report generated")
@@ -4088,6 +4098,7 @@ def _run_final_report_stage(*, project_dir: Path) -> dict[str, Any]:
     return {
         "ok": True,
         "artifactPath": "/Documentation/final-report.md",
+        "fullArtifactPath": "/Documentation/final-report-full.md",
         "inputPath": "/Documentation/final-report.json",
         "stepResults": step_results,
     }
@@ -4113,7 +4124,10 @@ def download_final_report_markdown(project_id: str):
     if not entry:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    report_path = entry["projectDir"] / "Documentation" / "final-report.md"
+    # Prefer the full (uncapped) report for download; fall back to display report
+    full_report_path = entry["projectDir"] / "Documentation" / "final-report-full.md"
+    display_report_path = entry["projectDir"] / "Documentation" / "final-report.md"
+    report_path = full_report_path if full_report_path.exists() else display_report_path
     if not report_path.exists() or not report_path.is_file():
         raise HTTPException(status_code=404, detail="Final report not found")
 
