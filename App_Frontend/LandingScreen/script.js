@@ -381,15 +381,6 @@ function renderProjectsList() {
     const actionsDiv = document.createElement("div");
     actionsDiv.className = "project-item-actions";
 
-    const oldCanvasBtn = document.createElement("button");
-    oldCanvasBtn.className = "btn-plain btn-old-canvas";
-    oldCanvasBtn.textContent = "Old Canvas";
-    oldCanvasBtn.title = "Open in the legacy canvas";
-    oldCanvasBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.location.href = `/old-canvas.html?projectId=${encodeURIComponent(project.id)}`;
-    });
-
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "btn-plain btn-delete";
     deleteBtn.textContent = "Delete";
@@ -407,7 +398,6 @@ function renderProjectsList() {
       }
     });
 
-    actionsDiv.appendChild(oldCanvasBtn);
     actionsDiv.appendChild(deleteBtn);
 
     item.appendChild(infoDiv);
@@ -445,6 +435,11 @@ function selectIacLanguage(value, event) {
 // ===== Initialization =====
 async function initialize() {
   try {
+    // Show loading indicator while projects load
+    if (projectsAzureContainer) {
+      projectsAzureContainer.innerHTML = '<div class="muted" style="padding:12px 0;text-align:center;">Loading projects…</div>';
+    }
+
     // Load projects and bootstrap Foundry in parallel
     await Promise.all([
       bootstrapFoundryDefaults(),
