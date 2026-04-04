@@ -4743,15 +4743,14 @@ def format_diagram_timestamp(now: datetime | None = None) -> str:
 def resolve_project_dir_for_write(project_id: str, project_name: str) -> Path:
     PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    fallback_folder_name = sanitize_segment(project_name, sanitize_segment(project_id, "project"))
-    desired_dir = PROJECTS_DIR / fallback_folder_name
+    desired_folder_name = sanitize_segment(project_id, "project")
+    desired_dir = PROJECTS_DIR / desired_folder_name
 
     existing_entry = find_project_entry(project_id)
     if not existing_entry:
         return desired_dir
 
     current_dir = existing_entry["projectDir"]
-    desired_folder_name = sanitize_segment(project_name, current_dir.name or "project")
     desired_dir = PROJECTS_DIR / desired_folder_name
 
     if desired_dir == current_dir:
