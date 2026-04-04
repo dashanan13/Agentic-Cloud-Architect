@@ -44,6 +44,29 @@ function setSelectedResourceName(value) {
   }
 }
 
+function setCanvasActionButtonsFrozen(isFrozen) {
+  const disabled = Boolean(isFrozen);
+  const opacity = disabled ? "0.5" : "1";
+  const cursor = disabled ? "not-allowed" : "pointer";
+  const actionButtons = [
+    btnExportDiagram,
+    btnProjectSave,
+    btnValidate,
+    btnGenerateCode,
+    btnProjectSettings,
+    btnProjectSettingsTemplate
+  ];
+
+  actionButtons.forEach((button) => {
+    if (!button) {
+      return;
+    }
+    button.disabled = disabled;
+    button.style.opacity = opacity;
+    button.style.cursor = cursor;
+  });
+}
+
 function setReachOutMenuOpen(isOpen) {
   if (!btnReachOut || !reachOutMenuEl) {
     return;
@@ -10519,9 +10542,7 @@ async function initialize() {
 
   // ===== PHASE 1: Freeze UI & Show Status =====
   appendStartupStageMessage("working", "Freezing heavy feature buttons...");
-  if (btnValidate) { btnValidate.disabled = true; btnValidate.style.opacity = "0.5"; btnValidate.style.cursor = "not-allowed"; }
-  if (btnGenerateCode) { btnGenerateCode.disabled = true; btnGenerateCode.style.opacity = "0.5"; btnGenerateCode.style.cursor = "not-allowed"; }
-  if (btnProjectSave) { btnProjectSave.disabled = true; btnProjectSave.style.opacity = "0.5"; btnProjectSave.style.cursor = "not-allowed"; }
+  setCanvasActionButtonsFrozen(true);
   if (chatInputEl) { chatInputEl.disabled = true; chatInputEl.style.opacity = "0.5"; chatInputEl.style.cursor = "not-allowed"; }
   if (chatSendBtn) { chatSendBtn.disabled = true; chatSendBtn.style.opacity = "0.5"; chatSendBtn.style.cursor = "not-allowed"; }
   appendStartupStageMessage("completed", "Completed: Buttons frozen");
@@ -10653,9 +10674,7 @@ async function initialize() {
       // ===== PHASE 4: Unlock Features =====
       setSaveStatus(`Project ready: ${state.currentProject.name || "Untitled"}`);
       appendStartupStageMessage("working", "Unfreezing feature buttons...");
-      if (btnValidate) { btnValidate.disabled = false; btnValidate.style.opacity = "1"; btnValidate.style.cursor = "pointer"; }
-      if (btnGenerateCode) { btnGenerateCode.disabled = false; btnGenerateCode.style.opacity = "1"; btnGenerateCode.style.cursor = "pointer"; }
-      if (btnProjectSave) { btnProjectSave.disabled = false; btnProjectSave.style.opacity = "1"; btnProjectSave.style.cursor = "pointer"; }
+      setCanvasActionButtonsFrozen(false);
       if (chatInputEl) { chatInputEl.disabled = false; chatInputEl.style.opacity = "1"; chatInputEl.style.cursor = "text"; }
       if (chatSendBtn) { chatSendBtn.disabled = false; chatSendBtn.style.opacity = "1"; chatSendBtn.style.cursor = "pointer"; }
       appendStartupStageMessage("completed", `✨ Completed: All systems ready! Project fully unlocked.`);
@@ -10664,9 +10683,7 @@ async function initialize() {
       setSaveStatus("Offline Mode.");
       appendStartupStageMessage("failed", "AI bootstrap encountered errors⚠️");
       appendStartupStageMessage("working", "Unfreezing buttons (offline mode)...");
-      if (btnValidate) { btnValidate.disabled = false; btnValidate.style.opacity = "1"; btnValidate.style.cursor = "pointer"; }
-      if (btnGenerateCode) { btnGenerateCode.disabled = false; btnGenerateCode.style.opacity = "1"; btnGenerateCode.style.cursor = "pointer"; }
-      if (btnProjectSave) { btnProjectSave.disabled = false; btnProjectSave.style.opacity = "1"; btnProjectSave.style.cursor = "pointer"; }
+      setCanvasActionButtonsFrozen(false);
       if (chatInputEl) { chatInputEl.disabled = false; chatInputEl.style.opacity = "1"; chatInputEl.style.cursor = "text"; }
       if (chatSendBtn) { chatSendBtn.disabled = false; chatSendBtn.style.opacity = "1"; chatSendBtn.style.cursor = "pointer"; }
       appendStartupStageMessage("completed", "Completed: Running in offline mode (limited functionality)");
