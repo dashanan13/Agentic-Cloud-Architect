@@ -94,6 +94,8 @@ class FoundryThreadMessenger:
 
         normalized: list[dict[str, Any]] = []
         has_timestamp = False
+        last_role = ""
+        last_content = ""
         for index, item in enumerate(raw_messages):
             role = self._normalize_role(self._model_get(item, "role"))
             if role not in {"user", "assistant"}:
@@ -103,6 +105,12 @@ class FoundryThreadMessenger:
             content_text = _normalize_message_for_display(role, content_text)
             if not content_text:
                 continue
+
+            # Suppress consecutive duplicates (same role + same text)
+            if role == last_role and content_text == last_content:
+                continue
+            last_role = role
+            last_content = content_text
 
             created_at = _coerce_created_at(
                 self._model_get(item, "created_at")
@@ -514,68 +522,113 @@ def _looks_like_activity_log_message(content: str) -> bool:
 
 
 def _normalize_message_for_display(role: str, content: str) -> str:
+    """Return clean display text for a thread message, or '' to suppress it."""
     safe_role = str(role or "").strip().lower()
     safe_content = str(content or "").strip()
     if not safe_content:
         return ""
 
+    # --- activity / project lifecycle logs ---
     if safe_content.startswith("[Architect Agent] Project "):
         return ""
-
     if _looks_like_activity_log_message(safe_content):
         return ""
 
-    if safe_role == "user":
-        extracted_user = _extract_user_message_from_prompt(safe_content)
-        if extracted_user:
-            return extracted_user
-        if _looks_like_internal_prompt(safe_content):
-            return ""
-        return safe_content
+    # --- classifier JSON responses (assistant role) ---
+    if _looks_like_classifier_json(safe_content):
+        return ""
 
-    if safe_role == "assistant":
-        if _looks_like_internal_prompt(safe_content):
-            tail = _extract_tail_after_user_marker(safe_content)
-            if tail:
-                return tail
-            return ""
-        return safe_content
+    # --- any orchestrator / system / classifier prompt (user role) ---
+    if _looks_like_orchestrator_prompt(safe_content):
+        if safe_role == "user":
+            extracted = _extract_user_text_from_orchestrator_prompt(safe_content)
+            return extracted or ""
+        return ""  # suppress assistant echoes of prompts
 
     return safe_content
 
 
-def _looks_like_internal_prompt(text: str) -> bool:
-    safe_text = str(text or "")
-    if not safe_text:
+# ---------------------------------------------------------------------------
+# Classifier / orchestrator detection helpers
+# ---------------------------------------------------------------------------
+
+def _looks_like_classifier_json(text: str) -> bool:
+    """Return True for JSON classifier responses like {"style":...} or {"scope":...}."""
+    safe = str(text or "").strip()
+    if not safe.startswith("{"):
         return False
+    compact = safe.lower().replace(" ", "")
+    if '"style"' in compact and '"confidence"' in compact and '"reason"' in compact:
+        return True
+    if '"scope"' in compact and '"confidence"' in compact and '"reason"' in compact:
+        return True
+    return False
 
-    if "You are an Azure cloud architect assistant." not in safe_text:
+
+# Prefixes that indicate an orchestrator / system prompt, NOT a real user message.
+_ORCHESTRATOR_PROMPT_PREFIXES = (
+    "You are a ",                # greeting, out-of-scope, classifier, familiarization
+    "Respond as a ",             # concise / detailed prompts
+    "Rewrite the following",     # summarizer prompt
+    "[Project Context]",         # conversational prompt with context
+    "[Conversation Context]",    # architect prompt with context
+    "[Project Data]",            # architect prompt
+)
+
+
+def _looks_like_orchestrator_prompt(text: str) -> bool:
+    """Return True for any orchestrator / system / classifier prompt, NOT a real user message."""
+    safe = str(text or "").strip()
+    if not safe:
         return False
+    for prefix in _ORCHESTRATOR_PROMPT_PREFIXES:
+        if safe.startswith(prefix):
+            return True
+    # Context blocks embedded mid-text
+    if "[Project Context]" in safe and "[End Context]" in safe:
+        return True
+    if "[Conversation Context]" in safe and "[End Context]" in safe:
+        return True
+    # Legacy pattern
+    if "You are an Azure cloud architect assistant." in safe:
+        return True
+    return False
 
-    return (
-        "User request:" in safe_text
-        or "User message:" in safe_text
-        or "Scenario hint:" in safe_text
-        or "Runtime context:" in safe_text
-        or "Response shape:" in safe_text
-    )
 
+def _extract_user_text_from_orchestrator_prompt(text: str) -> str:
+    """Extract the real user question from an orchestrator prompt.
 
-def _extract_user_message_from_prompt(text: str) -> str:
-    safe_text = str(text or "")
-    if not safe_text:
-        return ""
+    Tries these strategies in order:
+    1. Text after the last 'User message:' / 'User request:' label
+    2. Text after '[End Context]' or '[End Project Data]'
+    3. Empty string (suppress entirely)
+    """
+    safe = str(text or "").strip()
 
-    labels = ["User request:", "User message:"]
+    # Strategy 1: explicit label
+    labels = ("User message:", "User request:")
+    best_index = -1
+    best_label_len = 0
     for label in labels:
-        index = safe_text.rfind(label)
-        if index < 0:
-            continue
+        idx = safe.rfind(label)
+        if idx > best_index:
+            best_index = idx
+            best_label_len = len(label)
+    if best_index >= 0:
+        remainder = safe[best_index + best_label_len:].strip()
+        first_line = remainder.splitlines()[0].strip() if remainder else ""
+        if first_line:
+            return first_line
 
-        remainder = safe_text[index + len(label) :].strip()
-        extracted = remainder.splitlines()[0].strip() if remainder else ""
-        if extracted:
-            return extracted
+    # Strategy 2: text after context end markers
+    for marker in ("[End Context]", "[End Project Data]"):
+        idx = safe.rfind(marker)
+        if idx >= 0:
+            remainder = safe[idx + len(marker):].strip()
+            if remainder and not _looks_like_orchestrator_prompt(remainder) and not _looks_like_classifier_json(remainder):
+                lines = [line.strip() for line in remainder.splitlines() if line.strip()]
+                if lines:
+                    return lines[-1]
 
     return ""
 

@@ -7203,6 +7203,107 @@ function appendLoadingMessage() {
   return messageEl;
 }
 
+function buildChatHistoryCacheKey(projectId) {
+  const safeProjectId = String(projectId || "").trim();
+  return safeProjectId ? `architecture-chat-history:${safeProjectId}` : "";
+}
+
+function readCachedChatHistory(projectId) {
+  const key = buildChatHistoryCacheKey(projectId);
+  if (!key) {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((item) => ({
+        role: String(item?.role || "").trim().toLowerCase(),
+        content: String(item?.content || "").trim(),
+      }))
+      .filter((item) => (item.role === "user" || item.role === "assistant") && item.content);
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedChatHistory(projectId, messages) {
+  const key = buildChatHistoryCacheKey(projectId);
+  if (!key || !Array.isArray(messages)) {
+    return;
+  }
+
+  const normalized = messages
+    .map((item) => ({
+      role: String(item?.role || "").trim().toLowerCase(),
+      content: String(item?.content || "").trim(),
+    }))
+    .filter((item) => (item.role === "user" || item.role === "assistant") && item.content);
+
+  if (!normalized.length) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(key, JSON.stringify(normalized.slice(-300)));
+  } catch {
+  }
+}
+
+function renderChatHistoryMessages(messages) {
+  if (!chatHistoryEl) {
+    return;
+  }
+
+  if (!Array.isArray(messages) || !messages.length) {
+    chatHistoryEl.innerHTML = chatInitialMarkup;
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    return;
+  }
+
+  chatHistoryEl.innerHTML = "";
+  messages.forEach((item) => {
+    if (item.role === "user") {
+      appendChatMessage(item.content, false);
+    } else {
+      appendAssistantMessage(item.content, false);
+    }
+  });
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+}
+
+function syncChatHistoryCacheFromDom() {
+  if (!chatHistoryEl) {
+    return;
+  }
+
+  const projectId = state.currentProject?.id ? String(state.currentProject.id).trim() : "";
+  if (!projectId) {
+    return;
+  }
+
+  const nodes = Array.from(chatHistoryEl.querySelectorAll(".chat-message"));
+  const messages = nodes
+    .map((node) => {
+      const content = String(node?.textContent || "").trim();
+      if (!content || node.classList.contains("chat-message--loading")) {
+        return null;
+      }
+      const role = node.classList.contains("chat-message--user") ? "user" : "assistant";
+      return { role, content };
+    })
+    .filter(Boolean);
+
+  writeCachedChatHistory(projectId, messages);
+}
+
 function appendStartupStageMessage(status, label) {
   const normalizedStatus = String(status || "").trim().toLowerCase();
   const stageLabel = String(label || "").trim();
@@ -7231,8 +7332,7 @@ async function loadArchitectureChatHistory() {
   chatHistoryLoadInFlight = true;
   const projectId = state.currentProject?.id ? String(state.currentProject.id).trim() : "";
   if (!projectId) {
-    chatHistoryEl.innerHTML = chatInitialMarkup;
-    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    renderChatHistoryMessages([]);
     chatHistoryLoadInFlight = false;
     return;
   }
@@ -7259,30 +7359,23 @@ async function loadArchitectureChatHistory() {
         return { role, content };
       })
       .filter((item) => {
-        if (!item.content || !isDisplayableChatMessage(item.content)) {
+        if (!item.content) {
           return false;
         }
         return item.role === "user" || item.role === "assistant";
       });
 
     if (!validMessages.length) {
-      chatHistoryEl.innerHTML = chatInitialMarkup;
-      chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+      const cachedMessages = readCachedChatHistory(projectId);
+      renderChatHistoryMessages(cachedMessages);
       return;
     }
 
-    chatHistoryEl.innerHTML = "";
-    validMessages.forEach((item) => {
-      if (item.role === "user") {
-        appendChatMessage(item.content, false);
-      } else {
-        appendAssistantMessage(item.content, false);
-      }
-    });
-    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    renderChatHistoryMessages(validMessages);
+    writeCachedChatHistory(projectId, validMessages);
   } catch {
-    chatHistoryEl.innerHTML = chatInitialMarkup;
-    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    const cachedMessages = readCachedChatHistory(projectId);
+    renderChatHistoryMessages(cachedMessages);
   } finally {
     chatHistoryLoadInFlight = false;
   }
@@ -7420,6 +7513,7 @@ async function sendChatMessage() {
   }
 
   appendChatMessage(message);
+  syncChatHistoryCacheFromDom();
   chatInputEl.value = "";
   resizeChatInput();
 
@@ -7440,11 +7534,13 @@ async function sendChatMessage() {
 
     const assistantMessage = String(payload?.message || "I could not generate a response.").trim();
     appendAssistantMessage(assistantMessage || "I could not generate a response.");
+    syncChatHistoryCacheFromDom();
   } catch (error) {
     if (loadingMessageEl) {
       loadingMessageEl.remove();
     }
     appendAssistantMessage(error?.message || "Unable to complete AI chat request.");
+    syncChatHistoryCacheFromDom();
   } finally {
     setChatBusy(false);
     chatInputEl.focus();

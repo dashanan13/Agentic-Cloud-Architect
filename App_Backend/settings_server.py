@@ -5673,6 +5673,201 @@ def resolve_project_foundry_thread_id(entry: dict, app_settings: dict, purpose: 
     return str(thread_state.get("threadId") or "").strip() or None
 
 
+def _project_chat_store_path(entry: Mapping[str, Any]) -> Path:
+    project_dir = entry.get("projectDir") if isinstance(entry, Mapping) else None
+    if isinstance(project_dir, Path):
+        return project_dir / "Architecture" / "chat.history.json"
+    return WORKSPACE_ROOT / "Projects" / "_invalid" / "Architecture" / "chat.history.json"
+
+
+def _load_project_chat_store(entry: Mapping[str, Any]) -> dict[str, Any]:
+    path = _project_chat_store_path(entry)
+    payload = read_json_file(path, {})
+    if not isinstance(payload, dict):
+        payload = {}
+
+    messages_raw = payload.get("messages") if isinstance(payload.get("messages"), list) else []
+    messages: list[dict[str, str]] = []
+    for item in messages_raw:
+        if not isinstance(item, Mapping):
+            continue
+        role = str(item.get("role") or "").strip().lower()
+        content = str(item.get("content") or "").strip()
+        if role not in {"user", "assistant"} or not content:
+            continue
+        messages.append({"role": role, "content": content})
+
+    agent_state = payload.get("agentState") if isinstance(payload.get("agentState"), dict) else None
+    return {
+        "messages": messages,
+        "agentState": agent_state,
+        "path": path,
+    }
+
+
+def _persist_project_chat_store(
+    entry: Mapping[str, Any],
+    *,
+    append_messages: list[dict[str, str]] | None = None,
+    agent_state: Mapping[str, Any] | None = None,
+    max_messages: int = 400,
+) -> dict[str, Any]:
+    store = _load_project_chat_store(entry)
+    existing_messages = store.get("messages") if isinstance(store.get("messages"), list) else []
+
+    next_messages = list(existing_messages)
+    if isinstance(append_messages, list):
+        for item in append_messages:
+            if not isinstance(item, Mapping):
+                continue
+            role = str(item.get("role") or "").strip().lower()
+            content = str(item.get("content") or "").strip()
+            if role not in {"user", "assistant"} or not content:
+                continue
+            next_messages.append({"role": role, "content": content})
+
+    safe_max = max(50, min(int(max_messages or 400), 1500))
+    if len(next_messages) > safe_max:
+        next_messages = next_messages[-safe_max:]
+
+    persisted_agent_state = dict(agent_state) if isinstance(agent_state, Mapping) else store.get("agentState")
+
+    payload: dict[str, Any] = {
+        "projectId": str(entry.get("id") or "").strip(),
+        "updatedAtUtc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "messages": next_messages,
+    }
+    if isinstance(persisted_agent_state, dict):
+        payload["agentState"] = persisted_agent_state
+
+    path = store.get("path") if isinstance(store.get("path"), Path) else _project_chat_store_path(entry)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    return {
+        "messages": next_messages,
+        "agentState": persisted_agent_state if isinstance(persisted_agent_state, dict) else None,
+        "path": path,
+    }
+
+
+def _extract_user_text_from_internal_prompt(content: str) -> str:
+    safe_content = str(content or "")
+    labels = ("User request:", "User message:", "User query:", "Original user message:", "User input:")
+    for label in labels:
+        index = safe_content.rfind(label)
+        if index < 0:
+            continue
+        remainder = safe_content[index + len(label) :].strip()
+        first_line = remainder.splitlines()[0].strip() if remainder else ""
+        if first_line:
+            return first_line
+    return ""
+
+
+def _looks_like_internal_chat_message(content: str) -> bool:
+    safe = str(content or "").strip()
+    if not safe:
+        return True
+
+    lower = safe.lower()
+    if safe.startswith("[Architect Agent] Project "):
+        return True
+    if safe.startswith("[") and "\ntimestamp (utc):" in lower:
+        return True
+    if "you are an azure cloud architect assistant." in lower:
+        return True
+    if "respond as a senior azure architect." in lower:
+        return True
+    if "[project context]" in lower or "[conversation context]" in lower or "[project data]" in lower:
+        return True
+    if "response shape:" in lower or "runtime context:" in lower or "scenario hint:" in lower:
+        return True
+
+    if safe.startswith("{") and safe.endswith("}"):
+        compact = lower.replace(" ", "")
+        if '"style"' in compact and '"confidence"' in compact and '"reason"' in compact:
+            return True
+
+    return False
+
+
+def _normalize_chat_history_messages_for_ui(messages: list[Any]) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    last_role = ""
+    last_content = ""
+
+    def _extract_assistant_tail_from_internal_prompt(value: str) -> str:
+        safe_text = str(value or "")
+        labels = ("User request:", "User message:", "User query:", "Original user message:", "User input:")
+        last_index = -1
+        for label in labels:
+            index = safe_text.rfind(label)
+            if index > last_index:
+                last_index = index
+        if last_index < 0:
+            return ""
+        line_end = safe_text.find("\n", last_index)
+        if line_end < 0:
+            return ""
+        tail = safe_text[line_end + 1 :].strip()
+        if not tail:
+            return ""
+        if _looks_like_internal_chat_message(tail):
+            nested = _extract_assistant_tail_from_internal_prompt(tail)
+            return nested or ""
+        return tail
+
+    for index, item in enumerate(messages):
+        if not isinstance(item, Mapping):
+            continue
+
+        role = str(item.get("role") or "").strip().lower()
+        if role not in {"user", "assistant"}:
+            continue
+
+        content = str(item.get("content") or "").strip()
+        if not content:
+            continue
+
+        if role == "user" and _looks_like_internal_chat_message(content):
+            extracted = _extract_user_text_from_internal_prompt(content)
+            if extracted:
+                content = extracted
+            else:
+                continue
+        elif role == "assistant" and _looks_like_internal_chat_message(content):
+            extracted_tail = _extract_assistant_tail_from_internal_prompt(content)
+            if extracted_tail:
+                content = extracted_tail
+            else:
+                continue
+
+        safe_content = str(content or "").strip()
+        if safe_content.startswith("{") and safe_content.endswith("}"):
+            compact = safe_content.lower().replace(" ", "")
+            if '"style"' in compact and '"confidence"' in compact and '"reason"' in compact:
+                continue
+
+        if role == last_role and safe_content == last_content:
+            continue
+
+        message_id = str(item.get("id") or f"msg-{index}").strip() or f"msg-{index}"
+        created_at = item.get("createdAt")
+        normalized.append(
+            {
+                "id": message_id,
+                "role": role,
+                "content": safe_content,
+                "createdAt": created_at,
+            }
+        )
+        last_role = role
+        last_content = safe_content
+
+    return normalized
+
+
 def verify_foundry_settings(settings: dict) -> tuple[str, list[str]]:
     endpoint = str(settings.get("aiFoundryEndpoint") or settings.get("foundryEndpoint") or "").strip().rstrip("/")
     tenant_id = str(settings.get("azureTenantId") or settings.get("foundryTenantId") or "").strip()
@@ -6593,9 +6788,12 @@ def architecture_chat(body: ArchitectureChatPayload):
     foundry_thread_id = str(settings.get("foundryDefaultThreadId") or "").strip() or None
 
     project_context = None
+    project_entry: dict[str, Any] | None = None
+    effective_agent_state = body.agentState if isinstance(body.agentState, dict) else None
     if body.projectId:
         entry = find_project_entry(body.projectId)
         if entry:
+            project_entry = entry
             metadata = read_json_file(entry["metadataPath"], {})
             if not isinstance(metadata, dict):
                 metadata = {}
@@ -6643,6 +6841,15 @@ def architecture_chat(body: ArchitectureChatPayload):
             if resolved_thread_id:
                 foundry_thread_id = resolved_thread_id
 
+            if effective_agent_state is None:
+                try:
+                    chat_store = _load_project_chat_store(entry)
+                    persisted_agent_state = chat_store.get("agentState")
+                    if isinstance(persisted_agent_state, dict):
+                        effective_agent_state = persisted_agent_state
+                except Exception:
+                    effective_agent_state = None
+
     if not foundry_agent_id:
         raise HTTPException(status_code=400, detail="Azure AI Foundry chat agent is not configured.")
     if not foundry_thread_id:
@@ -6672,11 +6879,29 @@ def architecture_chat(body: ArchitectureChatPayload):
             response = run_cloudarchitect_chat_agent(
                 app_settings=settings,
                 user_message=message,
-                agent_state=body.agentState if isinstance(body.agentState, dict) else None,
+                agent_state=effective_agent_state,
                 project_context=project_context,
                 foundry_thread_id=foundry_thread_id,
                 foundry_agent_id=foundry_agent_id,
             )
+
+        if project_entry and isinstance(response, Mapping):
+            assistant_message = str(response.get("message") or "").strip()
+            response_agent_state = response.get("agentState") if isinstance(response.get("agentState"), Mapping) else None
+            append_messages: list[dict[str, str]] = []
+            if message:
+                append_messages.append({"role": "user", "content": message})
+            if assistant_message:
+                append_messages.append({"role": "assistant", "content": assistant_message})
+
+            try:
+                _persist_project_chat_store(
+                    project_entry,
+                    append_messages=append_messages,
+                    agent_state=response_agent_state,
+                )
+            except Exception:
+                pass
 
         _record_orchestration_event(
             settings,
@@ -6753,6 +6978,7 @@ def architecture_chat_status(projectId: str | None = None):
 
 @app.get("/api/chat/architecture/history")
 def architecture_chat_history(projectId: str, limit: int = 300):
+    """Return chat history by reading the current Foundry thread — nothing else."""
     safe_project_id = str(projectId or "").strip()
     if not safe_project_id:
         raise HTTPException(status_code=400, detail="projectId is required")
@@ -6773,24 +6999,20 @@ def architecture_chat_history(projectId: str, limit: int = 300):
     safe_limit = max(50, min(int(limit or 300), 1200))
     result = list_thread_messages(settings, thread_id=thread_id, limit=safe_limit)
 
-    if result.get("ok") and not result.get("skipped"):
-        return {
-            "projectId": entry["id"],
-            "threadId": thread_id,
-            "messages": result.get("messages", []),
-        }
-
     reason = str(result.get("reason") or "").strip().lower()
     detail = str(result.get("detail") or "").strip()
+
     if reason == "configuration-incomplete":
         raise HTTPException(status_code=400, detail=detail or "Azure AI Foundry configuration is incomplete.")
-    if reason == "request-failed":
+    if not result.get("ok") and reason == "request-failed":
         raise HTTPException(status_code=502, detail=detail or "Azure AI Foundry history request failed.")
+
+    thread_messages = result.get("messages") if isinstance(result.get("messages"), list) else []
 
     return {
         "projectId": entry["id"],
         "threadId": thread_id,
-        "messages": [],
+        "messages": thread_messages[-safe_limit:],
     }
 
 
