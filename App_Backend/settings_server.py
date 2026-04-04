@@ -50,7 +50,7 @@ from Agents.AzureMCP.iac_generation_agent import generate_bicep_iac_from_canvas
 from Agents.common.activity_log import log_activity as write_activity_log
 from Agents.common.activity_log import resolve_logs_dir as resolve_activity_logs_dir
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -5004,7 +5004,6 @@ def ensure_project_foundry_thread_state(
         and resolved_thread_id
         and _thread_contains_validation_history(app_settings, resolved_thread_id)
     ):
-        legacy_chat_thread_id = str(resolved_thread_id).strip()
         known_validation_thread_id = _get_known_project_foundry_thread_id(
             resolved_settings,
             resolved_metadata,
@@ -5015,43 +5014,11 @@ def ensure_project_foundry_thread_state(
             resolved_settings, resolved_metadata, validation_settings_changed, validation_metadata_changed = _apply_project_foundry_thread_id(
                 resolved_settings,
                 resolved_metadata,
-                legacy_chat_thread_id,
+                str(resolved_thread_id).strip(),
                 purpose="validation",
             )
             settings_changed = settings_changed or validation_settings_changed
             metadata_changed = metadata_changed or validation_metadata_changed
-
-        replacement_thread_result = ensure_project_foundry_thread(
-            app_settings,
-            project_id=entry["id"],
-            known_thread_id=None,
-            purpose="chat",
-        )
-        replacement_thread_id = str(replacement_thread_result.get("threadId") or "").strip()
-        if replacement_thread_id and replacement_thread_id != legacy_chat_thread_id:
-            _append_app_activity(
-                "foundry.thread",
-                status="info",
-                project_id=entry["id"],
-                category="foundry",
-                step="chat-thread-rotated",
-                source="backend.foundry",
-                details={
-                    "oldThreadId": legacy_chat_thread_id,
-                    "newThreadId": replacement_thread_id,
-                    "validationThreadId": str(
-                        _get_known_project_foundry_thread_id(
-                            resolved_settings,
-                            resolved_metadata,
-                            purpose="validation",
-                        )
-                        or ""
-                    ).strip(),
-                    "reason": "legacy-thread-contained-validation-history",
-                },
-            )
-            resolved_thread_id = replacement_thread_id
-            thread_result = replacement_thread_result
 
     if resolved_thread_id:
         resolved_settings, resolved_metadata, current_settings_changed, current_metadata_changed = _apply_project_foundry_thread_id(
@@ -6745,7 +6712,7 @@ def architecture_chat(body: ArchitectureChatPayload):
             detail=str(exc),
             child_agent_id=foundry_agent_id,
         )
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        return JSONResponse(status_code=502, content={"agentUnavailable": True, "detail": str(exc)})
     except Exception as exc:
         _record_orchestration_event(
             settings,

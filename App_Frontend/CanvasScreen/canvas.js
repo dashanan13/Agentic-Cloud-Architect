@@ -110,6 +110,7 @@ function formatContextWindow(modelName) {
 const chatInitialMarkup = chatHistoryEl ? chatHistoryEl.innerHTML : "";
 let chatAgentState = null;
 let chatRequestInFlight = false;
+let chatHistoryLoadInFlight = false;
 const CHAT_INPUT_MAX_LINES = 5;
 let saveRequestInFlight = false;
 let queuedSaveOptions = null;
@@ -7223,14 +7224,16 @@ function appendStartupStageMessage(status, label) {
 }
 
 async function loadArchitectureChatHistory() {
-  if (!chatHistoryEl) {
+  if (!chatHistoryEl || chatHistoryLoadInFlight) {
     return;
   }
 
+  chatHistoryLoadInFlight = true;
   const projectId = state.currentProject?.id ? String(state.currentProject.id).trim() : "";
   if (!projectId) {
     chatHistoryEl.innerHTML = chatInitialMarkup;
     chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    chatHistoryLoadInFlight = false;
     return;
   }
 
@@ -7256,7 +7259,7 @@ async function loadArchitectureChatHistory() {
         return { role, content };
       })
       .filter((item) => {
-        if (!item.content) {
+        if (!item.content || !isDisplayableChatMessage(item.content)) {
           return false;
         }
         return item.role === "user" || item.role === "assistant";
@@ -7280,7 +7283,39 @@ async function loadArchitectureChatHistory() {
   } catch {
     chatHistoryEl.innerHTML = chatInitialMarkup;
     chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  } finally {
+    chatHistoryLoadInFlight = false;
   }
+}
+
+function isDisplayableChatMessage(content) {
+  const text = String(content || "").trim();
+  if (!text) {
+    return false;
+  }
+
+  if (text.startsWith("[Architect Agent] Project ")) {
+    return false;
+  }
+
+  if (text.startsWith("[") && text.includes("\nTimestamp (UTC):")) {
+    return false;
+  }
+
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("you are an azure cloud architect assistant.")
+    && (
+      lower.includes("user request:")
+      || lower.includes("user message:")
+      || lower.includes("response shape:")
+      || lower.includes("runtime context:")
+    )
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 function resizeChatInput() {
@@ -7359,9 +7394,13 @@ async function requestArchitectureChat(message) {
 
   if (!response.ok) {
     if (response.status === 404) {
-      appendAssistantMessage("I noticed that the AI agents or threads are missing. Let me try restoring them...");
       await verifyFoundryAgentsAndThreads();
-      return await requestArchitectureChat(message); // Retry once after restoring
+      return await requestArchitectureChat(message); // Retry once after restoring agents
+    }
+    if (payload?.agentUnavailable === true) {
+      // Agent tried multiple times and is genuinely unavailable — update status badge
+      setChatAgentConnectionStatus("Unavailable", false);
+      throw new Error("The AI agent is temporarily unavailable. Please try again in a moment.");
     }
     const detail = payload?.detail ? String(payload.detail) : "AI chat request failed.";
     throw new Error(detail);
@@ -7414,6 +7453,9 @@ async function sendChatMessage() {
 
 chatSendBtn?.addEventListener("click", sendChatMessage);
 chatInputEl?.addEventListener("input", resizeChatInput);
+document.getElementById("tab-chat")?.addEventListener("click", () => {
+  loadArchitectureChatHistory();
+});
 chatInputEl?.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
@@ -10492,15 +10534,6 @@ async function initialize() {
   // 3b. Boot up AI services
   (async function bootAI() {
     try {
-      appendStartupStageMessage("working", "Loading chat runtime status...");
-      await loadArchitectureChatStatus();
-      appendStartupStageMessage("completed", "Completed: Chat runtime status loaded");
-
-      appendStartupStageMessage("working", "Restoring chat history...");
-      // Skip chat history load during bootstrap to preserve startup messages
-      // await loadArchitectureChatHistory();
-      appendStartupStageMessage("completed", "Completed: Chat history loaded (startup messages preserved)");
-
       appendStartupStageMessage("working", "Initializing AI defaults...");
       await bootstrapFoundryDefaultsOnLoad();
       appendStartupStageMessage("completed", "Completed: AI defaults initialized");
@@ -10508,6 +10541,14 @@ async function initialize() {
       appendStartupStageMessage("working", "Verifying AI agents and threads...");
       await verifyFoundryAgentsAndThreads();
       appendStartupStageMessage("completed", "Completed: AI agents verified");
+
+      appendStartupStageMessage("working", "Loading chat runtime status...");
+      await loadArchitectureChatStatus();
+      appendStartupStageMessage("completed", "Completed: Chat runtime status loaded");
+
+      appendStartupStageMessage("working", "Restoring chat history...");
+      await loadArchitectureChatHistory();
+      appendStartupStageMessage("completed", "Completed: Chat history loaded");
 
       appendStartupStageMessage("working", "Loading architecture validation status...");
       await loadArchitectureValidationStatus({ silent: true });
