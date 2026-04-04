@@ -53,6 +53,26 @@ const DESCRIPTION_EVAL_DELAY_MS = 4000;
 const DEFAULT_IAC_LANGUAGE = "bicep";
 const DEFAULT_IAC_PARAMETER_FORMAT = "bicepparam";
 
+let _savedSnapshot = "";
+
+function _formSnapshot() {
+  return JSON.stringify(collectSettings());
+}
+
+function _refreshSaveButton() {
+  if (!btnSave) {
+    return;
+  }
+  const isDirty = _formSnapshot() !== _savedSnapshot;
+  const isAdequate = (state.descriptionQuality?.index ?? 0) >= 2;
+  btnSave.disabled = !isDirty || !isAdequate;
+}
+
+function _captureSnapshot() {
+  _savedSnapshot = _formSnapshot();
+  _refreshSaveButton();
+}
+
 function getParams() {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -149,6 +169,8 @@ function setDescriptionQuality(levelIndex, levelLabel, statusMessage = "", score
   } else {
     setQualityStatus(`Quality: ${label}`);
   }
+
+  _refreshSaveButton();
 }
 
 function getSelectedIacLanguage(inputs, fallback = DEFAULT_IAC_LANGUAGE) {
@@ -313,6 +335,7 @@ async function improveDescription() {
     projectDescriptionInput.value = improved;
     syncDescriptionPlaceholder();
     scheduleDescriptionEvaluation();
+    _refreshSaveButton();
   } catch (error) {
     setQualityStatus("Quality: Improve failed", "error");
     setMessage(error.message || "Improve failed.", "error");
@@ -489,6 +512,7 @@ async function handleSave() {
     }
 
     state.settings = { ...settings };
+    _captureSnapshot();
     setMessage("project settings saved!", "success");
   } catch (error) {
     setMessage(error.message || "Failed to save project settings.", "error");
@@ -513,10 +537,15 @@ async function initialize() {
     return;
   }
 
+  if (btnSave) {
+    btnSave.disabled = true;
+  }
+
   try {
     await loadProjectDetails(state.projectId);
     await loadProjectSettings(state.projectId);
     populateForm();
+    _captureSnapshot();
     setMessage("Project settings loaded.", "info");
   } catch (error) {
     setMessage(error.message || "Unable to load project settings.", "error");
@@ -529,6 +558,7 @@ async function initialize() {
   projectDescriptionInput?.addEventListener("input", () => {
     scheduleDescriptionEvaluation();
     syncDescriptionPlaceholder();
+    _refreshSaveButton();
   });
 
   projectDescriptionInput?.addEventListener("focus", () => {
@@ -541,7 +571,20 @@ async function initialize() {
 
   projectTypeInput?.addEventListener("change", () => {
     scheduleDescriptionEvaluation();
+    _refreshSaveButton();
   });
+
+  projectIacLanguageInputs.forEach((input) => {
+    input.addEventListener("change", _refreshSaveButton);
+  });
+
+  projectIacParameterFormatInputs.forEach((input) => {
+    input.addEventListener("change", _refreshSaveButton);
+  });
+
+  projectThreadInput?.addEventListener("input", _refreshSaveButton);
+  projectValidationThreadInput?.addEventListener("input", _refreshSaveButton);
+  projectNameInput?.addEventListener("input", _refreshSaveButton);
 
   btnImproveDescription?.addEventListener("click", () => {
     improveDescription();
