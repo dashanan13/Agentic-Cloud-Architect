@@ -16,6 +16,7 @@ from Agents.AzureAIFoundry.foundry_bootstrap import (
     FoundryRequestError as FoundryChatRequestError,
 )
 from Agents.AzureAIFoundry.foundry_description import FoundryAssistantRunner
+from Agents.AzureAIFoundry.foundry_messages import FoundryThreadMessenger
 from Agents.common.activity_log import log_activity as write_activity_log
 
 DEFAULT_TOTAL_QUESTIONS = 4
@@ -796,6 +797,14 @@ def run_cloudarchitect_chat_agent(
         if is_off_topic:
             out_of_scope_count += 1
             assistant_message = _render_out_of_scope_response(text, out_of_scope_count)
+            # Post both user question and canned response to the thread so
+            # history reload doesn't show an orphan user message.
+            _post_canned_exchange_to_thread(
+                app_settings=app_settings,
+                thread_id=foundry_thread_id,
+                user_message=text,
+                assistant_message=assistant_message,
+            )
             _log_chat_event(
                 "chat.response.redirected",
                 level="info",
@@ -1785,6 +1794,32 @@ def _render_out_of_scope_response(user_message: str, out_of_scope_count: int = 1
     ]
 
     return responses[seed % len(responses)]
+
+
+def _post_canned_exchange_to_thread(
+    *,
+    app_settings: dict,
+    thread_id: str | None,
+    user_message: str,
+    assistant_message: str,
+) -> None:
+    """Post the user's question and the canned assistant reply to the Foundry
+    thread so the exchange survives a page reload.  Best-effort — failures are
+    logged but never propagated."""
+    if not thread_id:
+        return
+    try:
+        connection = FoundryConnectionSettings.from_app_settings(app_settings)
+        messenger = FoundryThreadMessenger(connection)
+        messenger.post_message(thread_id, user_message, role="user")
+        messenger.post_message(thread_id, assistant_message, role="assistant")
+    except Exception as exc:  # noqa: BLE001
+        _log_chat_event(
+            "chat.thread.post_canned_failed",
+            level="warning",
+            step="post-canned-exchange",
+            details={"error": str(exc)},
+        )
 
 
 def _build_foundry_out_of_scope_prompt(
